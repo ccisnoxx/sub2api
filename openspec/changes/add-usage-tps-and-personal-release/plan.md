@@ -1,7 +1,7 @@
 # Sub2API 平均输出 TPS 与个人分支维护方案
 
 - 编制日期：2026-10-08（America/Los_Angeles）。
-- 状态：P0/P1 已完成；P2 同步实现、临时仓库验证和独立复核已完成，最终必要门禁与定时启用正在验收；新发布 v0.2.14-klno.5 因历史改写停止待人工审查，P3/P4 待实施。实际结果见 [实施证据](implementation-evidence.md)。
+- 状态：P0/P1、P2.1–P2.8 和 P2.10 已完成；P2.9 真实 v0.2.14-klno.5 升级因历史改写/冲突停止，P2.11/P3/P4 待实施。实际结果见 [实施证据](implementation-evidence.md)。
 - 执行入口：[实施任务清单 tasks.md](tasks.md)，按 P0–P4 编号逐项实施并登记验证结果。
 - 讨论来源：[排查 Codex fast 开关配置](codex://threads/01a11a74-fc24-7473-a94f-e61b253867ac)，重点承接该会话最后关于 TPS、自有分支、镜像构建与 hostdzire 更新的讨论。
 - 目标仓库：`ccisnoxx/sub2api`；功能上游：`KlN-4096/sub2api` 的 `klno` 发布线。
@@ -297,6 +297,6 @@ pnpm --dir frontend run build
 
 P0.2/P0.6 的安全定义已通过普通推送在远端 main/personal 生效。P1 功能提交 `f74554702e6d55554342134b68fc54ff4a4ff541` 保留为 personal 祖先；应用来源仍是 `v0.2.14-klno.3` / `de08df02ae1d81668a22f798b398aa0438ac1276`，本轮未改变前端/后端应用及锁文件。
 
-P2 的同步实现、21 个合同用例、workflow actionlint 和两次独立只读复核完成。最终 personal 为 `029cd8fb8b04d18a6b3abe4528effe4aeec75859`，机器人演练 PR #2 候选为 `9c33a062c8ed50ea77ca17a05b789d88c94f54bb`；最终完整 CI 仍在运行，定时变量保持 false。错误 SHA 的实际 dispatch 已被拒绝，旧候选即使全部测试通过也因基础变化被最终门禁拒绝。已配置严格 personal 分支保护及 merge-only 设置。
+P2 的同步实现、21 个合同用例、workflow actionlint 和两次独立只读复核完成。最终 personal 为 `029cd8fb8b04d18a6b3abe4528effe4aeec75859`，机器人演练 PR #2 候选为 `9c33a062c8ed50ea77ca17a05b789d88c94f54bb`；显式、原生候选与 personal push 的完整 CI 均通过，PR 必要 personal-ready=pass。定时变量已设为 true 并读回，每日 UTC 03:17 定义 active，首个真实 schedule 尚未发生。错误 SHA 的实际 dispatch 已被拒绝，旧候选即使全部测试通过也因基础变化被最终门禁拒绝。已配置严格 personal 分支保护及 merge-only 设置。
 
-验收期间 KlN 发布 v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d；该目标不是当前来源 de08 的后代，实际流程在远端候选写入前停止，164 个文件的净差异及改写历史待人工审查。P2.9 的真实升级候选及 P2.11 保持未完成；演练不算升级，也不会合入。P3/P4 未实施，未发布镜像、未 SSH 或修改生产，首次 P3 仍使用原基线加 TPS 的固定 personal。具体 Actions/PR 和剩余条件见 implementation-evidence.md 第 6 节。
+验收期间 KlN 发布 v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d；该目标不是当前来源 de08 的后代，实际流程在远端候选写入前停止。只读普通合并预览有 120 个冲突文件，164 个文件的净差异及改写历史待人工审查。P2.9 的真实升级候选及 P2.11 保持未完成；演练不算升级，也不会合入。P3/P4 未实施，未发布镜像、未 SSH 或修改生产，首次 P3 仍使用原基线加 TPS 的固定 personal。具体 Actions/PR 和剩余条件见 implementation-evidence.md 第 6 节。

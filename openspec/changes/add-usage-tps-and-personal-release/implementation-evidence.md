@@ -206,17 +206,22 @@ node /Users/sc/.codex/visualizations/2026/10/08/01a11bf9-6de4-7391-a1e7-a440d2ff
 - 固定 personal `029cd8fb8b04d18a6b3abe4528effe4aeec75859`；main 的相同控制定义为 `2ad9c5be246844024afd67354931283d30e693e5`。两条分支的同步目录、四份工作流和维护约定完全一致。最终状态只回写 main，保持 personal 的检查输入不变。
 - [最终机器人演练](https://github.com/ccisnoxx/sub2api/actions/runs/37804458549) 创建 [草稿 PR #2](https://github.com/ccisnoxx/sub2api/pull/2)，候选 `9c33a062c8ed50ea77ca17a05b789d88c94f54bb`、基础为上述 personal。实际 fetch 核对仅增加 candidate.json，来源记录及 TPS 祖先不变；没有构造真实上游升级。
 - [显式最终候选 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37804514128) 和 [personal push CI](https://github.com/ccisnoxx/sub2api/actions/runs/37804451356) 全部 success：绑定、TPS/构建、21 个同步合同、既有 shell/Go 单元/集成/race/lint/前端关键检查/发布 helper、安全扫描及最终 personal-ready 均通过。
-- [原生候选 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37804516668) attempt 1 为 action_required；批准后的 attempt 2 中，既有 `TestPinnedOpenAIModelsListMixedAccountsShareColdCacheAcrossGroups` 在 openai_models_list_test.go:291 失败，API 调用次数期望 1、实际 2。核对维护源码发现 get(miss) 与 singleflight.DoChan 之间存在时间窗口，前一调用已完成时 refresh 不重查 fresh，可能重复 fetch；涉及代码/测试与 de08 基线完全相同，本轮未改动。相同 SHA 的显式/个人完整测试通过，支持按已定位的并发非确定性进行一次 `--failed` 重跑；attempt 3 只运行失败 backend test job 和最终门禁，其他成功结果复用，当前仍在运行。PR 实际必要检查当时仍显示原生 failure，不能以另一路 success 宣称合入门禁已绿。
+- [原生候选 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37804516668) attempt 1 为 action_required；批准后的 attempt 2 中，既有 `TestPinnedOpenAIModelsListMixedAccountsShareColdCacheAcrossGroups` 在 openai_models_list_test.go:291 失败，API 调用次数期望 1、实际 2。核对维护源码发现 get(miss) 与 singleflight.DoChan 之间存在时间窗口，前一调用已完成时 refresh 不重查 fresh，可能重复 fetch；涉及代码/测试与 de08 基线完全相同，本轮未改动。相同 SHA 的显式/个人完整测试通过，支持按已定位的并发非确定性进行一次 `--failed` 重跑；attempt 3 只运行失败 backend test job 和最终门禁，其他成功结果复用，最终全部 success。`gh pr checks 2 --required` 实际返回 personal-ready=pass，对应 [最终原生门禁](https://github.com/ccisnoxx/sub2api/actions/runs/37804516668/job/113419994583)。没有跳过测试、降低断言或改动上游应用来取得成功；既有并发窗口仍是应用侧后续事项。
 - [错误 SHA 实际 dispatch](https://github.com/ccisnoxx/sub2api/actions/runs/37804800869) 按预期 failure：ref 为测试提交 `7ce3b3a3196e97063066f941a71bb5a033f164fa`，输入 candidate/base 为 personal 029cd8；binding 输出“dispatch ref 的 SHA 与候选 SHA 不一致”，全部后续必要检查 skipped，personal-ready 失败。该负例没有更改正式候选。
 - [最终基础的无更新检查](https://github.com/ccisnoxx/sub2api/actions/runs/37805655832) success，输出 state=no_update、base=029cd8fb、upstream_tag=v0.2.14-klno.3、upstream_sha=de08df02；没有新升级 PR、来源变动或额外候选 CI。
 - [旧基础完整 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37802988804) 的所有测试和安全检查通过，但结束时 personal-ready 输出“personal 基础分支已变化”并 failure，验证测试期间基础前进后旧证据不能使用。原生旧基础 run 37802990043 同样 failure；PR #1 经确认过时后已关闭，未合并。
 - 实际 readback：personal 必须通过 `personal-ready`，App ID=15368，strict=true，enforce_admins=true；allow_force_pushes/allow_deletions=false，required_linear_history=false，允许普通 merge。此前保护为空，本轮新增门禁，没有削弱已有规则；Rulesets 仍为空。仓库 allow_merge_commit=true，allow_squash_merge/allow_rebase_merge=false。
-- Actions enabled=true；默认 token 权限保持 read，允许机器人创建 PR。每日 UTC 03:17 定义已推送两条分支，仓库变量 `PERSONAL_SYNC_SCHEDULE_ENABLED=false`，待最终完整 CI 后才启用；尚未观测真实 schedule 事件。
+- Actions enabled=true；默认 token 权限保持 read，允许机器人创建 PR。每日 UTC 03:17 定义已推送两条分支并 active。最终完整 CI、PR 实际必要门禁、独立复核和严格保护通过后，于 `2026-10-08T16:27:08Z` 设置并读回仓库变量 `PERSONAL_SYNC_SCHEDULE_ENABLED=true`；尚未观测首个真实 schedule 事件，不把手动 dispatch 当成定时触发证据。
+- [启用后的正常手动检查](https://github.com/ccisnoxx/sub2api/actions/runs/37808889397) 运行于 main 6f2bb91、verify_ci=false，按预期因新 .5 非来源后代而 failure，在远端候选写入前停止。PR #2 的正文已登记实际候选/基础和完整成功检查，保持草稿及“请勿合并”；旧 PR #1 已关闭，真实升级 PR 未创建。
 
 ### 验收期间的新发布与真实历史停止
 
 UTC 16:02 的无更新结果是真实当时状态。KlN 随后于 `2026-10-08T16:10:39Z` 发布 [v0.2.14-klno.5](https://github.com/KlN-4096/sub2api/releases/tag/v0.2.14-klno.5)，解引用为 `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。[再次自动解析](https://github.com/ccisnoxx/sub2api/actions/runs/37807041368) 在任何候选远端写入前停止，输出“上游目标不是记录来源的后代”。本地仅 fetch 到独立引用，确认 de08 不是新目标祖先，共同祖先为 cdd6e447661349b09316fb75d08a8a096c4a8708；两标签净差异 164 文件、6821 行增加/4161 行删除。workflow、迁移和 UsageTable 相关路径在这次净差异中为空；这不代替完整历史/功能审查。
 
+进一步只读运行 `git merge-tree --write-tree personal c7aacf5d3ae383d0d5c75f471f66e61690a5701d`，退出 1：普通合并产生 120 个冲突文件（24 content、96 add/add），涉及 gateway/gwpool、账号、前端和测试 runner，包含 UsageTable.spec.ts。输出保存在本机 `/tmp/sub2api-klno5-merge-preview.txt`，工作树仍干净；没有选择 ours/theirs、修改源码或创建远端升级候选。可见净差异为空也不代表历史重写后的三方合并没有冲突。该升级需另行完整审查、逐项解决冲突与重新验证。
+
 真实升级候选因历史改写停止，人工差异审查及 P2.9 真实升级部分未完成；没有绕过祖先检查、制造发布或合入演练。P2.11 依赖 P4，P3/P4 未开始。实际机器人修改 workflow 文件的 push 尚未验证；Workflows 权限受限时必须明确停止并用现有授权本机凭据处理，未新增令牌。首次 P3 继续使用原 KlN 基线加 TPS 的已检查 personal。
+
+本轮完成 P0.2/P0.6、P2.1–P2.8、P2.10；P2.9 仅勾选已验证子项。结果登记提交 `6f2bb91ded62c1d76947cefcbb2c1c47d05db435` 已普通推送 main，后续最终登记同样只修改 main 文档；personal 029cd8fb 及其有效检查输入保持不变。下一阶段先实现 P3 的来源/标签/发布门禁及 simple dry run，再按授权发布首次原基线加 TPS 镜像；当前没有个人发布标签、镜像或生产变更。
 
 阶段进度与最终远端验收以默认 main 的最新本文件、tasks.md 和开发日志为准；此阶段提交保存可复用固定源码，后续仅 main 的结果登记不改变 personal 基础或旧检查输入。
