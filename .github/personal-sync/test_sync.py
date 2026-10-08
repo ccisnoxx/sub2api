@@ -106,6 +106,30 @@ class GitTests(unittest.TestCase):
             sync.publish(self.prepare())
         self.assertEqual(sync.remote_head("origin", first["branch"]), altered)
 
+    def test_same_tree_without_upstream_history_is_not_reused(self):
+        first = sync.publish(self.prepare())
+        tree = sync.git("rev-parse", "HEAD^{tree}")
+        squashed = sync.git("commit-tree", tree, "-p", self.base, "-m", "same tree squash")
+        sync.git("push", "origin", f"{squashed}:refs/heads/squash-sample")
+        sync.git("--git-dir", str(self.remote), "update-ref", f"refs/heads/{first['branch']}", squashed)
+        with self.assertRaisesRegex(sync.SyncError, "丢失上游 merge 历史"):
+            sync.publish(self.prepare())
+        self.assertEqual(sync.remote_head("origin", first["branch"]), squashed)
+
+    def test_resolver_uses_isolated_tags_even_after_klno_rewrite(self):
+        upstream_remote = self.root / "upstream.git"
+        sync.git("init", "--bare", str(upstream_remote))
+        sync.git("remote", "add", "kln-source", str(upstream_remote))
+        # 发布标签保留在原提交；当前 klno 指向另一个历史。
+        sync.git("push", "kln-source", "personal:klno", "refs/tags/v0.2.14-klno.9", "refs/tags/v0.2.14-klno.10")
+        sync.git("tag", "-f", "v0.2.14-klno.10", self.initial)
+        tag, target = sync.resolve_target("")
+        self.assertEqual((tag, target), ("v0.2.14-klno.10", self.target))
+        self.assertEqual(sync.git("rev-parse", "v0.2.14-klno.10^{commit}"), self.initial)
+        self.assertEqual(sync.git("rev-parse", "refs/personal-sync/tags/v0.2.14-klno.10^{commit}"), self.target)
+        with self.assertRaisesRegex(sync.SyncError, "未发布 SHA 不属于"):
+            sync.resolve_target(self.target)
+
     def test_conflict_aborts_without_remote_writes(self):
         sync.git("switch", "upstream")
         Path("shared.txt").write_text("upstream conflict\n")
@@ -155,6 +179,17 @@ class GitTests(unittest.TestCase):
         target = self.commit("upstream workflow")
         with self.assertRaisesRegex(sync.SyncError, "同步控制文件"):
             sync.prepare(self.base, "v0.2.14-klno.11", target)
+
+    def test_upstream_cannot_weaken_reusable_ci_or_security(self):
+        for name in ["backend-ci.yml", "security-scan.yml"]:
+            with self.subTest(name=name):
+                sync.git("switch", "--detach", self.target)
+                path = Path(".github/workflows") / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("weakened check\n")
+                target = self.commit("weaken upstream check")
+                with self.assertRaisesRegex(sync.SyncError, "同步控制文件"):
+                    sync.prepare(self.base, "v0.2.14-klno.11", target)
 
     def test_manual_sha_record_does_not_invent_release_tag(self):
         sync.prepare(self.base, None, self.target)

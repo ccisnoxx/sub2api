@@ -16,7 +16,8 @@ SHA = re.compile(r"[0-9a-f]{40}")
 SOURCE = "deploy/personal-source.json"
 METADATA = ".github/personal-sync/candidate.json"
 CONTROL = [".github/personal-sync", ".github/workflows/sync-upstream.yml",
-           ".github/workflows/personal-ci.yml"]
+           ".github/workflows/personal-ci.yml", ".github/workflows/backend-ci.yml",
+           ".github/workflows/security-scan.yml"]
 
 
 class SyncError(RuntimeError):
@@ -82,6 +83,27 @@ def assert_base(base):
         raise SyncError("personal 基础分支已变化；停止并从最新基础重新运行")
 
 
+def resolve_target(target_input):
+    """发布标签独立于可能被 rebase 的 klno HEAD；未发布 SHA 必须属于当前发布线。"""
+    validate_input(target_input)
+    if SHA.fullmatch(target_input):
+        git("fetch", "--no-tags", "kln-source", "+refs/heads/klno:refs/personal-sync/klno")
+        git("cat-file", "-e", f"{target_input}^{{commit}}")
+        if not ancestor(target_input, "refs/personal-sync/klno"):
+            raise SyncError("未发布 SHA 不属于当前 KlN klno 发布线")
+        return None, target_input
+    refs = dict(line.split()[::-1] for line in git("ls-remote", "kln-source", "refs/tags/v*-klno.*").splitlines())
+    tag = target_input or select_tag(refs)
+    if f"refs/tags/{tag}" not in refs:
+        raise SyncError("指定标签不存在于 KlN 上游")
+    # 仅更新独立引用空间，不覆盖 fork 标签。
+    git("fetch", "--no-tags", "kln-source", f"+refs/tags/{tag}:refs/personal-sync/tags/{tag}")
+    target = git("rev-parse", f"refs/personal-sync/tags/{tag}^{{commit}}")
+    if target != refs.get(f"refs/tags/{tag}^{{}}", refs[f"refs/tags/{tag}"]):
+        raise SyncError("上游标签在解析期间变化，停止并重新运行")
+    return tag, target
+
+
 def prepare(base, tag, target, rehearsal=False):
     """调用前目标对象已固定；返回候选信息，冲突或历史改写不产生远端写入。"""
     source = source_at(base)
@@ -126,6 +148,8 @@ def publish(candidate):
         git("fetch", "--no-tags", "origin", f"refs/heads/{branch}")
         if git("rev-parse", f"{existing}^{{tree}}") != git("rev-parse", "HEAD^{tree}") or not ancestor(base, existing):
             raise SyncError("同名候选内容不一致；禁止覆盖或强推，请人工审查")
+        if candidate["mode"] == "upgrade" and not ancestor(candidate["upstream_sha"], existing):
+            raise SyncError("同名候选丢失上游 merge 历史，禁止复用同树 squash 提交")
         candidate["candidate_sha"] = existing
     else:
         result = run("git", "push", "origin", f"HEAD:refs/heads/{branch}", check=False)
@@ -201,22 +225,7 @@ def main():
     git("fetch", "--no-tags", "origin", "refs/heads/personal")
     base = git("rev-parse", "FETCH_HEAD")
     git("remote", "add", "kln-source", f"https://github.com/{UPSTREAM}.git")
-    refs = dict(line.split()[::-1] for line in git("ls-remote", "kln-source", "refs/tags/v*-klno.*").splitlines())
-    tag = None if SHA.fullmatch(target_input) else target_input or select_tag(refs)
-    git("fetch", "--no-tags", "kln-source", "refs/heads/klno:refs/personal-sync/klno")
-    if tag:
-        if f"refs/tags/{tag}" not in refs:
-            raise SyncError("指定标签不存在于 KlN 上游")
-        # 独立引用空间允许标签重新解析；不覆盖本 fork 的任何标签。
-        git("fetch", "--no-tags", "kln-source", f"+refs/tags/{tag}:refs/personal-sync/tags/{tag}")
-        target = git("rev-parse", f"refs/personal-sync/tags/{tag}^{{commit}}")
-        if target != refs.get(f"refs/tags/{tag}^{{}}", refs[f"refs/tags/{tag}"]):
-            raise SyncError("上游标签在解析期间变化，停止并重新运行")
-    else:
-        target = target_input
-        git("cat-file", "-e", f"{target}^{{commit}}")
-    if not ancestor(target, "refs/personal-sync/klno"):
-        raise SyncError("目标不属于 KlN klno 发布线")
+    tag, target = resolve_target(target_input)
     git("config", "user.name", "personal-sync-bot")
     git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
     candidate = prepare(base, tag, target, rehearsal)
