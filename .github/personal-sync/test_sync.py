@@ -116,6 +116,23 @@ class GitTests(unittest.TestCase):
             sync.publish(self.prepare())
         self.assertEqual(sync.remote_head("origin", first["branch"]), squashed)
 
+    def test_ci_rejects_same_tree_candidate_without_source_history(self):
+        self.prepare()
+        tree = sync.git("rev-parse", "HEAD^{tree}")
+        squashed = sync.git("commit-tree", tree, "-p", self.base, "-m", "same tree squash")
+        sync.git("switch", "--detach", squashed)
+        event_file = self.root / "event.json"
+        event_file.write_text("{}")
+        pr = {"state": "open", "base": {"ref": "personal", "sha": self.base},
+              "head": {"sha": squashed, "repo": {"full_name": sync.REPOSITORY}}}
+        environment = {"GITHUB_REPOSITORY": sync.REPOSITORY, "GITHUB_EVENT_PATH": str(event_file),
+                       "GITHUB_EVENT_NAME": "workflow_dispatch", "CANDIDATE_SHA": squashed,
+                       "BASE_SHA": self.base, "PR_NUMBER": "1", "GITHUB_SHA": squashed,
+                       "GITHUB_REF": "refs/heads/codex/example"}
+        with patch.dict(os.environ, environment), patch.object(check_binding, "gh_json", return_value=pr):
+            with self.assertRaisesRegex(sync.SyncError, "来源 SHA 不在 personal 历史"):
+                check_binding.check()
+
     def test_resolver_uses_isolated_tags_even_after_klno_rewrite(self):
         upstream_remote = self.root / "upstream.git"
         sync.git("init", "--bare", str(upstream_remote))

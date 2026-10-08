@@ -1,7 +1,9 @@
 name: Sync KlN into personal
 
-# 独立复核和实际 CI 演练完成后再添加每日 schedule。
+# 每日定义先保持仓库变量门禁关闭；实际 CI/保护验收后才设为 true。
 on:
+  schedule:
+    - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
       target:
@@ -22,7 +24,9 @@ permissions:
 
 jobs:
   sync:
-    if: github.repository == 'ccisnoxx/sub2api' && github.ref == 'refs/heads/main'
+    if: >-
+      github.repository == 'ccisnoxx/sub2api' && github.ref == 'refs/heads/main' &&
+      (github.event_name != 'schedule' || vars.PERSONAL_SYNC_SCHEDULE_ENABLED == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

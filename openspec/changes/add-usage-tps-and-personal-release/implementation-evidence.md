@@ -1,10 +1,10 @@
-# P0/P1 实施证据
+# P0/P1/P2 实施证据
 
 - 实施日期：2026-10-08（America/Los_Angeles）。
-- 本轮范围：本地 P0 基线准备、P1 平均输出 TPS，以及 hostdzire 只读检查。GitHub 设置修改、远端推送、镜像发布、生产部署均未执行。
-- 当前结论：P1 本地完成；P0 本地准备完成，P0.2/P0.6 的远端定义替换仍待执行。不能把本地暂停文件认定为远端已生效。
+- 前轮范围：本地 P0 基线准备、P1 平均输出 TPS，以及 hostdzire 只读检查。GitHub 设置修改、远端推送、镜像发布、生产部署均未执行。
+- 前轮结论：P1 本地完成；P0 本地准备完成，P0.2/P0.6 的远端定义替换当时仍待执行。不能把本地暂停文件认定为远端已生效。
 - 功能代码 SHA：`f74554702e6d55554342134b68fc54ff4a4ff541`，由 `codex/usage-tps` 快进合入本地 `personal`。此后的证据提交只修改文档，复用相同源码的有效验证结果。
-- 外部产物：本轮未创建 PR、个人发布标签或镜像；运行镜像仍为 KlN 原版本。
+- 前轮外部产物：未创建 PR、个人发布标签或镜像；运行镜像仍为 KlN 原版本。后续 P2 结果见第 6 节。
 
 ## 1. 开始状态与工作保护
 
@@ -171,3 +171,36 @@ node /Users/sc/.codex/visualizations/2026/10/08/01a11bf9-6de4-7391-a1e7-a440d2ff
 - 进入 P2 的本地设计/实现已具备固定 KlN 来源及已验收 TPS；启用实际远端流程前，需要后续阶段的推送/设置授权，先让 main/personal 的安全定义在远端生效，读取实际 Rulesets/分支保护与工作流写入权限。
 - P2 候选需实现普通 merge、版本解析、无更新/重跑/冲突停止及指定候选 SHA 的显式 CI，并完成临时仓库演练、一次真实候选和独立只读复核，之后再启用定时同步。首次 TPS 发布仍保持当前 KlN 基线。
 - 当前类型没有音频输出计数、计时版本、首输出类型或完整性字段，不能声称排除了所有无法识别的混合音频记录或确认记录完整。真实生产数据及新镜像体验留在 P4；本轮健康检查不代替网关验收。
+
+
+## 6. P0 远端生效与 P2 同步流程（2026-10-08）
+
+本轮得到普通推送、PR、相关 Actions 和必要仓库设置授权，范围止于同步；没有创建发布标签、发布镜像、SSH 或修改生产。本地起点为 personal `f12e870b7ede984aa7ada9ded767b766bfa575b1`，工作树干净；远端只有 main `09d17249b2e80fbce6b7cfc052f7815559fe815d`。先完整读取计划、任务、前轮证据及日志，再重新查询远端状态，没有依据旧计划快照重建分支。
+
+### 实现、权限与历史
+
+- 先以普通推送让 main `3ca17211a` 和 personal `f12e870b7` 的暂停定义生效；旧 rebase、强推、KlN 标签/Release dispatch 和重建 main 已删除。Actions 原来已 enabled，推送后注册工作流；无保护、rulesets/rules 列表为空。
+- 本机已有凭据具备 repo/workflow，无新增令牌。仓库默认 workflow 权限保持 read，只启用 Actions 创建 PR 的设置。同步 job 仅授予 Contents/PR/Actions write；候选 CI 只读且 checkout 不持久保存 Git 凭据。GITHUB_TOKEN 的 job 权限列表没有 Workflows；未来实际工作流文件推送若受限，明确停止，由已有授权本机凭据处理，不能丢弃上游差异。
+- 初始实现 `ca847c875`，解析/历史/门禁修正 `67cb02daae48cc331cd22776ebdeeb1584b0ce8b`，CI 来源祖先修正 `773594445e9397ab118350ce67cd11749084295e`。固定来源仍为 `v0.2.14-klno.3` / `de08df02ae1d81668a22f798b398aa0438ac1276`；TPS 提交 `f74554702e6d55554342134b68fc54ff4a4ff541` 保留为祖先，前端/锁文件/后端应用代码未修改。
+- 维护逻辑位于 `.github/personal-sync/`；来源字段不改名。标签按四段数字排序，独立 refs/personal-sync/tags 引用；显式未发布 SHA 记录 upstream_tag=null，后续发布必须明确版本归属。候选普通 merge，记录基础/来源/候选 SHA、迁移与 PR；关闭 PR、不一致树、缺失上游祖先、冲突、改写历史、控制文件差异、基础变化和权限失败均停止。两条维护分支不被脚本推送。
+- Personal CI 显式输入/ref/实际 checkout 对应完整候选 SHA，开始和结束核对 PR、当前 personal 与来源祖先；聚合 TPS 和原 CI/Security Scan 的全部检查。依赖为 pnpm 9、frozen lockfile。相同 SHA/基础的已运行检查可复用；personal 前进必须重新准备候选。
+- main 搬运维护目录时曾误提交 Python 缓存，后续普通提交 `680bc0fe0` 删除并添加目录级忽略，personal 对应 `e0dca83a4`；最终树不含缓存。没有重写已推送历史。
+
+### 实際验证与失败分类
+
+- `python3 -m unittest discover -s .github/personal-sync -p 'test_*.py' -v`：21 个合同用例通过。真实临时 Git 仓库覆盖 TPS/上游/main 历史、数字排序、annotated tag/独立引用、无更新、重跑同 SHA、同树 squash、冲突 abort、历史改写、基础变化、推送拒绝、控制/必要 CI 文件变化和未发布 SHA 记录；PR/dispatch 边界使用明确替身。
+- CI 来源历史反例先在修正前因 `SyncError not raised` 失败，复用 source_at() 后通过；不是仅断言配置值。新增标签 resolver 合同使用真实本地 remote，验证当前 klno 改写后合法发布标签仍能解析，fork 标签不被覆盖。
+- 官方 actionlint `1.7.12`，下载 SHA-256 与 GitHub release asset digest 一致；四份变动工作流检查通过。差异检查通过。P1 应用输入未变化，复用前轮 83 个组件/表格/提示测试、lint、build 和界面验收；实际候选中仍会运行 TPS 定向检查。
+- [首轮同步失败](https://github.com/ccisnoxx/sub2api/actions/runs/37802495138) 是发布标签被当前 klno 祖先限制误拒。重新 fetch 发现 klno 从 de08 改写为 c52b2e3d4ecf89404dd9ec61b0356484e79358bd；与已发布标签有 162 文件差异，共同祖先 cdd6e447661349b09316fb75d08a8a096c4a8708。修正以仓库的发布标签为固定来源；未来非来源后代的目标仍停止供人工审查。
+- [自动选择无更新](https://github.com/ccisnoxx/sub2api/actions/runs/37802893857) 和 [显式标签无更新](https://github.com/ccisnoxx/sub2api/actions/runs/37803320223) 成功，输出固定标签/SHA、base 67cb02daa，不生成升级 PR 或额外 CI。
+- [机器人候选创建](https://github.com/ccisnoxx/sub2api/actions/runs/37802900732) 成功产生 [草稿 PR #1](https://github.com/ccisnoxx/sub2api/pull/1)，候选 `ad84de3780c8e0bea882049de7be4a601602aee2`，base `67cb02daae48cc331cd22776ebdeeb1584b0ce8b`。作者为 GitHub Actions，仅增加 candidate.json，来源和 TPS 不变，标题明确“无上游升级，请勿合并”。
+- [显式 Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/37802988804) 的 event=workflow_dispatch、head_sha=候选、run title 同时含候选/基础 SHA；check-runs 全部归属候选，App ID 15368。机器人原生 PR run [37802990043](https://github.com/ccisnoxx/sub2api/actions/runs/37802990043) 曾 action_required，已通过 API 批准，既有必要 CI 由 reusable 调用完整运行。此记录编写时后端测试仍运行，尚不把整体 CI 记为通过。
+- [同基础重跑](https://github.com/ccisnoxx/sub2api/actions/runs/37803749271) 复用同一 PR/候选和已有 CI，没有再次 dispatch。[非法输入](https://github.com/ccisnoxx/sub2api/actions/runs/37803333056) 在任何候选写入前明确失败。连续排队的演练 37803326195 被 GitHub concurrency 单 pending 语义取消，未执行，随后单独派发验证；不是成功结果。旧 SHA 的过时 CI 已取消，不复用旧基础结果。
+
+### 独立复核与剩余验收
+
+两位 fresh critical_reviewer 只读审查，确认并关闭：同树候选丢失上游历史、必要 reusable gate 未保护、合法发布标签误拒，以及在 CI 边界补齐人工修改候选后的来源祖先校验。最终复核未确认新的阻断。审计 Bundle `20261008T154650Z-personal-sync-p2-final-2fcdbc65` 聚合 2 次执行/2 次验收/2 次独立复核，关闭及 verify 通过，未观测仓库写入。
+
+严格 personal-ready/App 15368/最新基础保护及定时入口仍待首轮完整 CI 后生效，随后需要按最终 personal SHA 刷新演练并验证最终门禁。当前没有新 KlN 发布，因此真实升级候选未产生；P2.9 真实升级部分保持未勾选，P2.11 依赖 P4，P3/P4 未开始。演练 PR 不能合并或作为实际升级成功。
+
+阶段进度与最终远端验收以默认 main 的最新本文件、tasks.md 和开发日志为准；此阶段提交保存可复用固定源码，后续仅 main 的结果登记不改变 personal 基础或旧检查输入。

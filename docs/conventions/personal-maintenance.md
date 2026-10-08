@@ -14,3 +14,5 @@
 - 同步不创建个人发布标签、不触发 Release、不部署生产。真实升级 PR 保持待审；P3/P4 独立处理镜像和部署。
 
 手动检查：`gh workflow run sync-upstream.yml --repo ccisnoxx/sub2api --ref main`；指定目标使用 `-f target=vX.Y.Z-klno.N`。基础变动后重新运行同步；合入前核对最新基础、候选 SHA 和 `personal-ready`，使用 `gh pr merge <编号> --repo ccisnoxx/sub2api --merge --match-head-commit <完整候选SHA>`，遵守保护规则。
+
+运行证据、阶段任务勾选和开发日志以默认 main 的最新记录为准；personal 的固定源码保留阶段记录。每日 UTC 03:17 的入口只有仓库变量 `PERSONAL_SYNC_SCHEDULE_ENABLED=true` 才执行，部署维护定义时先保持 false，实际候选 CI、独立复核和严格基础保护验收后启用。
