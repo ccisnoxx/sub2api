@@ -1,0 +1,1 @@
+{"purpose":"验证 dispatch ref 与候选 SHA 不一致时停止；非升级候选，不合并"}
