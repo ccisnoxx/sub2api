@@ -308,6 +308,8 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME || 'skip' }}
           REUSE_IMAGE: ${{ steps.publication_guard.outputs.reuse_image }}
+          GH_TOKEN: ${{ github.token }}
+          CI_RUN_ID: ${{ steps.publication_guard.outputs.ci_run_id }}
         run: bash "$RUNNER_TEMP/release-tools/release-images.sh"
       - name: Verify published OCI revision, version and platform
         if: env.DRY_RUN != 'true'
