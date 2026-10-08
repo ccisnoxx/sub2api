@@ -1,7 +1,7 @@
 # Sub2API 平均输出 TPS 与个人分支维护方案
 
 - 编制日期：2026-10-08（America/Los_Angeles）。
-- 状态：P0 本地准备和 P1 已实施；P0 的远端暂停定义尚未推送，P2–P4 待实施。实际结果见 [实施证据](implementation-evidence.md)。
+- 状态：P0/P1、P2.1–P2.8 和 P2.10 已完成；P2.9 真实 v0.2.14-klno.5 升级因历史改写/冲突停止，P2.11/P3/P4 待实施。实际结果见 [实施证据](implementation-evidence.md)。
 - 执行入口：[实施任务清单 tasks.md](tasks.md)，按 P0–P4 编号逐项实施并登记验证结果。
 - 讨论来源：[排查 Codex fast 开关配置](codex://threads/01a11a74-fc24-7473-a94f-e61b253867ac)，重点承接该会话最后关于 TPS、自有分支、镜像构建与 hostdzire 更新的讨论。
 - 目标仓库：`ccisnoxx/sub2api`；功能上游：`KlN-4096/sub2api` 的 `klno` 发布线。
@@ -102,7 +102,7 @@ TPS 代码、测试和文案作为一个功能提交；同步、发布、部署�
 | `main` | 暂保留为默认分支，承载定时工作流和计划等仓库控制文件 | 普通提交或 PR；停止继承工作流对 main 的重建 |
 | `personal` | KlN 功能、自定义 TPS 和可发布的应用源码 | 功能 PR及上游同步 PR，保留历史 |
 | `codex/usage-tps` 等 | 独立功能开发 | 从 personal 创建，完成后合入 |
-| `codex/sync-klno-<版本>-<基线短SHA>` | 某次上游更新候选 | 从当次 personal HEAD 创建，合并指定 KlN 版本 |
+| `codex/sync-klno-<版本或SHA>-<基线短SHA>-<目标短SHA>` | 某次上游更新候选 | 从当次 personal HEAD 创建，合并指定 KlN 版本 |
 
 初始 `personal` 从已核实的 `v0.2.14-klno.3` 创建。不要从 `main` 创建后仅修改 VERSION，也不要在应用分支使用 GitHub 的同步 fork 按钮替代本文的 KlN 同步流程。首次发布先保持该上游基础不变，让 TPS 与升级问题可以分别判断。
 
@@ -120,7 +120,7 @@ flowchart LR
     F --> G[本机 SSH 更新 hostdzire]
 ```
 
-改造 `.github/workflows/sync-upstream.yml`，每天检查一次，并保留手动指定标签或完整 SHA 的入口；本次只计划 GitHub 工作流，不创建 Codex 定时任务。
+`.github/workflows/sync-upstream.yml` 每日 UTC 03:17 检查，并保留手动指定标签或完整 SHA 的入口。部署定义时保持仓库变量 `PERSONAL_SYNC_SCHEDULE_ENABLED=false`，实际候选 CI、独立复核与严格基础保护验收后才设为 true；不创建 Codex 定时任务。显式 `verify_ci=true` 只生成标明“无上游升级、请勿合并”的演练草稿，不修改来源记录，定时入口不启用该选项。
 
 执行合同：
 
@@ -136,6 +136,8 @@ flowchart LR
 
 定时工作流需要存在于默认分支，因此同一套自定义同步逻辑应同时出现在 main 与 personal 中，防止后续上游 merge 恢复旧逻辑。所有 shell 输入经环境变量传入并正确引用；标签/SHA先验证，不把 dispatch 输入直接拼入 shell 脚本。
 
+同步控制目录和同步、Personal CI、既有 CI、安全扫描定义的上游差异需要人工审查，自动流程明确停止。来源记录的 SHA 必须是候选祖先，即使候选树相同也不能接受丢失历史的 squash。已发布标签以固定的仓库标签为准；显式未发布 SHA 还需核对当前 klno 祖先关系，并记录 `upstream_tag=null`。
+
 ### 4.3 检查触发与权限
 
 新增 `.github/workflows/personal-ci.yml`，提供 personal PR、personal push 以及 `workflow_dispatch` 的定向检查入口。同步工作流用 `contents: write`、`pull-requests: write`、`actions: write` 完成所需操作，其他任务维持只读权限。
@@ -145,6 +147,8 @@ flowchart LR
 以 `GITHUB_TOKEN` 推送的分支不能作为后续 push CI 自动启动的可靠依据。创建候选后显式 dispatch 定向 CI，传入并核对候选完整 SHA，结果挂在该提交上；不要把“PR 已创建”当成“检查已运行”。当前 GitHub 还可能让机器人创建的 PR 检查进入待批准状态，实施时验证仓库实际行为。[GitHub 的工作流触发规则](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow)
 
 保留所选 KlN 基线的已有 CI。显式 dispatch 的定向检查不能代替仓库实际要求的其他检查；若已有 CI 待批准，完成批准，或为其增加等价的显式入口。首次设置时读取实际分支保护和 Rulesets，确定必要检查名称及 merge 提交验证方式，不假定当前已经配置了保护规则。最终门禁绑定最终候选提交，personal 基础分支前进后刷新合并结果。
+
+实际 Personal CI 通过同提交的 reusable workflows 保留上述完整检查，`personal-ready` 开始/结束核对候选、来源及最新 personal。远端 personal 已配置 strict 的 `personal-ready`（GitHub Actions App 15368），管理员也受约束，禁止强推/删除；仓库只允许 merge commit。阶段任务、执行证据与开发日志以默认 main 的最新记录为准，personal 保存固定源码的阶段记录，结果登记不反复改变已验收的 personal SHA。
 
 ## 5. 自有镜像与发布合同
 
@@ -291,6 +295,8 @@ pnpm --dir frontend run build
 
 ## 10. 当前实施状态
 
-P0 的已有文档、分支与暂停同步定义已保存在本地 main/personal；2026-10-08 重新只读核对了 hostdzire，运行 revision 与固定 KlN 标签一致。P1 已实现并合入本地 personal，定向测试、改动文件 lint、前端构建和本地管理员/用户页面验收通过，结果绑定功能提交并登记在 implementation-evidence.md。
+P0.2/P0.6 的安全定义已通过普通推送在远端 main/personal 生效。P1 功能提交 `f74554702e6d55554342134b68fc54ff4a4ff541` 保留为 personal 祖先；应用来源仍是 `v0.2.14-klno.3` / `de08df02ae1d81668a22f798b398aa0438ac1276`，本轮未改变前端/后端应用及锁文件。
 
-远端 main 仍含旧同步定义；本轮只读查询显示 Actions 已启用，但 workflow/run 列表均为空。暂停定义尚未推送，P0.2、P0.6 保持未勾选，不能将本地准备认定为远端已生效。P2–P4、GitHub 设置修改、推送、镜像发布与生产部署未执行。生产仍运行原镜像。
+P2 的同步实现、21 个合同用例、workflow actionlint 和两次独立只读复核完成。最终 personal 为 `029cd8fb8b04d18a6b3abe4528effe4aeec75859`，机器人演练 PR #2 候选为 `9c33a062c8ed50ea77ca17a05b789d88c94f54bb`；显式、原生候选与 personal push 的完整 CI 均通过，PR 必要 personal-ready=pass。定时变量已设为 true 并读回，每日 UTC 03:17 定义 active，首个真实 schedule 尚未发生。错误 SHA 的实际 dispatch 已被拒绝，旧候选即使全部测试通过也因基础变化被最终门禁拒绝。已配置严格 personal 分支保护及 merge-only 设置。
+
+验收期间 KlN 发布 v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d；该目标不是当前来源 de08 的后代，实际流程在远端候选写入前停止。只读普通合并预览有 120 个冲突文件，164 个文件的净差异及改写历史待人工审查。P2.9 的真实升级候选及 P2.11 保持未完成；演练不算升级，也不会合入。P3/P4 未实施，未发布镜像、未 SSH 或修改生产，首次 P3 仍使用原基线加 TPS 的固定 personal。具体 Actions/PR 和剩余条件见 implementation-evidence.md 第 6 节。
