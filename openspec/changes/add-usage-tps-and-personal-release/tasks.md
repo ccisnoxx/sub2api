@@ -1,15 +1,15 @@
 # 实施任务清单：平均输出 TPS 与个人分支维护
 
-编制日期：2026-10-08（America/Los_Angeles）。依据：[整体方案 plan.md](plan.md)。当前状态：**全部待实施**，勾选框表示未来执行结果，本文件的创建不代表任务已经完成。
+编制日期：2026-10-08（America/Los_Angeles）。依据：[整体方案 plan.md](plan.md)。当前状态：**P0 本地准备已完成，远端安全定义待生效；P1 已完成；P2–P4 待实施**。勾选只代表已登记的实际实现与验证，见 [实施证据](implementation-evidence.md)。
 
-本文将方案转换为可以按编号执行的任务。需要查看指标口径、分支职责或风险依据时，回查 plan.md；实现改变这些约定时先更新两份文档。下文标注“新增”的文件尚不存在，相关命令在文件和依赖就绪后执行。
+本文将方案转换为可以按编号执行的任务。需要查看指标口径、分支职责或风险依据时，回查 plan.md；实现改变这些约定时先更新两份文档。下文标注“新增”表示原计划需要创建的文件；实际存在及验收状态以复选框和实施证据为准。相关命令在文件和依赖就绪后执行。
 
 ## 执行顺序与完成规则
 
 | 阶段 | 前置条件 | 交付物 | 当前状态 |
 |---|---|---|---|
-| P0：保护并固定基线 | 已保存工作区中的已有工作 | 安全的工作流状态、personal、来源记录 | 待实施 |
-| P1：实现 TPS | P0 完成 | 组件、双语文案、接入测试和前端验证结果 | 待实施 |
+| P0：保护并固定基线 | 已保存工作区中的已有工作 | 安全的工作流状态、personal、来源记录 | 本地完成；P0.2/P0.6 远端部分待执行 |
+| P1：实现 TPS | P0 完成 | 组件、双语文案、接入测试和前端验证结果 | 本地完成 |
 | P2：建立同步 PR | P0/P1 完成 | 同步工作流、定向 CI、候选 PR 和触发验证 | 待实施 |
 | P3：发布个人镜像 | P1 完成，发布所需检查已建立 | 个人版本标签、amd64 镜像、可追溯发布结果 | 待实施 |
 | P4：部署与回滚 | P3 镜像发布成功，部署脚本已验证 | hostdzire 指定版本、部署记录与回滚证据 | 待实施 |
@@ -22,15 +22,15 @@
 
 **主要位置：**Git 分支、`.github/workflows/sync-upstream.yml`、`deploy/personal-source.json`（新增）、本 change 的文档。
 
-- [ ] **P0.1 保存已有工作。**检查当前分支、远程与工作树；保留本计划、任务清单和所有无关改动。切换基线前先使这些工作可恢复，不使用 reset/clean 丢弃内容。
-- [ ] **P0.2 停止旧同步逻辑。**检查继承的同步工作流是否已经启用；若已启用，先暂停。默认分支上的定义必须停止原来的 rebase、强推、自动打 KlN 标签及重建 main 行为；完整同步逻辑在 P2 验证后启用。
-- [ ] **P0.3 核对实际部署基线。**执行 hostdzire 只读检查，记录运行镜像 digest/revision、架构、Compose 目录/文件/项目名、应用服务名、数据库/Redis 服务与挂载。只保存必要的非敏感信息，更新已发生变化的历史记录。
-- [ ] **P0.4 固定源码来源。**核对 `v0.2.14-klno.3` 解引用为 `de08df02ae1d81668a22f798b398aa0438ac1276`，并与运行 revision 对照；不一致时先解释差异并确定实际起点。
-- [ ] **P0.5 建立 personal。**不存在该分支时从已核实的发布标签创建；已存在时检查并复用，不覆盖。main 继续承载默认分支工作流，个人应用从 personal 开发。
-- [ ] **P0.6 保持两条分支的流程安全。**把暂停旧同步行为的维护改动和本 change 文档带入 personal；在 main/personal 都确认旧逻辑不会被误触发，不用合并整个 main 来搬运少量文件。
-- [ ] **P0.7 写入来源记录。**新增 `deploy/personal-source.json`，记录上游仓库、基础发布标签、完整源码 SHA；定义字段含义，并使后续同步/发布读取同一来源。手动未发布 SHA 需要记录真实来源及版本归属，不能冒充发布标签的提交。
-- [ ] **P0.8 检查所选基线的实际合同。**编码前读取 UsageTable、UsageLog 类型、媒体/请求类型工具、两个使用记录页面和相关测试；使用 personal 中的维护源码，保留现有 KlN 额外显示字段。
-- [ ] **P0.9 登记阶段证据。**实施时新增本目录的 `implementation-evidence.md`，记录源码 SHA、工作树状态、基线事实和检查结论。后续阶段追加本次候选对应的结果，不粘贴完整含敏感信息的命令输出。
+- [x] **P0.1 保存已有工作。**检查当前分支、远程与工作树；保留本计划、任务清单和所有无关改动。切换基线前先使这些工作可恢复，不使用 reset/clean 丢弃内容。
+- [ ] **P0.2 停止旧同步逻辑。**检查继承的同步工作流是否已经启用；若已启用，先暂停。默认分支上的定义必须停止原来的 rebase、强推、自动打 KlN 标签及重建 main 行为；完整同步逻辑在 P2 验证后启用。**本地已暂停；远端 main 定义仍未替换，本轮未推送，保持未完成。**
+- [x] **P0.3 核对实际部署基线。**执行 hostdzire 只读检查，记录运行镜像 digest/revision、架构、Compose 目录/文件/项目名、应用服务名、数据库/Redis 服务与挂载。只保存必要的非敏感信息，更新已发生变化的历史记录。
+- [x] **P0.4 固定源码来源。**核对 `v0.2.14-klno.3` 解引用为 `de08df02ae1d81668a22f798b398aa0438ac1276`，并与运行 revision 对照；不一致时先解释差异并确定实际起点。
+- [x] **P0.5 建立 personal。**不存在该分支时从已核实的发布标签创建；已存在时检查并复用，不覆盖。main 继续承载默认分支工作流，个人应用从 personal 开发。
+- [ ] **P0.6 保持两条分支的流程安全。**把暂停旧同步行为的维护改动和本 change 文档带入 personal；在 main/personal 都确认旧逻辑不会被误触发，不用合并整个 main 来搬运少量文件。**两条本地分支已保留同一暂停定义及本 change 文档；远端生效待后续授权推送，保持未完成。**
+- [x] **P0.7 写入来源记录。**新增 `deploy/personal-source.json`，记录上游仓库、基础发布标签、完整源码 SHA；定义字段含义，并使后续同步/发布读取同一来源。手动未发布 SHA 需要记录真实来源及版本归属，不能冒充发布标签的提交。
+- [x] **P0.8 检查所选基线的实际合同。**编码前读取 UsageTable、UsageLog 类型、媒体/请求类型工具、两个使用记录页面和相关测试；使用 personal 中的维护源码，保留现有 KlN 额外显示字段。
+- [x] **P0.9 登记阶段证据。**实施时新增本目录的 `implementation-evidence.md`，记录源码 SHA、工作树状态、基线事实和检查结论。后续阶段追加本次候选对应的结果，不粘贴完整含敏感信息的命令输出。
 
 **完成条件：**运行基线与 personal 起点可对应；main/personal 的旧破坏性同步动作不再运行；文档和无关工作均保留。
 
@@ -48,17 +48,17 @@ git diff --shortstat main..v0.2.14-klno.3
 
 **主要位置：**`frontend/src/components/admin/usage/`、其中的 `__tests__/`、`frontend/src/i18n/locales/{zh,en}/dashboard.ts`。
 
-- [ ] **P1.1 建立功能分支。**从 personal 创建或复用 `codex/usage-tps`，将 TPS 的组件、接入、测试和文案作为同一功能提交。
-- [ ] **P1.2 实现 UsageTps.vue。**新增组件，接收现有记录字段，统一按 `output_tokens × 1000 ÷ duration_ms` 计算；不扣首字耗时，不增加后端字段或迁移。
-- [ ] **P1.3 实现可用性判断。**文本、有效输出和有效总耗时才显示数字；无效值、媒体、compaction/live/probe/gwpool_degraded 显示 `—`。检查 token 计费下的图片输出，图片输入且文本输出的记录仍可计算，未知计费模式不猜测。
-- [ ] **P1.4 实现格式与说明。**保留两位小数及 `tok/s`，小于 0.01 的正值显示 `<0.01 tok/s`；显示平均速率口径及不可用原因，提示可通过键盘访问。不引入新组件库或依赖。
-- [ ] **P1.5 接入耗时栏。**在 UsageTable 的 `cell-latency` 添加 TPS 第三行，保留首字、总耗时与健康度色条；不添加服务器排序字段或改动 CSV。
-- [ ] **P1.6 补齐中文和英文文案。**在两份 dashboard.ts 中增加对应键，避免把 TPS 展示与 Fast 是否实际加速作等同表述。
-- [ ] **P1.7 增加组件行为测试。**新增 `UsageTps.spec.ts`，覆盖下面的展示合同；若采用 TDD，先确认最小测试因缺失行为失败，再实现。
-- [ ] **P1.8 保护表格接入。**修改 UsageTable.spec.ts 的 DataTableStub，真实渲染 `cell-latency` 和 UsageTps，验证 TPS 与原有耗时共存；不重复整组计算边界测试。
-- [ ] **P1.9 完成定向验证。**运行组件/表格测试、改动文件 lint 和 frontend build，将结果绑定本次代码 SHA。构建失败时先定位原因，再按受影响范围重跑。
-- [ ] **P1.10 完成界面验收。**检查管理员与用户使用记录中的历史文本、图片输入、不可用记录；验证明暗主题、窄屏布局和提示交互，保留能证明结果的截图。
-- [ ] **P1.11 检查差异并合入 personal。**确认没有后端、计费、服务档位或无关格式变更；按仓库规则审查和合并，记录最终提交及其实际检查结果。
+- [x] **P1.1 建立功能分支。**从 personal 创建或复用 `codex/usage-tps`，将 TPS 的组件、接入、测试和文案作为同一功能提交。
+- [x] **P1.2 实现 UsageTps.vue。**新增组件，接收现有记录字段，统一按 `output_tokens × 1000 ÷ duration_ms` 计算；不扣首字耗时，不增加后端字段或迁移。
+- [x] **P1.3 实现可用性判断。**文本、有效输出和有效总耗时才显示数字；无效值、媒体、compaction/live/probe/gwpool_degraded 显示 `—`。检查 token 计费下的图片输出，图片输入且文本输出的记录仍可计算，未知计费模式不猜测。
+- [x] **P1.4 实现格式与说明。**保留两位小数及 `tok/s`，小于 0.01 的正值显示 `<0.01 tok/s`；显示平均速率口径及不可用原因，提示可通过键盘访问。不引入新组件库或依赖。
+- [x] **P1.5 接入耗时栏。**在 UsageTable 的 `cell-latency` 添加 TPS 第三行，保留首字、总耗时与健康度色条；不添加服务器排序字段或改动 CSV。
+- [x] **P1.6 补齐中文和英文文案。**在两份 dashboard.ts 中增加对应键，避免把 TPS 展示与 Fast 是否实际加速作等同表述。
+- [x] **P1.7 增加组件行为测试。**新增 `UsageTps.spec.ts`，覆盖下面的展示合同；若采用 TDD，先确认最小测试因缺失行为失败，再实现。
+- [x] **P1.8 保护表格接入。**修改 UsageTable.spec.ts 的 DataTableStub，真实渲染 `cell-latency` 和 UsageTps，验证 TPS 与原有耗时共存；不重复整组计算边界测试。
+- [x] **P1.9 完成定向验证。**运行组件/表格及 HelpTooltip 定向测试、改动文件 lint 和 frontend build，将结果绑定本次代码 SHA。构建失败时先定位原因，再按受影响范围重跑。
+- [x] **P1.10 完成界面验收。**通过本地构建预览与合成 API 记录检查管理员与用户使用记录中的历史文本、图片输入、不可用记录；验证明暗主题、窄屏布局和提示交互，保留能证明结果的截图。
+- [x] **P1.11 检查差异并合入 personal。**确认没有后端、计费、服务档位或无关格式变更；按仓库规则审查和合并，记录最终提交及其实际检查结果。
 
 组件测试需要保护的结果：
 
@@ -80,17 +80,20 @@ git diff --shortstat main..v0.2.14-klno.3
 pnpm --dir frontend install --frozen-lockfile
 pnpm --dir frontend exec vitest run \
   src/components/admin/usage/__tests__/UsageTps.spec.ts \
-  src/components/admin/usage/__tests__/UsageTable.spec.ts
+  src/components/admin/usage/__tests__/UsageTable.spec.ts \
+  src/components/common/__tests__/HelpTooltip.spec.ts
 pnpm --dir frontend exec eslint \
   src/components/admin/usage/UsageTps.vue \
   src/components/admin/usage/UsageTable.vue \
   src/components/admin/usage/__tests__/UsageTps.spec.ts \
   src/components/admin/usage/__tests__/UsageTable.spec.ts \
-  src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts
+  src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts \
+  src/components/common/HelpTooltip.vue \
+  src/components/common/__tests__/HelpTooltip.spec.ts
 pnpm --dir frontend run build
 ```
 
-依赖未变化时复用安装结果。当前 build 已包含 i18n 键完整性、Vue 类型检查和 Vite 构建，不额外重复同一候选的独立 typecheck。未新增其他文件时不扩大 lint 文件范围。
+依赖未变化时复用安装结果。当前 build 已包含 i18n 键完整性、Vue 类型检查和 Vite 构建，不额外重复同一候选的独立 typecheck。实际窄屏验收修复了 HelpTooltip 的共享定位问题，因此本轮 lint 和定向测试也覆盖该组件及其测试；不扩大到无关文件。安装和 build 子命令统一使用发布工作流对应的 pnpm 9，保持 lockfile 不变。
 
 ## P2. 建立 KlN 同步 PR
 
@@ -179,4 +182,4 @@ dispatch 只代表开始运行；跟踪对应 run，检查固定源码 SHA及全
 
 实施结束前检查实际 diff与工作树，确认没有覆盖无关工作、引入隐藏兜底、泄露凭据或改动生成文件。只有材料风险取得对应证据后完成相应任务；不为增加测试数量重复已经有效的验证。
 
-**本次文档交付状态：**任务清单已经编制；P0–P4 的代码、工作流、发布与部署任务均未执行，所有复选框保留为未完成。
+**当前实施状态：**P0.1/P0.3–P0.5/P0.7–P0.9 与 P1.1–P1.11 已有本地实现及验证证据。P0.2/P0.6 的远端生效部分、P2–P4 未完成；没有推送、修改 GitHub 设置、发布镜像或部署生产。
