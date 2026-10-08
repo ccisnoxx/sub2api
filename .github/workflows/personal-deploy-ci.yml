@@ -1,0 +1,34 @@
+name: Personal Deployment Tools
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'deploy/personal/*.py'
+      - 'deploy/personal/*.sh'
+      - '.github/workflows/personal-deploy-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployment-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: 获取只读基线标签
+        run: |
+          git fetch --no-tags https://github.com/KlN-4096/sub2api.git \
+            refs/tags/v0.2.14-klno.3:refs/tags/v0.2.14-klno.3
+      - name: 验证部署入口与状态合同
+        run: |
+          bash -n deploy/personal/deploy-hostdzire.sh
+          python3 -m unittest discover -s deploy/personal -p 'test_*.py' -v

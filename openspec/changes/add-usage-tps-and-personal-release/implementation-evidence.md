@@ -1,6 +1,7 @@
-# P0/P1/P2 实施证据
+# P0–P4 实施证据
 
 - 实施日期：2026-10-08（America/Los_Angeles）。
+- 最新阶段：P3.1–P3.9 已完成；本轮正在实施 P4.1–P4.10。下文第 1–7 节是各阶段当时的记录，当前状态以第 8 节和 tasks.md 为准。P2.9/P2.11 的 .5 升级不属于本轮。
 - 前轮范围：本地 P0 基线准备、P1 平均输出 TPS，以及 hostdzire 只读检查。GitHub 设置修改、远端推送、镜像发布、生产部署均未执行。
 - 前轮结论：P1 本地完成；P0 本地准备完成，P0.2/P0.6 的远端定义替换当时仍待执行。不能把本地暂停文件认定为远端已生效。
 - 功能代码 SHA：`f74554702e6d55554342134b68fc54ff4a4ff541`，由 `codex/usage-tps` 快进合入本地 `personal`。此后的证据提交只修改文档，复用相同源码的有效验证结果。
@@ -281,3 +282,22 @@ ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1d
 ```
 
 本轮完成 P3.1–P3.9。未修改应用、计费、迁移或锁文件，未新增或扩大持久凭据权限，未访问或更新 hostdzire。P2.9 的真实 .5 升级仍因历史改写及 120 个冲突停止，P2.11/P4 未完成。没有将原 029cd8fb 的成功检查或 PR 检查代替本轮最终 personal SHA 的检查；没有移动已发布标签或覆盖版本镜像。阶段结果登记只在 main，personal 保持本次已发布的固定源码。
+
+
+## 8. P4 部署与回滚（2026-10-08，本轮记录）
+
+### 起点、职责与现场核对
+
+- 起点 main/origin/main=`59e07a09a`，工作区干净；fetch origin 后一致。personal/origin/personal 和个人标签保持 `896de21b4be7f4ec4b4236f4df663b47371665b0`。从最新 main 创建 `codex/personal-deploy`，部署工具和阶段证据属于仓库控制文件，未合并 main 应用源码进入 personal。未处理 P2.9/P2.11。
+- 已读取用户给出的全局 AGENTS.md、`/Users/sc/.codex/AGENTS.md` 和四份指定文档。本次工作树及祖先目录未找到额外 AGENTS.md；第 1 节中的存在状态属于当时观测。
+- 实际 SSH 别名 hostdzire；目录 `/root/sub2api-kin`、文件 `docker-compose.yml`、Compose 项目 `sub2api-kin`、服务 `sub2api`、容器 `sub2api-kin`、端口 `127.0.0.1:10088 → 8080` 均重新确认。Compose `v5.1.3` 支持 `--no-deps`、`--wait`、`--wait-timeout`；主机 x86_64。
+- 旧运行引用 `ghcr.io/kln-4096/sub2api@sha256:c0ec609deaf0fb6f323de660ed7d43cf2030b4c4083c6fc4bef506d28f08ad8c`；OCI 和实际二进制版本 `0.2.14-klno.3`、revision `de08df02ae1d81668a22f798b398aa0438ac1276`。应用启动时间仍为 `2026-10-08T01:06:33.196657696Z`。
+- 应用、PostgreSQL、Redis healthy；Redis PING=PONG，数据库迁移记录 303 条。应用数据仍为 `sub2api-kin_sub2api_data → /app/data`；数据库和 Redis 的既有挂载、网络、端口与依赖未变。配置只检查必要投影，没有输出环境变量或凭据。
+
+### 目标与兼容条件
+
+目标固定为第 7 节 tps.1 canonical digest，平台 linux/amd64。再次从 registry 查询 OCI source、version、revision 与指定发布一致；标签解引用经 GitHub API 确认，未移动标签或覆盖镜像。
+
+旧源码到目标源码的整个 backend、Dockerfile、Dockerfile.goreleaser、deploy/Dockerfile、既有 Compose 和 .env.example 路径差异为空。`backend/migrations` 的 Git tree 两端同为 `97aa2ba12e590cf497ffb50d09b853c17af611ec`。数据库已应用 filename/checksum 排序清单的 SHA-256 为 `d2765fa67306539751aab2ddc4147ef2f9c340d31745dbed686f3a5f66bb0a5a`。本次同基线仅 TPS/构建控制变动，具备镜像回滚条件；此证据不授权未来含后端/迁移变更的版本自动回滚或恢复数据库。
+
+现场数据库约 643 MB，应用数据约 43 MB，可用磁盘约 32 GB。备份、生产切换与验收结果待下文取得实际证据后登记；本段本身不代表已部署。

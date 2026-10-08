@@ -24,3 +24,5 @@
 个人 simple 只发布 canonical 版本标签，不使用冗余 -amd64 标签；版本成功后以其固定 digest 独立移动 latest，避免多标签部分推送覆盖已占用版本。已存在镜像必须校验 revision、version、source 和唯一 linux/amd64 后复用，禁止再次推送该版本。镜像已发布但 Release 未完成时，同标签恢复只补 Release；已完成版本直接跳过，已完成 Release 缺镜像时明确停止。文档提交相对最近成功版本无应用/构建/运行资源变化时不分配新版本。只读包查询失败不当作包不存在。GHCR 首次创建后需要将包可见性设置为 public，并以匿名完整拉取确认 P4 可使用。
 
 手动恢复：`gh workflow run personal-release.yml --repo ccisnoxx/sub2api --ref main -f source_sha=<当前personal完整SHA>`。simple dry run：`gh workflow run release.yml --repo ccisnoxx/sub2api --ref personal -f tag=personal -f source_sha=<当前personal完整SHA> -f simple_release=true -f dry_run=true`。版本标签和 digest 作为固定部署输入；P3 不连接或更新 hostdzire。
+
+P4 的本机/远端部署工具 `deploy/personal/` 及其定向 Actions 检查属于 main 的部署控制线，工具 revision 与应用 revision 分开记录。应用仍从已发布 personal 标签和固定 digest 选择；工具变化不改变已发布的应用源码、标签或镜像，不需要把 main 的应用树合入 personal。阶段结果和生产验收继续只登记 main。
