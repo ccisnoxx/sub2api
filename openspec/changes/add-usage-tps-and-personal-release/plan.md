@@ -1,7 +1,7 @@
 # Sub2API 平均输出 TPS 与个人分支维护方案
 
 - 编制日期：2026-10-08（America/Los_Angeles）。
-- 状态：实施计划，尚未实施。
+- 状态：P0 本地准备和 P1 已实施；P0 的远端暂停定义尚未推送，P2–P4 待实施。实际结果见 [实施证据](implementation-evidence.md)。
 - 执行入口：[实施任务清单 tasks.md](tasks.md)，按 P0–P4 编号逐项实施并登记验证结果。
 - 讨论来源：[排查 Codex fast 开关配置](codex://threads/01a11a74-fc24-7473-a94f-e61b253867ac)，重点承接该会话最后关于 TPS、自有分支、镜像构建与 hostdzire 更新的讨论。
 - 目标仓库：`ccisnoxx/sub2api`；功能上游：`KlN-4096/sub2api` 的 `klno` 发布线。
@@ -21,7 +21,7 @@
 
 本轮方案不扩大到 Fast 策略修改、服务档位计费调整、Codex 桌面端开关、WireGuard/Nginx/防火墙优化。TPS 第一版也不引入后端计时字段、数据库迁移、音频速率、全站 TPS 排序或统计、CSV 导出新列、公开 Key 用量页面改造及零中断发布。
 
-## 2. 已核实的基线与证据边界
+## 2. 方案编制时的基线与证据边界
 
 | 项目 | 核实结果 | 对实施的影响 |
 |---|---|---|
@@ -40,9 +40,9 @@
 
 原会话已经检查过的服务器信息：hostdzire 为 x86_64，部署目录 `/root/sub2api-kin`，Compose 服务名 `sub2api`，容器名 `sub2api-kin`，当时镜像为 `ghcr.io/kln-4096/sub2api:0.2.14-klno.3`，应用数据挂载到 `/app/data`。原会话还确认当时的 Compose 支持 `--wait` 和 `--wait-timeout`。
 
-**这些服务器事实来自原会话，本次编制文档没有重新 SSH 检查。** 首次实施时需要核对运行镜像 revision、实际 Compose 文件、项目名、挂载和数据库服务；若已发生变化，先更新基线再部署。原会话的个人账号、请求原文与认证信息不进入本方案。
+**这一节记录方案编制时的证据边界；2026-10-08 实施时已重新 SSH 核对，实际结果见 implementation-evidence.md。原会话事实本身不代替当前运行证据。** 首次实施时需要核对运行镜像 revision、实际 Compose 文件、项目名、挂载和数据库服务；若已发生变化，先更新基线再部署。原会话的个人账号、请求原文与认证信息不进入本方案。
 
-本次已检查 `main` 源码，并对初始发布标签中的 UsageTable、使用记录类型、测试插槽和 CI 配置作了针对性核对。发布与同步工具在两条基线中一致，`backend-ci.yml` 有差异，实施时采用所选 `klno` 基线的实际版本。
+方案编制时已检查 `main` 源码，并对初始发布标签中的 UsageTable、使用记录类型、测试插槽和 CI 配置作了针对性核对。发布与同步工具在两条基线中一致，`backend-ci.yml` 有差异，实施时采用所选 `klno` 基线的实际版本。
 
 ## 3. TPS 展示合同
 
@@ -87,6 +87,7 @@
 | `frontend/src/i18n/locales/en/dashboard.ts` | 同步增加对应英文键 |
 | `frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts`，新增 | 保护计算、格式化及不可用记录的展示合同 |
 | `frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts` | 渲染 `cell-latency`，验证真实表格接入及既有耗时保留 |
+| `frontend/src/components/common/HelpTooltip.vue` 及其测试 | 窄屏验收暴露 fixed 坐标叠加滚动量和边缘越界；在既有定位 owner 修正视口坐标与边距，保护已有 hover/click 交互 |
 
 计算只在此组件中使用时直接放在组件内；出现真实复用需求后再提取工具函数。尽量不改 `UsageView.vue` 的列配置，因为第一版继续使用现有耗时栏，不新增排序字段。提示复用现有组件或项目交互方式，兼顾键盘焦点，不引入新依赖。
 
@@ -239,13 +240,16 @@ P0 的流程文件需要出现在默认分支，不能只在 personal 上修正�
 ```bash
 pnpm --dir frontend exec vitest run \
   src/components/admin/usage/__tests__/UsageTps.spec.ts \
-  src/components/admin/usage/__tests__/UsageTable.spec.ts
+  src/components/admin/usage/__tests__/UsageTable.spec.ts \
+  src/components/common/__tests__/HelpTooltip.spec.ts
 pnpm --dir frontend exec eslint \
   src/components/admin/usage/UsageTps.vue \
   src/components/admin/usage/UsageTable.vue \
   src/components/admin/usage/__tests__/UsageTps.spec.ts \
   src/components/admin/usage/__tests__/UsageTable.spec.ts \
-  src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts
+  src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts \
+  src/components/common/HelpTooltip.vue \
+  src/components/common/__tests__/HelpTooltip.spec.ts
 pnpm --dir frontend run build
 ```
 
@@ -285,8 +289,8 @@ pnpm --dir frontend run build
 - 首次上游目标是否仍采用本文固定基线；如决定先升级，独立列出迁移、配置和功能差异。
 - 生产维护窗口、测试调用授权、备份位置与恢复能力。文档与本地脚本准备不等于授权执行生产部署。
 
-## 10. 本次交付状态
+## 10. 当前实施状态
 
-本次完成了完整讨论会话读取、本地 Git 基线与相关源码/工作流检查，并形成本文。GitHub/Docker 行为使用官方文档核对，Plus 参考固定到已读源码提交。
+P0 的已有文档、分支与暂停同步定义已保存在本地 main/personal；2026-10-08 重新只读核对了 hostdzire，运行 revision 与固定 KlN 标签一致。P1 已实现并合入本地 personal，定向测试、改动文件 lint、前端构建和本地管理员/用户页面验收通过，结果绑定功能提交并登记在 implementation-evidence.md。
 
-本次仅新增计划文件：没有创建维护分支、实现 TPS、修改工作流、发布镜像、连接服务器或执行部署。上述测试、构建、dry run 和生产验收均为后续实施步骤，不能视为已经通过。本文件作为后续执行顺序、边界和验收条件的依据。
+远端 main 仍含旧同步定义；本轮只读查询显示 Actions 已启用，但 workflow/run 列表均为空。暂停定义尚未推送，P0.2、P0.6 保持未勾选，不能将本地准备认定为远端已生效。P2–P4、GitHub 设置修改、推送、镜像发布与生产部署未执行。生产仍运行原镜像。
