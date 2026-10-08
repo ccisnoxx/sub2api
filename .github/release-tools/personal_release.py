@@ -223,6 +223,7 @@ def authorize(args):
     if not args.tag.startswith(source["upstream_tag"] + "-tps.") or tags().get(args.tag) != args.sha:
         raise SyncError("个人标签不等于最终 SHA 或来源版本")
     digest, completed = publication(args.tag, args.sha)
+    assert_base(args.sha)
     output({"skip": completed, "reuse_image": bool(digest), "digest": digest or "",
         "ci_run_id": run["id"], "upstream_tag": source["upstream_tag"], "upstream_sha": source["upstream_sha"]})
 

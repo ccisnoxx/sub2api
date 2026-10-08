@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -184,6 +185,56 @@ class ReleaseMatrixTest(unittest.TestCase):
                     self.assertEqual(log.count('imagetools create'), 2)
                     self.assertIn('fixturehub/sub2api:9.8', log)
                     self.assertIn('ghcr.io/exampleowner/sub2api:9', log)
+
+    def test_personal_image_push_is_after_build_and_final_gate_and_recovery_never_rebuilds(self):
+        fake_bin = Path('bin')
+        fake_bin.mkdir()
+        docker = fake_bin / 'docker'
+        docker.write_text('#!/bin/sh\nprintf "%s\\n" "$*" >> "$DOCKER_LOG"\n')
+        docker.chmod(0o755)
+        python = fake_bin / 'python3'
+        python.write_text(f'''#!{sys.executable}
+import json, os, sys
+if len(sys.argv) > 2 and sys.argv[1].endswith('/personal_release.py'):
+    with open(os.environ['DOCKER_LOG'], 'a') as out:
+        out.write(sys.argv[2] + '\\n')
+    if sys.argv[2] == 'authorize':
+        if os.environ['GATE_FAIL'] == 'true':
+            raise SystemExit('personal 基础已变化')
+        print(json.dumps({{'reuse_image': os.environ['REUSE_IMAGE'] == 'true'}}))
+    else:
+        print(json.dumps({{'digest': 'sha256:' + 'd' * 64}}))
+else:
+    os.execv({sys.executable!r}, [{sys.executable!r}, *sys.argv[1:]])
+''')
+        python.chmod(0o755)
+        for reuse, gate_fail in ((False, False), (True, False), (False, True)):
+            with self.subTest(reuse=reuse, gate_fail=gate_fail):
+                log_path = Path(f'personal-{reuse}-{gate_fail}.log').resolve()
+                env = {**os.environ, 'PATH': str(fake_bin.resolve()) + os.pathsep + os.environ['PATH'],
+                       'DOCKER_LOG': str(log_path), 'RUNNER_TEMP': self.temp.name,
+                       'RELEASE_VERSION': '9.8.7-klno.3-tps.1', 'RELEASE_SHA': 'a' * 40,
+                       'RELEASE_TAG': 'v9.8.7-klno.3-tps.1', 'GITHUB_REPOSITORY': 'ccisnoxx/sub2api',
+                       'DRY_RUN': 'false', 'SIMPLE_RELEASE': 'true', 'REUSE_IMAGE': str(reuse).lower(),
+                       'GATE_FAIL': str(gate_fail).lower()}
+                result = subprocess.run(['bash', str(ROOT / '.github/release-tools/release-images.sh')], env=env,
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                log = log_path.read_text()
+                self.assertEqual(result.returncode, 1 if gate_fail else 0)
+                self.assertNotIn('--push', log)
+                self.assertNotIn('-tps.1-amd64', log)
+                self.assertNotIn('--tag ghcr.io/ccisnoxx/sub2api:latest --load', log)
+                if gate_fail:
+                    self.assertNotIn('\npush ', log)
+                    self.assertNotIn('imagetools', log)
+                elif reuse:
+                    self.assertNotIn('buildx build', log)
+                    self.assertNotIn('\npush ', log)
+                    self.assertIn('imagetools create', log)
+                else:
+                    self.assertLess(log.index('buildx build'), log.index('authorize'))
+                    self.assertLess(log.index('authorize'), log.index('\npush '))
+                    self.assertLess(log.index('\npush '), log.index('imagetools create'))
 
 
 

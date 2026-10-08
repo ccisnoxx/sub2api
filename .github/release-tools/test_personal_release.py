@@ -146,6 +146,18 @@ class PersonalReleaseTest(unittest.TestCase):
             with self.assertRaisesRegex(release.SyncError, "禁止重建"):
                 release.publication(TAG, SHA)
 
+    def test_personal_changes_during_remote_queries_prevent_authorization(self):
+        args = argparse.Namespace(sha=SHA, ci_run_id="123", tag=TAG)
+        with patch.dict(os.environ, {"GITHUB_REF": "refs/heads/personal", "GITHUB_SHA": SHA}), \
+             patch.object(release, "gate", return_value=(SOURCE, RUN)), \
+             patch.object(release, "tags", return_value={TAG: SHA}), \
+             patch.object(release, "publication", return_value=(None, False)), \
+             patch.object(release, "assert_base", side_effect=release.SyncError("基础变化")), \
+             patch.object(release, "output") as output:
+            with self.assertRaisesRegex(release.SyncError, "基础变化"):
+                release.authorize(args)
+            output.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
