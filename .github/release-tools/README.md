@@ -28,3 +28,13 @@ python -m pip install -r .github/release-tools/requirements-release.txt
 python -m unittest discover -s .github/release-tools -p 'test_release_matrix.py'
 bash -n .github/release-tools/release-images.sh
 ```
+
+## personal 发布
+
+本 fork 的正式入口只接受 `vX.Y.Z-klno.N-tps.N`，使用 simple/linux/amd64。`personal-release.yml` 从默认 main 的可信工具准备版本，只有当前 personal 完整 SHA 的成功 Personal CI 和实际 personal-ready 门禁才可创建标签及显式 dispatch Release。开关为仓库变量 `PERSONAL_RELEASE_ENABLED`，默认未设置时关闭。
+
+来源与版本规则集中在 `personal_release.py`，复用 sibling `.github/personal-sync/sync.py` 的来源和祖先合同；两目录均作为本次运行 artifact 传到发布 runner。正式 Release 的工具 revision 必须与应用 personal SHA 对应；`source_sha` 输入在 dry run 中也必须等于实际 checkout。个人发布跳过 main VERSION 写回。
+
+个人运行镜像先本地 buildx --load，再完成最后一次 SHA/CI/占用核对后仅 push canonical 版本，独立把 latest 指向核验后的 digest。部分失败重跑保持 tag/SHA，已存在的正确镜像不重新构建或推送；已完成 Release 直接跳过。正式构建前和写入前均检查，拒绝错误标签、错误 SHA、PR CI、失败检查和来源改变。文档变化相对最近成功版本无构建/运行变化时不分配新版本。
+
+新标签的第一次包默认可能 private；创建后使用包设置将其公开，并验证匿名完整拉取。最终运行记录保存 tag、source/workflow SHA、上游标签/SHA、CI/Release run、平台及 OCI digest。P3 不访问生产服务器。

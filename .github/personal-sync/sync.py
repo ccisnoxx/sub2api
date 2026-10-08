@@ -15,7 +15,8 @@ TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-klno\.(0|[
 SHA = re.compile(r"[0-9a-f]{40}")
 SOURCE = "deploy/personal-source.json"
 METADATA = ".github/personal-sync/candidate.json"
-CONTROL = [".github/personal-sync", ".github/workflows/sync-upstream.yml",
+CONTROL = [".github/release-tools", ".github/workflows/release.yml",
+           ".github/workflows/personal-release.yml", ".github/personal-sync", ".github/workflows/sync-upstream.yml",
            ".github/workflows/personal-ci.yml", ".github/workflows/backend-ci.yml",
            ".github/workflows/security-scan.yml"]
 
