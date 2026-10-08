@@ -1,5 +1,11 @@
 # 开发日志
 
+## 2026-10-08：个人镜像发布，P3 实现候选
+
+- 从已验收 personal 029cd8fb 创建 codex/personal-release；读取默认 main 最新阶段记录，未合并 main 应用源码。来源仍为 v0.2.14-klno.3/de08df02，TPS 保留，未处理 .5 历史升级或连接生产。
+- 复用 Release matrix、前端单次构建、archive 来源及校验；增加个人来源/最终 SHA/完整 CI 门禁、串行 tps.N 分配、显式 Release dispatch 与镜像占用校验。已完成版本跳过，部分发布复用镜像，文档变化不分配版本，个人 VERSION 不写回 main。
+- 当前为实现候选，PERSONAL_RELEASE_ENABLED 尚未开启；实际 CI、simple dry run、独立复核、首次 GHCR 发布与匿名拉取仍需取得远端证据。完成结果继续只登记 main，不改变已发布源码 SHA。
+
 ## 2026-10-08：personal 同步 PR 与候选检查，P2 实施
 
 - 已获本轮 fork 普通推送、PR、Actions 和必要设置授权；远端 main/personal 先让暂停定义生效，移除旧 rebase/强推/打 KlN 标签/重建 main。

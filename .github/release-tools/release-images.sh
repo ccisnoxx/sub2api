@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 : "${RELEASE_VERSION:?}" "${RELEASE_SHA:?}" "${GITHUB_REPOSITORY:?}" "${RUNNER_TEMP:?}"
+# 已占用且校验通过的个人镜像只复用；失败恢复不重新推送版本或 latest。
+if [[ ${REUSE_IMAGE:-false} == true && ${DRY_RUN:-false} != true ]]; then
+  echo '复用已核验的个人镜像，跳过镜像推送'
+  exit 0
+fi
 owner=${GITHUB_REPOSITORY%%/*}
 registries=("ghcr.io/${owner,,}/sub2api")
 if [[ ${SIMPLE_RELEASE:-false} != true && ${DOCKERHUB_USERNAME:-skip} != skip ]]; then
