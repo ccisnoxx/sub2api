@@ -73,6 +73,9 @@ const messages: Record<string, string> = {
   'usage.imageTotalPrice': 'Image total price',
   'usage.stream': 'Stream',
   'usage.sync': 'Sync',
+  'usage.latencyFirstToken': 'First',
+  'usage.latencyDuration': 'Total',
+  'usage.averageOutputTps': 'Avg output TPS',
   'usage.nativeCompactionV2': 'Compaction',
   'admin.usage.billingModeToken': 'Token',
   'admin.usage.billingModePerRequest': 'Per request',
@@ -114,6 +117,7 @@ const DataTableStub = {
         <slot name="cell-billing_mode" :row="row" />
         <slot name="cell-tokens" :row="row" />
         <slot name="cell-cost" :row="row" />
+        <div data-testid="latency-cell"><slot name="cell-latency" :row="row" /></div>
         <slot name="cell-request_id" :row="row" />
         <slot name="cell-upstream_request_id" :row="row" />
         <slot name="cell-turn_state" :row="row" />
@@ -280,7 +284,7 @@ describe('admin UsageTable tooltip', () => {
       },
     })
 
-    const tooltipTriggers = wrapper.findAll('.group.relative')
+    const tooltipTriggers = wrapper.findAll('.group.relative:has(.cursor-help)')
     await tooltipTriggers[tooltipTriggers.length - 1].trigger('mouseenter')
     await nextTick()
 
@@ -318,9 +322,9 @@ describe('admin UsageTable tooltip', () => {
       props: { data: [row], loading: false, columns: [] },
       global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
     })
-    const triggers = wrapper.findAll('.group.relative')
+    const triggers = wrapper.findAll('.group.relative:has(.cursor-help)')
     await triggers[triggers.length - 1].trigger('mouseenter')
-    const amounts = wrapper.get('.fixed').findAll('span').map(span => span.text())
+    const amounts = wrapper.get('.fixed.pointer-events-none').findAll('span').map(span => span.text())
     expect(amounts).toEqual(expect.arrayContaining([
       '$0.00000001', '$0.00000002', '$0.00000003', '$0.00000004',
       '$0.00000005', '$0.00000006', '$0.00000022', '$0.00000042', '$0.00000018',
@@ -338,9 +342,9 @@ describe('admin UsageTable tooltip', () => {
       },
       global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
     })
-    const triggers = wrapper.findAll('.group.relative')
+    const triggers = wrapper.findAll('.group.relative:has(.cursor-help)')
     await triggers[triggers.length - 1].trigger('mouseenter')
-    const amounts = wrapper.get('.fixed').findAll('span').map(span => span.text()).filter(text => text.startsWith('$'))
+    const amounts = wrapper.get('.fixed.pointer-events-none').findAll('span').map(span => span.text()).filter(text => text.startsWith('$'))
     expect(amounts).toEqual(['$0.00000000', '$0.00000000', '$0.00000000', '$0.00000000'])
     wrapper.unmount()
   })
@@ -1056,5 +1060,37 @@ describe('admin UsageTable deleted-user badge', () => {
       route_pair_overridden: false,
     })
     expect(wrapper.find('[data-testid="route-pair-overridden-marker"]').exists()).toBe(false)
+  })
+})
+
+
+describe('UsageTable 平均输出 TPS 接入', () => {
+  it.each([true, false])('账号计费显示为 %s 时，TPS 与原有耗时及色条共存', (showAccountBilling) => {
+    const wrapper = mount(UsageTable, {
+      props: {
+        data: [{
+          ...baseImageRow,
+          request_id: 'req-text-latency',
+          billing_mode: 'token',
+          image_count: 0,
+          image_output_tokens: 0,
+          output_tokens: 1040,
+          duration_ms: 24650,
+          first_token_ms: 1500,
+        }],
+        columns: [{ key: 'latency', label: 'Latency' }],
+        showAccountBilling,
+      },
+      global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
+    })
+    const cell = wrapper.get('[data-testid="latency-cell"]')
+    expect(cell.text()).toContain('First')
+    expect(cell.text()).toContain('1.50s')
+    expect(cell.text()).toContain('Total')
+    expect(cell.text()).toContain('24.65s')
+    expect(cell.text()).toContain('Avg output TPS')
+    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('42.19 tok/s')
+    expect(cell.get('[aria-hidden="true"]').classes()).toContain('bg-gradient-to-b')
+    wrapper.unmount()
   })
 })

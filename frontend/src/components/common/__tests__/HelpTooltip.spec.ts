@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
@@ -14,6 +14,37 @@ function getTooltipElement(): HTMLDivElement {
 describe('HelpTooltip', () => {
   afterEach(() => {
     document.body.innerHTML = ''
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it.each([
+    { name: '滚动后的右侧触发器', left: 350, top: 200, expectedLeft: '254px', expectedTop: 'calc(192px)' },
+    { name: '左上角触发器', left: 0, top: 4, expectedLeft: '136px', expectedTop: 'calc(108px)' },
+  ])('让 $name 的提示保持在视口内', async ({ left, top, expectedLeft, expectedTop }) => {
+    vi.stubGlobal('innerWidth', 390)
+    vi.stubGlobal('scrollX', 100)
+    vi.stubGlobal('scrollY', 2000)
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      const tooltip = this.getAttribute('role') === 'tooltip'
+      return {
+        x: tooltip ? 0 : left, y: tooltip ? 0 : top,
+        left: tooltip ? 0 : left, top: tooltip ? 0 : top,
+        width: tooltip ? 256 : 16, height: tooltip ? 100 : 16,
+        right: tooltip ? 256 : left + 16, bottom: tooltip ? 100 : top + 16,
+        toJSON: () => ({}),
+      } as DOMRect
+    })
+    const wrapper = mount(HelpTooltip, {
+      attachTo: document.body,
+      props: { content: 'details', trigger: 'click' },
+    })
+    await wrapper.get('.group').trigger('click')
+    await nextTick()
+    const tooltip = getTooltipElement()
+    expect(tooltip.style.left).toBe(expectedLeft)
+    expect(tooltip.style.top).toBe(expectedTop)
+    wrapper.unmount()
   })
 
   it('keeps the existing hover interaction by default', async () => {
