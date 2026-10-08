@@ -1,10 +1,14 @@
 # 开发日志
 
-## 2026-10-08：个人镜像发布，P3 实现候选
+## 2026-10-08：个人镜像发布，P3 已完成
 
-- 从已验收 personal 029cd8fb 创建 codex/personal-release；读取默认 main 最新阶段记录，未合并 main 应用源码。来源仍为 v0.2.14-klno.3/de08df02，TPS 保留，未处理 .5 历史升级或连接生产。
-- 复用 Release matrix、前端单次构建、archive 来源及校验；增加个人来源/最终 SHA/完整 CI 门禁、串行 tps.N 分配、显式 Release dispatch 与镜像占用校验。已完成版本跳过，部分发布复用镜像，文档变化不分配版本，个人 VERSION 不写回 main。
-- 当前为实现候选，PERSONAL_RELEASE_ENABLED 尚未开启；实际 CI、simple dry run、独立复核、首次 GHCR 发布与匿名拉取仍需取得远端证据。完成结果继续只登记 main，不改变已发布源码 SHA。
+- 从已验收 personal 029cd8fb 建立发布分支，保留原 KlN v0.2.14-klno.3/de08df02 和 TPS；[PR #3](https://github.com/ccisnoxx/sub2api/pull/3) 通过 required personal-ready 后普通 merge，最终 personal/构建源码为 `896de21b4be7f4ec4b4236f4df663b47371665b0`。没有合并 main 应用源码，没有修改应用、锁文件或迁移。
+- personal-release 与 Release 复用现有 matrix、前端单次构建、archive 来源及校验；绑定可信 personal 完整 CI、实际 App 15368 门禁和最新 SHA，串行分配 tps.N，机器人创建标签后显式 dispatch simple/linux/amd64 Release。构建后实际推送前再核验；同 SHA 复用，已成功版本跳过，部分失败复用镜像，文档变化跳过，个人 VERSION 不写回 main。
+- 21 个发布 helper、21 个同步合同、三份变动 workflow actionlint 和 shell 语法检查通过；fresh critical_reviewer 关闭确认问题，最终无确认阻断，审计 Bundle 20261008T172536Z-personal-release-p3-0283d66e 关闭/verify 通过。错误 SHA dry run 和错误 PR CI 归属真实运行均按预期拒绝。
+- 最终 personal SHA 的 [全新完整 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37819628097) 与 [simple dry run](https://github.com/ccisnoxx/sub2api/actions/runs/37819646200) 全部成功；严格保护和 merge-only 读回不变后启用 PERSONAL_RELEASE_ENABLED=true。[正式准备](https://github.com/ccisnoxx/sub2api/actions/runs/37821989311) 和 [Release](https://github.com/ccisnoxx/sub2api/actions/runs/37822041580) success。
+- 已发布 `v0.2.14-klno.3-tps.1` / `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.3-tps.1`，OCI revision 和 VERSION 一致，平台 linux/amd64，包为 public。空凭据目录完成 88,247,606 字节、14 个 blob 的匿名完整拉取及 SHA-256 校验。固定 digest：`sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。
+- [同 SHA 重跑](https://github.com/ccisnoxx/sub2api/actions/runs/37823645330) 返回 already_published，没有新标签、再次 dispatch 或覆盖镜像。结果只回写 main，personal 固定源码与 main VERSION 保持不变。P3.1–P3.9 完成；P2.9 真实 .5 升级、P2.11/P4 保持未完成，未访问或部署 hostdzire。
+- 完整来源、workflow revision、CI/Release 链接、复核和 P4 canonical 镜像引用见 [实施证据第 7 节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。P4 使用 `ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。
 
 ## 2026-10-08：personal 同步 PR 与候选检查，P2 实施
 

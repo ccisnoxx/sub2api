@@ -1,6 +1,6 @@
 # 实施任务清单：平均输出 TPS 与个人分支维护
 
-编制日期：2026-10-08（America/Los_Angeles）。依据：[整体方案 plan.md](plan.md)。当前状态：**P0/P1 已完成；P2.1–P2.8、P2.10 已完成，P2.9 的真实升级因历史改写/冲突停止；P2.11/P3/P4 待实施**。勾选只代表已登记的实际实现与验证，见 [实施证据](implementation-evidence.md)。
+编制日期：2026-10-08（America/Los_Angeles）。依据：[整体方案 plan.md](plan.md)。当前状态：**P0/P1 已完成；P2.1–P2.8、P2.10 已完成，P2.9 的真实升级因历史改写/冲突停止；P3.1–P3.9 已完成并首次发布；P2.11/P4 待实施**。勾选只代表已登记的实际实现与验证，见 [实施证据](implementation-evidence.md)。
 
 本文将方案转换为可以按编号执行的任务。需要查看指标口径、分支职责或风险依据时，回查 plan.md；实现改变这些约定时先更新两份文档。下文标注“新增”表示原计划需要创建的文件；实际存在及验收状态以复选框和实施证据为准。相关命令在文件和依赖就绪后执行。
 
@@ -11,7 +11,7 @@
 | P0：保护并固定基线 | 已保存工作区中的已有工作 | 安全的工作流状态、personal、来源记录 | 远端 main/personal 安全定义已生效 |
 | P1：实现 TPS | P0 完成 | 组件、双语文案、接入测试和前端验证结果 | 已完成 |
 | P2：建立同步 PR | P0/P1 完成 | 同步工作流、定向 CI、候选 PR 和触发验证 | 流程及定时入口已验收；真实升级因历史改写/冲突停止 |
-| P3：发布个人镜像 | P1 完成，发布所需检查已建立 | 个人版本标签、amd64 镜像、可追溯发布结果 | 待实施 |
+| P3：发布个人镜像 | P1 完成，发布所需检查已建立 | 个人版本标签、amd64 镜像、可追溯发布结果 | 已发布 v0.2.14-klno.3-tps.1；公开匿名完整拉取通过 |
 | P4：部署与回滚 | P3 镜像发布成功，部署脚本已验证 | hostdzire 指定版本、部署记录与回滚证据 | 待实施 |
 
 推荐按 P0 → P1 → P2.1–P2.10 → P3 → P4 → P2.11 执行。P2 的流程准备先通过临时仓库和候选 PR 验证，不合入新的生产上游版本；首次 P3/P4 仍发布“原上游基线 + TPS”。P2.11 是首次上线后的一次实际上游升级验收。
@@ -121,23 +121,23 @@ pnpm --dir frontend run build
 
 **主要位置：**`.github/workflows/personal-release.yml`（新增）、`release.yml`、`.github/release-tools/`；复用已有 GoReleaser 配置。
 
-- [ ] **P3.1 准备 fork 发布设置。**核对 Actions、PR 创建、包写入权限及 GHCR 可见性。默认公开 `ghcr.io/ccisnoxx/sub2api`；私有部署方案需要单独具备拉取权限。
-- [ ] **P3.2 绑定发布来源与检查。**自动入口只接受可信 personal 的成功检查；记录待发布 SHA，确认实际必要检查通过。PR候选、其他仓库和失败/取消结果不产生发布。
-- [ ] **P3.3 实现版本分配。**从来源记录生成 `v<上游基础版本>-tps.N`；同一源码 SHA 重跑复用标签；串行分配，标签已指向其他提交时失败，不移动标签。
-- [ ] **P3.4 调整 Release 入口。**个人标签显式 dispatch `release.yml`，设 `simple_release=true`；限制 fork 自动 tag 入口只接收个人标签，保留固定 source SHA 与产物验证。
-- [ ] **P3.5 停止版本写回 main。**个人发布跳过 `sync-version-file`；检查构建用 VERSION 与版本标签一致，避免发布后自动提交引起下一轮同步冲突。
-- [ ] **P3.6 处理重跑与文档改动。**已经成功的版本不覆盖；失败恢复保持同一 source SHA/tag；只有文档变更而应用、构建及运行资源未变化时不重新发布。
-- [ ] **P3.7 完成定向验证与复核。**运行受影响的发布 helper 测试、脚本语法检查与 simple dry run；验证错误 SHA、重复标签、检查不满足时被拒绝。独立只读复核检查来源信任、门禁与发布权限。
-- [ ] **P3.8 发布首次个人版本。**明确选择原上游基线加 TPS 的 personal 提交，实际发布 amd64 镜像；核对标签提交、OCI revision、版本、平台和 digest，验证镜像可拉取。
-- [ ] **P3.9 保存发布结果。**记录上游标签/SHA、个人标签/SHA、workflow revision、镜像 digest、平台和 Actions 链接。构建尚在运行或发布失败时不得进入 P4 的生产部署。
+- [x] **P3.1 准备 fork 发布设置。**核对 Actions、PR 创建、包写入权限及 GHCR 可见性。默认公开 `ghcr.io/ccisnoxx/sub2api`；私有部署方案需要单独具备拉取权限。
+- [x] **P3.2 绑定发布来源与检查。**自动入口只接受可信 personal 的成功检查；记录待发布 SHA，确认实际必要检查通过。PR候选、其他仓库和失败/取消结果不产生发布。
+- [x] **P3.3 实现版本分配。**从来源记录生成 `v<上游基础版本>-tps.N`；同一源码 SHA 重跑复用标签；串行分配，标签已指向其他提交时失败，不移动标签。
+- [x] **P3.4 调整 Release 入口。**个人标签显式 dispatch `release.yml`，设 `simple_release=true`；限制 fork 自动 tag 入口只接收个人标签，保留固定 source SHA 与产物验证。
+- [x] **P3.5 停止版本写回 main。**个人发布跳过 `sync-version-file`；检查构建用 VERSION 与版本标签一致，避免发布后自动提交引起下一轮同步冲突。
+- [x] **P3.6 处理重跑与文档改动。**已经成功的版本不覆盖；失败恢复保持同一 source SHA/tag；只有文档变更而应用、构建及运行资源未变化时不重新发布。
+- [x] **P3.7 完成定向验证与复核。**运行受影响的发布 helper 测试、脚本语法检查与 simple dry run；验证错误 SHA、重复标签、检查不满足时被拒绝。独立只读复核检查来源信任、门禁与发布权限。
+- [x] **P3.8 发布首次个人版本。**明确选择原上游基线加 TPS 的 personal 提交，实际发布 amd64 镜像；核对标签提交、OCI revision、版本、平台和 digest，验证镜像可拉取。
+- [x] **P3.9 保存发布结果。**记录上游标签/SHA、个人标签/SHA、workflow revision、镜像 digest、平台和 Actions 链接。构建尚在运行或发布失败时不得进入 P4 的生产部署。
 
-**完成条件：**simple dry run 和相关检查通过；实际镜像成功发布；版本、源码 SHA、digest 能对应；不存在重复或错误来源发布。
+**完成条件：**simple dry run 和相关检查通过；实际镜像成功发布；版本、源码 SHA、digest 能对应；不存在重复或错误来源发布。**已取得证据：**PR #3 普通 merge 后的 personal `896de21b4be7f4ec4b4236f4df663b47371665b0` 全新完整 CI、simple dry run、独立复核、正式 Release、同 SHA 重跑均通过；`v0.2.14-klno.3-tps.1` 对应公开 linux/amd64 镜像。空凭据目录完成全部层拉取和 SHA-256 校验，供 P4 使用的固定引用为 `ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。详情见 implementation-evidence.md 第 7 节；P4 尚未执行。
 
 发布工具验证命令，从仓库根目录执行，在包含 PyYAML 的独立 Python 环境中运行：
 
 ```bash
 python -m pip install -r .github/release-tools/requirements-release.txt
-python -m unittest discover -s .github/release-tools -p 'test_release_matrix.py'
+python -m unittest discover -s .github/release-tools -p 'test_*.py'
 bash -n .github/release-tools/release-images.sh
 ```
 
@@ -145,7 +145,8 @@ simple dry run 的示例命令，需要工作流已经更新并推送到可运�
 
 ```bash
 gh workflow run release.yml --repo ccisnoxx/sub2api --ref personal \
-  -f tag=personal -f simple_release=true -f dry_run=true
+  -f tag=personal -f source_sha=<当前personal完整SHA> \
+  -f simple_release=true -f dry_run=true
 ```
 
 dispatch 只代表开始运行；跟踪对应 run，检查固定源码 SHA及全部所选产物验证结果后才能完成 P3.7。正式发布使用已存在的个人版本标签作为 `tag` 输入，不使用分支名代替标签。

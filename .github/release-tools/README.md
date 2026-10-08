@@ -14,7 +14,8 @@ From a branch containing this workflow:
 
 ```bash
 gh workflow run release.yml --ref <branch> \
-  -f tag=<branch> -f dry_run=true -f simple_release=false
+  -f tag=<branch> -f source_sha=<full-source-SHA> \
+  -f dry_run=true -f simple_release=false
 ```
 
 A dry run builds all selected archives and both runtime images, verifies artifact provenance and produces the final checksum file. It exports images locally as OCI archives instead of pushing them. It skips registry logins, GitHub Release publication, DockerHub description updates, Telegram notifications and VERSION synchronization. Test the simple path separately with `simple_release=true`.
@@ -25,7 +26,7 @@ Helper checks:
 
 ```bash
 python -m pip install -r .github/release-tools/requirements-release.txt
-python -m unittest discover -s .github/release-tools -p 'test_release_matrix.py'
+python -m unittest discover -s .github/release-tools -p 'test_*.py'
 bash -n .github/release-tools/release-images.sh
 ```
 

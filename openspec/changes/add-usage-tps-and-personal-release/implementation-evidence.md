@@ -225,3 +225,59 @@ UTC 16:02 的无更新结果是真实当时状态。KlN 随后于 `2026-10-08T16
 本轮完成 P0.2/P0.6、P2.1–P2.8、P2.10；P2.9 仅勾选已验证子项。结果登记提交 `6f2bb91ded62c1d76947cefcbb2c1c47d05db435` 已普通推送 main，后续最终登记同样只修改 main 文档；personal 029cd8fb 及其有效检查输入保持不变。下一阶段先实现 P3 的来源/标签/发布门禁及 simple dry run，再按授权发布首次原基线加 TPS 镜像；当前没有个人发布标签、镜像或生产变更。
 
 阶段进度与最终远端验收以默认 main 的最新本文件、tasks.md 和开发日志为准；此阶段提交保存可复用固定源码，后续仅 main 的结果登记不改变 personal 基础或旧检查输入。
+
+## 7. P3 个人镜像发布（2026-10-08）
+
+本轮范围为建立发布流程并实际发布原 KlN 基线 + TPS 镜像。未处理 .5 历史升级、未连接 hostdzire、未修改生产。
+
+- 从 personal 029cd8fb 创建 codex/personal-release，读取 main bd8de131 的最新阶段记录；应用、来源记录、锁文件、迁移保持原基线。发布实现提交 8663821be，可信工具传递修正 ac095448e，最终推送/恢复修正 f439c543dda328f6a9ac385e5c71cbbdd62f85e5。main 对应可信控制提交 b7794d6f2/9a358653a，没有合并 main 应用源码。
+- 复用既有前端单次构建、GoReleaser linux/amd64 archive、完整 SHA/版本/目标来源与校验和验证。自动入口只接受本 fork personal 的成功完整 CI；准备和 Release 双重核验来源、最终 SHA、实际 personal-ready App 15368 和必要检查。标签数字分配、同 SHA 复用、冲突停止；GITHUB_TOKEN 创建标签后显式 dispatch Release。
+- 正式运行镜像先 buildx --load，远端查询完成后再检查最新 personal，然后仅 push canonical 版本；latest 独立从固定 digest 更新。不存在冗余 -amd64 不可变标签的部分推送窗口。已有正确镜像复用、失败恢复补 Release、已成功版本跳过、仅文档变化不分配版本；个人发布不写回 main VERSION。
+- 本地发布 helper 21 个、同步合同 21 个通过；actionlint 1.7.12 三份变动工作流、shell 语法和 diff 检查通过。首次填写错误完整 SHA 的真实 dry run 37816647464 在源码绑定阶段失败、所有构建 skipped；纠正输入后的旧候选 dry run 因候选修正被取消，不算成功。ac095448e simple dry run 37816972232 已完整 success，证明 sibling 控制工具跨 runner 导入、所选 archive/上下文校验及 OCI 构建路径。
+- fresh critical_reviewer 完成最终 f439c543d 的独立只读复核，关闭 missing sync 工具、构建/实际推送间基础变化、多标签部分推送覆盖三个确认问题；未确认剩余阻断。新增 shell 合同覆盖构建后门禁失败零推送及已有镜像恢复不构建/推送。审计 Bundle 20261008T172536Z-personal-release-p3-0283d66e 关闭/verify 通过（1 次执行/验收/独立复核，无观测写入）。latest 可是包装为单平台 index 的独立 digest；P4 只使用 canonical 固定 digest。
+
+- [PR #3](https://github.com/ccisnoxx/sub2api/pull/3) 的最终候选 f439c543d [完整 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37817343794) success，实际 required personal-ready=pass；2026-10-08T17:50:10Z 使用普通 merge 合入 personal，最终源码为 `896de21b4be7f4ec4b4236f4df663b47371665b0`，merge 的树与候选一致。来源记录与 TPS 祖先复核不变；严格保护、管理员约束和 merge-only 保持不变，没有使用管理员绕过。
+
+- 最终 personal SHA 的 [simple dry run](https://github.com/ccisnoxx/sub2api/actions/runs/37819646200) 全部 success：prepare、frontend、linux/amd64 archive、发布上下文/来源校验及 OCI 导出；sync-version-file 按预期 skipped。已下载 release-dry-run-report 和 version-file，报告 commit 等于最终 personal，构建目标只有 linux/amd64。分支 dry run 读取继承的 VERSION=0.2.13；正式个人发布另从来源分配的 tag 生成 VERSION，并核验产物及 OCI 标签一致。该 dry run 不写 registry、Release 或 main VERSION。
+
+- 最终 personal merge SHA 的 [全新 Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/37819628097) 全部 success，event=push、head_branch=personal、title 的 candidate/base 都等于 896de21b 完整 SHA；personal-ready App 15368/check_suite_id 102465683655 对应本次 run。包含原有全部单元/集成/race/lint/前端/安全检查，没有复用 029cd8fb 或 PR 的检查。
+- 启用前再次读回 strict=true、App 15368、enforce_admins=true、禁止 force/delete；关闭状态的真实 workflow_run 37821784834 为 skipped。完成最终 CI、dry run 和独立复核后，于 2026-10-08T18:07:47Z 设置并读回 PERSONAL_RELEASE_ENABLED=true，未新增或扩大凭据权限。
+
+- 启用后的 [错误 CI 归属实际运行](https://github.com/ccisnoxx/sub2api/actions/runs/37821899148) 输入最终 personal SHA，却提供 PR 候选 CI run 37817343794；按预期 failure，输出“CI 不是当前仓库、最终 personal SHA 的成功检查；PR 结果不可用于发布”。核对远端仍无标签，没有创建 Release 或镜像。随后从可信 main 9a358653a 以正确 CI 37819628097 启动正式准备。
+
+- [正式准备](https://github.com/ccisnoxx/sub2api/actions/runs/37821989311) success，workflow revision=main `9a358653a8bab6b0679184a8806f2c786d26aba2`；GITHUB_TOKEN 创建 `v0.2.14-klno.3-tps.1`，实际标签指向最终源码 `896de21b4be7f4ec4b4236f4df663b47371665b0`。随后机器人显式触发 [Release](https://github.com/ccisnoxx/sub2api/actions/runs/37822041580)，event=workflow_dispatch、actor/triggering_actor=github-actions[bot]、head_branch=personal、head_sha=最终源码，simple_release=true，发布目标 linux/amd64。
+
+- 正式 Release 的 prepare 门禁成功，下载的 version-file/VERSION=`0.2.14-klno.3-tps.1`，与个人标签去除 v 后一致；与分支 dry run 的继承 VERSION 区分。正式运行的应用和工具 workflow revision 都为最终 personal SHA。
+
+### 实际发布与不可变引用
+
+[正式 Release](https://github.com/ccisnoxx/sub2api/actions/runs/37822041580) 全部 success：prepare、前端、linux/amd64 archive、来源/上下文校验、构建后门禁、GHCR 推送、OCI 核验和 GitHub Release；sync-version-file 按预期 skipped。未运行 DockerHub/Telegram 路径，未写回 main VERSION；发布前后的 main/personal VERSION Git blob 都未变化。
+
+| 发布事实 | 实际结果 |
+|---|---|
+| 上游来源 | `v0.2.14-klno.3` / `de08df02ae1d81668a22f798b398aa0438ac1276` |
+| personal 源码 / Release workflow revision | `896de21b4be7f4ec4b4236f4df663b47371665b0` |
+| 默认分支控制 workflow revision | `9a358653a8bab6b0679184a8806f2c786d26aba2` |
+| 个人 Git 标签 | `v0.2.14-klno.3-tps.1`，轻量标签 commit 对象为上述 personal SHA |
+| 构建 VERSION / OCI version | `0.2.14-klno.3-tps.1` |
+| OCI revision | `896de21b4be7f4ec4b4236f4df663b47371665b0` |
+| OCI source / 平台 | `https://github.com/ccisnoxx/sub2api` / `linux/amd64` |
+| 完整镜像版本地址 | `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.3-tps.1` |
+| canonical digest | `sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76` |
+| GitHub Release | [个人版本](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.3-tps.1)，published_at=`2026-10-08T18:14:36Z`，draft=false、prerelease=true |
+| 包可见性及归属 | [sub2api 包](https://github.com/users/ccisnoxx/packages/container/package/sub2api)，visibility=public，repository=ccisnoxx/sub2api |
+
+simple 配置原本 skip_upload=true，因此 GitHub Release 不上传二进制资产；已校验的 archive 位于 Actions artifact，并用于本次镜像构建。Release API 的 target_commitish 元数据继承为 main；本轮从已存在的个人标签解析构建来源，实际 tag 对象、artifact commit、workflow SHA 和 OCI revision 均已分别核对为上述 personal SHA，未从 main 构建应用。
+
+### 匿名拉取、重跑和剩余范围
+
+- 使用官方 crane v0.22.1，下载的 Darwin arm64 工具 SHA-256 与官方 release asset digest 一致。使用独立 DOCKER_CONFIG，config.json 只有空 auths，没有 registry 登录或凭据，按 canonical digest 完整拉取 linux/amd64 OCI layout 成功。下载 14 个 blob、12 层、总计 88,247,606 字节；逐个计算 SHA-256 与 blob 名相等，并核对 manifest digest、config 和 layer 长度。不是只读取 manifest 或使用已登录缓存。
+- 匿名读取版本标签的 digest 为 `sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`；读取 config 的 revision、version、source、os/architecture 均通过断言。personal-publication artifact 的 digest/image/workflow_sha 与独立 registry 查询一致。
+- [同 SHA 重跑](https://github.com/ccisnoxx/sub2api/actions/runs/37823645330) success，输出 state=already_published、同一标签/SHA/digest。之后没有新增 Release run，标签仍唯一并指向同一 personal，版本 digest 未变化；没有重建或覆盖已发布版本。文档跳过和失败恢复为 helper/shell 合同与独立代码复核证据，没有把它们写成实际 GitHub 部署演练。
+- latest 的根 digest 为 `sha256:5880f2d63111166d022eeb86865730c018d1808bc2c69869da2e2db4c8f6f60d`，是单平台 index；canonical 版本为独立运行 manifest，两者根 digest 不相同。P4 使用下面的固定 canonical 引用，不使用 latest：
+
+```text
+ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76
+```
+
+本轮完成 P3.1–P3.9。未修改应用、计费、迁移或锁文件，未新增或扩大持久凭据权限，未访问或更新 hostdzire。P2.9 的真实 .5 升级仍因历史改写及 120 个冲突停止，P2.11/P4 未完成。没有将原 029cd8fb 的成功检查或 PR 检查代替本轮最终 personal SHA 的检查；没有移动已发布标签或覆盖版本镜像。阶段结果登记只在 main，personal 保持本次已发布的固定源码。
