@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 
-from sync import REPOSITORY, SHA, SyncError, ancestor, assert_base, gh_json, git
+from sync import REPOSITORY, SHA, SyncError, ancestor, assert_base, gh_json, git, source_at
 
 
 def binding(event, event_name, candidate_input, base_input, pr_input, workflow_sha, workflow_ref):
@@ -40,6 +40,8 @@ def check():
     assert_base(base)
     if not ancestor(base, candidate):
         raise SyncError("候选没有合入当前 personal 基础，必须更新后重新检查")
+    # 人工修改候选后也必须保留来源祖先，不能只依赖同步脚本的创建/复用检查。
+    source_at(candidate)
     if number:
         pr = gh_json("api", f"repos/{REPOSITORY}/pulls/{number}")
         if (pr["state"] != "open" or pr["base"]["ref"] != "personal" or
