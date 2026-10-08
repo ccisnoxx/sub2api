@@ -2,9 +2,29 @@ name: Security Scan
 
 on:
   push:
+    # personal 候选由 Personal CI 调用相同安全检查。
+    branches-ignore:
+      - main
+      - personal
+      - 'codex/sync-klno-*'
+      - 'codex/verify-personal-ci-*'
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
   pull_request:
+    branches-ignore:
+      - personal
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
   schedule:
     - cron: '0 3 * * 1'
+
+concurrency:
+  group: security-scan-${{ github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -15,6 +35,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          # 默认分支仅承载调度，周扫固定 personal；候选使用调用者固定 SHA。
+          ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
+          persist-credentials: false
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -34,6 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
+          persist-credentials: false
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:

@@ -1,17 +1,41 @@
-name: Upstream sync paused
+name: Sync KlN into personal
 
-# P0 安全占位：P2 验证完成前，仅允许手动查看暂停说明。
-# main 与 personal 必须维护同一定义；不拉取、改写分支、打标签或触发发布。
+# 独立复核和实际 CI 演练完成后再添加每日 schedule。
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'KlN vX.Y.Z-klno.N 或完整 SHA；留空选择最新发布标签'
+        type: string
+        required: false
+      verify_ci:
+        description: '仅演练机器人 PR 和 CI，不升级上游；生成明确标记的草稿 PR'
+        type: boolean
+        default: false
+
+concurrency:
+  group: personal-upstream-sync
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  paused:
+  sync:
+    if: github.repository == 'ccisnoxx/sub2api' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
     steps:
-      - name: Explain paused synchronization
-        run: |
-          printf '%s\n' '上游同步已暂停。完成 personal 同步 PR 与候选 CI 验证后，再启用 P2 安全流程。'
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Prepare merge candidate and dispatch checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SYNC_TARGET: ${{ inputs.target }}
+          VERIFY_CI: ${{ inputs.verify_ci || false }}
+        run: python3 .github/personal-sync/sync.py
