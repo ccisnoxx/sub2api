@@ -2,23 +2,27 @@ name: CI
 
 on:
   push:
-    # main 只是 sync-upstream.yml 的 cron 宿主，每天 03:17 UTC 被重建成
-    # upstream/main + 那一个工作流文件。上面跑的是上游的代码不是 klno 的，
-    # 每天白跑一整轮 CI 没有意义。
-    #
-    # 只写 branches-ignore、不写 tags，等于 tag push 也不再触发：sync-upstream
-    # 推 klno 时已经对同一棵树跑过一模一样的 CI，紧接着推的 <tag>-klno.N 再跑
-    # 一遍只是让 release.yml 多等十几分钟。
+    # personal 的完整检查由 Personal CI 调用，避免机器人 push 触发问题。
     branches-ignore:
       - main
+      - personal
+      - 'codex/sync-klno-*'
+      - 'codex/verify-personal-ci-*'
     paths-ignore:
       - '**.md'
       - 'LICENSE'
   pull_request:
+    branches-ignore:
+      - personal
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
 
 # 同一分支连续推送时取消还在跑的上一轮，只留最新的那次。
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: backend-ci-${{ github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
   cancel-in-progress: true
 
 permissions:
@@ -29,6 +33,9 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - name: Check deployment scripts
         run: |
           /bin/bash -n deploy/apple-container.sh
@@ -42,6 +49,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - name: Check Docker Compose simple mode environment
         run: /bin/sh deploy/tests/docker-compose-simple-mode-env-test.sh
       - uses: actions/setup-go@v6
@@ -69,6 +79,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -89,6 +102,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-go@v6
         with:
           go-version-file: backend/go.mod
@@ -109,6 +125,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'

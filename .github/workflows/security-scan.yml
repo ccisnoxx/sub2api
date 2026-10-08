@@ -2,19 +2,28 @@ name: Security Scan
 
 on:
   push:
-    # 同 backend-ci.yml：main 是 cron 宿主（每天被重建成上游代码），tag push
-    # 与推分支那次扫的是同一棵树。周一的 schedule 不受这里影响，照常跑。
+    # personal 候选由 Personal CI 调用相同安全检查。
     branches-ignore:
       - main
+      - personal
+      - 'codex/sync-klno-*'
+      - 'codex/verify-personal-ci-*'
     paths-ignore:
       - '**.md'
       - 'LICENSE'
   pull_request:
+    branches-ignore:
+      - personal
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
   schedule:
     - cron: '0 3 * * 1'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: security-scan-${{ github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
   cancel-in-progress: true
 
 permissions:
@@ -27,11 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          # schedule 只能从默认分支触发，而默认分支 main 是 sync-upstream 的 cron
-          # 宿主，内容是 upstream/main —— 扫它等于扫上游的依赖。klno 的 go.mod 已
-          # 经分叉（klno.4 把 grpc 提到 v1.83.2），周扫必须显式指向 klno。
-          # 留空 = actions/checkout 的默认行为，push / pull_request 不受影响。
-          ref: ${{ github.event_name == 'schedule' && 'klno' || '' }}
+          # 默认分支仅承载调度，周扫固定 personal；候选使用调用者固定 SHA。
+          ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
+          persist-credentials: false
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
@@ -52,7 +59,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event_name == 'schedule' && 'klno' || '' }}
+          ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
+          persist-credentials: false
       - name: Set up pnpm
         uses: pnpm/action-setup@v6
         with:
