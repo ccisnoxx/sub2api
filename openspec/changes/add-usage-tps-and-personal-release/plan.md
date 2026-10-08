@@ -1,7 +1,7 @@
 # Sub2API 平均输出 TPS 与个人分支维护方案
 
 - 编制日期：2026-10-08（America/Los_Angeles）。
-- 状态：P0/P1、P2.1–P2.8 和 P2.10 已完成；P2.9 真实 v0.2.14-klno.5 升级因历史改写/冲突停止，P3.1–P3.9 已完成并首次发布；P2.11/P4 待实施。实际结果见 [实施证据](implementation-evidence.md)。
+- 状态：P0/P1、P2.1–P2.8 和 P2.10 已完成；P2.9 真实 v0.2.14-klno.5 升级因历史改写/冲突停止，P3.1–P3.9 已完成并首次发布；P4.1–P4.8、P4.10 已完成并上线固定 tps.1，P4.9 页面与成功定向烟测未完成；P2.11 待实施。实际结果见 [实施证据](implementation-evidence.md)。
 - 执行入口：[实施任务清单 tasks.md](tasks.md)，按 P0–P4 编号逐项实施并登记验证结果。
 - 讨论来源：[排查 Codex fast 开关配置](codex://threads/01a11a74-fc24-7473-a94f-e61b253867ac)，重点承接该会话最后关于 TPS、自有分支、镜像构建与 hostdzire 更新的讨论。
 - 目标仓库：`ccisnoxx/sub2api`；功能上游：`KlN-4096/sub2api` 的 `klno` 发布线。
@@ -301,6 +301,8 @@ P2 的同步实现、21 个合同用例、workflow actionlint 和两次独立只
 
 验收期间 KlN 发布 v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d；该目标不是当前来源 de08 的后代，实际流程在远端候选写入前停止。只读普通合并预览有 120 个冲突文件，164 个文件的净差异及改写历史待人工审查。P2.9 的真实升级候选及 P2.11 保持未完成；演练不算升级，也不会合入。P2 的证据及剩余条件见 implementation-evidence.md 第 6 节。
 
-P3.1–P3.9 已完成。[PR #3](https://github.com/ccisnoxx/sub2api/pull/3) 普通 merge 后的最终 personal 为 `896de21b4be7f4ec4b4236f4df663b47371665b0`；该 SHA 的全新完整 CI、simple dry run 和独立复核通过后启用发布入口。机器人从来源记录分配 `v0.2.14-klno.3-tps.1` 并显式 dispatch simple Release，构建、发布、OCI revision/version/linux/amd64 校验、公开匿名完整拉取及同 SHA 不重复发布均有实际证据。发布结果只回写 main，未改变已发布 personal 的源码；main VERSION 未写回，没有访问 hostdzire。
+P3.1–P3.9 已完成。[PR #3](https://github.com/ccisnoxx/sub2api/pull/3) 普通 merge 后的最终 personal 为 `896de21b4be7f4ec4b4236f4df663b47371665b0`；该 SHA 的全新完整 CI、simple dry run 和独立复核通过后启用发布入口。机器人从来源记录分配 `v0.2.14-klno.3-tps.1` 并显式 dispatch simple Release，构建、发布、OCI revision/version/linux/amd64 校验、公开匿名完整拉取及同 SHA 不重复发布均有实际证据。P3 的发布结果只回写 main，未改变已发布 personal 的源码；main VERSION 未写回，P3 阶段没有访问 hostdzire。
 
-P4 固定部署输入为 `ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。P4 尚未执行，P2.9 真实升级部分与 P2.11 保持未完成；具体 PR/Actions、来源、digest 和复核结果见 implementation-evidence.md 第 7 节。
+P4 固定部署输入为 `ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。P4 工具属于 main 部署控制线，已通过 Python 3.11/Linux 的 28 个合同用例及两次 fresh 独立只读复核。真实隔离栈完成旧镜像→tps.1→旧镜像，生产仅切换一次应用服务；正式部署记录 `20261008T190259Z-2bb5bc1b6d52` 为 success，实际 digest、版本、revision、健康、数据库/Redis 和迁移状态均核对通过。配置/数据备份及旧镜像保留，生产没有回滚或恢复数据库。
+
+P4.1–P4.8、P4.10 完成；P4.9 尚未完成：一次授权的最小 HTTP 文本请求收到上游 403，没有成功定向烟测记录；既有客户端上线后已产生有效 WebSocket 使用记录，浏览器登录会话和管理员/用户的 TPS/耗时页面仍待验收。P2.9 真实升级部分与 P2.11 保持未完成；发布证据见第 7 节，本轮部署、限制及下一步见 implementation-evidence.md 第 8 节。

@@ -1,5 +1,16 @@
 # 开发日志
 
+## 2026-10-08：P4 部署工具与 hostdzire tps.1 上线，页面/定向烟测待完成
+
+- 从最新 main `59e07a09a` 创建 `codex/personal-deploy`，工具与阶段结果留在 main 控制线；提交 `2e5da44431efe152b4b6105a80b7a84f233436a6` 快进 main 后普通 push，没有绕过 personal 保护。personal 和 `v0.2.14-klno.3-tps.1` 仍为固定应用 SHA `896de21b4be7f4ec4b4236f4df663b47371665b0`，未合入 main 应用树、移动标签或重发镜像，未处理 KlN .5。
+- 实现固定来源/digest/platform 输入、生命周期 flock、现场预检、私密配置/数据备份、仅应用 Compose 更新、健康后原子选择/成功记录、失败诊断与明确退出、相同完整后端/迁移基线的自动和显式镜像回滚。工具没有 force 兼容开关，不恢复数据库、不更新 PG/Redis 或删除卷。
+- [Linux/Python 3.11 Actions](https://github.com/ccisnoxx/sub2api/actions/runs/37828364221) 通过 28 项合同测试及 shell 语法。两次 fresh 只读复核确认并关闭 gzip footer 完整性和 QA 同名资源检查问题，坏 CRC 回归先红后绿；审计 `20261008T183220Z-personal-deploy-p4-d413702c` closed/verify passed。
+- hostdzire 独立空数据库/卷/10089 临时栈完成真实旧镜像→tps.1→旧镜像回滚；两个核心记录 success。最初临时 stop 漏传 image.env 导致外层退出1，按成功选择补传后 stop 成功，没有重复切换，保留 QA 卷与私密证据；生产三容器身份/启动未变。
+- 正式部署记录 `20261008T190259Z-2bb5bc1b6d52` success，生产应用一次切换：旧 KlN digest `sha256:c0ec609deaf0fb6f323de660ed7d43cf2030b4c4083c6fc4bef506d28f08ad8c` → 固定 tps.1 digest `sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。实际版本、revision、容器健康、/health、SELECT 1/PONG 均通过；仅 Compose 应用 image 一行变化，原 .env、挂载、PG/Redis、网络保留，303 条迁移指纹相同。
+- 私密备份在正式记录目录，PG custom dump 60,157,925 字节、应用归档 12,619,793 字节；tar/gzip CRC 和 pg_restore 全部解码通过，没有实际数据库恢复演练。记录/数据文件600、目录700，旧镜像和备份保留。兼容条件仍成立时使用 `deploy/personal/deploy-hostdzire.sh --rollback 20261008T190259Z-2bb5bc1b6d52`；生产未执行回滚。
+- 健康采样中断约1–2秒，切换区间 UTC19:03:16，未跟踪所有客户端断连。唯一授权的最小 HTTP 文本请求收到上游403，无成功烟测记录，未重试；上线后既有 WebSocket 客户端实际产生9条正输出/耗时记录。浏览器尚在登录页，现有管理员/用户会话未取得，实际 TPS/耗时页面仍待验收。
+- P4.1–P4.8、P4.10 完成，P4.9 保持未勾选；P2.9 真实 .5 升级和 P2.11 未处理。完整方法、实际/替身边界、回滚条件、中断和剩余事项见 [实施证据第8节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。
+
 ## 2026-10-08：个人镜像发布，P3 已完成
 
 - 从已验收 personal 029cd8fb 建立发布分支，保留原 KlN v0.2.14-klno.3/de08df02 和 TPS；[PR #3](https://github.com/ccisnoxx/sub2api/pull/3) 通过 required personal-ready 后普通 merge，最终 personal/构建源码为 `896de21b4be7f4ec4b4236f4df663b47371665b0`。没有合并 main 应用源码，没有修改应用、锁文件或迁移。

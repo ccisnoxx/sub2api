@@ -1,7 +1,7 @@
 # P0–P4 实施证据
 
 - 实施日期：2026-10-08（America/Los_Angeles）。
-- 最新阶段：P3.1–P3.9 已完成；本轮正在实施 P4.1–P4.10。下文第 1–7 节是各阶段当时的记录，当前状态以第 8 节和 tasks.md 为准。P2.9/P2.11 的 .5 升级不属于本轮。
+- 最新阶段：P3.1–P3.9 已完成；本轮 P4.1–P4.8、P4.10 已完成并上线固定 tps.1；P4.9 登录页面验收和成功定向烟测尚未完成。下文第 1–7 节是各阶段当时的记录，当前状态以第 8 节和 tasks.md 为准。P2.9/P2.11 的 .5 升级不属于本轮。
 - 前轮范围：本地 P0 基线准备、P1 平均输出 TPS，以及 hostdzire 只读检查。GitHub 设置修改、远端推送、镜像发布、生产部署均未执行。
 - 前轮结论：P1 本地完成；P0 本地准备完成，P0.2/P0.6 的远端定义替换当时仍待执行。不能把本地暂停文件认定为远端已生效。
 - 功能代码 SHA：`f74554702e6d55554342134b68fc54ff4a4ff541`，由 `codex/usage-tps` 快进合入本地 `personal`。此后的证据提交只修改文档，复用相同源码的有效验证结果。
@@ -300,4 +300,55 @@ ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1d
 
 旧源码到目标源码的整个 backend、Dockerfile、Dockerfile.goreleaser、deploy/Dockerfile、既有 Compose 和 .env.example 路径差异为空。`backend/migrations` 的 Git tree 两端同为 `97aa2ba12e590cf497ffb50d09b853c17af611ec`。数据库已应用 filename/checksum 排序清单的 SHA-256 为 `d2765fa67306539751aab2ddc4147ef2f9c340d31745dbed686f3a5f66bb0a5a`。本次同基线仅 TPS/构建控制变动，具备镜像回滚条件；此证据不授权未来含后端/迁移变更的版本自动回滚或恢复数据库。
 
-现场数据库约 643 MB，应用数据约 43 MB，可用磁盘约 32 GB。备份、生产切换与验收结果待下文取得实际证据后登记；本段本身不代表已部署。
+现场数据库约 643 MB，应用数据约 43 MB，可用磁盘约 32 GB。本段属于部署前观测；实际备份、生产切换与验收结果如下。
+
+
+### 工具、合同验证与独立复核
+
+- 工具提交 `2e5da44431efe152b4b6105a80b7a84f233436a6`，从实现分支快进到无保护规则的 main 并普通 push；没有强推、修改保护或把 main 应用源码合入 personal。personal 的严格 App 15368 门禁和 merge-only 规则保持原状。工具 revision 与发布应用 revision 分开记录。
+- 新入口 `deploy/personal/deploy-hostdzire.sh`/`deploy_hostdzire.py` 只依赖标准库，使用原生 hostdzire SSH/scp；校验 fork、个人版本/tag/source/revision、digest 与 linux/amd64，拒绝 latest 和未知来源。Deployment 单独拥有生命周期状态，flock 覆盖预检、备份、拉取、仅应用更新、健康、持久提交和失败恢复。
+- 原 Compose 仅将唯一应用 image 行参数化为 `"${SUB2API_IMAGE:?必须指定应用镜像}"`。完整 Compose JSON 在内存中对比，仅 image 可以变化；现有 `.env`、端口、卷、PG/Redis、网络和其他配置保留。镜像选择保存为权限 600 的 `.personal-deploy/image.env`，每次操作显式传入既有 `.env` 和操作镜像文件。
+- [Personal Deployment Tools Actions](https://github.com/ccisnoxx/sub2api/actions/runs/37828364221) 绑定工具提交，Linux/CPython 3.11.17：shell 语法与全部 28 项测试通过。真实临时 Git/文件、flock/子进程与 SSH/Docker 替身覆盖成功、拉取失败、健康超时/失败自动恢复、显式回滚/防重放、锁竞争、来源/platform/digest 拒绝、迁移/依赖/配置漂移、备份失败、持久选择部分提交、SSH 中断。替身结果不等同现场 Docker 或生产回滚。
+- 第一次 fresh critical_reviewer 确认应用 tar 枚举不能保证 gzip footer CRC 已读取，以及 QA 目录缺失不能证明同名 Docker 资源不存在。坏 CRC 回归在原逻辑实际失败（误成功退出），修正为 gzip 分块读至 EOF 后，CRC、原备份失败、成功路径 3 项定向检查通过；CI 再验证完整合同。QA 写入前增加固定容器/卷/default network 与项目标签存在检查，Docker 查询失败停止。
+- 第二次 fresh critical_reviewer 确认两项阻断解除，并核对原始 Actions 日志；未确认剩余生产发布阻断。它们没有进行 SSH 或现场部署验证。审计 Bundle `20261008T183220Z-personal-deploy-p4-d413702c` closed/verify passed，3 次执行均验收，2 次独立复核；详细审计和原始日志在仓库外私密目录。
+- 没有改动应用、构建产物、锁文件、计费或迁移，复用 P3 固定应用 SHA 的成功检查；没有扩大为无关应用全量测试。
+
+### 真实隔离回滚验收（不是生产回滚）
+
+本机没有运行 Docker daemon，因此在 hostdzire 使用独立目录 `/root/sub2api-p4-rollback-qa`、Compose 项目/容器/卷/网络 `sub2api-p4-rollback-qa`、loopback 10089 和全新空 PostgreSQL/Redis。写入前确认该目录、三个容器名、三个卷名、默认网络和项目标签资源均不存在。测试副本只替换 4 个现场常量及 2 个健康/端口地址；核心 Deployment 备份、兼容、锁和回滚算法与已复核源码相同，原脚本 SHA-256 为 `cc57bd404f0f5936402f1ee8587c6521facad69020a5cff22dea315e449f0382`，原/测试副本 hash 及替换明细留在 QA 私密记录。
+
+- 实际部署记录 `20261008T190058Z-c332cd133f9c` success：旧 KlN 固定 digest → 指定 tps.1 固定 digest，健康/数据库/Redis/迁移核对通过。
+- 实际显式回滚记录 `20261008T190119Z-bf9e2d5c1dc3` success：绑定前一成功记录，恢复同一旧 digest 并健康；迁移指纹和 QA 数据库/Redis 容器不变。
+- 最初演练外层 exit=1 发生在 finally 的临时栈 stop：工具已参数化 image，收尾遗漏已提交的 image.env。两个核心操作此前均已成功。依据现有成功选择补传 `--env-file` 和显式同一 `SUB2API_IMAGE` 后，stop 成功；没有再次切换、重做演练或删除卷。最终 `sandbox-result.json` 明确标注 `passed_after_cleanup_fix` 和原外层失败，不能把第一次外层退出写成成功。
+- 生产应用/PG/Redis 的 ID、镜像和启动时间前后未变，生产健康采样无隔离演练导致的失败。QA 容器已停止，私密证据、配置和卷保留。没有把生产数据导入 QA，没有在生产进行回滚，也没有数据库恢复演练。
+
+### 正式生产部署与备份
+
+正式入口使用用户指定 digest 和 `--version 0.2.14-klno.3-tps.1`，exit=0；部署记录 `20261008T190259Z-2bb5bc1b6d52` 为 success。操作开始 `2026-10-08T19:02:59Z`；备份后执行目标 digest pull，拉取/OCI 核验通过才适配 image 和启动应用。成功选择只在健康核验完成后持久提交。没有移动 Git 标签、覆盖镜像或分配新版本。
+
+| 现场验收 | 实际结果 |
+|---|---|
+| 部署前镜像 | `ghcr.io/kln-4096/sub2api@sha256:c0ec609deaf0fb6f323de660ed7d43cf2030b4c4083c6fc4bef506d28f08ad8c` |
+| 部署后镜像/运行 Image ID | `ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`；Docker 29 containerd 的实际 Image ID 同该 digest |
+| 实际二进制版本/revision | `/app/sub2api -version` 返回 `0.2.14-klno.3-tps.1` / `896de21b4be7f4ec4b4236f4df663b47371665b0`，built=`2026-10-08T18:09:26Z` |
+| 应用启动时间/健康 | `2026-10-08T19:03:16.515665323Z`；容器 healthy、`/health={"status":"ok"}` |
+| 数据库/Redis | 两个原容器 ID 不变，healthy；PostgreSQL SELECT 1=1、Redis PING=PONG |
+| 配置/挂载 | Compose 逐字对比仅应用 image 一行改变；`.env` 与原备份相同；原应用卷挂载 `/app/data`，全部其他配置保留 |
+| 迁移 | 303 行，排序 filename/checksum 指纹仍为 `d2765fa67306539751aab2ddc4147ef2f9c340d31745dbed686f3a5f66bb0a5a` |
+
+备份留在服务器 `.personal-deploy/records/20261008T190259Z-2bb5bc1b6d52/`，目录 700，数据/配置/记录和镜像选择 600；没有上传备份、凭据或原始现场配置到 Git。原 Compose、`.env`、旧镜像完整元数据均保存；旧镜像继续保留。`postgres.dump` 为 custom 格式，60,157,925 字节；`app-data.tar.gz` 为 12,619,793 字节，各自 SHA-256 保存在私密记录。应用归档通过 tar 和完整 gzip EOF/CRC/长度校验；数据库先经 `pg_restore --list`，部署后又以 `pg_restore --file=/dev/null` 解码全部内容，exit=0，不连接目标数据库、不恢复或写入数据库。
+
+备份是在运行期间分别取得，未证明数据库与应用数据具有跨文件业务事务一致性；本次旧、新后端/迁移相同，镜像回滚保留现有数据，不依赖数据库恢复。实际完整数据库恢复与备份后写入的数据取舍仍需要单独维护方案，不能据解码检查声称已恢复验证。
+
+### TPS、网关与中断：实际结果及未完成项
+
+- 原生 hostdzire SSH 转发到本机 `127.0.0.1:18088`，在可见浏览器打开生产登录页；没有提供新的密码、伪造生产登录、修改凭据或把 P1 合成 API 记录用于生产验收。现有管理员/用户登录会话尚未取得，浏览器仍是登录页。因此管理员 `/admin/usage`、用户 `/usage` 的历史 TPS、首字/总耗时实际渲染未验证，P4.9 保持未勾选。
+- 已执行唯一一次授权的最小文本请求：使用现有活跃管理员 OpenAI key，凭据仅留在进程内存，POST `/v1/responses`，model=`gpt-6.1-sol`，文本要求仅回复 OK。开始 `2026-10-08T19:04:18Z`，收到 HTTP 403；Ops 记录确认上游 status=403，返回经应用隐藏细节的 `upstream_error / Upstream request failed`，具体上游拒绝原因未确认。没有重试、修改 key/IP/账户限制或恢复凭据，也没有成功烟测使用记录。不能将它记为网关烟测通过，不能据本次证据断定该 403 在部署前已经存在。
+- 上线后既有客户端自然产生成功 WebSocket 使用记录：截至 `19:06:50Z` 有 9 条，均有正输出 token 与 duration。只读样本：1789 output / 43174 ms、first-token 13283 ms，整段平均 41.44 tok/s；994 / 21893 ms 为 45.40 tok/s；598 / 10095 ms 为 59.24 tok/s。它们支持上线后实际 WebSocket 转发和新增记录可用，但不替代本次失败的 HTTP 定向烟测或登录后的页面验收。没有读取/保存请求文本、API key 或会话凭据到证据文档。
+- 健康观察从 `18:59:30.959895Z` 到 `19:06:50.878467Z`，共 812 次；请求间 sleep 0.25 秒，加上 SSH 往返约 0.14–0.28 秒，因此实际采样间隔约 0.4–0.55 秒。只有应用切换时 3 次失败：`19:03:16.159964Z` 至 `19:03:16.964032Z`；相邻成功采样为 `19:03:15.612999Z`、`19:03:17.364751Z`。成功采样间跨度 1.752 秒，失败采样跨度 0.804 秒；报告实际中断约 1–2 秒，精度受采样限制。没有监测每个 HTTP/WS 客户端的断连/重连，不能声称全部现有连接保持。
+
+### 恢复方式与阶段状态
+
+当前成功记录、配置、来源和迁移仍匹配时，可在本仓库执行 `deploy/personal/deploy-hostdzire.sh --rollback 20261008T190259Z-2bb5bc1b6d52`。工具会再校验当前选择、旧 digest/revision/source、Git 兼容性、数据库指纹和依赖，以旧固定 digest 仅重建应用，通过健康后生成新的成功回滚记录；不自动恢复数据库或应用数据。如果这些条件漂移或不兼容，工具明确停止并保留诊断，不自动恢复数据库。本轮生产仍运行 tps.1，没有执行该生产回滚命令。
+
+P4.1–P4.8、P4.10 完成；P4.9 仅完成部署后真实使用记录只读核对和一次失败 HTTP 烟测，登录页面与成功定向烟测未完成。剩余需要现有登录会话；如要再次发起文本请求，应先取得对应新增请求授权并选择已诊断、符合现有客户端方式的请求。P2.9/P2.11 的 KlN .5 升级仍不属于本轮。最终登记只修改 main 文档，personal/标签/应用镜像保持固定。
