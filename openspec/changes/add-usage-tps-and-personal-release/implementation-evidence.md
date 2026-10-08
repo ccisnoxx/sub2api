@@ -163,7 +163,7 @@ node /Users/sc/.codex/visualizations/2026/10/08/01a11bf9-6de4-7391-a1e7-a440d2ff
 
 截图/脚本属于本机证据，未作为生成资源提交到仓库；生产页面验收属于 P4，未执行。
 
-## 5. 任务状态与进入 P2 的条件
+## 5. 前轮任务状态与当时进入 P2 的条件
 
 - 完成并勾选：P0.1、P0.3–P0.5、P0.7–P0.9；P1.1–P1.11。
 - 部分完成并保持未勾选：P0.2、P0.6。维护文件在两条本地分支已准备好，远端 main 尚未推送安全定义，也没有修改远端设置。
@@ -186,7 +186,7 @@ node /Users/sc/.codex/visualizations/2026/10/08/01a11bf9-6de4-7391-a1e7-a440d2ff
 - Personal CI 显式输入/ref/实际 checkout 对应完整候选 SHA，开始和结束核对 PR、当前 personal 与来源祖先；聚合 TPS 和原 CI/Security Scan 的全部检查。依赖为 pnpm 9、frozen lockfile。相同 SHA/基础的已运行检查可复用；personal 前进必须重新准备候选。
 - main 搬运维护目录时曾误提交 Python 缓存，后续普通提交 `680bc0fe0` 删除并添加目录级忽略，personal 对应 `e0dca83a4`；最终树不含缓存。没有重写已推送历史。
 
-### 实際验证与失败分类
+### 实际验证与失败分类
 
 - `python3 -m unittest discover -s .github/personal-sync -p 'test_*.py' -v`：21 个合同用例通过。真实临时 Git 仓库覆盖 TPS/上游/main 历史、数字排序、annotated tag/独立引用、无更新、重跑同 SHA、同树 squash、冲突 abort、历史改写、基础变化、推送拒绝、控制/必要 CI 文件变化和未发布 SHA 记录；PR/dispatch 边界使用明确替身。
 - CI 来源历史反例先在修正前因 `SyncError not raised` 失败，复用 source_at() 后通过；不是仅断言配置值。新增标签 resolver 合同使用真实本地 remote，验证当前 klno 改写后合法发布标签仍能解析，fork 标签不被覆盖。
@@ -201,6 +201,22 @@ node /Users/sc/.codex/visualizations/2026/10/08/01a11bf9-6de4-7391-a1e7-a440d2ff
 
 两位 fresh critical_reviewer 只读审查，确认并关闭：同树候选丢失上游历史、必要 reusable gate 未保护、合法发布标签误拒，以及在 CI 边界补齐人工修改候选后的来源祖先校验。最终复核未确认新的阻断。审计 Bundle `20261008T154650Z-personal-sync-p2-final-2fcdbc65` 聚合 2 次执行/2 次验收/2 次独立复核，关闭及 verify 通过，未观测仓库写入。
 
-严格 personal-ready/App 15368/最新基础保护及定时入口仍待首轮完整 CI 后生效，随后需要按最终 personal SHA 刷新演练并验证最终门禁。当前没有新 KlN 发布，因此真实升级候选未产生；P2.9 真实升级部分保持未勾选，P2.11 依赖 P4，P3/P4 未开始。演练 PR 不能合并或作为实际升级成功。
+### 最终基础与远端门禁验收
+
+- 固定 personal `029cd8fb8b04d18a6b3abe4528effe4aeec75859`；main 的相同控制定义为 `2ad9c5be246844024afd67354931283d30e693e5`。两条分支的同步目录、四份工作流和维护约定完全一致。最终状态只回写 main，保持 personal 的检查输入不变。
+- [最终机器人演练](https://github.com/ccisnoxx/sub2api/actions/runs/37804458549) 创建 [草稿 PR #2](https://github.com/ccisnoxx/sub2api/pull/2)，候选 `9c33a062c8ed50ea77ca17a05b789d88c94f54bb`、基础为上述 personal。实际 fetch 核对仅增加 candidate.json，来源记录及 TPS 祖先不变；没有构造真实上游升级。
+- [显式最终候选 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37804514128) 和 [personal push CI](https://github.com/ccisnoxx/sub2api/actions/runs/37804451356) 全部 success：绑定、TPS/构建、21 个同步合同、既有 shell/Go 单元/集成/race/lint/前端关键检查/发布 helper、安全扫描及最终 personal-ready 均通过。
+- [原生候选 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37804516668) attempt 1 为 action_required；批准后的 attempt 2 中，既有 `TestPinnedOpenAIModelsListMixedAccountsShareColdCacheAcrossGroups` 在 openai_models_list_test.go:291 失败，API 调用次数期望 1、实际 2。核对维护源码发现 get(miss) 与 singleflight.DoChan 之间存在时间窗口，前一调用已完成时 refresh 不重查 fresh，可能重复 fetch；涉及代码/测试与 de08 基线完全相同，本轮未改动。相同 SHA 的显式/个人完整测试通过，支持按已定位的并发非确定性进行一次 `--failed` 重跑；attempt 3 只运行失败 backend test job 和最终门禁，其他成功结果复用，当前仍在运行。PR 实际必要检查当时仍显示原生 failure，不能以另一路 success 宣称合入门禁已绿。
+- [错误 SHA 实际 dispatch](https://github.com/ccisnoxx/sub2api/actions/runs/37804800869) 按预期 failure：ref 为测试提交 `7ce3b3a3196e97063066f941a71bb5a033f164fa`，输入 candidate/base 为 personal 029cd8；binding 输出“dispatch ref 的 SHA 与候选 SHA 不一致”，全部后续必要检查 skipped，personal-ready 失败。该负例没有更改正式候选。
+- [最终基础的无更新检查](https://github.com/ccisnoxx/sub2api/actions/runs/37805655832) success，输出 state=no_update、base=029cd8fb、upstream_tag=v0.2.14-klno.3、upstream_sha=de08df02；没有新升级 PR、来源变动或额外候选 CI。
+- [旧基础完整 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37802988804) 的所有测试和安全检查通过，但结束时 personal-ready 输出“personal 基础分支已变化”并 failure，验证测试期间基础前进后旧证据不能使用。原生旧基础 run 37802990043 同样 failure；PR #1 经确认过时后已关闭，未合并。
+- 实际 readback：personal 必须通过 `personal-ready`，App ID=15368，strict=true，enforce_admins=true；allow_force_pushes/allow_deletions=false，required_linear_history=false，允许普通 merge。此前保护为空，本轮新增门禁，没有削弱已有规则；Rulesets 仍为空。仓库 allow_merge_commit=true，allow_squash_merge/allow_rebase_merge=false。
+- Actions enabled=true；默认 token 权限保持 read，允许机器人创建 PR。每日 UTC 03:17 定义已推送两条分支，仓库变量 `PERSONAL_SYNC_SCHEDULE_ENABLED=false`，待最终完整 CI 后才启用；尚未观测真实 schedule 事件。
+
+### 验收期间的新发布与真实历史停止
+
+UTC 16:02 的无更新结果是真实当时状态。KlN 随后于 `2026-10-08T16:10:39Z` 发布 [v0.2.14-klno.5](https://github.com/KlN-4096/sub2api/releases/tag/v0.2.14-klno.5)，解引用为 `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。[再次自动解析](https://github.com/ccisnoxx/sub2api/actions/runs/37807041368) 在任何候选远端写入前停止，输出“上游目标不是记录来源的后代”。本地仅 fetch 到独立引用，确认 de08 不是新目标祖先，共同祖先为 cdd6e447661349b09316fb75d08a8a096c4a8708；两标签净差异 164 文件、6821 行增加/4161 行删除。workflow、迁移和 UsageTable 相关路径在这次净差异中为空；这不代替完整历史/功能审查。
+
+真实升级候选因历史改写停止，人工差异审查及 P2.9 真实升级部分未完成；没有绕过祖先检查、制造发布或合入演练。P2.11 依赖 P4，P3/P4 未开始。实际机器人修改 workflow 文件的 push 尚未验证；Workflows 权限受限时必须明确停止并用现有授权本机凭据处理，未新增令牌。首次 P3 继续使用原 KlN 基线加 TPS 的已检查 personal。
 
 阶段进度与最终远端验收以默认 main 的最新本文件、tasks.md 和开发日志为准；此阶段提交保存可复用固定源码，后续仅 main 的结果登记不改变 personal 基础或旧检查输入。
