@@ -82,6 +82,24 @@ const (
 	FieldDurationMs = "duration_ms"
 	// FieldFirstTokenMs holds the string denoting the first_token_ms field in the database.
 	FieldFirstTokenMs = "first_token_ms"
+	// FieldTimingVersion holds the string denoting the timing_version field in the database.
+	FieldTimingVersion = "timing_version"
+	// FieldStrictFirstTokenMs holds the string denoting the strict_first_token_ms field in the database.
+	FieldStrictFirstTokenMs = "strict_first_token_ms"
+	// FieldLastTokenMs holds the string denoting the last_token_ms field in the database.
+	FieldLastTokenMs = "last_token_ms"
+	// FieldFirstOutputMs holds the string denoting the first_output_ms field in the database.
+	FieldFirstOutputMs = "first_output_ms"
+	// FieldFirstOutputKind holds the string denoting the first_output_kind field in the database.
+	FieldFirstOutputKind = "first_output_kind"
+	// FieldAudioOutputTokens holds the string denoting the audio_output_tokens field in the database.
+	FieldAudioOutputTokens = "audio_output_tokens"
+	// FieldCompletionStatus holds the string denoting the completion_status field in the database.
+	FieldCompletionStatus = "completion_status"
+	// FieldIsComplete holds the string denoting the is_complete field in the database.
+	FieldIsComplete = "is_complete"
+	// FieldUsageSource holds the string denoting the usage_source field in the database.
+	FieldUsageSource = "usage_source"
 	// FieldUserAgent holds the string denoting the user_agent field in the database.
 	FieldUserAgent = "user_agent"
 	// FieldIPAddress holds the string denoting the ip_address field in the database.
@@ -194,6 +212,15 @@ var Columns = []string{
 	FieldStream,
 	FieldDurationMs,
 	FieldFirstTokenMs,
+	FieldTimingVersion,
+	FieldStrictFirstTokenMs,
+	FieldLastTokenMs,
+	FieldFirstOutputMs,
+	FieldFirstOutputKind,
+	FieldAudioOutputTokens,
+	FieldCompletionStatus,
+	FieldIsComplete,
+	FieldUsageSource,
 	FieldUserAgent,
 	FieldIPAddress,
 	FieldImageCount,
@@ -268,6 +295,18 @@ var (
 	DefaultBillingType int8
 	// DefaultStream holds the default value on creation for the "stream" field.
 	DefaultStream bool
+	// DefaultTimingVersion holds the default value on creation for the "timing_version" field.
+	DefaultTimingVersion int16
+	// FirstOutputKindValidator is a validator for the "first_output_kind" field. It is called by the builders before save.
+	FirstOutputKindValidator func(string) error
+	// DefaultCompletionStatus holds the default value on creation for the "completion_status" field.
+	DefaultCompletionStatus string
+	// CompletionStatusValidator is a validator for the "completion_status" field. It is called by the builders before save.
+	CompletionStatusValidator func(string) error
+	// DefaultUsageSource holds the default value on creation for the "usage_source" field.
+	DefaultUsageSource string
+	// UsageSourceValidator is a validator for the "usage_source" field. It is called by the builders before save.
+	UsageSourceValidator func(string) error
 	// UserAgentValidator is a validator for the "user_agent" field. It is called by the builders before save.
 	UserAgentValidator func(string) error
 	// IPAddressValidator is a validator for the "ip_address" field. It is called by the builders before save.
@@ -468,6 +507,51 @@ func ByDurationMs(opts ...sql.OrderTermOption) OrderOption {
 // ByFirstTokenMs orders the results by the first_token_ms field.
 func ByFirstTokenMs(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFirstTokenMs, opts...).ToFunc()
+}
+
+// ByTimingVersion orders the results by the timing_version field.
+func ByTimingVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTimingVersion, opts...).ToFunc()
+}
+
+// ByStrictFirstTokenMs orders the results by the strict_first_token_ms field.
+func ByStrictFirstTokenMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStrictFirstTokenMs, opts...).ToFunc()
+}
+
+// ByLastTokenMs orders the results by the last_token_ms field.
+func ByLastTokenMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastTokenMs, opts...).ToFunc()
+}
+
+// ByFirstOutputMs orders the results by the first_output_ms field.
+func ByFirstOutputMs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFirstOutputMs, opts...).ToFunc()
+}
+
+// ByFirstOutputKind orders the results by the first_output_kind field.
+func ByFirstOutputKind(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFirstOutputKind, opts...).ToFunc()
+}
+
+// ByAudioOutputTokens orders the results by the audio_output_tokens field.
+func ByAudioOutputTokens(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAudioOutputTokens, opts...).ToFunc()
+}
+
+// ByCompletionStatus orders the results by the completion_status field.
+func ByCompletionStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCompletionStatus, opts...).ToFunc()
+}
+
+// ByIsComplete orders the results by the is_complete field.
+func ByIsComplete(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsComplete, opts...).ToFunc()
+}
+
+// ByUsageSource orders the results by the usage_source field.
+func ByUsageSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsageSource, opts...).ToFunc()
 }
 
 // ByUserAgent orders the results by the user_agent field.

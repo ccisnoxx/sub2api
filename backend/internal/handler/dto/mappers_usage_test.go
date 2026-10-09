@@ -357,3 +357,60 @@ func TestUsageLogFromService_PreservesHistoricalMissingImageSize(t *testing.T) {
 func f64Ptr(value float64) *float64 {
 	return &value
 }
+
+func TestUsageLogFromService_PreservesTimingAndUnknownValues(t *testing.T) {
+	t.Parallel()
+
+	first, last, output, audio, legacy := 0, 450, 0, 0, 90
+	kind, complete := "tool", false
+	cases := []struct {
+		name   string
+		timing service.UsageTiming
+		want   map[string]any
+	}{
+		{
+			name: "历史零值保持未知",
+			want: map[string]any{
+				"timing_version": float64(0), "strict_first_token_ms": nil,
+				"last_token_ms": nil, "first_output_ms": nil, "first_output_kind": nil,
+				"audio_output_tokens": nil, "completion_status": "unknown",
+				"is_complete": nil, "usage_source": "unknown",
+			},
+		},
+		{
+			name: "部分输出的零值和false保持可观察",
+			timing: service.UsageTiming{
+				TimingVersion: 1, StrictFirstTokenMs: &first, LastTokenMs: &last,
+				FirstOutputMs: &output, FirstOutputKind: &kind, AudioOutputTokens: &audio,
+				CompletionStatus: service.CompletionStatusClientDisconnected,
+				IsComplete:       &complete, UsageSource: service.UsageSourceUpstreamPartial,
+			},
+			want: map[string]any{
+				"timing_version": float64(1), "strict_first_token_ms": float64(first),
+				"last_token_ms": float64(last), "first_output_ms": float64(output),
+				"first_output_kind": kind, "audio_output_tokens": float64(0),
+				"completion_status": "client_disconnected", "is_complete": false,
+				"usage_source": "upstream_partial",
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			log := &service.UsageLog{UsageTiming: tc.timing, Model: "gpt-5", FirstTokenMs: &legacy}
+			for _, got := range []any{UsageLogFromService(log), UsageLogFromServiceAdmin(log)} {
+				body, err := json.Marshal(got)
+				require.NoError(t, err)
+				var payload map[string]any
+				require.NoError(t, json.Unmarshal(body, &payload))
+				for field, want := range tc.want {
+					value, present := payload[field]
+					require.True(t, present, "字段 %s 必须显式保留", field)
+					require.Equal(t, want, value, "字段 %s", field)
+				}
+				require.Equal(t, float64(legacy), payload["first_token_ms"])
+			}
+			// 映射不会给源对象伪造新的观测值。
+			require.Equal(t, tc.timing, log.UsageTiming)
+		})
+	}
+}

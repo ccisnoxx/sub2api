@@ -82,6 +82,15 @@ var usageLogInsertArgTypes = [...]string{
 	"text",        // billing_tier
 	"text",        // billing_mode
 	"numeric",     // account_stats_cost
+	"smallint",    // timing_version
+	"integer",     // strict_first_token_ms
+	"integer",     // last_token_ms
+	"integer",     // first_output_ms
+	"text",        // first_output_kind
+	"integer",     // audio_output_tokens
+	"text",        // completion_status
+	"boolean",     // is_complete
+	"text",        // usage_source
 	"text",        // upstream_request_id
 	"text",        // session_id
 	"boolean",     // native_compaction_v2
@@ -294,6 +303,15 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 			billing_tier,
 			billing_mode,
 			account_stats_cost,
+			timing_version,
+			strict_first_token_ms,
+			last_token_ms,
+			first_output_ms,
+			first_output_kind,
+			audio_output_tokens,
+			completion_status,
+			is_complete,
+			usage_source,
 			upstream_request_id,
 			session_id,
 			native_compaction_v2,
@@ -315,7 +333,7 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 			$12, $13, $14, $15,
 			$16, $17, $18, $19,
 			$20, $21, $22, $23, $24, $25,
-			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73
+			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 		RETURNING id, created_at
@@ -765,6 +783,15 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 			billing_tier,
 			billing_mode,
 			account_stats_cost,
+			timing_version,
+			strict_first_token_ms,
+			last_token_ms,
+			first_output_ms,
+			first_output_kind,
+			audio_output_tokens,
+			completion_status,
+			is_complete,
+			usage_source,
 			upstream_request_id,
 			session_id,
 			native_compaction_v2,
@@ -871,6 +898,15 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				billing_tier,
 				billing_mode,
 				account_stats_cost,
+				timing_version,
+				strict_first_token_ms,
+				last_token_ms,
+				first_output_ms,
+				first_output_kind,
+				audio_output_tokens,
+				completion_status,
+				is_complete,
+				usage_source,
 				upstream_request_id,
 				session_id,
 				native_compaction_v2,
@@ -946,6 +982,15 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				billing_tier,
 				billing_mode,
 				account_stats_cost,
+				timing_version,
+				strict_first_token_ms,
+				last_token_ms,
+				first_output_ms,
+				first_output_kind,
+				audio_output_tokens,
+				completion_status,
+				is_complete,
+				usage_source,
 				upstream_request_id,
 				session_id,
 				native_compaction_v2,
@@ -1061,6 +1106,15 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			billing_tier,
 			billing_mode,
 			account_stats_cost,
+			timing_version,
+			strict_first_token_ms,
+			last_token_ms,
+			first_output_ms,
+			first_output_kind,
+			audio_output_tokens,
+			completion_status,
+			is_complete,
+			usage_source,
 			upstream_request_id,
 			session_id,
 			native_compaction_v2,
@@ -1162,6 +1216,15 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			billing_tier,
 			billing_mode,
 			account_stats_cost,
+			timing_version,
+			strict_first_token_ms,
+			last_token_ms,
+			first_output_ms,
+			first_output_kind,
+			audio_output_tokens,
+			completion_status,
+			is_complete,
+			usage_source,
 			upstream_request_id,
 			session_id,
 			native_compaction_v2,
@@ -1237,6 +1300,15 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			billing_tier,
 			billing_mode,
 			account_stats_cost,
+			timing_version,
+			strict_first_token_ms,
+			last_token_ms,
+			first_output_ms,
+			first_output_kind,
+			audio_output_tokens,
+			completion_status,
+			is_complete,
+			usage_source,
 			upstream_request_id,
 			session_id,
 			native_compaction_v2,
@@ -1320,6 +1392,15 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 			billing_tier,
 			billing_mode,
 			account_stats_cost,
+			timing_version,
+			strict_first_token_ms,
+			last_token_ms,
+			first_output_ms,
+			first_output_kind,
+			audio_output_tokens,
+			completion_status,
+			is_complete,
+			usage_source,
 			upstream_request_id,
 			session_id,
 			native_compaction_v2,
@@ -1341,7 +1422,7 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 			$12, $13, $14, $15,
 			$16, $17, $18, $19,
 			$20, $21, $22, $23, $24, $25,
-			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73
+			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 	`, prepared.args...)
@@ -1349,6 +1430,7 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 }
 
 func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
+	timing := log.CanonicalUsageTiming()
 	createdAt := log.CreatedAt
 	if createdAt.IsZero() {
 		createdAt = time.Now()
@@ -1473,8 +1555,17 @@ func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
 			billingTier,
 			billingMode,
 			log.AccountStatsCost, // account_stats_cost
-			upstreamRequestID,    // upstream_request_id
-			sessionID,            // session_id
+			timing.TimingVersion,
+			nullInt(timing.StrictFirstTokenMs),
+			nullInt(timing.LastTokenMs),
+			nullInt(timing.FirstOutputMs),
+			nullString(timing.FirstOutputKind),
+			nullInt(timing.AudioOutputTokens),
+			timing.CompletionStatus,
+			nullBool(timing.IsComplete),
+			timing.UsageSource,
+			upstreamRequestID, // upstream_request_id
+			sessionID,         // session_id
 			log.NativeCompactionV2,
 			turnState,                  // turn_state
 			turnStateOverridden,        // turn_state_overridden

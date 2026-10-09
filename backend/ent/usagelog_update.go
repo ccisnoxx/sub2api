@@ -712,6 +712,203 @@ func (_u *UsageLogUpdate) ClearFirstTokenMs() *UsageLogUpdate {
 	return _u
 }
 
+// SetTimingVersion sets the "timing_version" field.
+func (_u *UsageLogUpdate) SetTimingVersion(v int16) *UsageLogUpdate {
+	_u.mutation.ResetTimingVersion()
+	_u.mutation.SetTimingVersion(v)
+	return _u
+}
+
+// SetNillableTimingVersion sets the "timing_version" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableTimingVersion(v *int16) *UsageLogUpdate {
+	if v != nil {
+		_u.SetTimingVersion(*v)
+	}
+	return _u
+}
+
+// AddTimingVersion adds value to the "timing_version" field.
+func (_u *UsageLogUpdate) AddTimingVersion(v int16) *UsageLogUpdate {
+	_u.mutation.AddTimingVersion(v)
+	return _u
+}
+
+// SetStrictFirstTokenMs sets the "strict_first_token_ms" field.
+func (_u *UsageLogUpdate) SetStrictFirstTokenMs(v int) *UsageLogUpdate {
+	_u.mutation.ResetStrictFirstTokenMs()
+	_u.mutation.SetStrictFirstTokenMs(v)
+	return _u
+}
+
+// SetNillableStrictFirstTokenMs sets the "strict_first_token_ms" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableStrictFirstTokenMs(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetStrictFirstTokenMs(*v)
+	}
+	return _u
+}
+
+// AddStrictFirstTokenMs adds value to the "strict_first_token_ms" field.
+func (_u *UsageLogUpdate) AddStrictFirstTokenMs(v int) *UsageLogUpdate {
+	_u.mutation.AddStrictFirstTokenMs(v)
+	return _u
+}
+
+// ClearStrictFirstTokenMs clears the value of the "strict_first_token_ms" field.
+func (_u *UsageLogUpdate) ClearStrictFirstTokenMs() *UsageLogUpdate {
+	_u.mutation.ClearStrictFirstTokenMs()
+	return _u
+}
+
+// SetLastTokenMs sets the "last_token_ms" field.
+func (_u *UsageLogUpdate) SetLastTokenMs(v int) *UsageLogUpdate {
+	_u.mutation.ResetLastTokenMs()
+	_u.mutation.SetLastTokenMs(v)
+	return _u
+}
+
+// SetNillableLastTokenMs sets the "last_token_ms" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableLastTokenMs(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetLastTokenMs(*v)
+	}
+	return _u
+}
+
+// AddLastTokenMs adds value to the "last_token_ms" field.
+func (_u *UsageLogUpdate) AddLastTokenMs(v int) *UsageLogUpdate {
+	_u.mutation.AddLastTokenMs(v)
+	return _u
+}
+
+// ClearLastTokenMs clears the value of the "last_token_ms" field.
+func (_u *UsageLogUpdate) ClearLastTokenMs() *UsageLogUpdate {
+	_u.mutation.ClearLastTokenMs()
+	return _u
+}
+
+// SetFirstOutputMs sets the "first_output_ms" field.
+func (_u *UsageLogUpdate) SetFirstOutputMs(v int) *UsageLogUpdate {
+	_u.mutation.ResetFirstOutputMs()
+	_u.mutation.SetFirstOutputMs(v)
+	return _u
+}
+
+// SetNillableFirstOutputMs sets the "first_output_ms" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableFirstOutputMs(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetFirstOutputMs(*v)
+	}
+	return _u
+}
+
+// AddFirstOutputMs adds value to the "first_output_ms" field.
+func (_u *UsageLogUpdate) AddFirstOutputMs(v int) *UsageLogUpdate {
+	_u.mutation.AddFirstOutputMs(v)
+	return _u
+}
+
+// ClearFirstOutputMs clears the value of the "first_output_ms" field.
+func (_u *UsageLogUpdate) ClearFirstOutputMs() *UsageLogUpdate {
+	_u.mutation.ClearFirstOutputMs()
+	return _u
+}
+
+// SetFirstOutputKind sets the "first_output_kind" field.
+func (_u *UsageLogUpdate) SetFirstOutputKind(v string) *UsageLogUpdate {
+	_u.mutation.SetFirstOutputKind(v)
+	return _u
+}
+
+// SetNillableFirstOutputKind sets the "first_output_kind" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableFirstOutputKind(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetFirstOutputKind(*v)
+	}
+	return _u
+}
+
+// ClearFirstOutputKind clears the value of the "first_output_kind" field.
+func (_u *UsageLogUpdate) ClearFirstOutputKind() *UsageLogUpdate {
+	_u.mutation.ClearFirstOutputKind()
+	return _u
+}
+
+// SetAudioOutputTokens sets the "audio_output_tokens" field.
+func (_u *UsageLogUpdate) SetAudioOutputTokens(v int) *UsageLogUpdate {
+	_u.mutation.ResetAudioOutputTokens()
+	_u.mutation.SetAudioOutputTokens(v)
+	return _u
+}
+
+// SetNillableAudioOutputTokens sets the "audio_output_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableAudioOutputTokens(v *int) *UsageLogUpdate {
+	if v != nil {
+		_u.SetAudioOutputTokens(*v)
+	}
+	return _u
+}
+
+// AddAudioOutputTokens adds value to the "audio_output_tokens" field.
+func (_u *UsageLogUpdate) AddAudioOutputTokens(v int) *UsageLogUpdate {
+	_u.mutation.AddAudioOutputTokens(v)
+	return _u
+}
+
+// ClearAudioOutputTokens clears the value of the "audio_output_tokens" field.
+func (_u *UsageLogUpdate) ClearAudioOutputTokens() *UsageLogUpdate {
+	_u.mutation.ClearAudioOutputTokens()
+	return _u
+}
+
+// SetCompletionStatus sets the "completion_status" field.
+func (_u *UsageLogUpdate) SetCompletionStatus(v string) *UsageLogUpdate {
+	_u.mutation.SetCompletionStatus(v)
+	return _u
+}
+
+// SetNillableCompletionStatus sets the "completion_status" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableCompletionStatus(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetCompletionStatus(*v)
+	}
+	return _u
+}
+
+// SetIsComplete sets the "is_complete" field.
+func (_u *UsageLogUpdate) SetIsComplete(v bool) *UsageLogUpdate {
+	_u.mutation.SetIsComplete(v)
+	return _u
+}
+
+// SetNillableIsComplete sets the "is_complete" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableIsComplete(v *bool) *UsageLogUpdate {
+	if v != nil {
+		_u.SetIsComplete(*v)
+	}
+	return _u
+}
+
+// ClearIsComplete clears the value of the "is_complete" field.
+func (_u *UsageLogUpdate) ClearIsComplete() *UsageLogUpdate {
+	_u.mutation.ClearIsComplete()
+	return _u
+}
+
+// SetUsageSource sets the "usage_source" field.
+func (_u *UsageLogUpdate) SetUsageSource(v string) *UsageLogUpdate {
+	_u.mutation.SetUsageSource(v)
+	return _u
+}
+
+// SetNillableUsageSource sets the "usage_source" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableUsageSource(v *string) *UsageLogUpdate {
+	if v != nil {
+		_u.SetUsageSource(*v)
+	}
+	return _u
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_u *UsageLogUpdate) SetUserAgent(v string) *UsageLogUpdate {
 	_u.mutation.SetUserAgent(v)
@@ -1076,6 +1273,21 @@ func (_u *UsageLogUpdate) check() error {
 			return &ValidationError{Name: "billing_mode", err: fmt.Errorf(`ent: validator failed for field "UsageLog.billing_mode": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FirstOutputKind(); ok {
+		if err := usagelog.FirstOutputKindValidator(v); err != nil {
+			return &ValidationError{Name: "first_output_kind", err: fmt.Errorf(`ent: validator failed for field "UsageLog.first_output_kind": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CompletionStatus(); ok {
+		if err := usagelog.CompletionStatusValidator(v); err != nil {
+			return &ValidationError{Name: "completion_status", err: fmt.Errorf(`ent: validator failed for field "UsageLog.completion_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.UsageSource(); ok {
+		if err := usagelog.UsageSourceValidator(v); err != nil {
+			return &ValidationError{Name: "usage_source", err: fmt.Errorf(`ent: validator failed for field "UsageLog.usage_source": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.UserAgent(); ok {
 		if err := usagelog.UserAgentValidator(v); err != nil {
 			return &ValidationError{Name: "user_agent", err: fmt.Errorf(`ent: validator failed for field "UsageLog.user_agent": %w`, err)}
@@ -1308,6 +1520,66 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.FirstTokenMsCleared() {
 		_spec.ClearField(usagelog.FieldFirstTokenMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.TimingVersion(); ok {
+		_spec.SetField(usagelog.FieldTimingVersion, field.TypeInt16, value)
+	}
+	if value, ok := _u.mutation.AddedTimingVersion(); ok {
+		_spec.AddField(usagelog.FieldTimingVersion, field.TypeInt16, value)
+	}
+	if value, ok := _u.mutation.StrictFirstTokenMs(); ok {
+		_spec.SetField(usagelog.FieldStrictFirstTokenMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStrictFirstTokenMs(); ok {
+		_spec.AddField(usagelog.FieldStrictFirstTokenMs, field.TypeInt, value)
+	}
+	if _u.mutation.StrictFirstTokenMsCleared() {
+		_spec.ClearField(usagelog.FieldStrictFirstTokenMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.LastTokenMs(); ok {
+		_spec.SetField(usagelog.FieldLastTokenMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLastTokenMs(); ok {
+		_spec.AddField(usagelog.FieldLastTokenMs, field.TypeInt, value)
+	}
+	if _u.mutation.LastTokenMsCleared() {
+		_spec.ClearField(usagelog.FieldLastTokenMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.FirstOutputMs(); ok {
+		_spec.SetField(usagelog.FieldFirstOutputMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFirstOutputMs(); ok {
+		_spec.AddField(usagelog.FieldFirstOutputMs, field.TypeInt, value)
+	}
+	if _u.mutation.FirstOutputMsCleared() {
+		_spec.ClearField(usagelog.FieldFirstOutputMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.FirstOutputKind(); ok {
+		_spec.SetField(usagelog.FieldFirstOutputKind, field.TypeString, value)
+	}
+	if _u.mutation.FirstOutputKindCleared() {
+		_spec.ClearField(usagelog.FieldFirstOutputKind, field.TypeString)
+	}
+	if value, ok := _u.mutation.AudioOutputTokens(); ok {
+		_spec.SetField(usagelog.FieldAudioOutputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAudioOutputTokens(); ok {
+		_spec.AddField(usagelog.FieldAudioOutputTokens, field.TypeInt, value)
+	}
+	if _u.mutation.AudioOutputTokensCleared() {
+		_spec.ClearField(usagelog.FieldAudioOutputTokens, field.TypeInt)
+	}
+	if value, ok := _u.mutation.CompletionStatus(); ok {
+		_spec.SetField(usagelog.FieldCompletionStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsComplete(); ok {
+		_spec.SetField(usagelog.FieldIsComplete, field.TypeBool, value)
+	}
+	if _u.mutation.IsCompleteCleared() {
+		_spec.ClearField(usagelog.FieldIsComplete, field.TypeBool)
+	}
+	if value, ok := _u.mutation.UsageSource(); ok {
+		_spec.SetField(usagelog.FieldUsageSource, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(usagelog.FieldUserAgent, field.TypeString, value)
@@ -2226,6 +2498,203 @@ func (_u *UsageLogUpdateOne) ClearFirstTokenMs() *UsageLogUpdateOne {
 	return _u
 }
 
+// SetTimingVersion sets the "timing_version" field.
+func (_u *UsageLogUpdateOne) SetTimingVersion(v int16) *UsageLogUpdateOne {
+	_u.mutation.ResetTimingVersion()
+	_u.mutation.SetTimingVersion(v)
+	return _u
+}
+
+// SetNillableTimingVersion sets the "timing_version" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableTimingVersion(v *int16) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetTimingVersion(*v)
+	}
+	return _u
+}
+
+// AddTimingVersion adds value to the "timing_version" field.
+func (_u *UsageLogUpdateOne) AddTimingVersion(v int16) *UsageLogUpdateOne {
+	_u.mutation.AddTimingVersion(v)
+	return _u
+}
+
+// SetStrictFirstTokenMs sets the "strict_first_token_ms" field.
+func (_u *UsageLogUpdateOne) SetStrictFirstTokenMs(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetStrictFirstTokenMs()
+	_u.mutation.SetStrictFirstTokenMs(v)
+	return _u
+}
+
+// SetNillableStrictFirstTokenMs sets the "strict_first_token_ms" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableStrictFirstTokenMs(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetStrictFirstTokenMs(*v)
+	}
+	return _u
+}
+
+// AddStrictFirstTokenMs adds value to the "strict_first_token_ms" field.
+func (_u *UsageLogUpdateOne) AddStrictFirstTokenMs(v int) *UsageLogUpdateOne {
+	_u.mutation.AddStrictFirstTokenMs(v)
+	return _u
+}
+
+// ClearStrictFirstTokenMs clears the value of the "strict_first_token_ms" field.
+func (_u *UsageLogUpdateOne) ClearStrictFirstTokenMs() *UsageLogUpdateOne {
+	_u.mutation.ClearStrictFirstTokenMs()
+	return _u
+}
+
+// SetLastTokenMs sets the "last_token_ms" field.
+func (_u *UsageLogUpdateOne) SetLastTokenMs(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetLastTokenMs()
+	_u.mutation.SetLastTokenMs(v)
+	return _u
+}
+
+// SetNillableLastTokenMs sets the "last_token_ms" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableLastTokenMs(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetLastTokenMs(*v)
+	}
+	return _u
+}
+
+// AddLastTokenMs adds value to the "last_token_ms" field.
+func (_u *UsageLogUpdateOne) AddLastTokenMs(v int) *UsageLogUpdateOne {
+	_u.mutation.AddLastTokenMs(v)
+	return _u
+}
+
+// ClearLastTokenMs clears the value of the "last_token_ms" field.
+func (_u *UsageLogUpdateOne) ClearLastTokenMs() *UsageLogUpdateOne {
+	_u.mutation.ClearLastTokenMs()
+	return _u
+}
+
+// SetFirstOutputMs sets the "first_output_ms" field.
+func (_u *UsageLogUpdateOne) SetFirstOutputMs(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetFirstOutputMs()
+	_u.mutation.SetFirstOutputMs(v)
+	return _u
+}
+
+// SetNillableFirstOutputMs sets the "first_output_ms" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableFirstOutputMs(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetFirstOutputMs(*v)
+	}
+	return _u
+}
+
+// AddFirstOutputMs adds value to the "first_output_ms" field.
+func (_u *UsageLogUpdateOne) AddFirstOutputMs(v int) *UsageLogUpdateOne {
+	_u.mutation.AddFirstOutputMs(v)
+	return _u
+}
+
+// ClearFirstOutputMs clears the value of the "first_output_ms" field.
+func (_u *UsageLogUpdateOne) ClearFirstOutputMs() *UsageLogUpdateOne {
+	_u.mutation.ClearFirstOutputMs()
+	return _u
+}
+
+// SetFirstOutputKind sets the "first_output_kind" field.
+func (_u *UsageLogUpdateOne) SetFirstOutputKind(v string) *UsageLogUpdateOne {
+	_u.mutation.SetFirstOutputKind(v)
+	return _u
+}
+
+// SetNillableFirstOutputKind sets the "first_output_kind" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableFirstOutputKind(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetFirstOutputKind(*v)
+	}
+	return _u
+}
+
+// ClearFirstOutputKind clears the value of the "first_output_kind" field.
+func (_u *UsageLogUpdateOne) ClearFirstOutputKind() *UsageLogUpdateOne {
+	_u.mutation.ClearFirstOutputKind()
+	return _u
+}
+
+// SetAudioOutputTokens sets the "audio_output_tokens" field.
+func (_u *UsageLogUpdateOne) SetAudioOutputTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.ResetAudioOutputTokens()
+	_u.mutation.SetAudioOutputTokens(v)
+	return _u
+}
+
+// SetNillableAudioOutputTokens sets the "audio_output_tokens" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableAudioOutputTokens(v *int) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetAudioOutputTokens(*v)
+	}
+	return _u
+}
+
+// AddAudioOutputTokens adds value to the "audio_output_tokens" field.
+func (_u *UsageLogUpdateOne) AddAudioOutputTokens(v int) *UsageLogUpdateOne {
+	_u.mutation.AddAudioOutputTokens(v)
+	return _u
+}
+
+// ClearAudioOutputTokens clears the value of the "audio_output_tokens" field.
+func (_u *UsageLogUpdateOne) ClearAudioOutputTokens() *UsageLogUpdateOne {
+	_u.mutation.ClearAudioOutputTokens()
+	return _u
+}
+
+// SetCompletionStatus sets the "completion_status" field.
+func (_u *UsageLogUpdateOne) SetCompletionStatus(v string) *UsageLogUpdateOne {
+	_u.mutation.SetCompletionStatus(v)
+	return _u
+}
+
+// SetNillableCompletionStatus sets the "completion_status" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableCompletionStatus(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetCompletionStatus(*v)
+	}
+	return _u
+}
+
+// SetIsComplete sets the "is_complete" field.
+func (_u *UsageLogUpdateOne) SetIsComplete(v bool) *UsageLogUpdateOne {
+	_u.mutation.SetIsComplete(v)
+	return _u
+}
+
+// SetNillableIsComplete sets the "is_complete" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableIsComplete(v *bool) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetIsComplete(*v)
+	}
+	return _u
+}
+
+// ClearIsComplete clears the value of the "is_complete" field.
+func (_u *UsageLogUpdateOne) ClearIsComplete() *UsageLogUpdateOne {
+	_u.mutation.ClearIsComplete()
+	return _u
+}
+
+// SetUsageSource sets the "usage_source" field.
+func (_u *UsageLogUpdateOne) SetUsageSource(v string) *UsageLogUpdateOne {
+	_u.mutation.SetUsageSource(v)
+	return _u
+}
+
+// SetNillableUsageSource sets the "usage_source" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableUsageSource(v *string) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetUsageSource(*v)
+	}
+	return _u
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_u *UsageLogUpdateOne) SetUserAgent(v string) *UsageLogUpdateOne {
 	_u.mutation.SetUserAgent(v)
@@ -2603,6 +3072,21 @@ func (_u *UsageLogUpdateOne) check() error {
 			return &ValidationError{Name: "billing_mode", err: fmt.Errorf(`ent: validator failed for field "UsageLog.billing_mode": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FirstOutputKind(); ok {
+		if err := usagelog.FirstOutputKindValidator(v); err != nil {
+			return &ValidationError{Name: "first_output_kind", err: fmt.Errorf(`ent: validator failed for field "UsageLog.first_output_kind": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.CompletionStatus(); ok {
+		if err := usagelog.CompletionStatusValidator(v); err != nil {
+			return &ValidationError{Name: "completion_status", err: fmt.Errorf(`ent: validator failed for field "UsageLog.completion_status": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.UsageSource(); ok {
+		if err := usagelog.UsageSourceValidator(v); err != nil {
+			return &ValidationError{Name: "usage_source", err: fmt.Errorf(`ent: validator failed for field "UsageLog.usage_source": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.UserAgent(); ok {
 		if err := usagelog.UserAgentValidator(v); err != nil {
 			return &ValidationError{Name: "user_agent", err: fmt.Errorf(`ent: validator failed for field "UsageLog.user_agent": %w`, err)}
@@ -2852,6 +3336,66 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	}
 	if _u.mutation.FirstTokenMsCleared() {
 		_spec.ClearField(usagelog.FieldFirstTokenMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.TimingVersion(); ok {
+		_spec.SetField(usagelog.FieldTimingVersion, field.TypeInt16, value)
+	}
+	if value, ok := _u.mutation.AddedTimingVersion(); ok {
+		_spec.AddField(usagelog.FieldTimingVersion, field.TypeInt16, value)
+	}
+	if value, ok := _u.mutation.StrictFirstTokenMs(); ok {
+		_spec.SetField(usagelog.FieldStrictFirstTokenMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedStrictFirstTokenMs(); ok {
+		_spec.AddField(usagelog.FieldStrictFirstTokenMs, field.TypeInt, value)
+	}
+	if _u.mutation.StrictFirstTokenMsCleared() {
+		_spec.ClearField(usagelog.FieldStrictFirstTokenMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.LastTokenMs(); ok {
+		_spec.SetField(usagelog.FieldLastTokenMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedLastTokenMs(); ok {
+		_spec.AddField(usagelog.FieldLastTokenMs, field.TypeInt, value)
+	}
+	if _u.mutation.LastTokenMsCleared() {
+		_spec.ClearField(usagelog.FieldLastTokenMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.FirstOutputMs(); ok {
+		_spec.SetField(usagelog.FieldFirstOutputMs, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFirstOutputMs(); ok {
+		_spec.AddField(usagelog.FieldFirstOutputMs, field.TypeInt, value)
+	}
+	if _u.mutation.FirstOutputMsCleared() {
+		_spec.ClearField(usagelog.FieldFirstOutputMs, field.TypeInt)
+	}
+	if value, ok := _u.mutation.FirstOutputKind(); ok {
+		_spec.SetField(usagelog.FieldFirstOutputKind, field.TypeString, value)
+	}
+	if _u.mutation.FirstOutputKindCleared() {
+		_spec.ClearField(usagelog.FieldFirstOutputKind, field.TypeString)
+	}
+	if value, ok := _u.mutation.AudioOutputTokens(); ok {
+		_spec.SetField(usagelog.FieldAudioOutputTokens, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedAudioOutputTokens(); ok {
+		_spec.AddField(usagelog.FieldAudioOutputTokens, field.TypeInt, value)
+	}
+	if _u.mutation.AudioOutputTokensCleared() {
+		_spec.ClearField(usagelog.FieldAudioOutputTokens, field.TypeInt)
+	}
+	if value, ok := _u.mutation.CompletionStatus(); ok {
+		_spec.SetField(usagelog.FieldCompletionStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.IsComplete(); ok {
+		_spec.SetField(usagelog.FieldIsComplete, field.TypeBool, value)
+	}
+	if _u.mutation.IsCompleteCleared() {
+		_spec.ClearField(usagelog.FieldIsComplete, field.TypeBool)
+	}
+	if value, ok := _u.mutation.UsageSource(); ok {
+		_spec.SetField(usagelog.FieldUsageSource, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(usagelog.FieldUserAgent, field.TypeString, value)
