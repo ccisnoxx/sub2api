@@ -48,6 +48,14 @@ def proof(old=deploy.LEGACY, target=NEW):
     return value
 
 
+def security_proof(old=deploy.LEGACY, target=NEW, reverse=False):
+    value = proof(old, target)
+    value["changed_paths"] = sorted(deploy.SECURITY_PATCH_FILES)
+    value["security_patch"] = deploy.approved_security_patch("rollback" if reverse else "upgrade")
+    value["sha256"] = deploy.sha(deploy.canonical({key: item for key, item in value.items() if key != "sha256"}))
+    return value
+
+
 def request(target=NEW, old=None, action="deploy", rollback_id=None):
     return {"schema": 1, "action": action, "target": copy.deepcopy(target),
             "expected_old": copy.deepcopy(old or dict(deploy.LEGACY, image_id=OLD_ID)),
@@ -278,6 +286,76 @@ class DeploymentTests(unittest.TestCase):
         result, code = self.execute()
         self.assertEqual((code, result["error_code"], result["rollback_status"]), (1, "E_HEALTH", "success"))
 
+    def test_security_patch_success_and_explicit_rollback_use_bound_proofs(self):
+        value = request()
+        value["compatibility"] = security_proof()
+        deployed, code = self.execute(value)
+        self.assertEqual(code, 0)
+        self.assertEqual(self.persisted(deployed)["compatibility"]["security_patch"]["direction"], "upgrade")
+        old = deploy.Deployment(self.base, self.docker).running()
+        target = dict(deploy.LEGACY, input=deploy.LEGACY["image"])
+        rollback = request(target, old, "rollback", deployed["id"])
+        rollback["compatibility"] = security_proof(old, target, reverse=True)
+        restored, code = self.execute(rollback)
+        self.assertEqual((code, restored["status"], self.docker.current), (0, "success", deploy.LEGACY["image"]))
+        self.assertEqual(len(self.starts()), 2)
+
+    def test_security_patch_health_failure_preserves_automatic_rollback(self):
+        self.docker.health_failure = True
+        value = request()
+        value["compatibility"] = security_proof()
+        result, code = self.execute(value)
+        self.assertEqual((code, result["error_code"], result["rollback_status"]), (1, "E_HEALTH", "success"))
+        self.assertEqual(self.docker.current, deploy.LEGACY["image"])
+
+    def test_reverse_security_patch_cannot_bypass_explicit_rollback_with_deploy(self):
+        deployed, code = self.execute()
+        self.assertEqual(code, 0)
+        upgraded = dict(NEW, input=deploy.REPOSITORY + "@sha256:" + "2" * 64,
+                        image=deploy.REPOSITORY + "@sha256:" + "2" * 64,
+                        revision="4" * 40, version="0.2.14-klno.3-tps.2")
+        image_id = "sha256:" + "3" * 64
+        self.docker.images[upgraded["image"]] = self.docker.images[image_id] = image(upgraded, image_id)
+        old = deploy.Deployment(self.base, self.docker).running()
+        value = request(upgraded, old)
+        value["compatibility"] = security_proof(old, upgraded)
+        patched, code = self.execute(value)
+        self.assertEqual(code, 0)
+        starts = len(self.starts())
+        # 普通 deploy 曾绕过成功记录的配置 hash 绑定并回到已知漏洞版本。
+        with (self.base / "docker-compose.yml").open("ab") as output:
+            output.write(b"# configuration changed since success\n")
+        old = deploy.Deployment(self.base, self.docker).running()
+        value = request(NEW, old)
+        value["compatibility"] = security_proof(old, NEW, reverse=True)
+        result, code = self.execute(value)
+        self.assertEqual(code, 1)
+        self.assertEqual(result["error_code"], "E_COMPATIBILITY")
+        self.assertEqual(self.docker.current, upgraded["image"])
+        self.assertEqual(len(self.starts()), starts)
+        self.assertNotIn("backups", self.persisted(result))
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], patched["id"])
+
+    def test_invalid_security_proofs_stop_before_pull_or_start(self):
+        for mutate in (
+            lambda value: value["changed_paths"].append("backend/migrations/999.sql"),
+            lambda value: value["security_patch"].update(id="unapproved"),
+            lambda value: value["security_patch"]["files"].pop("backend/go.mod"),
+            lambda value: value["security_patch"]["files"]["Dockerfile"].update(old_sha256="0" * 64),
+            lambda value: value.update(changed_paths=[]),
+        ):
+            with self.subTest(mutate=mutate):
+                self.docker.commands.clear()
+                value = request()
+                value["compatibility"] = security_proof()
+                mutate(value["compatibility"])
+                value["compatibility"]["sha256"] = deploy.sha(deploy.canonical({
+                    key: item for key, item in value["compatibility"].items() if key != "sha256"}))
+                result, code = self.execute(value)
+                self.assertEqual((code, result["error_code"]), (1, "E_COMPATIBILITY"))
+                self.assertEqual(self.starts(), [])
+                self.assertFalse(any(args[:2] == ["docker", "pull"] for args, _ in self.docker.commands))
+
     def test_backup_failure_has_no_pull_or_configuration_mutation(self):
         self.docker.backup_failure = True
         result, code = self.execute()
@@ -482,6 +560,74 @@ class GitAndInputTests(unittest.TestCase):
         self.git("add", ".")
         self.git("commit", "-qm", message)
         return self.git("rev-parse", "HEAD")
+
+    def security_target(self):
+        # 固定已审定候选的真实 Git 字节；不以算法生成期望的版本/校验内容。
+        actual = deploy.GitEvidence(Path(deploy.__file__).resolve().parents[2])
+        before = "896de21b4be7f4ec4b4236f4df663b47371665b0"
+        after = "e5acf91d204c6dc56516e88cf2ba906d9fb7c59e"
+        for path in deploy.SECURITY_PATCH_FILES:
+            (self.root / path).write_bytes(actual.git("show", before + ":" + path))
+        self.old["revision"] = self.commit("old security inputs")
+        for path in deploy.SECURITY_PATCH_FILES:
+            (self.root / path).write_bytes(actual.git("show", after + ":" + path))
+        return dict(NEW, revision=self.commit("approved security patch"))
+
+    def test_real_git_accepts_only_exact_security_patch_in_both_directions(self):
+        target = self.security_target()
+        forward = self.evidence.compatibility(self.old, target)
+        reverse = self.evidence.compatibility(target, self.old)
+        deploy.validate_compatibility_proof(forward, self.old["revision"], target["revision"])
+        deploy.validate_compatibility_proof(reverse, target["revision"], self.old["revision"])
+        self.assertEqual(forward["security_patch"]["direction"], "upgrade")
+        self.assertEqual(reverse["security_patch"]["direction"], "rollback")
+        for path in deploy.SECURITY_PATCH_FILES:
+            hashes = forward["security_patch"]["files"][path]
+            self.assertEqual(hashes["new_sha256"], deploy.file_sha(self.root / path))
+            self.assertEqual(hashes["old_sha256"], reverse["security_patch"]["files"][path]["new_sha256"])
+
+    def test_real_git_security_patch_rejects_extra_content_modes_versions_and_missing_paths(self):
+        target = self.security_target()
+        accepted_revision = target["revision"]
+        for kind in ("dependency", "checksum", "source", "runtime", "version", "mode", "symlink", "partial", "mixed_direction"):
+            with self.subTest(kind=kind):
+                self.git("reset", "--hard", accepted_revision)
+                if kind == "dependency":
+                    with (self.root / "backend/go.mod").open("a") as output:
+                        output.write("require example.invalid/module v1.0.0\n")
+                elif kind == "checksum":
+                    with (self.root / "backend/go.sum").open("a") as output:
+                        output.write("example.invalid/module v1.0.0 h1:unapproved\n")
+                elif kind == "source":
+                    (self.root / "backend/server.go").write_text("package main\n")
+                elif kind == "runtime":
+                    with (self.root / "Dockerfile").open("a") as output:
+                        output.write("RUN echo changed\n")
+                elif kind == "version":
+                    file = self.root / "backend/go.mod"
+                    file.write_text(file.read_text().replace("1.27.2", "1.28.0"))
+                elif kind == "mode":
+                    (self.root / "Dockerfile").chmod(0o755)
+                elif kind == "symlink":
+                    (self.root / "Dockerfile").unlink()
+                    (self.root / "Dockerfile").symlink_to("deploy/Dockerfile")
+                elif kind == "partial":
+                    self.git("checkout", self.old["revision"], "--", "deploy/Dockerfile")
+                else:
+                    self.git("checkout", self.old["revision"], "--", "Dockerfile")
+                    old = dict(self.old, revision=self.commit("mixed old inputs"))
+                    self.git("reset", "--hard", accepted_revision)
+                    for path in deploy.SECURITY_PATCH_FILES:
+                        if path != "Dockerfile":
+                            self.git("checkout", self.old["revision"], "--", path)
+                    target["revision"] = self.commit(kind)
+                    with self.assertRaises(deploy.DeployError):
+                        self.evidence.compatibility(old, target)
+                    continue
+                target["revision"] = self.commit(kind)
+                with self.assertRaises(deploy.DeployError) as raised:
+                    self.evidence.compatibility(self.old, target)
+                self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
 
     def test_real_git_diff_accepts_frontend_and_tools_but_blocks_migration(self):
         (self.root / "frontend").mkdir()

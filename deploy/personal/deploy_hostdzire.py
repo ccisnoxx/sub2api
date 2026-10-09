@@ -38,6 +38,26 @@ RECORD_RE = re.compile(r"[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}\Z")
 # 完整后端与运行资源；部署工具、来源记录不属于被部署的应用运行配置。
 RUNTIME_PATHS = ["backend", "Dockerfile", "Dockerfile.goreleaser", ".dockerignore", "deploy"]
 RUNTIME_EXCLUDES = ["deploy/personal", "deploy/personal-source.json"]
+# 本轮审定安全补丁的完整文件字节；未来补丁须另行审定，不按路径泛化放行。
+SECURITY_PATCH_ID = "go1.27.2-xnet0.60.0"
+SECURITY_PATCH_FILES = {
+    "backend/go.mod": (
+        "105595eed2189a9e501d17a5a046fce5b84e0830b3792c7d13479553665cd12d",
+        "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+    ),
+    "backend/go.sum": (
+        "0ed026ee0ecad45e8c31563a0da61b4f8f00f750b02e32ab159ebe947cadc105",
+        "109d6d9f25fe0e39747e202035ec2074ff0da6d2da6dde3dc50b4d423491543f",
+    ),
+    "Dockerfile": (
+        "2d87d5b38082e0bba357e64ee5fc32085c81e6aa82ced4f24e4d8e483661db72",
+        "28f9453bb577d8179d5729dd0b47b285ec8a033301774ceb516493033e90c575",
+    ),
+    "deploy/Dockerfile": (
+        "9e0c48a1e62b5f4fb17dc9e4008e962abf47535ab883ade9bb9f1063a94da32d",
+        "37e39456ea90d035094ad00e881655ccd98383670ecca848bb8722090f35d489",
+    ),
+}
 
 
 class DeployError(Exception):
@@ -65,6 +85,28 @@ def file_sha(path):
         for chunk in iter(lambda: source.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def validate_compatibility_proof(proof, old_revision, new_revision):
+    content = {key: value for key, value in proof.items() if key != "sha256"}
+    require(proof.get("sha256") == sha(canonical(content)) and proof.get("compatible") is True and
+            proof.get("old_revision") == old_revision and proof.get("new_revision") == new_revision and
+            proof.get("paths") == RUNTIME_PATHS and proof.get("excludes") == RUNTIME_EXCLUDES,
+            "E_COMPATIBILITY", "兼容证据无效或没有绑定实际旧、新 revision")
+    if proof.get("changed_paths") == []:
+        require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
+        return
+    require(proof.get("changed_paths") == sorted(SECURITY_PATCH_FILES) and
+            proof.get("security_patch") in (approved_security_patch("upgrade"), approved_security_patch("rollback")),
+            "E_COMPATIBILITY", "运行差异不属于已审定的精确安全补丁")
+
+
+def approved_security_patch(direction):
+    indexes = (0, 1) if direction == "upgrade" else (1, 0)
+    return {"id": SECURITY_PATCH_ID, "direction": direction, "files": {
+        path: {"old_sha256": hashes[indexes[0]], "new_sha256": hashes[indexes[1]]}
+        for path, hashes in SECURITY_PATCH_FILES.items()}}
+
 
 
 def now():
@@ -156,6 +198,21 @@ class GitEvidence:
         self.source_at(actual)
         return actual
 
+    def security_patch(self, old_revision, new_revision, changed):
+        require(changed == sorted(SECURITY_PATCH_FILES), "E_COMPATIBILITY", "运行差异超出已审定的安全补丁")
+        files = {}
+        for path in SECURITY_PATCH_FILES:
+            for revision in (old_revision, new_revision):
+                require(self.git("ls-tree", revision, "--", path).startswith(b"100644 blob "),
+                        "E_COMPATIBILITY", "安全补丁不能改变文件类型或权限")
+            files[path] = {"old_sha256": sha(self.git("show", old_revision + ":" + path)),
+                           "new_sha256": sha(self.git("show", new_revision + ":" + path))}
+        for direction in ("upgrade", "rollback"):
+            patch = approved_security_patch(direction)
+            if files == patch["files"]:
+                return patch
+        raise DeployError("E_COMPATIBILITY", "安全补丁文件与已审定的完整字节不一致，禁止部署或镜像回滚")
+
     def compatibility(self, old, target):
         validate_metadata(old, allow_legacy=True)
         if "image" in target:
@@ -173,8 +230,9 @@ class GitEvidence:
         changed = [path for path in changed if path]
         proof = {"old_revision": old["revision"], "new_revision": target["revision"],
                  "upstream": target_source, "paths": RUNTIME_PATHS, "excludes": RUNTIME_EXCLUDES,
-                 "changed_paths": changed, "compatible": not changed}
-        require(not changed, "E_COMPATIBILITY", "后端、迁移、镜像或运行配置有变化，禁止部署或镜像回滚")
+                 "changed_paths": changed, "compatible": True}
+        if changed:
+            proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
         return proof
 
@@ -439,11 +497,9 @@ class Deployment:
 
     def validate_proof(self, request, old, target):
         proof = request.get("compatibility", {})
-        content = {key: value for key, value in proof.items() if key != "sha256"}
-        require(proof.get("sha256") == sha(canonical(content)) and proof.get("compatible") is True and
-                proof.get("old_revision") == old["revision"] and proof.get("new_revision") == target["revision"] and
-                proof.get("paths") == RUNTIME_PATHS and proof.get("excludes") == RUNTIME_EXCLUDES and proof.get("changed_paths") == [],
-                "E_COMPATIBILITY", "兼容证据无效或没有绑定实际旧、新 revision")
+        validate_compatibility_proof(proof, old["revision"], target["revision"])
+        require(request["action"] != "deploy" or proof.get("security_patch", {}).get("direction") != "rollback",
+                "E_COMPATIBILITY", "反向安全补丁只允许绑定成功记录的显式回滚，不能用普通部署切回")
 
     def pull_target(self, target):
         value = target["input"]
@@ -463,11 +519,7 @@ class Deployment:
                 selected == {"image": old["image"], "record_id": request["rollback_id"]}, "E_STALE_ROLLBACK", "回滚记录不是当前成功部署，禁止过期回滚")
         require(all(previous["target"].get(key) == old[key] and previous["old"].get(key) == target[key]
                     for key in ("image", "revision", "version", "source")), "E_STALE_ROLLBACK", "当前镜像或回滚目标与记录不符")
-        proof = previous.get("compatibility", {})
-        require(proof.get("compatible") is True and proof.get("old_revision") == target["revision"] and
-                proof.get("new_revision") == old["revision"] and proof.get("changed_paths") == [] and
-                proof.get("sha256") == sha(canonical({key: value for key, value in proof.items() if key != "sha256"})),
-                "E_COMPATIBILITY", "原部署没有可验证的兼容回滚证据")
+        validate_compatibility_proof(previous.get("compatibility", {}), target["revision"], old["revision"])
         config = previous.get("configuration", {})
         require(config.get("after_sha256") == sha(self.config_before) and config.get("env_sha256") == sha(self.env_before),
                 "E_STALE_ROLLBACK", "成功部署后的运行配置已变化，禁止镜像回滚")

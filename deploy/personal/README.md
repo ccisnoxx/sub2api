@@ -38,7 +38,11 @@ deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc
 
 `Deployment` 是唯一远端生命周期 owner，使用非阻塞 `flock` 持有 `/root/sub2api-kin/.personal-deploy/deployment.lock`，锁覆盖预检、备份、拉取、启动、健康、持久提交及失败恢复。并发部署在执行 Docker 命令前退出。其他生产配置维护也应尊重这把锁；工具的 hash 检查会拒绝已观察到的外部漂移。
 
-本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。两端必须包含同一已验证上游来源。任何后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止部署和镜像回滚，没有 force 开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足合同。
+本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。两端必须包含同一已验证上游来源。除下述精确工具链补丁外，任何后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止部署和镜像回滚，没有 force 开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足合同。
+
+本轮经用户两次明确授权，升级 Go 1.27.0 → 1.27.2，x/net v0.58.0 → v0.60.0，并按模块最小版本选择同步 crypto0.57、sys0.48、term0.46、text0.42、tools0.50、mod0.41、sync0.23。例外绑定已审定的 `backend/go.mod`、`backend/go.sum`、`Dockerfile`、`deploy/Dockerfile` 前后完整文件 SHA-256；应用候选为 `e5acf91d204c6dc56516e88cf2ba906d9fb7c59e`，旧输入为 tps.1 revision `896de21b4be7f4ec4b4236f4df663b47371665b0`。四个路径必须全部变化、方向一致，双方均为普通 `100644` 文件。任意其他版本、校验行、字节、权限、业务源码、迁移或运行配置变化均拒绝；未来安全补丁需要另行审定，不能按文件路径泛化放行。CI/Release 精确核对所选源码 go.mod 的 Go 声明并继续全部门禁，personal 的声明固定为1.27.2；main 不维护应用树。
+
+兼容证据记录补丁ID、方向和双方文件 SHA-256，远端按同一已审定清单验证，并绑定实际旧/新 revision。证据总 hash 校验本机传输完整性，不是远端重新执行 Git 审计或镜像构建证明。原有零差异证据和成功记录继续有效。精确补丁允许反向镜像故障恢复；普通 deploy 旧版本会在备份/拉取/启动前被拒绝，须使用绑定当前成功记录的 --rollback，或由失败部署自动恢复。恢复仍须满足成功记录、配置、迁移和依赖条件；旧Go及x/net有已知漏洞，因此不能长期停留旧安全版本。
 
 远端取得锁后再次读取实际旧 digest、revision、version、source、Image ID，与本机兼容证据绑定的旧状态比较。PostgreSQL `SELECT 1`、Redis `PING` 与容器 healthcheck 均须通过；数据库/Redis 容器 ID 在整个应用更新中保持不变。通过 `schema_migrations` 的 `filename/checksum` 排序清单记录行数与 SHA-256，更新后以及自动恢复前再次比较。若迁移状态发生变化，保留失败和诊断，停止镜像恢复。已有成功记录的迁移状态后来发生变化时，同样禁止后续部署或显式回滚。
 
