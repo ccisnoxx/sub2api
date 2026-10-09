@@ -1,9 +1,9 @@
 # S3.1 结构化路由诊断合同
 
-- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1合同与S3.2实际producer完成，S3.3–S3.6未开始。第1–7节保留S3.1冻结时的来源与检查记录；第8节登记实际实现，v1语义未改。
+- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1合同、S3.2 producer及S3.3日志/存储/DTO完成，S3.4–S3.6未开始。第1–7节保留冻结时来源，第8节为S3.2历史覆盖，第9节登记S3.3，v1语义未改。
 - 应用来源：personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；只读累计候选 `88156f09fcf980a771a8aab570f0dbaec5de25fb`，工作树 `/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin`。
 - KIN 来源：`v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`；[草稿 PR #5](https://github.com/ccisnoxx/sub2api/pull/5) 未合并。
-- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s31-结构化诊断合同冻结)。本文定义未来 v1 合同；当前候选没有 `routing_diagnostics` producer、持久化列或 DTO。
+- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s33-贯通错误存储与-dto)。第1–7节的“当前候选/未来”均指S3.1冻结候选；最新实现及边界以第9节为准。
 
 ## 1. 已核实的事实与 owner
 
@@ -179,3 +179,13 @@ S3.1 已做来源/工作树/PR 核对、实际 owner 源码与既有测试边界
 结果、调度决策、结构化错误与当前状态分别深复制，错误文本及`errors.Is/As`保持；结果/决策诊断字段`json:"-"`，没有对客或用户DTO新增字段。接收边界完整合法性验证、队列大小预算和持久化兼容仍由S3.3完成。
 
 最终定向服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归及核心/handler race通过。fresh只读独立复核关闭重复ID统计、WS初始owner、Proxy逻辑turn和音频owner四项问题；未独立运行测试。实际WS新反例为本地HTTP bridge，native/passthrough重试后第三turn未新增同等E2E断言，复用共享映射源码/scope及既有WS回归；不宣称日志队列或权限链已验收。见[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)、[验证清单](evidence/s3.2-validation.json)和[保留检查](evidence/s3.2-document-checks.json)。下一项S3.3未开始；S3.5/S3.6未提前完成。
+
+## 9. S3.3 日志、持久化与 DTO 实际贯通
+
+本节登记应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`，personal来源S3.2完整候选`d9b06f4fe78a8588282958783d91e9966ff05231`；v1第1–7节冻结语义未修改，第8节为S3.2当时的覆盖记录。实际发送绑定保存不可变诊断及owner身份：同账号/同turn重试保留；真实重新选择重绑，新owner不能读取旧连接诊断。provider最终日志取实际最后失败事件，routing终态取所属当前评估，RequestScoped为nil。stream、事件和队列不持有原始map，0/NULL/partial均保持。
+
+接收边界校验全部9字段、白名单/整数/数量/coverage；无效诊断省略并发出不含原值的固定信号，真实错误保留。队列自有JSON计入原256事件/512 KiB及job预算，原最近16正文和drop marker不变。migration252仅新增nullable JSONB，无默认/回填；单条/批量SQL贯通，历史NULL保持未知，严格读回坏对象不隐藏真实错误。
+
+新字段只在管理员`/api/v1/admin/ops/errors/:id`及`/api/v1/admin/ops/request-errors/:id`单记录详情出现；普通列表和`upstream-errors?include_detail=1`裁剪顶层及事件内诊断，用户DTO白名单/直接user_id归属及admin认证接线保持。PG16和固定旧源码d9b06f4的migration runner/Ops repository往返通过，非完整服务器或生产兼容证明。
+
+定向14顶层/36 PASS、既有归因/队列/用户、真实PG及受影响race通过；fresh只读复核首turn继承建连诊断问题已关闭。其他平台、独立旧入口、TokenCount、无新选择的连接复用仍未知，Realtime帧没有新turn producer。页面留S3.4，综合行为验收与阶段交付留S3.5/S3.6；未取得完整JWT服务器、native/passthrough完整多turn日志E2E、新CI或生产证据。见[执行证据](implementation-evidence.md#s33-贯通错误存储与-dto)、[验证](evidence/s3.3-validation.json)及[复核](evidence/s3.3-reviews.json)。

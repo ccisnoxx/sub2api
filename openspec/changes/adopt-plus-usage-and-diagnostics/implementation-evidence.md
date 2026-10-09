@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅S2.7；历史记录保留，本轮最终候选、真实门禁与交付结果见文末S2.7。
+- 当前续接范围：仅S3.3；历史记录保留，本轮本地存储/DTO、验证与复核见文末S3.3。
 - 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
-- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.7；S2累计候选真实Personal CI通过，合并、镜像发布、生产部署、S1.5及S3以后均未执行。
+- 当前完成S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.3；S2旧累计候选真实Personal CI通过，合并、镜像发布、生产部署、S1.5及S3.4以后均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -445,3 +445,48 @@ S3.1合同按原语义复用；S2.7 Personal CI `37982040213`/personal-ready仅�
 完成时[文档与保留检查](evidence/s3.2-document-checks.json)核对旧7处工作树、原17项应用改动及旧证据；三处登记树分别追加文档并保留各自旧journal全文。独立应用树同步S2.7/S3.1既有登记与本轮S3.2文档，各自旧历史不覆盖；旧门禁候选保持干净原HEAD。应用与文档仅本地固定，维护/原计划/S2.5登记树的既有未提交文档保持未提交，没有push/修改PR、新CI、更新personal、合并、镜像发布或生产部署。
 
 **S3.2已完成；下一项S3.3「贯通错误存储与DTO」。本轮停止，不自动开始S3.3，S3.5/S3.6也未提前勾选。**
+
+## S3.3 贯通错误存储与 DTO
+
+本轮仅执行S3.3。开工及收尾核对personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`、KlN来源`v0.2.14-klno.5/c7aacf5d`；草稿PR #5仍OPEN/draft，head `88156f09fcf980a771a8aab570f0dbaec5de25fb`、base personal，未合并。从干净S3.2完整应用/文档候选`d9b06f4fe78a8588282958783d91e9966ff05231`建立独立`codex/plus-routing-storage-s33`，应用位于`/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin`。最终应用提交`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`；main来源维护树只登记文档，未替代personal应用源码。
+
+### 实际贯通范围
+
+- 选定账号后绑定不可变选择快照，发送绑定同时记录request/turn owner。同账号重试保留原选择，真实重选绑定新快照；owner不一致时旧连接绑定无效。同逻辑WS turn的Proxy重启保留新绑定，新turn未选号时为NULL。Voice/Realtime预accept两条独立选路循环也在真实选定账号后绑定；Realtime后续音频帧仍不提供新turn producer。
+- 上游失败事件各持所属发送快照，带内错误保存完整自有副本；后续请求修改、重选及WS turn不覆盖旧值。顶层provider/凭据故障取既有归因的最后失败尝试，routing本地终态取所属本次评估；RequestScoped不继承诊断，恢复provider错误仍为原telemetry。没有伪造额外上游事件来保存选择过程，phase/type/owner/source、状态与SLA/skip规则保持。
+- 队列前及服务准备边界验证完整v1：版本、9个必需字段、NULL、白名单、精确整数、层/原因与数量/coverage关系。未知码、版本、漏字段、非整数或矛盾关系只丢弃该诊断，并留下不含原始值的固定内部异常信号，真实故障继续记录。typed对象在进入队列前深复制并序列化，队列不持有原map；顶层JSON计入job bytes，事件对象随原JSON序列化计入256事件/512 KiB界限，最近16正文窗口和较早尝试丢弃标记继续沿用。
+- 新增`252_add_ops_routing_diagnostics.sql`，只扩展`ops_error_logs.routing_diagnostics` nullable JSONB，无默认、无回填、未改旧迁移/ledger。Ops表由手写SQL/迁移维护，无对应Ent schema，未新增虚假schema或手改生成文件。`OpsInsertErrorLogInput → 队列 → OpsService → 单条/批量SQL第39参数 → OpsErrorLogDetail`贯通；repository只保存经owner准备的JSON，不从typed或当前账号状态重建历史。
+- 详情严格解码白名单typed对象。历史SQL NULL及整体JSON null保持nil，已观察池0、过滤0与`{}`保持原值。坏历史对象省略诊断并发出固定`routing_diagnostics_invalid`信号，错误ID/正文仍可读。新对象仅管理员单记录`/ops/errors/:id`与`/ops/request-errors/:id`详情可见；普通列表及`upstream-errors?include_detail=1`列表裁剪顶层和事件内诊断。用户列表/详情白名单不扩展，直接user_id归属检查和admin认证/审计/合规/监控开关不变。
+
+### 验证与兼容
+
+全部选定最终检查退出码0，原始记录位于`/Users/sc/.codex/validation/sub2api-kin/20261009-s33`。具体命令、最终源文件及产物校验值见[验证清单](evidence/s3.3-validation.json)；下表按边界列出，不把交叉运行重复计为总覆盖数量。
+
+| 边界 | 实际结果 | 原始日志 |
+|---|---|---|
+| 新日志/队列/DTO、请求与WS owner、音频真实凭据失败绑定 | 14顶层/36 PASS项，全部通过 | `ws-owner-fix-final.jsonl` |
+| 既有错误归因、RequestScoped/recovered/skip/SLA、HTTP/WS | handler63顶层/129 PASS项通过；新音频断言另行先红后绿 | `handler-regression.jsonl`、`audio-binding-green.jsonl` |
+| 服务事件/脱敏/历史规范化及队列/记录回归 | 26顶层/59 PASS项通过 | `service-regression.jsonl` |
+| 管理员实际handler单记录/普通列表/include_detail列表及用户归属 | 管理员1顶层5次HTTP读取、用户4顶层通过；不是完整JWT服务器E2E | `admin-detail.jsonl`、`user-ownership.jsonl` |
+| 实际单条/批量SQL参数与DTO白名单 | 参数3顶层/6 PASS、DTO2顶层/9 PASS项通过 | `storage/validate-owner-and-args.log`、`storage/dto-unit.log` |
+| PG16真实迁移/写读/历史NULL/坏对象/批量原子失败 | 5顶层/12 PASS项通过，PG16.15 | `storage/pg16-integration.log` |
+| 新→固定旧d9b06f4→新源码/扩展schema | 真实migration runner检查、旧详情/列表读取及单条/批量写入通过，恢复新源码原诊断保持、3条旧写入SQL NULL，4条故障与252 ledger未变化 | `storage/compat-new-before.log`、`storage/compat-old.log`、`storage/compat-new-after.log` |
+| 新深副本及受影响WS/音频owner race | 服务与handler通过；真实WS/音频受影响范围最终通过 | `ws-owner-fix-race.log` |
+
+回退证据只证明上述固定旧源码的migration runner及Ops repository/DTO边界，不等于完整服务器启动、实际生产运行树或未知候选兼容。回退仅回退应用，保留新增列与ledger；部署前仍需按实际环境取得运行树证明、备份及恢复条件。测试容器已移除，Colima恢复停止，原三个停止容器及Docker default context保持；数据备份/原始日志留在本地证据目录，未提交数据库内容。
+
+### 复核、失败诊断与证据复用
+
+1次fresh独立只读复核覆盖全部17个应用/测试文件、主代理及storage实现、冻结合同和原始验证产物。确认初候选首WS turn借用建连诊断的P2，最终owner身份修正及先红后绿/受影响race证据足以关闭；最终未确认剩余P0/P1/P2。候选manifest曾残留初始SHA及两个旧哈希，复核指出后已统一为最终候选并逐项匹配17文件；无需因此重跑测试。复核未修改文件、未独立运行Go测试。未新增native/passthrough完整多turn贯穿队列/真实数据库/管理员HTTP的诊断E2E，真实认证/审计/开关HTTP和页面仍未验收。见[复核记录](evidence/s3.3-reviews.json)；[委派摘要](evidence/s3.3-subagent-digest.md)已由审计工具closed/verify通过。
+
+新增Voice/Realtime断言首轮把3次选择误当3次上游失败：实际两次凭据失败后第三次选择耗尽，修正夹具断言为2条真实事件。随后反例确认这两个独立入口未绑定发送诊断，补齐后每事件attempt 1/2正确、最终selection attempt 3，未增加事件或上游调用。WS建连反例先红确认beginProxy提前更换owner会借旧绑定；发送绑定owner校验修正后通过，覆盖同turn重启与新turn无选号。早期失败和最终成功日志分别保留，不盲重试、不借测试改变调度。
+
+S3.2原13项输入及5份最终产物逐项校验；未变producer/scheduler/builder及计费边界复用原服务producer、调度回归与core race成功证据，改动后的日志/stream/WS/音频边界使用本轮验证。S2.7 Personal CI `37982040213`/personal-ready继续只证明旧88156f09，不能当作本次应用门禁。没有新依赖或生成漂移，计费/调度/重试决策/身份/冷却owner未修改；gofmt、实际diff与文件归属检查通过。
+
+保留检查核对8处开工工作树。7处仍存在的旧树HEAD、应用文件及原未提交工作均保持；S2.5旧目录在核对过程中已移除，本轮工具未执行删除/归档，其分支仍指向原f6e91d55，4567项内容与原Git提交匹配、18份未提交文档有原hash副本，journal已按原SHA-256精确重建。19份原未提交记录另保存于本地`preserved-s25-uncommitted`；没有擅自重建或改写该旧工作树。维护树、原指定计划位置与本轮应用树增量更新任务/证据及各自journal，原旧历史全文保留。
+
+本轮新增文档链接/锚点及JSON清单检查通过。全量文档链接检查发现5处既有S3.1链接与原冒号标题的锚点不匹配，已按开工文档对照分类为历史缺口；未改写旧历史。非文档文件/原HEAD保留检查通过，最终17文件哈希保持。
+
+没有完整Go/CI门禁、浏览器/页面或付费上游/生产请求；没有push/PR更新/workflow dispatch、更新personal、合并、镜像发布或生产部署。HTTP管理员检查为真实handler与存根repository，数据库/SQL链另有真实PG证据；未宣称真实JWT完整服务器或native/passthrough重试后第三turn的新增日志E2E。其他平台、独立旧选择入口、TokenCount及无新选择的连接复用仍保持原未知边界；S3.5/S3.6综合验收与交付未提前勾选。
+
+**S3.3已完成；下一项S3.4「扩展现有错误详情」。本轮停止，未进入页面及下一阶段。**

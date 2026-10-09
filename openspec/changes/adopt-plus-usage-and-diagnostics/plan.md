@@ -1,10 +1,10 @@
 # KIN 借鉴 Plus 功能的实施计划
 
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.2完成；S1.5、S3.3–S3.6及其余阶段未开始。S3.2的OpenAI主调度producer本地候选、定向验证及独立复核完成；S2的Personal CI仍只证明旧累计候选，合并、发布和生产部署未执行。
+- 状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.3完成；S1.5、S3.4–S3.6及其余阶段未开始。S3.3本地应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`的发送/终态快照、队列、nullable JSONB与管理员详情DTO贯通，定向检查/真实PG/固定旧源码往返和独立复核通过；S2旧Personal CI仅证明原候选，合并、发布和生产部署未执行。
 - 执行入口：[任务清单](tasks.md)；当前结果见[执行证据](implementation-evidence.md)。
 - 推荐顺序：S0 现有修复交付 → S1 用量计时和请求完成状态 → S2 模型价格展示 → S3 错误诊断；S4 服务状态、S5 用户协助视图按使用规模另行排期。
-- 计划编制轮仅授权文档；历次结果保留在执行证据。本次仅执行S3.2，从personal来源S2.7候选建立独立应用树，固定本地producer提交`cee1e908261c68880040b740aae8054410e03070`。下一项S3.3未开始；本轮未实现发送/终态与异步日志绑定、持久化、DTO或页面，未push/修改PR，不执行合并、镜像发布或生产部署。
+- 计划编制轮仅授权文档；历次结果保留在执行证据。本次仅执行S3.3，personal来源S3.2完整候选d9b06f4续接为本地应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`。发送/终态、异步日志、持久化与DTO已实现，下一项S3.4页面未开始；未push/修改PR，不执行合并、镜像发布或生产部署。
 
 ## 1. 目标与范围
 
@@ -141,7 +141,7 @@ S2.1 已完成，查询选择、权限矩阵、目录外层、空值及个人倍
 
 ## 6. S3：错误诊断增强
 
-S3.1 [冻结合同](routing-diagnostics-contract.md)的v1语义保持。S3.2应用`cee1e908261c68880040b740aae8054410e03070`已接入OpenAI主调度advanced/legacy、渠道限制、Grok/阈值/compact、gwpool及图片fallback，并建立HTTP/SSE请求与WS逻辑turn owner、完整不可变结果/错误快照。公开OpenAI `SelectAccountWithLoadAwareness`纳入legacy；其他平台、独立旧入口与TokenCount未接入时保持未知。实际覆盖、验证和独立复核见[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)及[覆盖补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。S3.3–S3.6未开始；当前没有诊断存储、DTO或页面。
+S3.1 [冻结合同](routing-diagnostics-contract.md)的v1语义保持。S3.2应用`cee1e908261c68880040b740aae8054410e03070`已接入OpenAI主调度advanced/legacy、渠道限制、Grok/阈值/compact、gwpool及图片fallback，并建立HTTP/SSE请求与WS逻辑turn owner、完整不可变结果/错误快照。公开OpenAI `SelectAccountWithLoadAwareness`纳入legacy；其他平台、独立旧入口与TokenCount未接入时保持未知。实际覆盖、验证和独立复核见[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)及[覆盖补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。S3.3应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`已贯通发送/终态、Ops队列、nullable JSONB及管理员单记录DTO；列表和用户白名单不扩展。[本轮证据](implementation-evidence.md#s33-贯通错误存储与-dto)记录真实PG、固定旧源码往返和独立复核边界。S3.4–S3.6未开始，当前没有新诊断页面。
 
 在既有错误详情内增加可选 `routing_diagnostics`，由调度决策 owner 提供一次完整快照。拟记录选择层、选择原因、已观察的候选池数量、已知过滤数量及稳定过滤原因，不从自然语言错误信息推测。
 

@@ -1,5 +1,14 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S3.3 错误存储与 DTO 贯通完成
+
+- 本轮仅S3.3。personal仍9397eb8af，草稿PR #5仍旧S2.7候选88156f09且未合并；从干净personal来源S3.2完整候选d9b06f4建立独立`codex/plus-routing-storage-s33`，应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`。main维护树只登记文档，没有替代personal应用源码。
+- 发送绑定记录不可变诊断与request/turn owner，WS跨owner旧绑定失效；同turn重启/同账号重试保持。上游各事件保存所属尝试，provider最终错误取最后实际失败，routing取本次评估，RequestScoped保持nil。Voice/Realtime两次真实凭据失败绑定补齐，没有伪造最终选择耗尽的第三次发送。
+- 严格v1校验及队列自有JSON/字节预算，nullable JSONB迁移252、单条/批量SQL第39参数、严格读回及admin单详情DTO贯通。历史NULL与观察0分开，坏诊断仅丢对象而真实故障保留；普通/include_detail列表裁剪新对象，用户白名单与归属不扩展。
+- 最终owner定向14顶层/36 PASS及两包race通过；既有handler63顶层/129 PASS、service26顶层/59 PASS按未变边界复用，admin5次handler读取、用户4顶层、SQL/DTO、真实PG16及固定旧d9b06f4源码往返均通过。复用S3.2未变producer/调度/core race；S2.7 CI只证明旧候选。fresh只读复核首turn继承建连诊断P2关闭，最终无确认残留；复核未独立执行测试，完整JWT服务器/native-passthrough多turn日志E2E/页面未执行。
+- [任务证据S3.3](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s33-贯通错误存储与-dto)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.3-validation.json)、[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.3-reviews.json)及closed/verify通过的[委派摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.3-subagent-digest.md)已登记。三处各自旧journal全文保留，原S0的17项应用改动及其他现存树HEAD/源码不变。S2.5旧目录核对中已移除，本轮工具未删除/归档；原分支及19份未提交记录按开工哈希保存在本地证据目录。
+- 临时容器已清理，Colima恢复停止。S3.3勾选，下一项S3.4「扩展现有错误详情」，未自动开始；S3.5/S3.6不提前完成。没有新完整Go/CI/浏览器/付费上游或生产请求，没有push/PR更新/合并/镜像发布/生产部署。
+
 ## 2026-10-09：KIN 借鉴 Plus S3.2 实际决策 producer 接入完成
 
 - 本轮仅S3.2。最新personal仍9397eb8af，草稿PR #5仍S2.7候选88156f09且未合并；从personal来源建立独立`codex/plus-routing-producer-s32`，应用提交`cee1e908261c68880040b740aae8054410e03070`。main维护树只登记，原S0的17项应用改动及全部旧工作树保留。
