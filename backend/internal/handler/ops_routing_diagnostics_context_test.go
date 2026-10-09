@@ -251,9 +251,13 @@ func TestGrokAudioSelectionRetriesShareRequestRoutingOwner(t *testing.T) {
 		t.Run(endpoint, func(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			var final *service.RoutingDiagnostics
+			var attempts []*service.OpsUpstreamErrorEvent
 			h, repo, upstream, router, cleanup := newGrokCredentialFailoverHandler(t, "all_revoked", func(c *gin.Context) {
 				c.Next()
 				final = service.GetRoutingDiagnostics(c.Request.Context())
+				if value, ok := c.Get(service.OpsUpstreamErrorsKey); ok {
+					attempts, _ = value.([]*service.OpsUpstreamErrorEvent)
+				}
 			})
 			t.Cleanup(cleanup)
 			if endpoint == "voice" {
@@ -277,6 +281,13 @@ func TestGrokAudioSelectionRetriesShareRequestRoutingOwner(t *testing.T) {
 			require.NotNil(t, final)
 			require.EqualValues(t, 3, final.SelectionAttempt)
 			require.Equal(t, 3, repo.selectorCalls())
+			// 实际凭据失败事件必须绑定各自选择，不借最后一轮的快照。
+			require.Len(t, attempts, 2, "第三次评估已耗尽候选，不伪造第三个上游失败事件")
+			for i, event := range attempts {
+				require.NotNil(t, event.RoutingDiagnostics)
+				require.Equal(t, i+1, event.RoutingDiagnostics.SelectionAttempt)
+				require.Nil(t, event.RoutingDiagnostics.Turn)
+			}
 			require.Empty(t, upstream.accountHits(), "凭据失败不得调用真实语音上游")
 		})
 	}

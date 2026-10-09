@@ -404,6 +404,9 @@ func SanitizeOpsErrorBodyForQueue(raw string) (string, bool) {
 // SanitizeOpsUpstreamErrorsForQueue bounds and serializes attempt-level data
 // before the entry can consume asynchronous queue capacity.
 func SanitizeOpsUpstreamErrorsForQueue(entry *OpsInsertErrorLogInput) error {
+	if entry != nil {
+		sanitizeOpsRoutingDiagnostics(entry)
+	}
 	return sanitizeOpsUpstreamErrors(entry)
 }
 
@@ -545,6 +548,7 @@ func (s *OpsService) prepareErrorLogInput(ctx context.Context, entry *OpsInsertE
 		}
 	}
 
+	sanitizeOpsRoutingDiagnostics(entry)
 	if err := sanitizeOpsUpstreamErrors(entry); err != nil {
 		return nil, false, err
 	}
@@ -567,7 +571,17 @@ const (
 )
 
 func sanitizeOpsUpstreamErrors(entry *OpsInsertErrorLogInput) error {
-	if entry == nil || len(entry.UpstreamErrors) == 0 {
+	if entry == nil {
+		return nil
+	}
+	if len(entry.UpstreamErrors) == 0 {
+		if entry.UpstreamErrorsJSON != nil {
+			normalized, err := normalizeOpsUpstreamErrorsJSON(*entry.UpstreamErrorsJSON)
+			if err != nil {
+				return err
+			}
+			entry.UpstreamErrorsJSON = &normalized
+		}
 		return nil
 	}
 
@@ -585,6 +599,7 @@ func sanitizeOpsUpstreamErrors(entry *OpsInsertErrorLogInput) error {
 	sanitized := make([]*OpsUpstreamErrorEvent, 0, len(events))
 	for i, ev := range events {
 		out := *ev
+		out.RoutingDiagnostics = sanitizedRoutingDiagnostics(ev.RoutingDiagnostics)
 		normalizeOpsUpstreamProxyAttribution(&out)
 		// Only boundOpsUpstreamErrors may stamp this; never trust caller input.
 		out.DroppedEarlierAttempts = 0

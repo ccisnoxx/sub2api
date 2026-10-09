@@ -111,6 +111,11 @@ type OpsInsertErrorLogInput struct {
 	// It is set by OpsService.RecordError before persisting.
 	UpstreamErrorsJSON *string
 
+	// RoutingDiagnostics 是终态归因所属选择的不可变快照；OpsService 校验并序列化后落库。
+	RoutingDiagnostics *RoutingDiagnostics
+	// RoutingDiagnosticsJSON 仅由 OpsService 准备，repository 不根据当前状态重建历史。
+	RoutingDiagnosticsJSON *string
+
 	AuthLatencyMs      *int64
 	RoutingLatencyMs   *int64
 	UpstreamLatencyMs  *int64

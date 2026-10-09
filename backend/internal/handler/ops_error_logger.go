@@ -212,6 +212,9 @@ func enqueueOpsErrorLog(ops *service.OpsService, entry *service.OpsInsertErrorLo
 	if ops == nil || entry == nil {
 		return
 	}
+	// 队列拥有独立记录；清理与后续请求修改都不能改写已排队字段。
+	queuedEntry := *entry
+	entry = &queuedEntry
 	entry.UserAgent = normalizeOpsPersistentUserAgent(entry.UserAgent)
 	if entry.ErrorBody != "" {
 		originalBody := entry.ErrorBody
@@ -416,6 +419,9 @@ func estimateOpsErrorLogJobBytes(entry *service.OpsInsertErrorLogInput) int64 {
 	if entry.UpstreamErrorsJSON != nil {
 		size += len(*entry.UpstreamErrorsJSON)
 	}
+	if entry.RoutingDiagnosticsJSON != nil {
+		size += len(*entry.RoutingDiagnosticsJSON)
+	}
 	return int64(size)
 }
 
@@ -484,6 +490,7 @@ func setOpsSelectedAccount(c *gin.Context, accountID int64, platform ...string) 
 		}
 		c.Request = c.Request.WithContext(ctx)
 	}
+	service.BindOpsRoutingDiagnosticsAttempt(c)
 }
 
 func markOpsRoutingCapacityLimited(c *gin.Context) {
@@ -1247,6 +1254,9 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 		}
 		applyOpsLatencyFieldsFromContext(c, entry)
 		applyOpsUpstreamFieldsFromContext(c, entry)
+		if phase == "routing" {
+			entry.RoutingDiagnostics = service.GetRoutingDiagnostics(c.Request.Context())
+		}
 		if parsed.StreamFailure {
 			if message := strings.TrimSpace(parsed.Message); message != "" {
 				entry.UpstreamErrorMessage = &message
@@ -1562,6 +1572,15 @@ func logOpsStreamErrorValue(c *gin.Context, ops *service.OpsService, wireStatus 
 	applyOpsLatencyFieldsFromContext(c, entry)
 	if !streamErr.RequestScoped {
 		applyOpsUpstreamFieldsFromContext(c, entry)
+		entry.RoutingDiagnostics = streamErr.RoutingDiagnostics.Clone()
+		if phase != "routing" {
+			for i := len(streamErr.UpstreamErrors) - 1; i >= 0; i-- {
+				if event := streamErr.UpstreamErrors[i]; event != nil {
+					entry.RoutingDiagnostics = event.RoutingDiagnostics.Clone()
+					break
+				}
+			}
+		}
 	}
 	if streamErr.Turn > 0 && !streamErr.RequestScoped {
 		applyOpsStreamErrorSnapshot(entry, streamErr)
@@ -1592,6 +1611,7 @@ func applyOpsStreamErrorSnapshot(entry *service.OpsInsertErrorLogInput, streamEr
 	if entry == nil {
 		return
 	}
+	entry.RoutingDiagnostics = streamErr.RoutingDiagnostics.Clone()
 	if streamErr.AccountID > 0 {
 		accountID := streamErr.AccountID
 		entry.AccountID = &accountID
@@ -1615,6 +1635,7 @@ func applyOpsStreamErrorSnapshot(entry *service.OpsInsertErrorLogInput, streamEr
 	for i := len(streamErr.UpstreamErrors) - 1; i >= 0; i-- {
 		if streamErr.UpstreamErrors[i] != nil {
 			lastStage = streamErr.UpstreamErrors[i].Stage
+			entry.RoutingDiagnostics = streamErr.UpstreamErrors[i].RoutingDiagnostics.Clone()
 			break
 		}
 	}
@@ -1682,6 +1703,9 @@ func applyOpsUpstreamFieldsFromContext(c *gin.Context, entry *service.OpsInsertE
 	if c == nil || entry == nil {
 		return
 	}
+	if c.Request != nil {
+		entry.RoutingDiagnostics = service.GetRoutingDiagnostics(c.Request.Context())
+	}
 	if v, ok := c.Get(service.OpsUpstreamStatusCodeKey); ok {
 		switch t := v.(type) {
 		case int:
@@ -1710,6 +1734,12 @@ func applyOpsUpstreamFieldsFromContext(c *gin.Context, entry *service.OpsInsertE
 			}
 		}
 	}
+	if entry.UpstreamStatusCode != nil || entry.UpstreamErrorMessage != nil || entry.UpstreamErrorDetail != nil {
+		value, _ := c.Get(service.OpsUpstreamRoutingDiagnosticsKey)
+		d, _ := value.(*service.RoutingDiagnostics)
+		entry.RoutingDiagnostics = d.Clone()
+	}
+
 	if v, ok := c.Get(service.OpsUpstreamErrorsKey); ok {
 		if events, ok := v.([]*service.OpsUpstreamErrorEvent); ok && len(events) > 0 {
 			applyOpsUpstreamErrorEvents(entry, events)
@@ -1729,6 +1759,7 @@ func applyOpsUpstreamErrorEvents(entry *service.OpsInsertErrorLogInput, events [
 	if last == nil {
 		return
 	}
+	entry.RoutingDiagnostics = last.RoutingDiagnostics.Clone()
 
 	entry.UpstreamStatusCode = nil
 	entry.UpstreamErrorMessage = nil
@@ -1759,6 +1790,7 @@ func suppressOpsUpstreamAttributionForLocalModelConfiguration(c *gin.Context, en
 	entry.UpstreamErrorMessage = nil
 	entry.UpstreamErrorDetail = nil
 	entry.UpstreamErrors = nil
+	entry.RoutingDiagnostics = service.GetRoutingDiagnostics(c.Request.Context())
 }
 
 func getContextLatencyMs(c *gin.Context, key string) *int64 {
