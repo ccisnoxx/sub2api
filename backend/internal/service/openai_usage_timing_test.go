@@ -185,7 +185,7 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 	})
 	defer server.Close()
 	client := dialPassthroughLifecycleClient(t, server)
-	defer client.CloseNow()
+	defer func() { _ = client.CloseNow() }()
 	requirePassthroughUpstreamWrite(t, upstream, time.Second)
 	upstream.Send(`{"type":"response.created","response":{"id":"first"}}`)
 	upstream.Send(`{"type":"response.output_text.delta","delta":"answer"}`)

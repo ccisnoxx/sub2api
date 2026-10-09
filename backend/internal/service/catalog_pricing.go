@@ -168,9 +168,10 @@ func (r *CatalogPricingResolver) Resolve(ctx context.Context, in CatalogPricingI
 		}
 		pricing.UnsupportedComponents = []string{"image_input_token", "image_output_token", "image_cache_read_token", "audio"}
 		tiers := []string{"default"}
-		if in.Platform == PlatformOpenAI {
+		switch in.Platform {
+		case PlatformOpenAI:
 			tiers = append(tiers, "priority", "flex", OpenAIFastTierUltrafast)
-		} else if in.Platform == PlatformAnthropic {
+		case PlatformAnthropic:
 			tiers = append(tiers, "fast")
 		}
 		for _, tier := range tiers {
