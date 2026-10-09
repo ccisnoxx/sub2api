@@ -1,0 +1,397 @@
+{
+  "task": "S2.5",
+  "recorded_utc": "2026-10-09T17:16:20.070166+00:00",
+  "result": "passed",
+  "candidate_commit": "3722c48ccdc0e4468dbc5c6ebb13584624c566d6",
+  "candidate_tree_verified": true,
+  "registration_files_equal_across_three_roots": [
+    "plan.md",
+    "tasks.md",
+    "implementation-evidence.md",
+    "evidence/s2.5-candidate.json",
+    "evidence/s2.5-validation.json",
+    "evidence/s2.5-reviews.json",
+    "evidence/s2.5-subagent-digest.md"
+  ],
+  "previous_journals": [
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+      "previous_journal_sha256": "cb0ade2eb9f93ccf1cba3ca726456a79fd0f9a3019fac5dc90ef31bb79720706",
+      "previous_journal_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "previous_journal_sha256": "92daa8d83d222954d488c891e2e88ddfe59a798ef6017d4891983f11a418ce5e",
+      "previous_journal_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "previous_journal_sha256": "6873637d50a5d594bae3cfc43d8228a44d2717d921d9075026c563bde7395928",
+      "previous_journal_preserved": true
+    }
+  ],
+  "checkbox_changes": [
+    {
+      "before": [
+        " ",
+        "S2.5 验证权限与报价一致性。"
+      ],
+      "after": [
+        "x",
+        "S2.5 验证权限与报价一致性。"
+      ]
+    }
+  ],
+  "s2.6_s2.7_unstarted": true,
+  "local_document_links_checked": 60,
+  "links": [
+    {
+      "document": "plan.md",
+      "target": "tasks.md",
+      "exists": true
+    },
+    {
+      "document": "plan.md",
+      "target": "implementation-evidence.md",
+      "exists": true
+    },
+    {
+      "document": "plan.md",
+      "target": "spec.md",
+      "exists": true
+    },
+    {
+      "document": "plan.md",
+      "target": "coverage.md",
+      "exists": true
+    },
+    {
+      "document": "plan.md",
+      "target": "catalog-contract.md",
+      "exists": true
+    },
+    {
+      "document": "plan.md",
+      "target": "pricing-contract.md",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "plan.md",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "implementation-evidence.md#s01-现有修复最终候选核对",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "coverage.md",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s1.1-4-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s1.1-4-validation.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "delivery.md",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "catalog-contract.md",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "implementation-evidence.md#s21-模型与价格目录权限与接口合同",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "pricing-contract.md",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s2.2-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "implementation-evidence.md#s22-kin-权威价格解析",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s2.3-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "catalog-contract.md#s23-已实现的目录-dto-与查询分支",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "implementation-evidence.md#s23-模型目录-dto-与查询分支",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "implementation-evidence.md#s24-可用渠道页面模型与分组报价目录",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "implementation-evidence.md#s25-权限与报价一致性验证",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s2.5-validation.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "catalog-contract.md",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s2.2-validation.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s2.3-validation.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s2.4-validation.json",
+      "exists": true
+    },
+    {
+      "document": "tasks.md",
+      "target": "evidence/s2.5-validation.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s0.1-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s0.1-validation.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s1.1-4-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "spec.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "coverage.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s1.1-4-validation.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s1.1-4-reviews.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s1.1-4-subagent-digest.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "delivery.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "catalog-contract.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.1-contract-checks.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.2-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "pricing-contract.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.2-reviews.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.2-subagent-digest.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.2-validation.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.2-document-checks.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.3-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "catalog-contract.md#s23-已实现的目录-dto-与查询分支",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.3-document-checks.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.3-reviews.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.3-subagent-digest.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.3-validation.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.4-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.4-validation.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.4-document-checks.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.4-subagent-digest.md",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.5-candidate.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.5-validation.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.5-reviews.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.5-document-checks.json",
+      "exists": true
+    },
+    {
+      "document": "implementation-evidence.md",
+      "target": "evidence/s2.5-subagent-digest.md",
+      "exists": true
+    }
+  ],
+  "new_json_files_parsed": 3,
+  "production_files_sha256_checked": 4433,
+  "production_mismatches": [],
+  "new_application_source_scope": [
+    "backend/internal/repository/available_catalog_contract_integration_test.go"
+  ],
+  "s0_existing_application_files_checked": 17,
+  "s0_mismatches": [],
+  "original_index_untouched": true,
+  "other_heads_unchanged": [
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "head_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "head_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+      "head_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+      "head_unchanged": true
+    }
+  ],
+  "old_candidate_refs_preserved": {
+    "codex/plus-catalog-s23": "b8db9596977d196f025d79a1f4cf0c3442e5b3d8",
+    "codex/plus-catalog-ui-s24": "1696d054c82044fb5aaaf0d4851023f0423846dc"
+  },
+  "raw_and_audit_artifacts_sha256_checked": 33,
+  "raw_and_audit_artifact_mismatches": [],
+  "final_integration_log_top_level_pass": 2,
+  "final_integration_log_all_pass_entries": 11,
+  "diff_check": "passed",
+  "documentation_commits": "检查时尚未创建；验证候选不包含后续纯文档提交",
+  "colima_final": "stopped",
+  "scope_notes": [
+    "应用树和维护文档树本轮仅有登记文件；已提交应用变更仅新增一个集成合同测试",
+    "原S0未提交应用17文件全部保留；三处开发日志均保留历史全文",
+    "S2.3/S2.4旧目录仍不可见，不推断清理原因，Git分支/提交完整保留",
+    "没有push、PR、合并、镜像发布或生产部署"
+  ]
+}

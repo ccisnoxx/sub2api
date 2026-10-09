@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅S2.4；历史记录保留，本轮页面结果见文末S2.4。
+- 当前续接范围：仅S2.5；历史记录保留，本轮权限与报价结果见文末S2.5。
 - 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
-- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.4；远端CI、合并、镜像发布、生产部署、S1.5、S2.5及后续均未执行。
+- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.5；远端CI、合并、镜像发布、生产部署、S1.5、S2.6及后续均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -270,3 +270,40 @@ main 来源 `codex/plus-pricing-s22-evidence` 只登记本 change 与日志，�
 委派审计 `20261009T164258Z-kin-plus-catalog-ui-s24-61dc32dd` closed、audit-verify passed、无errors/warnings；[确定性执行摘要](evidence/s2.4-subagent-digest.md)。模型/effort是Agent TOML配置证据；验收通过表示复核交付被接受。
 
 **S2.4 已完成本地实现、检查与执行证据。下一项 S2.5 验证权限与报价一致性，未自动开始。** S2.6完整阶段验收仍保持未勾选，本轮页面证据可在输入未变时复用。真实JWT/数据库、全量/浏览器矩阵、远端CI、推送/PR/Actions、合并、镜像发布、SSH和生产部署均未执行。
+
+
+## S2.5 权限与报价一致性验证
+
+本轮仅 S2.5，验证候选 **`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`**；[候选校验](evidence/s2.5-candidate.json)、[验证与原始证据](evidence/s2.5-validation.json)、[独立复核](evidence/s2.5-reviews.json)、[文档及保留检查](evidence/s2.5-document-checks.json)。S2.6、S2.7和其他尚未开始的阶段保持未执行。
+
+### 基线与工作位置
+
+先读取指定计划、任务和日志，核对远端 personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，来源 KlN `.5/c7aacf5d`，main 仍 `b43a472f4`。S2.4工作树开始时干净，HEAD `1696d054c82044fb5aaaf0d4851023f0423846dc`，已验证功能为 `b8cf49ca25007cbc23338a9443b71df4c0411155`。从该完整SHA建立并附加 `/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin`，本地分支 `codex/plus-catalog-verify-s25`；没有使用main应用源码。
+
+原S0的17个应用文件与历史校验值全部匹配，未提交改动保留。S1、S2.2、聊天维护checkout保持原HEAD和源码状态。S2.3/S2.4旧目录在新树准备后已不在磁盘，本会话未调用删除或归档；原Git分支引用及提交完整保留，不声称旧目录仍存在。main来源 `codex/plus-pricing-s22-evidence`仅增量登记文档，并同步指定计划位置及新应用树；各自旧journal全文保留。AGENTS指定的出站约定和docs/tasks仍未找到，本轮不涉及出站身份或账号extra。
+
+### 实际验证与复用
+
+新增一个integration测试文件，复用仓库真实迁移、PG16/Redis harness、生产用户路由注册、JWT鉴权、分组/订阅/渠道/倍率SQL仓库及生产解析器。HTTP请求不注入AuthSubject；本地合成用户使用真实签名JWT，GET变更审计插槽为no-op。测试不调用上游、调度、用量结算或生产数据。
+
+| 边界 | 实际结果 |
+|---|---|
+| JWT与权限 | A→B→A主体隔离；查询user_id/group_id/admin不切换主体；公开限制、专属组、有效/过期/停用/他人订阅、停用/软删除组、有权空组按真实SQL和授权owner过滤；原始响应不含隐藏渠道名 |
+| 旧接口与middleware | 无view、大小写不同、重复view仍是旧数组；两视图均拒绝无效/缺失JWT、密码指纹变化后的旧Token及停用用户；后台模式普通用户403，管理员仍只有自身范围；真实Redis共用按用户桶，旧数组后catalog返回429及Retry-After |
+| 报价与计费 | HTTP目录明确3模型和default/priority/flex/ultrafast四档；0/unknown、平台/公开请求名白名单与内部映射边界；个人倍率0.5/0覆盖默认7，仅应用一次；1/100/101/300上下文及普通输入/缓存读取，共64次费用与独立生产ChannelService→ModelPricingResolver→CalculateCostUnified对账一致 |
+| HTTP规则 | 精确断言UTC分时、唯一00:00至23:59倍率2及high effort=1.5，费用期望使用响应倍率；不把隐藏规则漏出或缺失误算成完整对账 |
+| 新执行结果 | `go test -tags integration ./internal/repository -run '^TestAvailableCatalog(JWTDatabasePermissions\|HTTPBillingParity)$' -count=1 -v`，最终2顶层/11 PASS项；使用DOCKER_HOST、PG16与CI=true禁止harness静默跳过。Go1.27.2；gofmt/diff检查通过 |
+| 仍有效证据 | S2.2的8输入/12产物、S2.3的7输入/14产物、S2.4的15输入/25产物均匹配，共30输入/51产物；复用原48组owner对账、定向回归/HTTP/DTO以及页面倍率/类型/build证据，各自保持原覆盖，不称新执行 |
+| 失败与修正 | 初次编译夹具误用不存在的SetTokenVersion，尚未运行测试；改用真实密码指纹变化。第二次夹具直接写后台模式绕过进程缓存，预期403得200；改用真正UpdateSettings刷新缓存。生产owner未改。首轮三项测试保护缺口修正后仅重跑原两个定向集成测试，通过 |
+
+实际命令、日志、SHA-256及环境/复用边界见验证清单。Colima开始为停止，本轮启动已有实例；临时PG/Redis/ryuk容器在检查后清理，原三个无关停止容器保持，Colima最终恢复停止。没有安装依赖或扩大为全量验证。
+
+### 独立复核与交付边界
+
+两次fresh只读复核：首轮检查现有S2权限/价格链及本轮测试，未确认生产逻辑缺陷，但确认原始响应泄漏断言、模型/服务档范围断言、HTTP分时/effort字段三处测试保护缺口。主代理修正并定向重跑；第二轮仅复核这些修正及最终日志，三项关闭，未确认新增可操作问题。复核未独立执行测试；验收通过统计指复核交付被接受，不能理解为首轮候选已经无问题。
+
+审计 `20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef` closed、audit-verify passed；[确定性执行摘要](evidence/s2.5-subagent-digest.md)。最终diff仅新增测试和本阶段文档；生产代码、扣费、调度、迁移及依赖保持S2.4候选内容。
+
+这些是本地真实基础设施的HTTP集成证据，未启动生产服务进程，未使用生产JWT、带会话指纹的绑定变化、上游凭据或实际扣款请求。过期JWT/数据库错误/Redis故障没有新增集成检查；未变错误边界保留既有证据。新集成夹具限定UTC单时段和high effort，非UTC、工作日限制及跨午夜沿用原owner证据；weekdays_only普通bool未单独观察字段省略/null，当前生产DTO明确输出。媒体和依赖真实请求的报价继续unknown，不宣称整张请求账单或实时可用性。S2.6浏览器完整查看流程、S2.7阶段交付、全量/远端CI及发布门禁未运行。本会话没有push/PR/Actions、合并、镜像发布、SSH或生产部署。
+
+**S2.5已完成。下一项S2.6验收模型查看流程，未自动开始。**

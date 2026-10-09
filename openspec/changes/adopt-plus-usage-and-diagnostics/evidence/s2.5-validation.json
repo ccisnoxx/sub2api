@@ -1,0 +1,276 @@
+{
+  "task": "S2.5",
+  "recorded_utc": "2026-10-09T17:14:48.872795+00:00",
+  "checks": [
+    {
+      "name": "真实JWT/PG16/Redis/用户路由权限与HTTP报价同输入对账",
+      "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock SUB2API_TEST_POSTGRES_IMAGE=postgres:16-alpine CI=true go test -tags integration ./internal/repository -run '^TestAvailableCatalog(JWTDatabasePermissions|HTTPBillingParity)$' -count=1 -v",
+      "result": "passed",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/integration-reviewed-final.log",
+      "top_level_tests": 2,
+      "pass_entries": 11,
+      "http_billing_parity_cases": 64
+    }
+  ],
+  "initial_failures": [
+    {
+      "log": "integration-initial.log",
+      "kind": "compile_failed_before_tests",
+      "cause": "夹具误用不存在的Ent SetTokenVersion；改用真实密码指纹变更验证旧JWT撤销"
+    },
+    {
+      "log": "integration-after-compile.log",
+      "kind": "fixture_failure",
+      "cause": "夹具直接写后台模式设置绕过进程级缓存刷新；改用真正SettingService.UpdateSettings；不修改生产owner"
+    }
+  ],
+  "reuse": {
+    "s2.2": {
+      "input_files_checked": 8,
+      "input_mismatches": [],
+      "artifacts_checked": 12,
+      "artifact_mismatches": []
+    },
+    "s2.3": {
+      "input_files_checked": 7,
+      "input_mismatches": [],
+      "artifacts_checked": 14,
+      "artifact_mismatches": []
+    },
+    "s2.4": {
+      "input_files_checked": 15,
+      "input_mismatches": [],
+      "artifacts_checked": 25,
+      "artifact_mismatches": []
+    }
+  },
+  "not_run": [
+    "S2.6浏览器阶段验收",
+    "真实生产用户/上游凭据/实际扣款请求",
+    "全量回归/浏览器矩阵/远端CI/发布门禁",
+    "push/PR/Actions/合并/镜像发布/SSH/生产部署"
+  ],
+  "limits": [
+    "测试通过生产路由注册和Gin HTTP边界，不是启动服务进程的生产环境E2E",
+    "使用临时真实数据库/Redis及本地合成用户，GET审计插槽为no-op，未验证生产审计/会话绑定/上游调用",
+    "64组对账覆盖token输入/缓存读取/输出、4服务档、4上下文边界、2个人覆盖倍率，其他复杂价格规则复用S2.2原边界",
+    "未支持的媒体/请求依赖报价仍为unknown，不声明整张请求账单或实时可用性",
+    "当前UTC/单时段/high fixture，非UTC、工作日限制/跨午夜规则沿用未变原owner证据",
+    "weekdays_only普通bool不能单独观察该字段省略或null；当前生产DTO明确输出，属于字段存在性未单独验证"
+  ],
+  "candidate_commit": "3722c48ccdc0e4468dbc5c6ebb13584624c566d6",
+  "confirmed_initial_test_gaps": 3,
+  "fixed_gap_assertions": [
+    "原始HTTP Body排除隐藏渠道名",
+    "三个模型名与四服务档集合明确断言；对账次数固定64",
+    "HTTP分时/effort规则精确断言且费用比较使用响应倍率"
+  ],
+  "verified_runtime": "go1.27.2 darwin/arm64",
+  "independent_review_status": "两次fresh只读复核完成；首轮三项测试保护缺口修正、定向重跑通过并由关闭复核确认关闭；未确认生产源码问题",
+  "artifacts": [
+    {
+      "name": "audit-stage-closure.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/audit-stage-closure.json",
+      "sha256": "9b59f3579ed6c732d877c0f2ee51a7b72acf26216b2f3d22e6fb7dbda097146e",
+      "bytes": 1264
+    },
+    {
+      "name": "audit-stage.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/audit-stage.json",
+      "sha256": "b19239d442fc1eac043e38254c1507aa1248a37d33bed1ee0c327636b4b3677b",
+      "bytes": 1296
+    },
+    {
+      "name": "audit-verify.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/audit-verify.log",
+      "sha256": "365abdd32a05aa72775241c02054f74fdce00e75038d9aa538b808167c8556e3",
+      "bytes": 474
+    },
+    {
+      "name": "baseline.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/baseline.json",
+      "sha256": "8d7c4bbacc15b3c1c13257b72c1a1a6a1ed80a8c6eefead3f98f3c026522d315",
+      "bytes": 125133
+    },
+    {
+      "name": "candidate-test.patch",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/candidate-test.patch",
+      "sha256": "b2dc881b2736f81feb10abfcac89cd3e5509aec8b86b0764aae4ee30cbf47908",
+      "bytes": 18322
+    },
+    {
+      "name": "closure-source-before.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/closure-source-before.json",
+      "sha256": "7e21d8abed074f4c7e3f52bb9b1bd080f8459f40d39c90740e029277fb62079f",
+      "bytes": 739
+    },
+    {
+      "name": "closure-review-result.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/closure-review-result.json",
+      "sha256": "4d30b4a8d29100b8c459efa698c7a55def528274cbc6526814dad30a8e94a163",
+      "bytes": 678
+    },
+    {
+      "name": "colima-start-after-review.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/colima-start-after-review.log",
+      "sha256": "77ae02fe13c8978dac8e7f48401cb6853e2bb5b63ab2b5c5866f452a266d2121",
+      "bytes": 4941
+    },
+    {
+      "name": "colima-final-stop.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/colima-final-stop.log",
+      "sha256": "80192f2e34efdbd2c452fcc5ccedc4cf452ef5077317a72f754ed69a5aa01426",
+      "bytes": 1714
+    },
+    {
+      "name": "integration-after-compile.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/integration-after-compile.log",
+      "sha256": "2cdfb723c778bd162a356e80d833e8d600b0433ccdc15677a8b0f361336a0876",
+      "bytes": 4221
+    },
+    {
+      "name": "integration-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/integration-final.log",
+      "sha256": "513b814a4836d4d5ef69af26047eb127e17d4410f3ae38f56750d949c44a7607",
+      "bytes": 3787
+    },
+    {
+      "name": "integration-initial.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/integration-initial.log",
+      "sha256": "5d8675020941b2718a08a9ca8ee0fd0219c98a625f2ce3a44d334c90558abe61",
+      "bytes": 414
+    },
+    {
+      "name": "integration-reviewed-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/integration-reviewed-final.log",
+      "sha256": "53f0192a147227c4bd43caac6b3c8deeb01ffff1ee78fa516d798c2bc39aefac",
+      "bytes": 3787
+    },
+    {
+      "name": "preserved-checks.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/preserved-checks.json",
+      "sha256": "3c2efdce25169d6caf46f9e271aec4efc238c2fa78bd658ce98db8092c555b91",
+      "bytes": 641
+    },
+    {
+      "name": "production-source-before.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/production-source-before.json",
+      "sha256": "2a0498ef79bc9a7e4ee7f4d55b4efa0a40de68474930906bd8e28405ec7c77ba",
+      "bytes": 561397
+    },
+    {
+      "name": "reuse-checks.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/reuse-checks.json",
+      "sha256": "1613565ab2b4bdd1ba98ed273d850b03e0de19564807ea8002fa56753b409db5",
+      "bytes": 406
+    },
+    {
+      "name": "review-result.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/review-result.json",
+      "sha256": "712257ce006d0d95b19a7798453d6940eab63e1f972c2f8ff88d4e7b62e93c7a",
+      "bytes": 823
+    },
+    {
+      "name": "review-source-before.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/review-source-before.json",
+      "sha256": "53ceac242ebc4941aecfc47dd466ed9be324633919a1361048c54025945b1e58",
+      "bytes": 317060
+    },
+    {
+      "name": "scope-checks.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s25/scope-checks.json",
+      "sha256": "873d17f46c9c6d2cbce126150a329d2b641a9220c1fe91688cc440f16b8da4a2",
+      "bytes": 584
+    }
+  ],
+  "independent_review": {
+    "audit_id": "20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef",
+    "audit_verify": "passed",
+    "accepted_deliverables": 2,
+    "fresh_read_only_reviews": 2,
+    "confirmed_production_findings": 0,
+    "confirmed_test_gaps": 3,
+    "closed_test_gaps": 3,
+    "reviewer_executed_tests": false,
+    "observed_agent_write_paths": []
+  },
+  "environment_restored": {
+    "colima_initial": "stopped",
+    "colima_final": "stopped",
+    "temporary_test_containers": "cleaned",
+    "unrelated_stopped_containers_preserved": 3
+  },
+  "audit_artifacts": [
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/01-independent-review.dispatches/s25-review-a1.json",
+      "sha256": "9bcfb0c7fd9584709f0aef4328aa52077d64689a38f48b7024826acb965e720e",
+      "bytes": 184
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/01-independent-review.draft.json",
+      "sha256": "6183294c6bcbe6ed377bc890f34b13aec52dfa200c83438d3454fe1a6b78cadb",
+      "bytes": 1840
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/01-independent-review.execution.json",
+      "sha256": "84de01d42a47760c8cb2d237100fcc5365de47c2b29e40bf4a1452c63cb7fcba",
+      "bytes": 1732
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/01-independent-review.plan.json",
+      "sha256": "85bedeb365b63cca0df078e24b4c1a4a02dc6d38930f11dc4dd5205cf77f3c45",
+      "bytes": 2849
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/01-independent-review.summary.json",
+      "sha256": "7ff0e276acfd0ba95d08c44cdd15e01821443a7548a7d99574e864b58bd69ad4",
+      "bytes": 3060
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/01-independent-review.summary.txt",
+      "sha256": "4f38814394672f38508f3097a05821dbff92d365ccfddc2e830e0a4306a13701",
+      "bytes": 2539
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/02-closure-review.dispatches/s25-closure-a1.json",
+      "sha256": "01db1acdc593ea2d7d3233e71072cc2efa555669a9f5adfd73b44609922539f2",
+      "bytes": 180
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/02-closure-review.draft.json",
+      "sha256": "81cc84f0f678a146117408c2c3de80859cf9dd797bccb3cf7615d1599fbd0f92",
+      "bytes": 1768
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/02-closure-review.execution.json",
+      "sha256": "a7a8f6e2b2f892e9ea0ee2e3abe15a68dcb256334469b5137b2ec4c2318c2baa",
+      "bytes": 1722
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/02-closure-review.plan.json",
+      "sha256": "a571efeb7bd0a6f2bb7a0fc493ca30e73d5092e647acad5b31cb677b05f50484",
+      "bytes": 2779
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/02-closure-review.summary.json",
+      "sha256": "66222fbcdfc8586a277d84a82d472ff277dc577351d38bea19ec56733dbcdac5",
+      "bytes": 3049
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/02-closure-review.summary.txt",
+      "sha256": "aa8db106e3d33915bd2761d1bbaf7bc22c0a2b0a7b480ae1406bc2903fc19b06",
+      "bytes": 2528
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/SUBAGENT_EXECUTION_DIGEST.json",
+      "sha256": "a62b72d904adb0d715ea5ccd01d24cde0879aa016a4dee150d38514e9d01b96a",
+      "bytes": 1786
+    },
+    {
+      "path": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-2997bbbd/20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef/SUBAGENT_EXECUTION_DIGEST.md",
+      "sha256": "2cb51ad210b3b9bf9c15544528de66062b1740d12f719f2b2b28b7ffe0f0f26c",
+      "bytes": 865
+    }
+  ],
+  "document_registration_checks": "s2.5-document-checks.json"
+}

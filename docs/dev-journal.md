@@ -1,5 +1,12 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S2.5 权限与报价验证完成
+
+- 本轮仅S2.5。personal仍`9397eb8af`、来源KlN `.5/c7aacf5d`；从干净S2.4 `1696d054c`创建personal来源 `codex/plus-catalog-verify-s25`，验证候选`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`，只新增integration合同测试，未改生产源码/扣费/调度/迁移/依赖。原S0的17应用文件校验一致；旧S2.3/S2.4目录后续不可见但Git分支/提交保留，本会话未执行删除或归档。
+- 真实PG16/Redis、JWT/生产路由/SQL仓库验证A→B→A主体、查询参数无提权、订阅/专属/停用/软删除/空组、旧数组、Token撤销、后台模式及共用限流；最终2顶层/11 PASS。HTTP价格同输入64组合与独立生产owner费用一致，明确0/unknown、倍率覆盖一次、完整四档/阶梯和分时/effort规则。测试用本地合成用户，GET审计插槽no-op，无生产凭据或扣款。
+- S2.2–S2.4的30输入文件/51原产物匹配，按原边界复用。首次编译及后台缓存夹具失败已诊断修正；两次fresh只读复核，三项测试保护缺口加强断言并定向重跑关闭，未确认生产缺陷；复核未独立运行测试。审计`20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef` closed/verify passed。
+- [执行证据S2.5](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s25-权限与报价一致性验证)和任务状态已更新，三处旧journal全文保留。临时容器已清理、Colima恢复停止。S2.5勾选，下一项S2.6未开始；本轮未跑浏览器阶段/全量/远端CI，不推送、不合并、不发布镜像、不部署生产。
+
 ## 2026-10-09：KIN 借鉴 Plus S2.4 可用渠道页面完成
 
 - 本轮仅S2.4。只读核对personal仍`9397eb8af`、来源KlN `.5/c7aacf5d`；从干净S2.3 personal来源候选`b8db95969`建立`codex/plus-catalog-ui-s24`，已验证应用`b8cf49ca25007cbc23338a9443b71df4c0411155`。main来源文档树仅登记本change与journal，没有替代应用源码；原S0的17文件及各原候选/聊天树保留。
