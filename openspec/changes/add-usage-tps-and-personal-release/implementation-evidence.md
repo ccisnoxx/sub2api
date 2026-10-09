@@ -471,7 +471,7 @@ macOS / Node v24.16.0 / pnpm 9.15.9 / Vitest 2.1.9 / Playwright 1.62.1，复用�
 - 重新读取KlN官方最新发布与远端refs：仍为 `v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d`，与此前停止的版本相同。.3/de08仍不是它的祖先；只读merge-tree到当前personal仍120个冲突路径，净差异164文件、6821插入/4161删除，backend/migrations无净差异。官方说明涉及网关池取票/验证/换票续办/计时，不能把无新增迁移当作完整后端兼容证明。仅获取隔离readonly refs和合并预览，不修改来源记录、个人应用或服务器配置。
 - 已说明建议先完成当前TPS及安全版本上线，再单独处理.5历史整合；按用户第1项明确的继续上线指示推进原任务。调整为先整合.5的顺序选择已提出，未据此自动授权或实施更大后端迁移。P2.9真实升级及P2.11保持独立未完成。
 
-## 10. KlN .5 整合及统一发布（实施中）
+## 10. KlN .5 整合及统一发布（已完成）
 
 ### 10.1 授权、固定来源与实际历史整合
 
@@ -489,7 +489,7 @@ fresh deep_auditor 比较固定 .3/.5及线上896对象。数据库迁移、Ent�
 
 新reporter可能在HTTP监听和/health前写网关JSON，备份时点必须在启动新应用前。新旧进程共享Redis并行启动会清理旧进程活跃槽位；保持单应用Compose替换顺序和获准短中断，不采用共享Redis蓝绿。
 
-hostdzire只读账号预检确认：当前启用网关池的OpenAI账号为0，池影子/母账号和setup-token来源为0，实际池端点为0。现有配置没有新增成员身份阻断；未据此声称外部池成员/batch协议已验证，后续启用池前需另行检查。当前应用仍是 .3-tps.1原digest且healthy。
+部署前hostdzire只读账号预检确认：当前启用网关池的OpenAI账号为0，池影子/母账号和setup-token来源为0，实际池端点为0。现有配置没有新增成员身份阻断；未据此声称外部池成员/batch协议已验证，后续启用池前需另行检查。预检时应用仍是 .3-tps.1原digest且healthy；本轮随后实际切换为 .5-tps.1，见10.6。
 
 两个官方发布对象的AGENTS.md引用的 outbound identity、extra freshness约定及docs/tasks均缺失；已查找而未伪造规则，此为来源覆盖缺口。主仓库既有阶段文档继续维护在main。Plus完整计时能力仍未引入，TPS继续使用整段总耗时公式。
 
@@ -503,6 +503,59 @@ main控制候选新增精确正向证据：固定旧/新上游完整tag+SHA，�
 
 证明明确 `image_rollback_compatible=false`；普通反向deploy、本机/远端显式回滚及新进程启动后的自动旧镜像恢复均拒绝。启动/health失败非零，保存原错误、diagnostics/observed_running、`rollback_status=blocked`/`E_COMPATIBILITY`，不覆盖原selection；已替换selection而后续落盘失败继续保留部分提交并停止自动接管。原同基线零差异/精确五文件patch的锁、漂移、备份、自动恢复/显式回滚合同保持。
 
-新增9项合同测试，总43 tests5.801s OK，定向固定Git/反向及树变化测试、shell语法、py_compile、diff-check均通过。首次测试日志包装使用zsh保留变量status产生包装错误，测试本身已通过；修正包装后明确获得最终exit0。未声称替身验证是真实服务器或实际数据库恢复。Linux部署CI增加只读获取 .5官方标签，actionlint通过。fresh critical_reviewer正在复核实际四文件diff和融合候选，未结束前不发布部署。
+新增9项合同测试，总43 tests5.801s OK，定向固定Git/反向及树变化测试、shell语法、py_compile、diff-check均通过。首次测试日志包装使用zsh保留变量status产生包装错误，测试本身已通过；修正包装后明确获得最终exit0。未声称替身验证是真实服务器或实际数据库恢复。Linux部署CI增加只读获取 .5官方标签，actionlint通过。fresh critical_reviewer随后完成实际四文件diff和融合候选复核，发布前关闭确认问题。
 
 独立复核已完成且未确认阻断：全部官方/个人联合源码树零不符，固定运行树与151路径重新独立计算匹配；16个证明/回滚拒绝检查和7种纯内存生命周期失败注入通过，确认启动后无旧镜像恢复以及selection部分提交保护。复核四文件输入前后SHA-256不变。当前审计 `20261009T025813Z-klno5-tps-integration-release-8b507569` closed/verify passed（状态调查、实现、fresh独立复核三个阶段）；先前Go/依赖/lint独立复核保留各自已关闭审计，不伪造聚合计数。
+
+### 10.5 保护合并、最终门禁与正式发布
+
+- [PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 于 UTC `2026-10-09T03:26:52Z` 普通merge，最终 personal为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`。合并前读回strict personal-ready、App15368、enforce_admins及merge-only保护，使用match-head-commit=c00，无管理员绕过/强推。最终应用tree与c00完全相同，固定 .5/c7为祖先；main应用树未合入。
+- 最终 [Personal CI37879317375](https://github.com/ccisnoxx/sub2api/actions/runs/37879317375) 的headSha就是9397，全部success：绑定、同步合同、97项TPS测试/lint/构建、前端关键测试和类型、后端单元/集成/recording-race/lint、前后端安全扫描、release helpers/shell及personal-ready。候选c00自己的 [CI37877529750](https://github.com/ccisnoxx/sub2api/actions/runs/37877529750) 亦success，没有借旧ce或PR结果代替最终SHA检查。
+- P4控制工具提交为main `77a5deb991fb4cacf4ff20139b03c0efd4f42eea`；[Linux/Python3.11部署CI37879304327](https://github.com/ccisnoxx/sub2api/actions/runs/37879304327) 43tests、shell检查success。补充 .5实际受影响而既有critical选择未包含的五个前端合同文件，AccountGatewayCell/BulkEditAccountModal/useGatewayPoolProgress/gwpoolLocales/AccountsView.priorityColumn共121tests通过。测试夹具报告common.time.hoursAgo的en缺键警告；真实zh/en资源均包含该键，最终四组构建预览控制台错误/警告为0，未改动无关测试夹具。
+- [发布准备37880709028](https://github.com/ccisnoxx/sub2api/actions/runs/37880709028) 运行于可信main77，绑定9397及其成功完整CI，分配新版本 `v0.2.14-klno.5-tps.1`，显式dispatch [Release37880741133](https://github.com/ccisnoxx/sub2api/actions/runs/37880741133)。prepare/frontend/binaries(linux,amd64)/release均success，sync-version-file按个人流程skipped；main VERSION未写回。
+- [GitHub Release](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.1) 于UTC `2026-10-09T03:52:47Z` 发布，沿用simple/prerelease模式。发布publication.json的tag/SHA/workflow_sha/platform/image/digest与实际Git标签及镜像一致。Release元数据targetCommitish=main不是构建来源；实际tag指向9397，OCI revision与发布工件也为9397。
+
+| 发布字段 | 实际值 |
+|---|---|
+| 固定上游 | v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d |
+| 新个人标签及源码 | v0.2.14-klno.5-tps.1 / 9397eb8afb621aef483f2ec0bf4b2dd6247c7b92 |
+| 固定镜像 | ghcr.io/ccisnoxx/sub2api@sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6 |
+| 平台及OCI source | linux/amd64 / https://github.com/ccisnoxx/sub2api |
+| 二进制SHA-256 | eac677e5523314660533a6923e37509c40fcb0127b1bdcb8d82706c75b7b4fdc |
+
+空凭据目录通过crane匿名完整导出146,489,344字节并核验镜像摘要；二进制buildinfo确认Go1.27.2，链接x/crypto0.57、x/net0.60、x/sys0.48、x/term0.46、x/text0.42、x/mod0.41、x/sync0.23。x/image0.41沿用原值，x/tools0.50是构建依赖而非本二进制链接项，不伪造链接证明。旧个人 .3-tps.1标签仍指向896，旧镜像digest仍为f4a979fd…1a3d76，未移动或覆盖已发布引用；本轮没有发布此前 .3展示候选。匿名export临时目录已清理，Git外registry-proof.json保留脱敏证据。
+
+### 10.6 hostdzire 实际部署及状态核对
+
+使用main77的P4工具，script SHA-256 `fa68b0e9db823cd30ce72376a48249e05759c9d0e7a0ae75e8cab5fd4d823ee1`。授权范围及预检通过后直接执行一次固定digest部署，不重复请求授权或重复切换：
+
+```sh
+deploy/personal/deploy-hostdzire.sh \
+  ghcr.io/ccisnoxx/sub2api@sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6 \
+  --version 0.2.14-klno.5-tps.1
+```
+
+实际工具exit0、部署记录 `20261009T035515Z-193d1b92933e` success，UTC `03:55:46.616260` 完成。应用新容器于 `03:55:39.941022269` 启动，observed_running与target的image/revision/version/source完全一致，healthy且 `/health={status:ok}`；选择文件固定新digest和该记录ID。独立只读poststate再确认运行镜像，不把dispatch或空输出当作成功。
+
+新应用启动前完成配置、PostgreSQL和应用数据备份。记录目录 `/root/sub2api-kin/.personal-deploy/records/20261009T035515Z-193d1b92933e` 为700，记录/数据文件600；工具备份完整性检查通过，未执行数据库恢复：
+
+| 备份 | 实际字节 | 记录SHA-256 |
+|---|---:|---|
+| PostgreSQL | 60,739,634 | 458cd0006d25ece7bd739a514df16637329d4042d659a972dfdde116a46bdec7 |
+| 应用数据 | 12,936,600 | 7d28eab01cb0df5a322bbc1ef669fa52a6ec815c5177f3de4ea4dff9114d3d9e |
+
+只重建Compose应用服务，PG容器c98be88c…60a0ea、Redis容器21ee6e28…5857b9及其2026-09-18启动时间均与部署前相同且healthy。配置before/after哈希均 `71174011755cd35cac45ade5dd8eb006ef7302d8089a2044194359d7b14a64ce`，原env哈希不变；迁移303行、filename/checksum指纹 `d2765fa67306539751aab2ddc4147ef2f9c340d31745dbed686f3a5f66bb0a5a` 保持。没有更改数据库结构、计费、配置或卷，没有恢复数据库、生产回滚或更新PG/Redis。
+
+仅应用顺序替换，允许的短中断已经发生于容器切换；没有本轮连续可用性采样，不声称精确秒数或所有客户端重连通过。旧镜像和私密备份保留。该证明只允许正向升级，.5→.3普通deploy/显式rollback/新启动失败后的自动旧镜像恢复均受阻；后续恢复优先向前修复，数据维护须另行授权，旧同基线回滚演练不是本次跨基线恢复证明。
+
+### 10.7 实际线上页面与单次官方客户端验收
+
+复用 `https://api.962850.xyz` 已有管理员会话，实际reload新版 `/usage`、访问 `/admin/usage`；两个页面显示新标签TPS、青色紧凑数值、首字旁唯一说明按钮，数值右侧重复按钮已移除。实际首字/总耗时/左侧色条保留，耗时列和提示完整可见、没有观察到裁切或重叠。管理员不可用样本显示首字 `-`、总耗时797ms、TPS灰色 `-`；点击说明显示“当前记录不适用普通文本平均输出 TPS”及公式/首token等待/可能推理token和解释边界。用户页click/Enter打开与Escape关闭、管理员click打开原因与Escape关闭均实际通过。
+
+两个页面均选择“昨天”并应用，实际上线前历史记录正确渲染：管理员15.8 tok/s、4.48s/7.16s及9.2 tok/s、5.56s/6.93s；用户34.2 tok/s、19.43s/27.05s及30 tok/s、17.27s/23.53s。验收后两个页面恢复近24小时，提示关闭；未修改凭据或使用合成记录充当生产结果。
+
+UTC `04:00:10.290694–04:00:19.289440` 运行真实官方Codex CLI0.159.0，只允许一次HTTP POST/v1/responses、stream=true，tools=[]/tool_choice=none、禁WebSocket和重试；自然产生官方x-codex指纹，未伪造header。HTTP200、response.completed、文本OK、CLI final OK/turn.completed/exit0全部通过，request_count=1；唯一关联记录150264，request_type2，output_tokens5、duration_ms1819、first_token_ms1751。原始TPS=2.7487630566…，紧凑显示2.7 tok/s；用户页实际显示同一记录的1.75s/1.82s，证明不扣首字。脱敏official-smoke-result.json和production-ui-result.json、裁剪后的耗时/提示截图保存于Git外`tps-alignment-production/`；含其他页面数据的原始截图已清理。
+
+线上身份覆盖为同一管理员的管理员与我的账户页面，没有独立普通用户登录/权限验收。生产观察为浅色原生Chrome，390px/暗色/触屏矩阵由10.3最终构建预览实际完成；生产控制台未另行读取，不能将预览0错误替代生产控制台断言。启用池账号/端点为0，外部成员/batch协议没有现场对象；启用前需专门验收。实际数据库恢复、逐客户端重连和精确中断时长均未验证。
+
+**完成状态：**P2.9真实升级、P2.11及P5.6–P5.8完成，控制文件和四份阶段文档只回写main，不改变已发布源码、标签和digest。**前端展示对齐已完成；Plus完整计时能力尚未引入**。没有新增first_output_ms、last_token_ms、timing_version、is_complete，也没有显示缺少真实数据支持的首输出、末Token或完成状态。

@@ -1,12 +1,14 @@
 # 开发日志
 
-## 2026-10-08：授权先整合 KlN .5，统一候选已保留个人 TPS
+## 2026-10-08：KlN .5、TPS 展示对齐及安全补丁统一上线完成
 
-- 维护者已允许精确lint兼容补丁，并明确选择先整合 .5再统一发布上线，未发布此前 .3展示候选。普通合并c00e8982258736a188a09023e901d8d39671814f保留ce个人候选与官方c7 .5双方历史；官方164净变更和个人34路径没有重叠，120历史冲突按实际净变更归属解决并核对全部索引blob/mode。sourceJSON改为固定 .5tag/SHA，官方后端源码未手改。
-- [PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 已改写为统一 .5/TPS/安全交付。[Personal CI37877529750](https://github.com/ccisnoxx/sub2api/actions/runs/37877529750)的前端/TPS/构建、lint和安全检查成功，完整后端门禁仍执行中。旧ce完整CI已经success；不作为新c00最终门禁替代。
-- fresh持久状态调查确认迁移/Ent/实例配置无净差异，但 .3回写将删除 .5新增活跃区间、归档时长和contacts历史；新进程在health前即可写库。正在实现固定完整运行树的正向升级证据并禁止跨基线镜像回退；保留备份、漂移和部分提交合同，数据库恢复不在自动工具范围。
-- hostdzire只读预检当前池启用账号及端点均为0，不存在新增成员身份阻断；外部池协议没有现场对象，未宣称验收。继续单应用替换，避免新旧进程共享Redis并行清理活跃slot。线上仍为固定 .3-tps.1 healthy，尚未部署新版本。
-- P2.9真实候选已创建；P2.11和P5.6–P5.8等待门禁、独立复核、发布部署与实际页面验收。Plus完整计时能力仍未引入。详细事实见[实施证据第10节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。
+- 按维护者“先整合 .5，再统一发布上线”的授权完成，未发布此前 .3展示候选。普通合并c00保留个人与固定官方c7双方历史，120历史冲突按实际净改动归属处理并逐一核对blob/mode；官方164路径与个人34路径无重叠。[PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 按strict personal-ready/App15368、merge-only保护合入personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，无管理员绕过/强推/main应用树混入。
+- TPS标签、有效青色/不可用灰色短横线、三段紧凑数字/tok/s及首字旁唯一说明入口完成；公式仍为output_tokens×1000÷duration_ms，不扣首字，不改变原有适用范围/原因、耗时或色条。获准安全补丁采用Go1.27.2、x/net0.60等最小依赖及精确HTTP/2 lint规则，没有改变业务代码来压制弃用告警。
+- 最终 [Personal CI37879317375](https://github.com/ccisnoxx/sub2api/actions/runs/37879317375) 完整success；97项TPS/表格/提示与静态构建、.5额外121项前端合同、最终构建四组1440/390明暗及触屏/键盘页面预览通过。P4本地与[Linux CI37879304327](https://github.com/ccisnoxx/sub2api/actions/runs/37879304327) 43项合同通过，状态调查/实现/fresh独立复核审计closed/verify passed，确认问题已关闭。
+- 既有流程分配并发布 [v0.2.14-klno.5-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.1)，[Release37880741133](https://github.com/ccisnoxx/sub2api/actions/runs/37880741133)成功。固定amd64镜像digest `sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6` 与9397/source/version一致，公开匿名完整导出及二进制Go/依赖核验通过；原标签、原digest及main VERSION未改变。
+- main77的P4工具在备份后仅切换hostdzire应用，记录 `20261009T035515Z-193d1b92933e` success，UTC03:55:46完成。PG备份60,739,634字节、应用数据12,936,600字节，记录目录700/文件600；应用healthy、/health=ok，配置、PG/Redis容器及启动时间、303条迁移指纹均不变。仅应用顺序替换，中断未精确计时。状态复核确认 .3会丢弃 .5新网关JSON，工具仅允许固定 .3→.5向前升级，跨基线自动/显式旧镜像回退禁止，不恢复数据库。
+- 实际管理员/我的账户两页面的新及上线前历史记录、颜色、说明入口/完整提示和click/Enter/Escape通过。一次官方Codex CLI0.159.0请求HTTP200、完整OK、exit0；唯一记录150264为5 output/1819ms、首字1751ms，用户页显示2.7 tok/s、1.75s/1.82s，不扣首字。两页面筛选已恢复近24小时；未伪造官方指纹或重试模型请求。
+- P2.9/P2.11与P5.1–P5.8完成。独立普通用户身份、实际数据库恢复、所有客户端重连及外部池成员协议（现场启用池为0）仍未验证；启用池前需专门验收。**前端展示对齐完成，Plus完整计时能力尚未引入**，没有新增首输出/末token/完成状态等后端字段。最终四份文档只回写main，详情见[实施证据第10节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md#10-kln-5-整合及统一发布已完成)。
 
 ## 2026-10-08：TPS 展示候选完成，等待精确 lint 兼容补丁范围决定
 
