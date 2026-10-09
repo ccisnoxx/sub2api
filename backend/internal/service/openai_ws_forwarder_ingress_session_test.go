@@ -148,10 +148,12 @@ func TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_KeepLeaseAcrossT
 
 	serverErrCh := make(chan error, 1)
 	turnTerminalCh := make(chan string, 2)
+	turnTimingCh := make(chan UsageTiming, 2)
 	hooks := &OpenAIWSIngressHooks{
 		AfterTurn: func(_ int, result *OpenAIForwardResult, turnErr error) {
 			if turnErr == nil && result != nil {
 				turnTerminalCh <- result.UpstreamTerminalEvent
+				turnTimingCh <- result.UsageTiming.Clone()
 			}
 		},
 	}
@@ -228,6 +230,13 @@ func TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_KeepLeaseAcrossT
 	require.Equal(t, "response.completed", <-turnTerminalCh, "首轮 turn 应保留成功终态")
 	require.Equal(t, "response.completed", <-turnTerminalCh, "第二轮 turn 应保留成功终态")
 
+	firstTiming, secondTiming := <-turnTimingCh, <-turnTimingCh
+	require.EqualValues(t, 1, firstTiming.TimingVersion)
+	require.EqualValues(t, 1, secondTiming.TimingVersion)
+	require.Equal(t, "image", *firstTiming.FirstOutputKind)
+	require.Nil(t, firstTiming.StrictFirstTokenMs)
+	require.Nil(t, secondTiming.FirstOutputMs, "第二轮不能沿用第一轮媒体输出")
+	require.Equal(t, CompletionStatusCompleted, secondTiming.CompletionStatus)
 	_ = clientConn.Close(coderws.StatusNormalClosure, "done")
 
 	select {

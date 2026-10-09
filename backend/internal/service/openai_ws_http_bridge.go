@@ -542,6 +542,9 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 	}
 
 	turnStart := time.Now()
+	timing := newResponsesOutputTiming(ctx, turnStart, account)
+	defer timing.stop()
+	timingResponseID := ""
 	rejectedFieldRetryState := newOpenAIResponsesRejectedFieldRetryState(body)
 	var resp *http.Response
 	for {
@@ -658,6 +661,7 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 		result := &OpenAIForwardResult{
 			RequestID:                     responseID,
 			Usage:                         usage,
+			UsageTiming:                   timing.snapshot(clientDisconnected),
 			Model:                         originalModel,
 			UpstreamModel:                 mappedModel,
 			UpstreamResponseModel:         responseModelObserver.Model(),
@@ -723,6 +727,7 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 			if err := writeClientMessage(message); err != nil {
 				if isOpenAIWSClientDisconnectError(err) {
 					clientDisconnected = true
+					timing.clientDisconnected()
 					return nil
 				}
 				return fmt.Errorf("write synthesized websocket response.failed: %w", err)
@@ -760,6 +765,12 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 			upstreamMessage = normalized
 		}
 		eventType, eventResponseID, _ := parseOpenAIWSEventEnvelope(upstreamMessage)
+		if responsesTimingMatchesID(&timingResponseID, upstreamMessage, eventType) {
+			timing.observeEvent(upstreamMessage, eventType, time.Now())
+			if eventType == "response.completed" || eventType == "response.done" {
+				timing.confirmNoAudio(upstreamMessage)
+			}
+		}
 		responseModelObserver.ObserveOpenAI(upstreamMessage, eventType)
 		if responseID == "" && eventResponseID != "" {
 			responseID = eventResponseID
@@ -779,6 +790,9 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 			}
 		}
 		if openAIWSMessageShouldParseUsage(eventType, upstreamMessage) {
+			if responsesTimingMatchesID(&timingResponseID, upstreamMessage, eventType) {
+				timing.observeUsage(upstreamMessage, eventType, usage)
+			}
 			parseOpenAIWSResponseUsageFromCompletedEvent(upstreamMessage, &usage)
 		}
 		if eventType == "error" || eventType == "response.failed" {
@@ -911,6 +925,7 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 					if err := writeClientMessage(message); err != nil {
 						if isOpenAIWSClientDisconnectError(err) {
 							clientDisconnected = true
+							timing.clientDisconnected()
 							closeStatus, closeReason := summarizeOpenAIWSReadCloseError(err)
 							logOpenAIWSModeInfo(
 								"ingress_ws_http_bridge_client_disconnected_drain account_id=%d turn=%d close_status=%s close_reason=%s",

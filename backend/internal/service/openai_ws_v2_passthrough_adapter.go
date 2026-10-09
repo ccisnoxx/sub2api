@@ -1214,6 +1214,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 	if hooks != nil {
 		firstTurnStartedAt = hooks.InitialTurnStartedAt
 	}
+	turnTimings := &responsesWSTurnTimings{account: account, ctx: ctx}
+	defer turnTimings.close()
 	failureAccountSideEffectsApplied := false
 	relayResult, relayExit := openaiwsv2.RunEntry(openaiwsv2.EntryInput{
 		Ctx:                ctx,
@@ -1221,6 +1223,7 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		UpstreamConn:       relayUpstreamFrameConn,
 		FirstClientMessage: firstClientMessage,
 		Options: openaiwsv2.RelayOptions{
+			OnUpstreamEvent:    turnTimings.observe,
 			WriteTimeout:       s.openAIWSWriteTimeout(),
 			FirstTurnStartedAt: firstTurnStartedAt,
 			TakeNextTurnStartedAt: func() time.Time {
@@ -1252,7 +1255,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				}
 				turnRequestModel, turnUpstreamModel := usageMeta.turnModels(turn.RequestModel)
 				turnResult := &OpenAIForwardResult{
-					RequestID: turn.RequestID,
+					RequestID:   turn.RequestID,
+					UsageTiming: turnTimings.take(turn.RequestID),
 					Usage: OpenAIUsage{
 						InputTokens:              turn.Usage.InputTokens,
 						OutputTokens:             turn.Usage.OutputTokens,
@@ -1299,6 +1303,9 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				}
 			},
 			AfterClientWrite: func(msgType coderws.MessageType, payload []byte, writeErr error) {
+				if writeErr != nil {
+					turnTimings.disconnect()
+				}
 				if msgType == coderws.MessageText && writeErr == nil {
 					eventType, _, _ := parseOpenAIWSEventEnvelope(payload)
 					markOpenAIWSClientVisibleFailure(c, eventType, payload)
@@ -1308,6 +1315,9 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				}
 			},
 			BeforeRelayCancel: func(exit openaiwsv2.RelayExit) {
+				if exit.Stage == "read_client" || exit.Stage == "write_client" || errors.Is(ctx.Err(), context.Canceled) {
+					turnTimings.disconnect()
+				}
 				if context.Cause(ctx) != nil {
 					return
 				}
@@ -1362,6 +1372,9 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				return s.newOpenAIWSRateLimitFailoverError(account, handshakeHeaders, payload, errMsgRaw)
 			},
 			OnTrace: func(event openaiwsv2.RelayTraceEvent) {
+				if event.Direction == "client_to_upstream" && event.Stage == "read_client_failed" {
+					turnTimings.disconnect()
+				}
 				logOpenAIWSV2Passthrough(
 					"relay_trace account_id=%d stage=%s direction=%s msg_type=%s bytes=%d graceful=%v wrote_downstream=%v err=%s",
 					account.ID,
@@ -1393,7 +1406,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 
 	resultRequestModel, resultUpstreamModel := usageMeta.turnModels(relayResult.RequestModel)
 	result := &OpenAIForwardResult{
-		RequestID: relayResult.RequestID,
+		RequestID:   relayResult.RequestID,
+		UsageTiming: turnTimings.take(relayResult.RequestID),
 		Usage: OpenAIUsage{
 			InputTokens:              relayResult.Usage.InputTokens,
 			OutputTokens:             relayResult.Usage.OutputTokens,
@@ -1631,4 +1645,64 @@ func logOpenAIWSV2Passthrough(format string, args ...any) {
 		"[OpenAI WS v2 passthrough] %s "+format,
 		append([]any{openaiWSV2PassthroughModeFields}, args...)...,
 	)
+}
+
+// responsesWSTurnTimings 只保存 observer，起点和 ID 始终由 relay 的权威 turn owner 提供。
+// client 读循环与 upstream 观察循环都能报告断连，注册表锁将二者排成事实顺序。
+type responsesWSTurnTimings struct {
+	mu           sync.Mutex
+	account      *Account
+	ctx          context.Context
+	turns        map[string]*responsesOutputTiming
+	disconnected bool
+}
+
+func (r *responsesWSTurnTimings) observe(event openaiwsv2.RelayObservedEvent) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.turns == nil {
+		r.turns = make(map[string]*responsesOutputTiming)
+	}
+	o := r.turns[event.ResponseID]
+	if o == nil {
+		o = newResponsesOutputTiming(r.ctx, event.StartedAt, r.account)
+		if o == nil {
+			return
+		}
+		r.turns[event.ResponseID] = o
+		if r.disconnected {
+			o.clientDisconnected()
+		}
+	}
+	eventType := gjson.GetBytes(event.Payload, "type").String()
+	o.observeEvent(event.Payload, eventType, event.ObservedAt)
+	// relay 原有 parser 接受的事件类型保持为唯一用量来源边界。
+	if event.UsageAccepted {
+		o.observeAcceptedUsage(event.Payload, eventType, gjson.Parse(event.AcceptedUsage))
+	}
+	if eventType == "response.completed" || eventType == "response.done" {
+		o.confirmNoAudio(event.Payload)
+	}
+}
+func (r *responsesWSTurnTimings) take(responseID string) UsageTiming {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	o := r.turns[responseID]
+	delete(r.turns, responseID)
+	return o.snapshot(r.disconnected)
+}
+func (r *responsesWSTurnTimings) disconnect() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.disconnected = true
+	for _, o := range r.turns {
+		o.clientDisconnected()
+	}
+}
+func (r *responsesWSTurnTimings) close() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, o := range r.turns {
+		o.stop()
+	}
 }

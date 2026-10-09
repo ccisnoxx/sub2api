@@ -1261,6 +1261,7 @@ func (s *OpenAIGatewayService) Forward(
 		// Handle normal response
 		var usage *OpenAIUsage
 		var firstTokenMs *int
+		var usageTiming UsageTiming
 		responseID := ""
 		imageCount := 0
 		searchCount := 0
@@ -1310,13 +1311,14 @@ func (s *OpenAIGatewayService) Forward(
 				return nil, err
 			}
 			usage = streamResult.usage
+			usageTiming = streamResult.usageTiming
 			firstTokenMs = streamResult.firstTokenMs
 			responseID = strings.TrimSpace(streamResult.responseID)
 			imageCount = streamResult.imageCount
 			imageOutputSizes = streamResult.imageOutputSizes
 			searchCount = streamResult.searchCount
 		} else {
-			nonStreamResult, err := s.handleNonStreamingResponse(ctx, resp, c, account, originalModel, upstreamModel)
+			nonStreamResult, err := s.handleNonStreamingResponse(ctx, resp, c, account, originalModel, upstreamModel, startTime)
 			if err != nil {
 				if signal, ok := asOpenAICompactFallbackSignal(err); ok {
 					if retryBody, fallbackModel, retry := s.prepareOpenAICompactFallbackRetry(
@@ -1337,6 +1339,7 @@ func (s *OpenAIGatewayService) Forward(
 				return nil, err
 			}
 			usage = nonStreamResult.usage
+			usageTiming = nonStreamResult.usageTiming
 			responseID = strings.TrimSpace(nonStreamResult.responseID)
 			imageCount = nonStreamResult.imageCount
 			imageOutputSizes = nonStreamResult.imageOutputSizes
@@ -1363,6 +1366,7 @@ func (s *OpenAIGatewayService) Forward(
 			UpstreamHeaders:               resp.Header,
 			ResponseID:                    responseID,
 			Usage:                         *usage,
+			UsageTiming:                   usageTiming.Clone(),
 			Model:                         originalModel,
 			BillingModel:                  billingModel,
 			UpstreamModel:                 upstreamModel,
