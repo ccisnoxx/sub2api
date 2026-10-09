@@ -75,6 +75,7 @@ class DockerSubstitute:
             self.images[metadata["image"]] = value
             self.images[image_id] = value
             self.images[metadata["image"].split("@")[0] + ":" + metadata["version"]] = value
+        self.failure_image = NEW["image"]
         self.current = deploy.LEGACY["image"]
         self.config_image = "ghcr.io/kln-4096/sub2api:0.2.14-klno.3"
         self.healthy = True
@@ -130,16 +131,16 @@ class DockerSubstitute:
                 output = json.dumps(self.configuration(env)).encode()
             elif operation[:2] == ["ps", "-q"]:
                 output = (PG_ID if operation[-1] == "postgres" else REDIS_ID).encode()
-                if self.dependency_change and self.current == NEW["image"]:
+                if self.dependency_change and self.current == self.failure_image:
                     output = b"1" * 64
             elif operation == ["up", "-d", "--no-deps", "--wait", "--wait-timeout", "120", "sub2api"]:
                 self.current = env["SUB2API_IMAGE"]
                 self.config_image = self.current
-                self.healthy = not (self.health_failure and self.current == NEW["image"])
-                if self.config_drift and self.current == NEW["image"]:
+                self.healthy = not (self.health_failure and self.current == self.failure_image)
+                if self.config_drift and self.current == self.failure_image:
                     with open(self.base / "docker-compose.yml", "ab") as output_file:
                         output_file.write(b"# external change\n")
-                if self.wait_failure and self.current == NEW["image"]:
+                if self.wait_failure and self.current == self.failure_image:
                     self.healthy = False
                     raise deploy.DeployError("E_TIMEOUT", "替身健康等待超时")
             else:
@@ -153,7 +154,7 @@ class DockerSubstitute:
                 output = b"1\n"
             elif "SELECT filename, checksum FROM schema_migrations" in args[-1]:
                 output = b"001.sql|old-checksum\n"
-                if self.migration_change and self.current == NEW["image"]:
+                if self.migration_change and self.current == self.failure_image:
                     output += b"002.sql|new-checksum\n"
             else:
                 raise AssertionError(args)
@@ -201,6 +202,169 @@ class DeploymentTests(unittest.TestCase):
 
     def starts(self):
         return [args for args, _ in self.docker.commands if "--no-deps" in args]
+
+    def prepare_forward(self):
+        # 先用既有零差异部署合同建立线上 tps.1 的成功记录与持久选择。
+        old = dict(NEW, revision=deploy.FORWARD_OLD_REVISION)
+        value = image(old, NEW_ID)
+        self.docker.images[old["image"]] = self.docker.images[NEW_ID] = value
+        previous, code = self.execute(request(old))
+        self.assertEqual(code, 0)
+        target = dict(NEW, image=deploy.REPOSITORY + "@sha256:" + "2" * 64,
+                      input=deploy.REPOSITORY + "@sha256:" + "2" * 64,
+                      revision=deploy.FORWARD_NEW_REVISION, version="0.2.14-klno.5-tps.1")
+        target_id = "sha256:" + "3" * 64
+        self.docker.images[target["image"]] = self.docker.images[target_id] = image(target, target_id)
+        self.docker.failure_image = target["image"]
+        snapshot = deploy.Deployment(self.base, self.docker).running()
+        value = request(target, snapshot)
+        value["compatibility"] = deploy.GitEvidence(Path(deploy.__file__).resolve().parents[2]).compatibility(snapshot, target)
+        self.docker.commands.clear()
+        return value, previous
+
+    def test_forward_upgrade_success_keeps_app_only_and_backup_before_start(self):
+        value, previous = self.prepare_forward()
+        result, code = self.execute(value)
+        self.assertEqual((code, result["status"]), (0, "success"))
+        self.assertEqual(len(self.starts()), 1)
+        self.assertEqual(self.docker.current, value["target"]["image"])
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected(),
+                         {"image": value["target"]["image"], "record_id": result["id"]})
+        saved = self.persisted(result)
+        self.assertIs(saved["compatibility"]["forward_upgrade"]["image_rollback_compatible"], False)
+        self.assertEqual(saved["dependencies"], {"postgres": PG_ID, "redis": REDIS_ID})
+        commands = [args for args, _ in self.docker.commands]
+        backup = next(index for index, args in enumerate(commands) if "pg_dump" in args[-1])
+        archive = commands.index(["docker", "exec", deploy.APP, "tar", "-C", "/app/data", "-czf", "-", "."])
+        start = next(index for index, args in enumerate(commands) if "--no-deps" in args)
+        self.assertLess(backup, start)
+        self.assertLess(archive, start)
+        for args in commands:
+            self.assertFalse(any(part in args for part in ("down", "prune", "rm")))
+
+    def test_forward_start_or_health_failure_blocks_old_image_and_preserves_selection(self):
+        for kind in ("wait_failure", "health_failure"):
+            with self.subTest(kind=kind):
+                # 各失败路径使用独立的成功状态，避免把已失败运行当成下一次预检基线。
+                self.setUp()
+                value, previous = self.prepare_forward()
+                selection = (self.base / ".personal-deploy/image.env").read_bytes()
+                configuration = (self.base / "docker-compose.yml").read_bytes()
+                setattr(self.docker, kind, True)
+                result, code = self.execute(value)
+                self.assertEqual((code, result["status"], result["rollback_status"], result["rollback_error"]),
+                                 (1, "failed", "blocked", "E_COMPATIBILITY"))
+                self.assertEqual(result["error_code"], "E_TIMEOUT" if kind == "wait_failure" else "E_HEALTH")
+                self.assertEqual(len(self.starts()), 1)
+                self.assertEqual(self.docker.current, value["target"]["image"])
+                self.assertEqual((self.base / ".personal-deploy/image.env").read_bytes(), selection)
+                self.assertEqual((self.base / "docker-compose.yml").read_bytes(), configuration)
+                saved = self.persisted(result)
+                self.assertFalse(saved["selection_committed"])
+                self.assertEqual(saved["observed_running"]["revision"], deploy.FORWARD_NEW_REVISION)
+                self.assertEqual(saved["observed_running"]["health"], "unhealthy")
+                self.assertTrue((self.base / ".personal-deploy/records" / result["id"] / "application.log").exists())
+
+    def test_forward_pull_failure_preserves_old_running_and_selection(self):
+        value, previous = self.prepare_forward()
+        selection = (self.base / ".personal-deploy/image.env").read_bytes()
+        configuration = (self.base / "docker-compose.yml").read_bytes()
+        self.docker.pull_failure = True
+        result, code = self.execute(value)
+        self.assertEqual((code, result["status"]), (1, "failed"))
+        self.assertEqual(self.starts(), [])
+        self.assertEqual(self.docker.current, value["expected_old"]["image"])
+        self.assertEqual((self.base / ".personal-deploy/image.env").read_bytes(), selection)
+        self.assertEqual((self.base / "docker-compose.yml").read_bytes(), configuration)
+        self.assertNotIn("rollback_status", result)
+
+    def test_forward_selection_partial_commit_preserves_new_running_and_selection(self):
+        value, previous = self.prepare_forward()
+        atomic = deploy.atomic_private
+        def fail_after_replace(path, data):
+            atomic(path, data)
+            if path.name == "image.env":
+                raise OSError("directory fsync failed after forward selection replace")
+        with mock.patch.object(deploy, "atomic_private", side_effect=fail_after_replace):
+            result, code = self.execute(value)
+        self.assertEqual((code, result["status"], result["selection_committed"]), (1, "failed", True))
+        self.assertEqual(self.docker.current, value["target"]["image"])
+        self.assertEqual(len(self.starts()), 1)
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], result["id"])
+        self.assertNotIn("rollback_status", result)
+
+    def test_forward_record_prohibits_bound_explicit_rollback(self):
+        value, previous = self.prepare_forward()
+        deployed, code = self.execute(value)
+        self.assertEqual(code, 0)
+        old = deploy.Deployment(self.base, self.docker).running()
+        target = dict(value["expected_old"], input=value["expected_old"]["image"])
+        rollback = request(target, old, "rollback", deployed["id"])
+        # 即便提供看似有效的反向证明，成功记录自己的单向合同仍禁止恢复旧镜像。
+        operation = deploy.Deployment(self.base, self.docker)
+        operation.config_before = (self.base / "docker-compose.yml").read_bytes()
+        operation.env_before = (self.base / ".env").read_bytes()
+        with self.assertRaises(deploy.DeployError) as raised:
+            operation.rollback_binding(rollback, old, target)
+        self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
+        result, code = self.execute(rollback)
+        self.assertEqual((code, result["error_code"]), (1, "E_COMPATIBILITY"))
+        self.assertEqual(len(self.starts()), 1)
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], deployed["id"])
+
+    def test_remote_forward_proof_tampering_stops_before_backup_pull_or_start(self):
+        value, previous = self.prepare_forward()
+        mutations = {
+            "hash": lambda proof: proof.update(sha256="0" * 64),
+            "old_revision": lambda proof: proof.update(old_revision="0" * 40),
+            "new_revision": lambda proof: proof.update(new_revision="0" * 40),
+            "upstream": lambda proof: proof["upstream"].update(upstream_sha="0" * 40),
+            "changed_list": lambda proof: proof["changed_paths"].pop(),
+            "changed_order": lambda proof: proof["changed_paths"].reverse(),
+            "extra_path": lambda proof: proof["changed_paths"].append("backend/migrations/999.sql"),
+            "paths_type": lambda proof: proof.update(changed_paths="all"),
+            "proof_type": lambda proof: proof.update(forward_upgrade=[]),
+            "extra_field": lambda proof: proof["forward_upgrade"].update(force=True),
+            "missing_field": lambda proof: proof["forward_upgrade"].pop("image_rollback_compatible"),
+            "field_type": lambda proof: proof["forward_upgrade"].update(image_rollback_compatible=0),
+            "reversible": lambda proof: proof["forward_upgrade"].update(image_rollback_compatible=True),
+            "direction": lambda proof: proof["forward_upgrade"].update(direction="rollback"),
+            "id": lambda proof: proof["forward_upgrade"].update(id="unapproved"),
+            "old_anchor": lambda proof: proof["forward_upgrade"].update(old_runtime_revision="0" * 40),
+            "new_anchor": lambda proof: proof["forward_upgrade"].update(new_runtime_revision="0" * 40),
+            "old_tree": lambda proof: proof["forward_upgrade"].update(old_runtime_sha256="0" * 64),
+            "new_tree": lambda proof: proof["forward_upgrade"].update(new_runtime_sha256="0" * 64),
+            "old_source": lambda proof: proof["forward_upgrade"]["old_source"].update(upstream_tag="v0.2.14-klno.5"),
+            "new_source": lambda proof: proof["forward_upgrade"]["new_source"].update(upstream_sha="0" * 40),
+            "security_mixed": lambda proof: proof.update(security_patch=deploy.approved_security_patch("upgrade")),
+        }
+        for kind, mutate in mutations.items():
+            with self.subTest(kind=kind):
+                bad = copy.deepcopy(value)
+                mutate(bad["compatibility"])
+                if kind != "hash":
+                    bad["compatibility"]["sha256"] = deploy.sha(deploy.canonical({
+                        key: item for key, item in bad["compatibility"].items() if key != "sha256"}))
+                self.docker.commands.clear()
+                result, code = self.execute(bad)
+                self.assertEqual((code, result["error_code"]), (1, "E_COMPATIBILITY"))
+                self.assertEqual(self.starts(), [])
+                self.assertNotIn("backups", self.persisted(result))
+                self.assertFalse(any(args[:2] == ["docker", "pull"] for args, _ in self.docker.commands))
+        for disguise in ("zero", "security_patch"):
+            with self.subTest(disguise=disguise):
+                bad = copy.deepcopy(value)
+                bad["compatibility"].pop("forward_upgrade")
+                bad["compatibility"]["changed_paths"] = [] if disguise == "zero" else sorted(deploy.SECURITY_PATCH_FILES)
+                if disguise == "security_patch":
+                    bad["compatibility"]["security_patch"] = deploy.approved_security_patch("upgrade")
+                bad["compatibility"]["sha256"] = deploy.sha(deploy.canonical({
+                    key: item for key, item in bad["compatibility"].items() if key != "sha256"}))
+                self.docker.commands.clear()
+                result, code = self.execute(bad)
+                self.assertEqual((code, result["error_code"]), (1, "E_COMPATIBILITY"))
+                self.assertEqual(self.starts(), [])
+                self.assertNotIn("backups", self.persisted(result))
 
     def test_success_only_recreates_app_and_commits_same_digest(self):
         result, code = self.execute()
@@ -675,6 +839,99 @@ class GitAndInputTests(unittest.TestCase):
         self.assertEqual(revision, "896de21b4be7f4ec4b4236f4df663b47371665b0")
         target = dict(NEW, revision=revision, image=deploy.REPOSITORY + "@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76")
         self.assertTrue(evidence.compatibility(deploy.LEGACY, target)["compatible"])
+
+
+class ForwardGitTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name) / "repository"
+        actual = Path(deploy.__file__).resolve().parents[2]
+        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)], check=True,
+                       capture_output=True)
+        self.git("config", "user.email", "fixture@example.invalid")
+        self.git("config", "user.name", "Deployment Fixture")
+        self.evidence = deploy.GitEvidence(self.root)
+        self.old = dict(NEW, revision=deploy.FORWARD_OLD_REVISION)
+        self.target = dict(NEW, revision=deploy.FORWARD_NEW_REVISION, version="0.2.14-klno.5-tps.1")
+
+    def git(self, *args):
+        return subprocess.run(["git", "-C", str(self.root), *args], check=True,
+                              capture_output=True).stdout.decode().strip()
+
+    def commit(self, message):
+        self.git("add", "-A")
+        self.git("commit", "-qm", message)
+        return self.git("rev-parse", "HEAD")
+
+    def checkout(self, revision=deploy.FORWARD_NEW_REVISION):
+        self.git("checkout", "-q", "--detach", revision)
+
+    def test_actual_old_to_candidate_forward_and_reverse_rejection(self):
+        proof = self.evidence.compatibility(self.old, self.target)
+        deploy.validate_compatibility_proof(proof, self.old["revision"], self.target["revision"],
+                                           self.old["version"], self.target["version"])
+        self.assertEqual(len(proof["changed_paths"]), 151)
+        self.assertEqual(proof["forward_upgrade"]["old_runtime_sha256"],
+                         "ecf6eff8c2902b29a1a689232dc8a1028e9d10e5615bcb6e293d35d8d278df35")
+        self.assertEqual(proof["forward_upgrade"]["new_runtime_sha256"],
+                         "928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d")
+        self.assertNotIn("security_patch", proof)
+        with self.assertRaises(deploy.DeployError) as raised:
+            self.evidence.compatibility(self.target, self.old)
+        self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
+
+    def test_final_revision_may_differ_with_exact_runtime_tree_and_source(self):
+        self.checkout()
+        (self.root / "README.md").write_text("个人发布说明；应用运行树保持候选内容。\n")
+        revision = self.commit("final merge metadata")
+        self.assertNotEqual(revision, deploy.FORWARD_NEW_REVISION)
+        proof = self.evidence.compatibility(self.old, dict(self.target, revision=revision))
+        deploy.validate_compatibility_proof(proof, self.old["revision"], revision,
+                                           self.old["version"], self.target["version"])
+        self.assertEqual(proof["new_revision"], revision)
+
+    def test_forward_rejects_changed_and_unchanged_runtime_paths_modes_types_and_sources(self):
+        for kind in ("changed_blob", "unchanged_blob", "mode", "type", "migration", "deployment", "source", "source_extra", "old_tree"):
+            with self.subTest(kind=kind):
+                self.checkout(deploy.FORWARD_OLD_REVISION if kind == "old_tree" else deploy.FORWARD_NEW_REVISION)
+                old = self.old
+                target = self.target
+                if kind == "source":
+                    path = self.root / "deploy/personal-source.json"
+                    data = json.loads(path.read_text())
+                    data["upstream_sha"] = deploy.FORWARD_OLD_SOURCE["upstream_sha"]
+                    path.write_text(json.dumps(data))
+                elif kind == "source_extra":
+                    path = self.root / "deploy/personal-source.json"
+                    data = json.loads(path.read_text())
+                    data["unreviewed"] = True
+                    path.write_text(json.dumps(data))
+                elif kind == "mode":
+                    (self.root / "Dockerfile").chmod(0o755)
+                elif kind == "type":
+                    path = self.root / "Dockerfile"
+                    path.unlink()
+                    path.symlink_to("deploy/Dockerfile")
+                else:
+                    relative = {"changed_blob": "backend/internal/service/openai_gwpool_rounds.go",
+                                "unchanged_blob": "backend/internal/service/user_service.go",
+                                "migration": "backend/migrations/001_init.sql",
+                                "deployment": "deploy/docker-compose.yml",
+                                "old_tree": "Dockerfile"}[kind]
+                    path = self.root / relative
+                    self.assertTrue(path.exists(), relative)
+                    with path.open("a") as output:
+                        output.write("\n# 未审定的运行字节\n")
+                revision = self.commit(kind)
+                if kind == "old_tree":
+                    old = dict(self.old, revision=revision)
+                else:
+                    target = dict(self.target, revision=revision)
+                with self.assertRaises(deploy.DeployError) as raised:
+                    self.evidence.compatibility(old, target)
+                self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
+
 
 
 class TransportTests(unittest.TestCase):

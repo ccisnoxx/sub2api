@@ -64,6 +64,175 @@ SECURITY_PATCH_FILES = {
 }
 
 
+# 独立审定的 .3 → .5 单向升级；指纹包含运行路径下全部条目的路径、mode、type 与 Git object。
+FORWARD_UPGRADE_ID = "klno.3-tps.1-to-klno.5"
+FORWARD_OLD_SOURCE = {
+    "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.14-klno.3",
+    "upstream_sha": "de08df02ae1d81668a22f798b398aa0438ac1276",
+}
+FORWARD_NEW_SOURCE = {
+    "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d",
+}
+FORWARD_OLD_REVISION = "896de21b4be7f4ec4b4236f4df663b47371665b0"
+FORWARD_NEW_REVISION = "c00e8982258736a188a09023e901d8d39671814f"
+FORWARD_OLD_RUNTIME = "ecf6eff8c2902b29a1a689232dc8a1028e9d10e5615bcb6e293d35d8d278df35"
+FORWARD_NEW_RUNTIME = "928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d"
+FORWARD_CHANGED_PATHS = (
+    "Dockerfile",
+    "backend/.golangci.yml",
+    "backend/go.mod",
+    "backend/go.sum",
+    "backend/internal/handler/failover_loop.go",
+    "backend/internal/handler/openai_chat_completions.go",
+    "backend/internal/handler/openai_codex_wire_entry_test.go",
+    "backend/internal/handler/openai_gateway_handler.go",
+    "backend/internal/handler/openai_gwpool_429_entry_test.go",
+    "backend/internal/handler/openai_gwpool_compat_retry_entry_test.go",
+    "backend/internal/handler/openai_gwpool_retry_test.go",
+    "backend/internal/handler/openai_gwpool_slot_wait.go",
+    "backend/internal/pkg/gwpool/client.go",
+    "backend/internal/pkg/gwpool/cooldown_batch.go",
+    "backend/internal/pkg/gwpool/cooldown_batch_test.go",
+    "backend/internal/pkg/gwpool/protocol_test.go",
+    "backend/internal/repository/account_repo.go",
+    "backend/internal/repository/account_repo_temp_unsched_test.go",
+    "backend/internal/repository/concurrency_slot_renewal.go",
+    "backend/internal/repository/concurrency_slot_renewal_test.go",
+    "backend/internal/service/concurrency_service.go",
+    "backend/internal/service/concurrency_slot_renewal.go",
+    "backend/internal/service/concurrency_slot_renewal_test.go",
+    "backend/internal/service/gateway_service.go",
+    "backend/internal/service/openai_codex_bridge_wire_profile_test.go",
+    "backend/internal/service/openai_codex_cookies.go",
+    "backend/internal/service/openai_codex_side_calls.go",
+    "backend/internal/service/openai_codex_side_calls_test.go",
+    "backend/internal/service/openai_compact_sse_keepalive.go",
+    "backend/internal/service/openai_compat_bridge_identity.go",
+    "backend/internal/service/openai_gateway_chat_completions.go",
+    "backend/internal/service/openai_gateway_forward.go",
+    "backend/internal/service/openai_gateway_messages.go",
+    "backend/internal/service/openai_gateway_passthrough.go",
+    "backend/internal/service/openai_gateway_service.go",
+    "backend/internal/service/openai_gwpool.go",
+    "backend/internal/service/openai_gwpool_accounts_repo_test.go",
+    "backend/internal/service/openai_gwpool_active_accounts.go",
+    "backend/internal/service/openai_gwpool_active_accounts_test.go",
+    "backend/internal/service/openai_gwpool_active_usage.go",
+    "backend/internal/service/openai_gwpool_active_usage_test.go",
+    "backend/internal/service/openai_gwpool_adaptive_rank.go",
+    "backend/internal/service/openai_gwpool_adaptive_rank_test.go",
+    "backend/internal/service/openai_gwpool_batch_test.go",
+    "backend/internal/service/openai_gwpool_bulk_test.go",
+    "backend/internal/service/openai_gwpool_business_retry.go",
+    "backend/internal/service/openai_gwpool_business_retry_test.go",
+    "backend/internal/service/openai_gwpool_candidate_queue.go",
+    "backend/internal/service/openai_gwpool_combined_usage_test.go",
+    "backend/internal/service/openai_gwpool_concurrency_test.go",
+    "backend/internal/service/openai_gwpool_confirmation_boundary_test.go",
+    "backend/internal/service/openai_gwpool_contact_rank.go",
+    "backend/internal/service/openai_gwpool_contact_rank_test.go",
+    "backend/internal/service/openai_gwpool_contacts.go",
+    "backend/internal/service/openai_gwpool_continuous_wait.go",
+    "backend/internal/service/openai_gwpool_continuous_wait_test.go",
+    "backend/internal/service/openai_gwpool_cooldown.go",
+    "backend/internal/service/openai_gwpool_cooldown_estimate.go",
+    "backend/internal/service/openai_gwpool_cooldown_estimate_test.go",
+    "backend/internal/service/openai_gwpool_cooldown_refresh.go",
+    "backend/internal/service/openai_gwpool_cooldown_refresh_test.go",
+    "backend/internal/service/openai_gwpool_cooldown_reset.go",
+    "backend/internal/service/openai_gwpool_cooldown_reset_test.go",
+    "backend/internal/service/openai_gwpool_cooldown_test.go",
+    "backend/internal/service/openai_gwpool_display_snapshot.go",
+    "backend/internal/service/openai_gwpool_early.go",
+    "backend/internal/service/openai_gwpool_early_test.go",
+    "backend/internal/service/openai_gwpool_echo_boundary_test.go",
+    "backend/internal/service/openai_gwpool_echo_confirm.go",
+    "backend/internal/service/openai_gwpool_echo_confirm_test.go",
+    "backend/internal/service/openai_gwpool_exhaust_candidates_test.go",
+    "backend/internal/service/openai_gwpool_feedback.go",
+    "backend/internal/service/openai_gwpool_feedback_test.go",
+    "backend/internal/service/openai_gwpool_first_output.go",
+    "backend/internal/service/openai_gwpool_first_output_test.go",
+    "backend/internal/service/openai_gwpool_full_usage.go",
+    "backend/internal/service/openai_gwpool_full_usage_test.go",
+    "backend/internal/service/openai_gwpool_gateway_history.go",
+    "backend/internal/service/openai_gwpool_gateway_history_test.go",
+    "backend/internal/service/openai_gwpool_guard_test.go",
+    "backend/internal/service/openai_gwpool_inventory.go",
+    "backend/internal/service/openai_gwpool_local_rank.go",
+    "backend/internal/service/openai_gwpool_local_rank_test.go",
+    "backend/internal/service/openai_gwpool_local_resume_test.go",
+    "backend/internal/service/openai_gwpool_manual_retry.go",
+    "backend/internal/service/openai_gwpool_manual_retry_test.go",
+    "backend/internal/service/openai_gwpool_member_identity.go",
+    "backend/internal/service/openai_gwpool_member_identity_test.go",
+    "backend/internal/service/openai_gwpool_outbox.go",
+    "backend/internal/service/openai_gwpool_policy_test.go",
+    "backend/internal/service/openai_gwpool_post_response_state_test.go",
+    "backend/internal/service/openai_gwpool_prepare.go",
+    "backend/internal/service/openai_gwpool_prepare_policy.go",
+    "backend/internal/service/openai_gwpool_prepare_test.go",
+    "backend/internal/service/openai_gwpool_priority_test.go",
+    "backend/internal/service/openai_gwpool_probe_error.go",
+    "backend/internal/service/openai_gwpool_probe_flight.go",
+    "backend/internal/service/openai_gwpool_probe_retirement.go",
+    "backend/internal/service/openai_gwpool_probe_retirement_test.go",
+    "backend/internal/service/openai_gwpool_probe_timeout.go",
+    "backend/internal/service/openai_gwpool_probe_timeout_test.go",
+    "backend/internal/service/openai_gwpool_protocol_test.go",
+    "backend/internal/service/openai_gwpool_report_policy.go",
+    "backend/internal/service/openai_gwpool_rest.go",
+    "backend/internal/service/openai_gwpool_rest_display.go",
+    "backend/internal/service/openai_gwpool_rest_test.go",
+    "backend/internal/service/openai_gwpool_rest_timer.go",
+    "backend/internal/service/openai_gwpool_resume.go",
+    "backend/internal/service/openai_gwpool_resume_test.go",
+    "backend/internal/service/openai_gwpool_rotation.go",
+    "backend/internal/service/openai_gwpool_rotation_test.go",
+    "backend/internal/service/openai_gwpool_rounds.go",
+    "backend/internal/service/openai_gwpool_rounds_test.go",
+    "backend/internal/service/openai_gwpool_route_deadline.go",
+    "backend/internal/service/openai_gwpool_route_deadline_test.go",
+    "backend/internal/service/openai_gwpool_runtime_snapshot_test.go",
+    "backend/internal/service/openai_gwpool_runtime_test.go",
+    "backend/internal/service/openai_gwpool_runtime_view.go",
+    "backend/internal/service/openai_gwpool_selection.go",
+    "backend/internal/service/openai_gwpool_single_ticket_test.go",
+    "backend/internal/service/openai_gwpool_state_echo.go",
+    "backend/internal/service/openai_gwpool_state_echo_test.go",
+    "backend/internal/service/openai_gwpool_stream_retry.go",
+    "backend/internal/service/openai_gwpool_stream_retry_test.go",
+    "backend/internal/service/openai_gwpool_test.go",
+    "backend/internal/service/openai_gwpool_usage_activity.go",
+    "backend/internal/service/openai_gwpool_usage_activity_test.go",
+    "backend/internal/service/openai_gwpool_usage_retirement_test.go",
+    "backend/internal/service/openai_gwpool_usage_round.go",
+    "backend/internal/service/openai_gwpool_usage_round_test.go",
+    "backend/internal/service/openai_gwpool_verified_model_test.go",
+    "backend/internal/service/openai_gwpool_wait.go",
+    "backend/internal/service/openai_gwpool_wait_keepalive.go",
+    "backend/internal/service/openai_gwpool_wait_keepalive_test.go",
+    "backend/internal/service/openai_gwpool_wait_test.go",
+    "backend/internal/service/openai_gwpool_waiter_inventory_test.go",
+    "backend/internal/service/openai_gwpool_warm.go",
+    "backend/internal/service/openai_gwpool_warm_test.go",
+    "backend/internal/service/openai_gwpool_ws_retry_test.go",
+    "backend/internal/service/openai_gwpool_ws_wait.go",
+    "backend/internal/service/openai_gwpool_ws_wait_test.go",
+    "backend/internal/service/openai_oauth_429_retry_lane.go",
+    "backend/internal/service/openai_plugin_transport.go",
+    "backend/internal/service/openai_raw_relay_ws.go",
+    "backend/internal/service/openai_upstream_transport_error.go",
+    "backend/internal/service/openai_ws_forwarder.go",
+    "backend/internal/service/openai_ws_forwarder_ingress.go",
+    "backend/internal/service/openai_ws_http_bridge.go",
+    "backend/internal/service/openai_ws_http_bridge_test.go",
+    "backend/internal/service/openai_ws_v2_passthrough_adapter.go",
+    "deploy/Dockerfile",
+)
+
+
 class DeployError(Exception):
     def __init__(self, code, message):
         super().__init__(message)
@@ -91,18 +260,50 @@ def file_sha(path):
     return digest.hexdigest()
 
 
-def validate_compatibility_proof(proof, old_revision, new_revision):
+def approved_forward_upgrade():
+    return {"id": FORWARD_UPGRADE_ID, "direction": "upgrade",
+            "old_source": dict(FORWARD_OLD_SOURCE), "new_source": dict(FORWARD_NEW_SOURCE),
+            "old_runtime_revision": FORWARD_OLD_REVISION, "new_runtime_revision": FORWARD_NEW_REVISION,
+            "old_runtime_sha256": FORWARD_OLD_RUNTIME, "new_runtime_sha256": FORWARD_NEW_RUNTIME,
+            "image_rollback_compatible": False}
+
+
+def validate_compatibility_proof(proof, old_revision, new_revision, old_version=None, new_version=None):
+    require(isinstance(proof, dict), "E_COMPATIBILITY", "兼容证据必须为对象")
     content = {key: value for key, value in proof.items() if key != "sha256"}
     require(proof.get("sha256") == sha(canonical(content)) and proof.get("compatible") is True and
             proof.get("old_revision") == old_revision and proof.get("new_revision") == new_revision and
-            proof.get("paths") == RUNTIME_PATHS and proof.get("excludes") == RUNTIME_EXCLUDES,
+            proof.get("paths") == RUNTIME_PATHS and proof.get("excludes") == RUNTIME_EXCLUDES and
+            isinstance(proof.get("changed_paths"), list) and
+            all(isinstance(path, str) for path in proof["changed_paths"]),
             "E_COMPATIBILITY", "兼容证据无效或没有绑定实际旧、新 revision")
-    if proof.get("changed_paths") == []:
+    forward = proof.get("forward_upgrade")
+    if "forward_upgrade" in proof:
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "forward_upgrade"} and
+                isinstance(forward, dict) and canonical(forward) == canonical(approved_forward_upgrade()) and
+                proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(FORWARD_CHANGED_PATHS),
+                "E_COMPATIBILITY", "正向升级证据不属于已审定的来源、完整运行树与差异")
+    if old_version is not None and new_version is not None:
+        old_source = forward["old_source"] if forward else proof.get("upstream", {})
+        new_source = forward["new_source"] if forward else proof.get("upstream", {})
+        require(isinstance(old_source, dict) and isinstance(new_source, dict) and
+                old_source.get("upstream_tag") == "v" + old_version.split("-tps.", 1)[0] and
+                new_source.get("upstream_tag") == "v" + new_version.split("-tps.", 1)[0],
+                "E_COMPATIBILITY", "兼容证据的上游来源与实际旧、新镜像版本不一致")
+    if forward:
+        return
+    if proof["changed_paths"] == []:
         require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
         return
-    require(proof.get("changed_paths") == sorted(SECURITY_PATCH_FILES) and
+    require(proof["changed_paths"] == sorted(SECURITY_PATCH_FILES) and
             proof.get("security_patch") in (approved_security_patch("upgrade"), approved_security_patch("rollback")),
             "E_COMPATIBILITY", "运行差异不属于已审定的精确安全补丁")
+
+
+def require_image_rollback(proof):
+    require("forward_upgrade" not in proof, "E_COMPATIBILITY",
+            ".5 启动可能已写入 .3 无法保留的数据；禁止旧镜像恢复，需人工评估失败记录与备份")
 
 
 def approved_security_patch(direction):
@@ -217,6 +418,19 @@ class GitEvidence:
                 return patch
         raise DeployError("E_COMPATIBILITY", "安全补丁文件与已审定的完整字节不一致，禁止部署或镜像回滚")
 
+    def runtime_fingerprint(self, revision):
+        entries = []
+        for raw in self.git("ls-tree", "-r", "-z", revision, "--", *RUNTIME_PATHS).split(b"\0"):
+            if not raw:
+                continue
+            info, path = raw.split(b"\t", 1)
+            path = path.decode()
+            if any(path == excluded or path.startswith(excluded + "/") for excluded in RUNTIME_EXCLUDES):
+                continue
+            mode, kind, object_id = info.decode().split()
+            entries.append({"path": path, "mode": mode, "type": kind, "object": object_id})
+        return sha(canonical(sorted(entries, key=lambda entry: entry["path"])))
+
     def compatibility(self, old, target):
         validate_metadata(old, allow_legacy=True)
         if "image" in target:
@@ -228,14 +442,20 @@ class GitEvidence:
             "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.14-klno.3", "upstream_sha": LEGACY["revision"]}
         old_source = self.source_at(old["revision"]) if old["source"] == SOURCE else {
             "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.14-klno.3", "upstream_sha": LEGACY["revision"]}
-        require(old_source == target_source, "E_COMPATIBILITY", "上游基线不同，禁止部署或镜像回滚")
         paths = RUNTIME_PATHS + [":(exclude)" + path for path in RUNTIME_EXCLUDES]
-        changed = self.git("diff", "--name-only", "-z", old["revision"], target["revision"], "--", *paths).decode().split("\0")
-        changed = [path for path in changed if path]
+        changed = self.git("diff", "--no-renames", "--name-only", "-z", old["revision"], target["revision"], "--", *paths).decode().split("\0")
+        changed = sorted(path for path in changed if path)
         proof = {"old_revision": old["revision"], "new_revision": target["revision"],
                  "upstream": target_source, "paths": RUNTIME_PATHS, "excludes": RUNTIME_EXCLUDES,
                  "changed_paths": changed, "compatible": True}
-        if changed:
+        if old_source != target_source:
+            require(old_source == FORWARD_OLD_SOURCE and target_source == FORWARD_NEW_SOURCE and
+                    changed == list(FORWARD_CHANGED_PATHS) and
+                    self.runtime_fingerprint(old["revision"]) == FORWARD_OLD_RUNTIME and
+                    self.runtime_fingerprint(target["revision"]) == FORWARD_NEW_RUNTIME,
+                    "E_COMPATIBILITY", "跨基线仅允许已审定的 .3 → .5 完整运行树；禁止镜像回退")
+            proof["forward_upgrade"] = approved_forward_upgrade()
+        elif changed:
             proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
         return proof
@@ -501,7 +721,9 @@ class Deployment:
 
     def validate_proof(self, request, old, target):
         proof = request.get("compatibility", {})
-        validate_compatibility_proof(proof, old["revision"], target["revision"])
+        validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
+        if request["action"] == "rollback":
+            require_image_rollback(proof)
         require(request["action"] != "deploy" or proof.get("security_patch", {}).get("direction") != "rollback",
                 "E_COMPATIBILITY", "反向安全补丁只允许绑定成功记录的显式回滚，不能用普通部署切回")
 
@@ -523,7 +745,9 @@ class Deployment:
                 selected == {"image": old["image"], "record_id": request["rollback_id"]}, "E_STALE_ROLLBACK", "回滚记录不是当前成功部署，禁止过期回滚")
         require(all(previous["target"].get(key) == old[key] and previous["old"].get(key) == target[key]
                     for key in ("image", "revision", "version", "source")), "E_STALE_ROLLBACK", "当前镜像或回滚目标与记录不符")
-        validate_compatibility_proof(previous.get("compatibility", {}), target["revision"], old["revision"])
+        validate_compatibility_proof(previous.get("compatibility", {}), target["revision"], old["revision"],
+                                     target["version"], old["version"])
+        require_image_rollback(previous["compatibility"])
         config = previous.get("configuration", {})
         require(config.get("after_sha256") == sha(self.config_before) and config.get("env_sha256") == sha(self.env_before),
                 "E_STALE_ROLLBACK", "成功部署后的运行配置已变化，禁止镜像回滚")
@@ -659,6 +883,7 @@ class Deployment:
                 self.record["selection_observation_error"] = "E_PATH"
             if self.started and proof_valid and not committed:
                 try:
+                    require_image_rollback(request["compatibility"])
                     self.guard_configuration()
                     self.dependencies(old["image"], dependencies)
                     require(self.migration_state(dependencies["postgres"]) == self.record["migration_state"],
@@ -672,7 +897,7 @@ class Deployment:
                     self.adapted = False
                     self.record["rollback_status"] = "success"
                 except Exception as rollback_error:
-                    self.record["rollback_status"] = "failed"
+                    self.record["rollback_status"] = "blocked" if "forward_upgrade" in request["compatibility"] else "failed"
                     self.record["rollback_error"] = rollback_error.code if isinstance(rollback_error, DeployError) else "E_INTERNAL"
             elif self.adapted and not committed:
                 try:
@@ -762,6 +987,9 @@ def local_main(args):
             require(previous.get("status") == "success" and previous.get("action") == "deploy" and
                     snapshot.get("selection") == {"image": old["image"], "record_id": args.rollback},
                     "E_STALE_ROLLBACK", "回滚记录不是当前成功部署")
+            validate_compatibility_proof(previous.get("compatibility", {}), previous["old"]["revision"], old["revision"],
+                                         previous["old"]["version"], old["version"])
+            require_image_rollback(previous["compatibility"])
             target = dict(previous["old"])
             validate_metadata(target, allow_legacy=True)
             if target["source"] == SOURCE:

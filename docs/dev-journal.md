@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-08：授权先整合 KlN .5，统一候选已保留个人 TPS
+
+- 维护者已允许精确lint兼容补丁，并明确选择先整合 .5再统一发布上线，未发布此前 .3展示候选。普通合并c00e8982258736a188a09023e901d8d39671814f保留ce个人候选与官方c7 .5双方历史；官方164净变更和个人34路径没有重叠，120历史冲突按实际净变更归属解决并核对全部索引blob/mode。sourceJSON改为固定 .5tag/SHA，官方后端源码未手改。
+- [PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 已改写为统一 .5/TPS/安全交付。[Personal CI37877529750](https://github.com/ccisnoxx/sub2api/actions/runs/37877529750)的前端/TPS/构建、lint和安全检查成功，完整后端门禁仍执行中。旧ce完整CI已经success；不作为新c00最终门禁替代。
+- fresh持久状态调查确认迁移/Ent/实例配置无净差异，但 .3回写将删除 .5新增活跃区间、归档时长和contacts历史；新进程在health前即可写库。正在实现固定完整运行树的正向升级证据并禁止跨基线镜像回退；保留备份、漂移和部分提交合同，数据库恢复不在自动工具范围。
+- hostdzire只读预检当前池启用账号及端点均为0，不存在新增成员身份阻断；外部池协议没有现场对象，未宣称验收。继续单应用替换，避免新旧进程共享Redis并行清理活跃slot。线上仍为固定 .3-tps.1 healthy，尚未部署新版本。
+- P2.9真实候选已创建；P2.11和P5.6–P5.8等待门禁、独立复核、发布部署与实际页面验收。Plus完整计时能力仍未引入。详细事实见[实施证据第10节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。
+
 ## 2026-10-08：TPS 展示候选完成，等待精确 lint 兼容补丁范围决定
 
 - 从最新 main `1c2e51bee` 读取阶段记录，从 personal `896de21b` 建立 codex/tps-display-alignment；[PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 当前候选 `e5acf91d204c6dc56516e88cf2ba906d9fb7c59e`，未绕过 strict personal-ready / App15368、管理员约束和 merge-only。控制工具和证据继续留在 main，未合入 main 应用树。

@@ -27,7 +27,8 @@ jobs:
       - name: 获取只读基线标签
         run: |
           git fetch --no-tags https://github.com/KlN-4096/sub2api.git \
-            refs/tags/v0.2.14-klno.3:refs/tags/v0.2.14-klno.3
+            refs/tags/v0.2.14-klno.3:refs/tags/v0.2.14-klno.3 \
+            refs/tags/v0.2.14-klno.5:refs/tags/v0.2.14-klno.5
       - name: 验证部署入口与状态合同
         run: |
           bash -n deploy/personal/deploy-hostdzire.sh

@@ -462,3 +462,47 @@ macOS / Node v24.16.0 / pnpm 9.15.9 / Vitest 2.1.9 / Playwright 1.62.1，复用�
 - 临时配置第一次置于 /tmp，lint 默认按配置目录计算路径，精确路径规则未匹配，故仍报告16条；按真实 backend 配置目录验证后，原输出按行去重隐藏的同一行 http2.Server 弃用告警显现。补齐明确列举的 Server 类型后，官方 config verify 与三个受影响包的 staticcheck 为 `0 issues`，退出0；只使用临时候选文件，检查后已删除，维护配置未变。没有把原始失败记作成功，也没有清缓存或迁移业务接口。
 - main 的四文件 P4 兼容补丁已保存为 `4629a8ad7` 并普通快进推送，实际工具 SHA-256=`3ccd5856db26a41fe31de85d2c2d5ff170fc57407c931bcf2c5bdd58965b326c`；34项既有及新合同用例通过。临时 lint 补丁尚不在该清单中，后续实施时必须更新精确第五文件及 fresh 复核，不能凭四文件旧复核直接部署新的不同候选。
 - 截至本次登记，尚未收到 lint 配置新增范围授权；PR #4 仍 open/head=e5acf91/base=personal/merge blocked。Personal CI37873707977：安全扫描、前端、TPS、单元测试等通过，lint失败，集成及recording/race尚待结束。没有新个人标签、镜像或部署记录。线上仍为 tps.1 及原固定digest；展示对齐候选完成，发布上线未完成。
+
+### lint 兼容补丁获授权及上游版本再核对
+
+- 用户明确允许已准备的精确 lint 兼容补丁并继续发布上线。应用提交 `ce682c4901033d09c7e12614b7b73e11bdd17ef4` 仅新增 backend/.golangci.yml 三条规则，列举五个固定文件内的既有 HTTP/2 弃用接口；其他SA1019、lint与安全扫描继续执行，未迁移业务调用。最终 Personal CI [37875785175](https://github.com/ccisnoxx/sub2api/actions/runs/37875785175) 绑定该候选与896de21b基础；此前e5候选的后端unit、integration、recording/race最终均通过，只有lint及汇总门禁失败。
+- P4第五文件的完整SHA256：旧 `ed037798aa38c9e377aafa2fad35c12dc95b1edb29f18ec61f0a08b4bfbd5599`，新 `0ee503a72db01ad77e24cdab2038b53880835ec42d6aa100028e1138c48964f8`。补丁ID改为 `go1.27.2-xnet0.60.0-http2-lint`；五个路径完整同向、100644和所有字节检查继续有效，新增全局禁用SA1019的真实Git反例被拒绝。34项部署合同测试通过（2.381s），shell语法与diff检查通过。
+- fresh critical_reviewer仅复核新的lint范围、五文件字节/模式/证明及恢复连接，未重复完整生命周期审查。其独立规则匹配、八个反例、双方全部文件hash、十个proof反例和普通deploy反向拒绝均确认；无确认新阻断。审查输入快照一致，审计 `20261009T024252Z-tps-display-lint-release-final-88197bc2` closed/audit-verify通过。P4控制更新提交 `83b01bda3` 已普通快进main，实际工具SHA256 `c18dbdd782f843f9fed07eb97b4e516bedb64b0fd0709bd17dc0efbfdd13ac29`。
+- 重新读取KlN官方最新发布与远端refs：仍为 `v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d`，与此前停止的版本相同。.3/de08仍不是它的祖先；只读merge-tree到当前personal仍120个冲突路径，净差异164文件、6821插入/4161删除，backend/migrations无净差异。官方说明涉及网关池取票/验证/换票续办/计时，不能把无新增迁移当作完整后端兼容证明。仅获取隔离readonly refs和合并预览，不修改来源记录、个人应用或服务器配置。
+- 已说明建议先完成当前TPS及安全版本上线，再单独处理.5历史整合；按用户第1项明确的继续上线指示推进原任务。调整为先整合.5的顺序选择已提出，未据此自动授权或实施更大后端迁移。P2.9真实升级及P2.11保持独立未完成。
+
+## 10. KlN .5 整合及统一发布（实施中）
+
+### 10.1 授权、固定来源与实际历史整合
+
+维护者明确允许已准备的精确lint补丁，并选择“先整合 .5，再统一发布上线”。此前先发布 .3 展示候选的建议已被该选择取代，.3 候选未发布。上游最新发布核对仍为 `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`，官方标签只读获取且没有移动既有标签。
+
+- 旧固定上游 .3：`de08df02ae1d81668a22f798b398aa0438ac1276`；旧个人线上：`896de21b4be7f4ec4b4236f4df663b47371665b0`。
+- 保留 TPS/安全/lint 的合并前个人候选：`ce682c4901033d09c7e12614b7b73e11bdd17ef4`，完整 Personal CI37875785175 success。
+- 逐树比较：.3→.5 官方净变更164路径（6821插入/4161删除）；.3→ce个人34路径，交集为空。普通merge产生120历史冲突，119归官方净变更、1为上游未改的个人表格测试；按实际改动方恢复并逐一核对所有索引路径的blob/mode，零不符。没有借ours/theirs覆盖真实双边改动。
+- 普通合并提交 `c00e8982258736a188a09023e901d8d39671814f`，父提交为ce与c7。额外只更新来源JSON为 .5固定tag/SHA；对 .5 的diff仍恰为34个人路径，官方后端逻辑未经手改。没有强推或重写个人历史，自动同步历史改写/冲突门禁保持。
+- [PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 已改为 .5/TPS/安全统一交付。新的 [Personal CI37877529750](https://github.com/ccisnoxx/sub2api/actions/runs/37877529750) 已全部success：绑定、TPS/构建、前端关键测试/类型、后端单元/集成/recording竞态、lint、安全扫描及personal-ready。此为候选门禁，最终personal SHA仍须重新检查后才能发布。
+
+### 10.2 新运行状态与恢复边界
+
+fresh deep_auditor 比较固定 .3/.5及线上896对象。数据库迁移、Ent及实例配置无净差异；计费/usage记录 owner 无变化。确认 .5新增 `openai_gwpool_usage_rounds.rounds[].active_usage`、归档活跃时长以及contacts.previous；.3 typed decode后整体回写顶层JSON键会丢弃这些字段，后台idle维护亦可触发。所以同迁移及旧镜像可健康启动不能证明无损回滚。P4只允许经审定的 .3→.5正向升级，跨基线显式/故障自动镜像回退禁止，失败保留备份和诊断供人工评估，不自动恢复数据库。
+
+新reporter可能在HTTP监听和/health前写网关JSON，备份时点必须在启动新应用前。新旧进程共享Redis并行启动会清理旧进程活跃槽位；保持单应用Compose替换顺序和获准短中断，不采用共享Redis蓝绿。
+
+hostdzire只读账号预检确认：当前启用网关池的OpenAI账号为0，池影子/母账号和setup-token来源为0，实际池端点为0。现有配置没有新增成员身份阻断；未据此声称外部池成员/batch协议已验证，后续启用池前需另行检查。当前应用仍是 .3-tps.1原digest且healthy。
+
+两个官方发布对象的AGENTS.md引用的 outbound identity、extra freshness约定及docs/tasks均缺失；已查找而未伪造规则，此为来源覆盖缺口。主仓库既有阶段文档继续维护在main。Plus完整计时能力仍未引入，TPS继续使用整段总耗时公式。
+
+### 10.3 合并后前端页面验证
+
+在最终合并应用树c00重新以frozen lockfile安装依赖，首次构建因新工作树尚无node_modules而停止（vitest不存在）；补齐依赖后i18n/Vue类型/Vite构建通过，Vite11.12s。没有因前一次环境失败反复重跑检查。实际新构建的四组页面（管理员zh浅色1440、用户en暗色1440、管理员zh暗色390、用户zh浅色390）全部pass，覆盖13类有效/不可用/历史记录、实际计算颜色、三行空间、视口内提示、关闭按钮与文字间距、Enter/Space/Escape/click/tap/外部关闭，控制台/网络错误为0。结果与截图留在Git外`tps-alignment-klno5/`，未用旧 .3产物替代最终候选页面。远端最终候选的97项TPS测试/改动文件lint和构建也通过。
+
+### 10.4 P4候选实现及验证边界
+
+main控制候选新增精确正向证据：固定旧/新上游完整tag+SHA，以及896/c00被部署运行树的全部路径、mode、type和Git object。旧3,437条目SHA-256 `ecf6eff8c2902b29a1a689232dc8a1028e9d10e5615bcb6e293d35d8d278df35`；新3,464条目 `928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d`，精确151运行变化路径。最终合并revision可变，运行树必须全等；其他后端/部署/迁移内容或mode/type修改均拒绝。远端公共validator绑定真实旧新revision和镜像基线version，拒绝zero/security伪装、字段/hash/source/list篡改。
+
+证明明确 `image_rollback_compatible=false`；普通反向deploy、本机/远端显式回滚及新进程启动后的自动旧镜像恢复均拒绝。启动/health失败非零，保存原错误、diagnostics/observed_running、`rollback_status=blocked`/`E_COMPATIBILITY`，不覆盖原selection；已替换selection而后续落盘失败继续保留部分提交并停止自动接管。原同基线零差异/精确五文件patch的锁、漂移、备份、自动恢复/显式回滚合同保持。
+
+新增9项合同测试，总43 tests5.801s OK，定向固定Git/反向及树变化测试、shell语法、py_compile、diff-check均通过。首次测试日志包装使用zsh保留变量status产生包装错误，测试本身已通过；修正包装后明确获得最终exit0。未声称替身验证是真实服务器或实际数据库恢复。Linux部署CI增加只读获取 .5官方标签，actionlint通过。fresh critical_reviewer正在复核实际四文件diff和融合候选，未结束前不发布部署。
+
+独立复核已完成且未确认阻断：全部官方/个人联合源码树零不符，固定运行树与151路径重新独立计算匹配；16个证明/回滚拒绝检查和7种纯内存生命周期失败注入通过，确认启动后无旧镜像恢复以及selection部分提交保护。复核四文件输入前后SHA-256不变。当前审计 `20261009T025813Z-klno5-tps-integration-release-8b507569` closed/verify passed（状态调查、实现、fresh独立复核三个阶段）；先前Go/依赖/lint独立复核保留各自已关闭审计，不伪造聚合计数。

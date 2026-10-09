@@ -38,11 +38,15 @@ deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc
 
 `Deployment` 是唯一远端生命周期 owner，使用非阻塞 `flock` 持有 `/root/sub2api-kin/.personal-deploy/deployment.lock`，锁覆盖预检、备份、拉取、启动、健康、持久提交及失败恢复。并发部署在执行 Docker 命令前退出。其他生产配置维护也应尊重这把锁；工具的 hash 检查会拒绝已观察到的外部漂移。
 
-本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。两端必须包含同一已验证上游来源。除下述精确工具链补丁外，任何后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止部署和镜像回滚，没有 force 开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足合同。
+本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。同一上游基线只允许零运行差异与下述精确工具链补丁；跨基线只允许下述固定 `.3 → .5` 正向升级。其他后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止操作，没有 force 或 ignore 兼容开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足零差异合同。
 
 本轮经用户三次明确授权，升级 Go 1.27.0 → 1.27.2，x/net v0.58.0 → v0.60.0，并按模块最小版本选择同步 crypto0.57、sys0.48、term0.46、text0.42、tools0.50、mod0.41、sync0.23。精确 lint 兼容规则仅匹配五个固定文件中的既有 HTTP/2 弃用接口，其他检查继续启用。例外绑定已审定的 `backend/.golangci.yml`、`backend/go.mod`、`backend/go.sum`、`Dockerfile`、`deploy/Dockerfile` 前后完整文件 SHA-256；应用候选为 `ce682c4901033d09c7e12614b7b73e11bdd17ef4`，旧输入为 tps.1 revision `896de21b4be7f4ec4b4236f4df663b47371665b0`。五个路径必须全部变化、方向一致，双方均为普通 `100644` 文件。任意其他版本、校验行、字节、权限、业务源码、迁移或运行配置变化均拒绝；未来安全补丁需要另行审定，不能按文件路径泛化放行。CI/Release 精确核对所选源码 go.mod 的 Go 声明并继续全部门禁，personal 的声明固定为1.27.2；main 不维护应用树。
 
 兼容证据记录补丁ID、方向和双方文件 SHA-256，远端按同一已审定清单验证，并绑定实际旧/新 revision。证据总 hash 校验本机传输完整性，不是远端重新执行 Git 审计或镜像构建证明。原有零差异证据和成功记录继续有效。精确补丁允许反向镜像故障恢复；普通 deploy 旧版本会在备份/拉取/启动前被拒绝，须使用绑定当前成功记录的 --rollback，或由失败部署自动恢复。恢复仍须满足成功记录、配置、迁移和依赖条件；旧Go及x/net有已知漏洞，因此不能长期停留旧安全版本。
+
+本轮另外审定的跨基线升级只接受 `v0.2.14-klno.3 / de08df02ae1d81668a22f798b398aa0438ac1276` → `v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。旧运行树固定取自 tps.1 `896de21b4be7f4ec4b4236f4df663b47371665b0`，新树取自融合候选 `c00e8982258736a188a09023e901d8d39671814f`。对全部运行条目的路径、Git mode、type 与 object ID 排序并计算 SHA-256，旧树为 `ecf6eff8c2902b29a1a689232dc8a1028e9d10e5615bcb6e293d35d8d278df35`，新树为 `928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d`；同时绑定精确的 151 个运行差异路径。最终 PR 合并 revision 可以不同，但来源与整个运行树必须相同。修改任意已有、未变化或新增运行路径的内容、类型、权限、迁移或来源都需重新审定。远端公共 validator 检查证明类型、hash、所有固定字段、来源、完整差异列表、实际旧新 revision 及镜像版本；不能借零差异或五文件安全补丁绕过跨基线合同。
+
+此正向证明明确记录 `image_rollback_compatible=false`。`.5` 的 `account.extra.openai_gwpool_usage_rounds` 新增 `rounds.active_usage` 与归档的 `active_duration_ms/incomplete`，contacts 新增 `previous`；`.3` 的类型解码与 whole-key `UpdateExtra` 会丢失这些字段。`.5` reporter 在 HTTP 监听与 health 之前启动，cooldown 首次 arm 也可能写入持久化数据。因此迁移清单未变化、启动等待失败或 `/health` 尚未成功都不能证明旧镜像恢复无损。该升级拒绝 `.5 → .3` 普通部署、显式回滚，以及新应用启动后的自动旧镜像恢复。需要另行评估数据兼容的向前修复或经授权的维护恢复；数据库恢复与可能丢失写入不在部署工具的授权中。
 
 远端取得锁后再次读取实际旧 digest、revision、version、source、Image ID，与本机兼容证据绑定的旧状态比较。PostgreSQL `SELECT 1`、Redis `PING` 与容器 healthcheck 均须通过；数据库/Redis 容器 ID 在整个应用更新中保持不变。通过 `schema_migrations` 的 `filename/checksum` 排序清单记录行数与 SHA-256，更新后以及自动恢复前再次比较。若迁移状态发生变化，保留失败和诊断，停止镜像恢复。已有成功记录的迁移状态后来发生变化时，同样禁止后续部署或显式回滚。
 
@@ -64,15 +68,17 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 
 每次操作生成 `.personal-deploy/records/<ID>/`。状态目录与记录目录权限为 `700`，记录、镜像选择、配置备份、数据库与应用数据备份、诊断文件权限为 `600`。记录保存工具 Git revision 与实际脚本 SHA-256、旧/目标镜像元数据、兼容证据、时间、阶段、配置/.env hash、迁移指纹、备份信息和退出状态。服务器 `.env`、应用配置、数据库、应用日志留在服务器，不输出凭据或上传 Git。
 
-执行顺序是预检、备份、目标拉取与 OCI/平台校验、最小 Compose 适配、仅应用启动、完整健康核对、持久提交成功选择。备份包括原 Compose、`.env`、已有镜像选择、`pg_dump --format=custom` 和 `/app/data` 归档。数据库 dump 以文件流送入 `pg_restore --list`，应用归档先枚举 tar 成员，再分块读取到 gzip EOF，完成 CRC 与长度校验；两份数据备份记录大小及 SHA-256。数据库与应用归档是在运行期间分别取得，恢复时需要人工核对业务一致性；`pg_restore --list` 证明结构可读取，实际完整恢复仍需隔离实例演练。
+执行顺序是预检、备份、目标拉取与 OCI/平台校验、最小 Compose 适配、仅应用启动、完整健康核对、持久提交成功选择。备份完成在新进程启动之前。更新使用一个应用 Compose replacement 顺序替换；不并行启动共享 Redis 的新旧应用，避免 `CleanupStaleProcessSlots` 清理另一进程的 slot。备份包括原 Compose、`.env`、已有镜像选择、`pg_dump --format=custom` 和 `/app/data` 归档。数据库 dump 以文件流送入 `pg_restore --list`，应用归档先枚举 tar 成员，再分块读取到 gzip EOF，完成 CRC 与长度校验；两份数据备份记录大小及 SHA-256。数据库与应用归档是在运行期间分别取得，恢复时需要人工核对业务一致性；`pg_restore --list` 证明结构可读取，实际完整恢复仍需隔离实例演练。
 
 | 情况 | 状态与恢复 |
 |---|---|
 | 预检、兼容证据、备份或拉取失败 | 非零退出；旧运行容器、持久镜像选择及原 Compose 保留 |
 | 拉取成功后配置校验失败，尚未启动 | hash 核对无漂移时恢复本次 Compose 适配；保留失败记录 |
-| 应用启动或健康失败，兼容证据有效且数据库/迁移/配置未漂移 | 用旧固定 digest 仅重建应用并验证健康，恢复本次 Compose 适配；原选择保留。`rollback_status=success` 仍是部署失败，退出码 `1` |
+| 同基线应用启动或健康失败，兼容证据有效且数据库/迁移/配置未漂移 | 用旧固定 digest 仅重建应用并验证健康，恢复本次 Compose 适配；原选择保留。`rollback_status=success` 仍是部署失败，退出码 `1` |
+| `.3 → .5` 新应用启动或健康失败，持久选择尚未提交 | 保留 `status=failed`、原始错误、诊断与 `observed_running`，记录 `rollback_status=blocked`、`rollback_error=E_COMPATIBILITY`；不启动旧镜像、不替换原 selection，保留当前 Compose 供人工核对 |
 | 数据库/Redis 容器、迁移或配置发生漂移 | 阻止自动镜像切回，保存失败与当前可观察状态，需人工评估 |
-| 显式回滚 | 绑定当前成功部署 ID、旧/目标完整元数据、配置 hash、双方 Git 兼容证据与迁移指纹；通过健康后提交新的回滚记录与旧 digest 选择，保留已完成的 Compose 参数化 |
+| 同基线显式回滚 | 绑定当前成功部署 ID、旧/目标完整元数据、配置 hash、双方 Git 兼容证据与迁移指纹；通过健康后提交新的回滚记录与旧 digest 选择，保留已完成的 Compose 参数化 |
+| `.3 → .5` 成功记录的显式回滚 | 本机证明与远端成功记录绑定都拒绝旧镜像恢复，返回 `E_COMPATIBILITY`；运行与原 selection 保留 |
 | 持久选择已替换但后续落盘/成功记录失败 | 不猜测持久提交结果，也不覆盖选择；保留失败记录与 `selection_committed=true`。后续部署/回滚因记录不一致停止，需人工核对 |
 | SSH 中断或无有效结果 | 本机明确失败，不自动重新执行写入；先核对服务器记录、运行镜像、配置与选择 |
 
@@ -91,6 +97,6 @@ python3 -m py_compile deploy/personal/deploy_hostdzire.py deploy/personal/test_d
 git diff --check
 ```
 
-替身覆盖成功仅更新应用、版本解析后固定 digest、拉取/备份失败无运行变更、健康超时及自动恢复、显式回滚与过期拒绝、真实 `flock` 竞争、运行 revision 漂移、OCI 标签/source/platform/RepoDigest 拒绝、迁移禁止部署与回滚、配置漂移保留、选择落盘失败及部分提交。真实临时 Git 保护完整运行路径 diff 与来源/tag绑定；真实本机子进程验证 dump 文件流和私密错误边界；OpenSSH 替身验证固定别名、scp 和通过 stdin 传输 JSON。正式前还需独立只读审查以及现场健康、界面与网关验收。
+替身覆盖成功仅更新应用、版本解析后固定 digest、拉取/备份失败无运行变更、健康超时及自动恢复、显式回滚与过期拒绝、真实 `flock` 竞争、运行 revision 漂移、OCI 标签/source/platform/RepoDigest 拒绝、迁移禁止部署与回滚、配置漂移保留、选择落盘失败及部分提交。真实固定 Git 对象与临时 Git 保护完整运行路径 diff、来源/tag 绑定、`.3 → .5` 正向及反向拒绝、运行树内容/模式/类型/迁移/来源漂移；远端替身覆盖正向证明字段与 hash 篡改、成功 app-only 生命周期、启动前备份、启动/健康失败阻止旧镜像与保留原 selection、单向记录显式回滚拒绝及部分提交；真实本机子进程验证 dump 文件流和私密错误边界；OpenSSH 替身验证固定别名、scp 和通过 stdin 传输 JSON。正式前还需独立只读审查以及现场健康、界面与网关验收。
 
 稳定测试边界为 `Deployment(base=临时目录, runner=Docker替身)`；生产项目、容器名、持久卷和健康 URL 固定在本模块，没有临时栈或更换生产目标的 CLI 开关。隔离真实镜像恢复演练由维护者在完全独立的容器/卷/端口中组织，不能据替身结果宣称生产已更新或数据库已恢复验证。
