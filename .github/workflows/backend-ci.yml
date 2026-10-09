@@ -62,7 +62,8 @@ jobs:
           cache-dependency-path: backend/go.sum
       - name: Verify Go version
         run: |
-          go version | grep -q 'go1.27.0'
+          expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: Unit tests
         working-directory: backend
         run: |
@@ -113,11 +114,12 @@ jobs:
           cache-dependency-path: backend/go.sum
       - name: Verify Go version
         run: |
-          go version | grep -q 'go1.27.0'
+          expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.13
+          version: v2.14.0
           args: --timeout=30m
           working-directory: backend
 
