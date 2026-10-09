@@ -199,3 +199,83 @@ func TestResponsesOutputTiming_NativeToolContentEvents(t *testing.T) {
 	}
 	require.Nil(t, o.snapshot(false).StrictFirstTokenMs)
 }
+
+func TestResponsesOutputTiming_FinalUsageReplacesAudioBreakdown(t *testing.T) {
+	for _, audio := range []string{"", `,"output_tokens_details":{"audio_tokens":-1}`, `,"output_tokens_details":{"audio_tokens":1.5}`} {
+		t.Run(audio, func(t *testing.T) {
+			start := time.Unix(100, 0)
+			o := newResponsesOutputTiming(context.Background(), start, &Account{Platform: PlatformOpenAI})
+			defer o.stop()
+			o.observeEvent([]byte(`{"type":"response.audio.delta","delta":"bytes"}`), "", start.Add(time.Millisecond))
+			o.observeUsage([]byte(`{"type":"response.in_progress","response":{"usage":{"input_tokens":2,"output_tokens":3,"output_tokens_details":{"audio_tokens":1}}}}`), "response.in_progress", OpenAIUsage{})
+			final := []byte(`{"type":"response.completed","response":{"status":"completed","output":[],"usage":{"input_tokens":2,"output_tokens":10` + audio + `}}}`)
+			o.observeEvent(final, "response.completed", start.Add(time.Second))
+			o.observeUsage(final, "response.completed", OpenAIUsage{InputTokens: 2, OutputTokens: 3})
+			o.confirmNoAudio(final)
+			got := o.snapshot(false)
+			require.Equal(t, UsageSourceUpstreamFinal, got.UsageSource)
+			require.Nil(t, got.AudioOutputTokens, "最终总量替换后，缺失或非法拆分不能继承部分音频")
+		})
+	}
+}
+
+func TestResponsesOutputTiming_JSONUsageNeedsFinalEvidence(t *testing.T) {
+	for _, tc := range []struct {
+		status, object, want string
+	}{
+		{"completed", "response", UsageSourceUpstreamFinal},
+		{"failed", "response", UsageSourceUpstreamPartial},
+		{"incomplete", "response", UsageSourceUpstreamPartial},
+		{"cancelled", "response", UsageSourceUpstreamPartial},
+		{"canceled", "response", UsageSourceUpstreamPartial},
+		{"queued", "response", UsageSourceUpstreamPartial},
+		{"in_progress", "response", UsageSourceUpstreamPartial},
+		{"", "response", UsageSourceUnknown},
+		{"unrecognized", "response", UsageSourceUnknown},
+		{"", "response.compaction", UsageSourceUpstreamFinal},
+	} {
+		t.Run(tc.object+"/"+tc.status, func(t *testing.T) {
+			o := newResponsesOutputTiming(context.Background(), time.Unix(100, 0), &Account{Platform: PlatformOpenAI})
+			defer o.stop()
+			payload := []byte(`{"object":"` + tc.object + `","status":"` + tc.status + `","output":[],"usage":{"input_tokens":2,"output_tokens":3}}`)
+			o.observeJSON(payload, time.Unix(101, 0))
+			o.observeUsage(payload, "json", OpenAIUsage{})
+			require.Equal(t, tc.want, o.snapshot(false).UsageSource)
+		})
+	}
+}
+
+func TestResponsesOutputTiming_ShellCallItemContent(t *testing.T) {
+	for _, tc := range []struct {
+		name, payload string
+		json, want    bool
+	}{
+		{"added", `{"type":"response.output_item.added","item":{"type":"shell_call","action":{"commands":["","pwd"]}}}`, false, true},
+		{"json", `{"status":"completed","output":[{"type":"shell_call","action":{"commands":["pwd"]}}]}`, true, true},
+		{"empty", `{"type":"response.output_item.added","item":{"type":"shell_call","action":{"commands":[""]}}}`, false, false},
+		{"done", `{"type":"response.output_item.done","item":{"type":"shell_call","action":{"commands":["pwd"]}}}`, false, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			start := time.Unix(100, 0)
+			o := newResponsesOutputTiming(context.Background(), start, &Account{Platform: PlatformOpenAI})
+			defer o.stop()
+			if tc.json {
+				o.observeJSON([]byte(tc.payload), start.Add(7*time.Millisecond))
+			} else {
+				o.observeEvent([]byte(tc.payload), "", start.Add(7*time.Millisecond))
+			}
+			got := o.snapshot(false)
+			if tc.want {
+				require.NotNil(t, got.StrictFirstTokenMs)
+				require.NotNil(t, got.LastTokenMs)
+				require.NotNil(t, got.FirstOutputKind)
+				require.Equal(t, 7, *got.StrictFirstTokenMs)
+				require.Equal(t, 7, *got.LastTokenMs)
+				require.Equal(t, "tool", *got.FirstOutputKind)
+			} else {
+				require.Nil(t, got.StrictFirstTokenMs)
+				require.Nil(t, got.FirstOutputMs)
+			}
+		})
+	}
+}

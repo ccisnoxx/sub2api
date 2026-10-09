@@ -249,3 +249,41 @@ func TestResponsesUsageTiming_WSRegistryInterleavedIDs(t *testing.T) {
 	require.Equal(t, UsageSourceUpstreamFinal, a.UsageSource)
 	require.Equal(t, UsageSourceUpstreamPartial, b.UsageSource)
 }
+
+func TestResponsesUsageTiming_SSEToJSONUsesAcceptedFinalUsage(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, pass := range []bool{false, true} {
+		for _, zero := range []bool{false, true} {
+			t.Run(map[bool]string{false: "normal", true: "passthrough"}[pass]+map[bool]string{false: "/dual_usage", true: "/zero_final"}[zero], func(t *testing.T) {
+				body := passthroughSSEData(`{"type":"response.audio.delta","delta":"bytes"}`) + passthroughSSEData(`{"type":"response.in_progress","response":{"usage":{"input_tokens":2,"output_tokens":3,"output_tokens_details":{"audio_tokens":1}}}}`)
+				final := `{"type":"response.completed","usage":{"input_tokens":99,"output_tokens":99,"output_tokens_details":{"audio_tokens":99}},"response":{"id":"resp_timing","status":"completed","output":[],"usage":{"input_tokens":5,"output_tokens":7,"output_tokens_details":{"audio_tokens":2}}}}`
+				if zero {
+					final = `{"type":"response.completed","response":{"id":"resp_timing","status":"completed","output":[],"usage":{"input_tokens":0,"output_tokens":0}}}`
+				}
+				body += passthroughSSEData(final)
+				c, resp := timingHTTPContext(body)
+				svc := timingTestService()
+				account := &Account{Platform: PlatformOpenAI, Type: AccountTypeAPIKey}
+				var timing UsageTiming
+				var usage *OpenAIUsage
+				if pass {
+					r, err := svc.handleNonStreamingResponsePassthrough(context.Background(), resp, c, account, "gpt-5.1", "gpt-5.1", time.Now())
+					require.NoError(t, err)
+					timing, usage = r.usageTiming, r.usage
+				} else {
+					r, err := svc.handleNonStreamingResponse(context.Background(), resp, c, account, "gpt-5.1", "gpt-5.1", time.Now())
+					require.NoError(t, err)
+					timing, usage = r.usageTiming, r.usage
+				}
+				require.Equal(t, UsageSourceUpstreamFinal, timing.UsageSource)
+				if zero {
+					require.Zero(t, usage.OutputTokens)
+					require.Nil(t, timing.AudioOutputTokens)
+				} else {
+					require.Equal(t, 7, usage.OutputTokens)
+					require.Equal(t, 2, *timing.AudioOutputTokens)
+				}
+			})
+		}
+	}
+}

@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import Icon from '@/components/icons/Icon.vue'
 import { firstTokenSeverity, LATENCY_TEXT_CLASSES } from '@/utils/latencyHealth'
-import { resolveUsageRequestType } from '@/utils/usageRequestType'
 import {
   displayedFirstTokenMs, formatUsageTimingDuration, hasStrictUsageTiming, strictFirstTokenMs,
   usageCompletionStatus, type UsageTimingRow,
@@ -41,7 +40,7 @@ const strictTime = (ms: number | null | undefined): string => strict.value
       </template>
       <div data-testid="usage-timing-content" class="space-y-2 pr-5">
         <p>{{ t(strict ? 'usage.strictFirstTokenDescription' : 'usage.firstTokenDescription') }}</p>
-        <p v-if="strict && resolveUsageRequestType(row) === 'sync'">{{ t('usage.nonStreamingTimingDescription') }}</p>
+        <p v-if="strict">{{ t('usage.nonStreamingTimingDescription') }}</p>
         <dl class="grid grid-cols-[1fr_max-content] gap-x-3 gap-y-1">
           <dt>{{ t('usage.strictFirstToken') }}</dt><dd>{{ strictTime(strictFirstTokenMs(row)) }}</dd>
           <dt>{{ t('usage.lastToken') }}</dt><dd>{{ strictTime(row.last_token_ms) }}</dd>

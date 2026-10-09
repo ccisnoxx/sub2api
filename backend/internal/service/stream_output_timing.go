@@ -232,6 +232,15 @@ func (o *responsesOutputTiming) observeItem(item gjson.Result, token bool, at ti
 		if token && nonemptyTimingString(item.Get("code")) {
 			o.output("tool", true, at)
 		}
+	case "shell_call":
+		if token {
+			for _, command := range item.Get("action.commands").Array() {
+				if nonemptyTimingString(command) {
+					o.output("tool", true, at)
+					break
+				}
+			}
+		}
 	case "image_generation_call":
 		if nonemptyTimingString(item.Get("result")) {
 			o.output("image", false, at)
@@ -264,6 +273,10 @@ func (o *responsesOutputTiming) observeUsage(payload []byte, eventType string, b
 		return
 	}
 	o.observeAcceptedUsage(payload, eventType, raw)
+	// 流式入口可能已先观察终态；总量替换后再确认无音频，避免清空可信的零值。
+	if eventType == "json" || eventType == "response.completed" || eventType == "response.done" {
+		o.confirmNoAudio(payload)
+	}
 }
 
 // raw 必须是现有计费解析器实际接受的对象，不能在有多个 usage 字段时另选来源。
@@ -274,8 +287,29 @@ func (o *responsesOutputTiming) observeAcceptedUsage(payload []byte, eventType s
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	o.timing.UsageSource = UsageSourceUpstreamPartial
-	if ((eventType == "response.completed" || eventType == "response.done") && responsesTimingStatus(eventType, gjson.GetBytes(payload, "response.status").String()) == CompletionStatusCompleted) || (eventType == "json" && gjson.GetBytes(payload, "status").String() != "failed" && gjson.GetBytes(payload, "status").String() != "incomplete") {
+	status := gjson.GetBytes(payload, "response.status").String()
+	if status == "" {
+		status = gjson.GetBytes(payload, "status").String()
+	}
+	if (eventType == "response.completed" || eventType == "response.done") && responsesTimingStatus(eventType, status) == CompletionStatusCompleted {
 		o.timing.UsageSource = UsageSourceUpstreamFinal
+	}
+	if eventType == "json" {
+		switch status {
+		case "completed":
+			o.timing.UsageSource = UsageSourceUpstreamFinal
+		case "failed", "incomplete", "cancelled", "canceled", "queued", "in_progress":
+			o.timing.UsageSource = UsageSourceUpstreamPartial
+		default:
+			o.timing.UsageSource = UsageSourceUnknown
+			if status == "" && gjson.GetBytes(payload, "object").String() == "response.compaction" {
+				o.timing.UsageSource = UsageSourceUpstreamFinal
+			}
+		}
+	}
+	// 权威总量已被既有解析器接受；拆分须随同替换，缺失/非法不能沿用部分值。
+	if eventType == "json" || openAIStreamEventTypeIsTerminal(eventType) {
+		o.timing.AudioOutputTokens = nil
 	}
 	if v := raw.Get("output_tokens_details.audio_tokens"); v.Type == gjson.Number && v.Int() >= 0 && v.Float() == float64(v.Int()) {
 		n := int(v.Int())
@@ -339,7 +373,7 @@ func (o *responsesOutputTiming) confirmNoAudio(payload []byte) {
 					return
 				}
 			}
-		case "reasoning", "function_call", "custom_tool_call", "mcp_call", "tool_search_call", "image_generation_call", "compaction", "compaction_summary":
+		case "reasoning", "function_call", "custom_tool_call", "mcp_call", "tool_search_call", "code_interpreter_call", "shell_call", "image_generation_call", "compaction", "compaction_summary":
 		default:
 			return
 		}

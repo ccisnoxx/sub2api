@@ -77,8 +77,8 @@ describe('首 Token 与首次输出详情', () => {
     expect(wrapper.get('[role="tooltip"]').text()).not.toContain(messages.firstTokenDescription)
   })
 
-  it('新记录严格时点缺失不回退旧首字，非流式解释观测边界', async () => {
-    const wrapper = renderTiming({ timing_version: 1, strict_first_token_ms: null, request_type: 'sync', stream: false }, 'en')
+  it.each(['sync', 'ws_v2'] as const)('%s 新记录严格时点缺失不回退旧首字，说明非流式观察边界', async (requestType) => {
+    const wrapper = renderTiming({ timing_version: 1, strict_first_token_ms: null, request_type: requestType, stream: requestType === 'ws_v2' }, 'en')
     expect(wrapper.get('[data-testid="usage-first-token-value"]').text()).toBe('—')
     await wrapper.get('[data-testid="usage-timing-details"]').trigger('click')
     expect(wrapper.get('[role="tooltip"]').text()).toContain(en.usage.nonStreamingTimingDescription)

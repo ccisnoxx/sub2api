@@ -2486,6 +2486,8 @@ func (s *OpenAIGatewayService) handlePassthroughSSEToJSON(resp *http.Response, c
 	if ok {
 		if parsedUsage, parsed := extractOpenAIUsageFromJSONBytes(finalResponse); parsed {
 			*usage = parsedUsage
+			// 与这里实际接受的最终总量使用相同来源，含全零替换。
+			timing.observeUsage(finalResponse, "response.completed", OpenAIUsage{})
 		}
 		// When the terminal event has an empty output array, reconstruct
 		// output from accumulated delta events so the client gets full content.
