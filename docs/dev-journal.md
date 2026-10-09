@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S2.6 模型查看流程验收完成
+
+- 本轮仅S2.6。personal仍`9397eb8af`、KlN `.5/c7aacf5d`；复用干净S2.5 personal来源工作树HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`（S2.4功能`b8cf49ca2`、S2.5验证`3722c48cc`），未用main应用源码。原S0的17应用文件及应用4380个源文件校验保持，未改生产代码/扣费/调度/迁移/依赖。
+- 本地Chromium/Playwright 1.62.1：中文亮1440、英文暗390两组各9流程通过，检索/详情/分组档位报价/0与unknown、刷新后权限收窄/403清空/空目录/关闭入口/重试及键盘窄屏均通过。每组1次故意403资源错误，其他无error/warning。使用合成API/用户，不把浏览器夹具当真实后端权限证明。
+- S2.2–S2.5输入与原产物校验后按原边界复用，包含真实JWT/PG16/Redis权限及64组HTTP/计费对账；S2.4旧构建目录缺失，仅重建Vite静态资源，成功并保留既有警告。首轮工作目录/Playwright命令环境和null选项夹具断言错误均记录修正；生产源码未改。
+- 1次fresh只读复核可见范围与价格来源，未确认问题，未独立运行测试；审计 `20261009T190805Z-kin-plus-model-flow-s26-e70c703d` closed/verify passed。已更新[执行证据S2.6](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s26-模型查看流程验收)及任务状态，三个登记位置各自旧journal全文保留。
+- S2.6勾选；下一项S2.7未自动开始。未运行全量/浏览器矩阵/远端CI，不推送、不合并、不发布镜像、不部署生产；本轮文档未提交，应用和原候选HEAD保持。
+
 ## 2026-10-09：KIN 借鉴 Plus S2.5 权限与报价验证完成
 
 - 本轮仅S2.5。personal仍`9397eb8af`、来源KlN `.5/c7aacf5d`；从干净S2.4 `1696d054c`创建personal来源 `codex/plus-catalog-verify-s25`，验证候选`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`，只新增integration合同测试，未改生产源码/扣费/调度/迁移/依赖。原S0的17应用文件校验一致；旧S2.3/S2.4目录后续不可见但Git分支/提交保留，本会话未执行删除或归档。

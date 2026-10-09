@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅S2.5；历史记录保留，本轮权限与报价结果见文末S2.5。
+- 当前续接范围：仅S2.6；历史记录保留，本轮模型查看流程结果见文末S2.6。
 - 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
-- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.5；远端CI、合并、镜像发布、生产部署、S1.5、S2.6及后续均未执行。
+- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.6；远端CI、合并、镜像发布、生产部署、S1.5、S2.7及后续均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -307,3 +307,43 @@ main 来源 `codex/plus-pricing-s22-evidence` 只登记本 change 与日志，�
 这些是本地真实基础设施的HTTP集成证据，未启动生产服务进程，未使用生产JWT、带会话指纹的绑定变化、上游凭据或实际扣款请求。过期JWT/数据库错误/Redis故障没有新增集成检查；未变错误边界保留既有证据。新集成夹具限定UTC单时段和high effort，非UTC、工作日限制及跨午夜沿用原owner证据；weekdays_only普通bool未单独观察字段省略/null，当前生产DTO明确输出。媒体和依赖真实请求的报价继续unknown，不宣称整张请求账单或实时可用性。S2.6浏览器完整查看流程、S2.7阶段交付、全量/远端CI及发布门禁未运行。本会话没有push/PR/Actions、合并、镜像发布、SSH或生产部署。
 
 **S2.5已完成。下一项S2.6验收模型查看流程，未自动开始。**
+
+
+## S2.6 模型查看流程验收
+
+本轮仅 S2.6，复用 personal 来源应用 HEAD **`f6e91d55d05ca71332657bd577f223ccb7849cb0`**；功能提交 `b8cf49ca25007cbc23338a9443b71df4c0411155`，S2.5验证提交 `3722c48ccdc0e4468dbc5c6ebb13584624c566d6`。没有新应用源码改动或提交。[候选校验](evidence/s2.6-candidate.json)、[浏览器与复用证据](evidence/s2.6-validation.json)、[独立复核](evidence/s2.6-reviews.json)、[文档及保留检查](evidence/s2.6-document-checks.json)。S2.7和其他尚未开始的阶段保持未执行。
+
+### 基线、工作位置与源码保留
+
+先读取用户指定plan/tasks/journal，核对远端、本地及origin/personal仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，来源KlN `v0.2.14-klno.5/c7aacf5d`；main仍为 `b43a472f4`。S2.5应用工作树开始时干净，HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`，为S2.5验证后的文档提交，包含S2.4功能/S2.5测试；personal为其祖先。复用 `/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin` 运行应用验收，未使用main应用源码。S2.3/S2.4旧目录已不在磁盘，但原分支/提交仍保留。
+
+原修复工作树的17应用文件与S0校验值一致，未提交应用改动保留；本轮开始/结束核对应用的4380个backend/frontend/来源文件完全一致。main来源 `codex/plus-pricing-s22-evidence`仅登记本change文档及journal，增量同步原指定文档位置和应用树；三处旧journal全文保留。原聊天checkout、S1、S2.2工作树HEAD/文件状态保持原值。AGENTS中指定的出站约定与docs/tasks在相关工作树仍未找到，本轮没有出站身份或账号extra修改。
+
+### 浏览器实际结果
+
+流程为 `/available-channels` → 检索/筛选 → 模型详情 → 分组/档位报价 → 无权限/空目录与恢复。Browser技能未列出，按frontend-testing-debugging使用已有Playwright 1.62.1/Chromium headless shell，无新依赖。地址 `http://127.0.0.1:4186/available-channels`，中文亮色1440×1100、英文暗色390×844两组，各9条流程通过。真实personal前端静态资源配合本地合成API/用户/JWT占位；该浏览器数据不证明后端权限，真实授权及计费证据单独复用S2.5。
+
+| 验收边界 | 新运行结果 |
+|---|---|
+| 入口与身份 | 正确URL/中英title，有模型内容、目录范围说明；无空白页或框架错误覆盖 |
+| 检索/筛选 | 模型大小写、平台、分组、渠道检索；无匹配与有权空组；检索及分组筛选没有额外请求 |
+| 详情与报价 | Enter/Space展开，Escape关闭回焦；default/priority与公开/专属offer切换；USD/1M、适用倍率一次、明确$0、分量unknown为—；模型unknown/媒体单位unsupported不伪造单价 |
+| 范围收窄 | 刷新等待时旧目录/报价清空；选中专属组移出响应后筛选重置到全部，旧专属报价不可见且不可检索 |
+| 倍率失败与拒绝 | 个人倍率失败显示明确默认参考价；403清空现有目录/报价并显示错误；重试恢复当前目录 |
+| 空结果及功能关闭 | 无授权组显示空目录，分组列表无残留；功能关闭后入口隐藏，直达页面也只有空目录 |
+| 窄屏与视觉 | 390px价格表能用ArrowRight横向滚动，页面本身无横向溢出；12张状态截图，已查看入口、报价与拒绝截图 |
+| 控制台 | 每组有意触发1次HTTP403资源错误；正常流程无app error/warning，不把故意403写成零error |
+
+S2.4旧构建目录已不在磁盘，使用当前候选执行 `pnpm exec vite build`重新生成178个静态文件供浏览器使用；已有i18n/类型/单元/lint证据未变化，未重复运行。Vite成功，保留Node DEP0190、Browserslist过期、混合动态/静态导入及chunk大小警告。初次构建命令在应用根目录没有package.json，构建未开始；改到frontend。项目没有Playwright命令，使用已有bundled runtime。浏览器首轮夹具错误地期待Vue null选项的原生value为空，实际是选项文字；改断言selectedIndex=0验证重置状态，两组完整流程通过，没有改生产源码。
+
+### 有效证据复用与独立复核
+
+S2.2的8输入/12产物、S2.3的7输入/14产物、S2.4的15输入/39产物、S2.5的5输入/33产物引用均校验匹配。计数按清单引用，可能跨阶段引用同一文件，不作为去重用例数。复用原权威owner48组对账/定向回归、HTTP/DTO授权、十个前端合同/类型/lint/build、四组中英/桌面/窄屏浏览器与两组价格表键盘，以及S2.5真实JWT/PG16/Redis权限和64组HTTP/生产计费对账；各自保留原覆盖边界，不称本轮新执行。
+
+1次fresh critical_reviewer只读复核稳定候选：先授权后聚合、真实JWT主体/DTO白名单、KIN resolver与同次配置来源、个人倍率/服务档/单位/零/未知及页面刷新/主体切换隔离，未确认可操作问题；不独立执行测试。复核具体覆盖/限制见复核清单。审计 `20261009T190805Z-kin-plus-model-flow-s26-e70c703d` closed、audit-verify passed；[确定性执行摘要](evidence/s2.6-subagent-digest.md)。复核同时登记一项非阻断覆盖限制：`available_model_catalog_test.go:482`先解码成已知DTO再验证字段，不能独立捕获原始HTTP响应中被解码丢弃的额外字段；本轮逐字段检查生产DTO，未确认泄漏。需要补强时直接用通用JSON检查`w.Body`的嵌套字段白名单。未把旧用例描述为完整原始响应泄漏检测。本轮无需源码修复或新持久化/扣费/调度改动。
+
+### 边界与下一项
+
+本轮浏览器由合成响应控制权限收窄、403、空目录、功能关闭及个人倍率失败；不是启动真实后端并接数据库/JWT的浏览器E2E，也没有生产用户、凭据、上游调用或实际扣款。真实后端权限和价格链依靠S2.5未变集成证据及本轮独立复核。未测试其他浏览器，不声明完整浏览器矩阵；媒体或实际路由依赖的报价继续unknown，不承诺整张请求账单、实时健康或最低价路由。
+
+**S2.6已完成。下一项S2.7登记阶段交付，未自动开始。** 未执行全量/远端CI、push/PR/Actions、合并、镜像发布、SSH或生产部署；本轮登记文档保留为未提交改动，固定应用HEAD与原候选引用保持。
