@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅S2.6；历史记录保留，本轮模型查看流程结果见文末S2.6。
+- 当前续接范围：仅S2.7；历史记录保留，本轮最终候选、真实门禁与交付结果见文末S2.7。
 - 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
-- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.6；远端CI、合并、镜像发布、生产部署、S1.5、S2.7及后续均未执行。
+- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.7；S2累计候选真实Personal CI通过，合并、镜像发布、生产部署、S1.5及S3以后均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -347,3 +347,101 @@ S2.2的8输入/12产物、S2.3的7输入/14产物、S2.4的15输入/39产物、S
 本轮浏览器由合成响应控制权限收窄、403、空目录、功能关闭及个人倍率失败；不是启动真实后端并接数据库/JWT的浏览器E2E，也没有生产用户、凭据、上游调用或实际扣款。真实后端权限和价格链依靠S2.5未变集成证据及本轮独立复核。未测试其他浏览器，不声明完整浏览器矩阵；媒体或实际路由依赖的报价继续unknown，不承诺整张请求账单、实时健康或最低价路由。
 
 **S2.6已完成。下一项S2.7登记阶段交付，未自动开始。** 未执行全量/远端CI、push/PR/Actions、合并、镜像发布、SSH或生产部署；本轮登记文档保留为未提交改动，固定应用HEAD与原候选引用保持。
+
+
+## S2.7 阶段交付登记
+
+本轮仅S2.7，最终累计personal候选 **`88156f09fcf980a771a8aab570f0dbaec5de25fb`**；[候选与来源](evidence/s2.7-candidate.json)、[真实门禁与复用](evidence/s2.7-validation.json)、[文档保留检查](evidence/s2.7-document-checks.json)、[交付与回退](delivery.md#s2-阶段交付s27)。[草稿PR #5](https://github.com/ccisnoxx/sub2api/pull/5)保持草稿且未合并，下一项S3.1未自动开始。
+
+### 候选与实际差异
+
+开始/结束personal均`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，KlN来源`.5/c7aacf5d`、main仍`b43a472f4`。从完整S2.5 HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`创建并附加 `/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin`，分支`codex/verify-personal-ci-plus-catalog-s27`；只复制已验证的9个S2.6文档，初始提交`aee00ae7716218418ed3cb772e37c1763873fde7`，随后完成下述3文件门禁修正，形成最终SHA。没有使用main应用源码或未合入CI选择方案；原S0的17应用改动及全部旧工作树保留。
+
+候选包含S0版本/TPS说明修复、S1 Responses HTTP/SSE/WS计时与迁移251、S2模型目录，并非只含S2补丁。S2功能增量从S1文档候选`e3edb5666`核对23个应用/测试文件：目录GET/DTO/页面只读；BillingService只增价格来源存在性元数据，实际计算不消费该元数据；上下文探针提取保持旧参数；resolver的渠道快照仅由目录注入，真实计费保留原ChannelService路径。S2未改余额/订阅写入、Token计算、调度、gwpool、重试或新增迁移，Wire仅接入目录所需BillingService。最终相对S2.6的4380文件快照有4377文件完全一致，另外3处是门禁修正，不声称这些文件hash未变化。
+
+### 门禁失败与最小修正
+
+首轮[Personal CI `37981138211`](https://github.com/ccisnoxx/sub2api/actions/runs/37981138211)实际failure：后端`TestAPIContracts/GET_/api/v1/usage_(paginated)`的旧JSON预期遗漏S1已冻结的9字段；生产DTO正确保留历史`timing_version=0`、可空字段null及unknown。只补测试wantJSON，既有费用/Token/首字仍原值。首轮单元失败后integration/recording race步骤skipped，不登记为首轮通过。
+
+golangci-lint另报告S1 WS测试`CloseNow`未显式处理返回值和S2目录平台分支QF1003。只将测试兜底清理写成显式忽略已关闭连接返回值，及平台if/else改等价switch；正常关闭仍require.NoError，不添加lint豁免、不改检查规则。共3文件13新增/3删除，生产改动仅等价平台分支。实际diff/gofmt核对通过；定向API合同1顶层/12 PASS项和目录价格、倍率及WS测试16顶层/23 PASS项全部通过，原48组价格owner对账在该目录测试中重跑。未安装本地golangci-lint，由必需远端门禁验证；没有重复本地完整回归或浏览器。
+
+### 最终真实门禁与绑定
+
+当前personal保护为strict/App 15368 `personal-ready`，管理员也受约束。现行Personal CI需要binding、existing-ci、existing-security、tps、sync-contracts及末尾personal-ready，未合入CI选择优化不生效。首轮明确失败诊断后，定向通过才推送修正的最终SHA，由PR synchronize原生事件触发[最终run `37982040213`](https://github.com/ccisnoxx/sub2api/actions/runs/37982040213)。总计2次普通候选分支push、2次不同SHA原生门禁，0次额外dispatch/同SHA rerun/本地完整gate；既有`codex/verify-personal-ci-*`排除规则避免push事件再起重复CI/Security Scan，CLA Assistant按原政策skipped。
+
+最终所有必要job success：shell、Go单元/集成/recording race、前端、golangci-lint、release helpers、两类安全检查、TPS、同步合同及personal-ready。开始/结束绑定同一候选`88156f09fcf980a771a8aab570f0dbaec5de25fb`与最新personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，API读回要求App 15368 check的head SHA及结论。实际job、初始失败/定向修正和最终完整日志均存清单，不拿旧SHA结果代替最终门禁。
+
+PR仍draft，personal/main未更新；没有候选对应个人发布、Release或镜像digest。发布自动化仅接受personal成功push/dispatch，本轮为独立候选pull_request；原自动化变量和workflow保持。正式合并后的personal完整SHA仍必须获得它自身的成功personal-ready，PR门禁不替代正式发布资格。
+
+### 证据复用与交付边界
+
+初始S2.2–S2.6所有输入和原产物校验匹配；最终catalog_pricing.go因等价风格修正hash变化，其目录价格合同在本轮重跑，未变输入与产物继续按原范围复用。S2.5真实JWT/PG16/Redis/64组HTTP价格owner对账、S2.4/S2.6合成浏览器仍各有证据边界。各阶段独立复核按原行为复用，不冒充本轮fresh复核，本轮无新委派。原始HTTP额外字段白名单的非阻断测试限制、媒体/请求依赖unknown、S1第二批未接入及生产审计/会话绑定/实际上游与扣款未验证继续登记。
+
+S2无新增迁移，但累计候选含S1迁移251；原固定旧源码/扩展schema兼容证据和备份恢复要求继续适用，不能据无S2迁移宣称累计候选无数据变化。未分配版本、发布镜像或连接生产；未来部署需真实备份、固定digest及工具运行树审定。
+
+S2.7结果按main来源维护职责登记，并增量同步原指定计划位置和旧S2.5应用树，各自旧journal全文保留；最终门禁候选保持干净固定HEAD，本轮交付记录在三处登记树未提交，避免登记结果后改变已验证SHA或再次触发完整gate。
+
+**S2.7已完成。下一项S3.1冻结结构化诊断合同，未自动开始。合并、镜像发布和生产部署均未执行。**
+
+
+## S3.1：结构化诊断合同冻结
+
+本轮仅 S3.1。最新远端/本地 personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；应用分析仅使用干净 personal 累计候选 `88156f09fcf980a771a8aab570f0dbaec5de25fb`。[草稿 PR #5](https://github.com/ccisnoxx/sub2api/pull/5) 仍 OPEN/draft、head/base 与 S2.7 一致且未合并；来源 KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d` 未变。main 来源 `plus-pricing-s22-evidence` 只维护文档，增量同步原计划树与 S2.5 记录树；没有替换应用源码或移动任何已有 HEAD。
+
+### 冻结结果与来源检查
+
+[结构化诊断合同](routing-diagnostics-contract.md)明确可选 v1 对象、选择层/原因机器码、入口池观察点、过滤原因白名单和完整/部分/未观察统计。已观察空列表为 `0`，预检查拒绝/列表报错/未观察池为 `NULL`；池是实际分组/平台查询范围内返回的账号行，无法推算全库。Grok/阈值前置过滤及 compact 最终拒绝保留真实入口观察；旧 CandidateCount、TopK、子池、summary 文案和模型可用性补查均不能作为新统计。
+
+按 26 个 personal owner 文件和 6 个既有测试边界对照，确认 legacy/advanced、channel pricing、Grok、compact、gwpool、handler failover、日志归因/恢复 telemetry、队列和用户白名单。冻结每次完整选择评估的新序号、同账号发送的绑定快照、WS turn 清理及不可变副本；传输/身份 producer 不能改写选择事实。诊断仅进入已有管理员详情，不向普通用户列表/详情、导出或对客错误帧开放；不含凭据、原始 body/header、账号列表、成本/利润或内部会话标识。
+
+参考固定 Plus `90da415c62b94c9417d9ce2b72b1507ed22f0303` 的 ERROR_REQUEST_DIAGNOSTICS.md，只借鉴完整 owner 快照与观察/未知原则，按 KIN 现有 owner 适配；来源文件与符号校验值见 [候选证据](evidence/s3.1-candidate.json)。没有修改 producer、持久化/迁移、DTO、页面、调度/重试/扣费或依赖。
+
+### 实际验证与复用边界
+
+- 开工快照覆盖 7 处相关工作树的文件、HEAD/branch、已有未提交改动与三处各自文档；结尾按增量白名单比较，原 S0 的 17 项应用改动、全部既有源文件和其他工作树改动保留。三处 journal 分别保留原文，旧执行证据全文保留，任务只新增 S3.1 完成。
+- 3 个 JSON 合同样例核对已观察 0、预检查 NULL 和 WS 部分过滤；字段/整数/机器码、原因加总和范围关系核对；源码符号定位、文档链接和最终 diff 检查通过。结果见 [文档及保留检查](evidence/s3.1-document-checks.json)。这属于文档检查，不是 producer 运行测试。
+- S2.7 的 24 个原始证据产物校验值一致，已成功的 [Personal CI 37982040213](https://github.com/ccisnoxx/sub2api/actions/runs/37982040213) 仅按同一 88156f09 候选及原行为边界复用；不证明新诊断实现、NULL 持久化或 WS 快照传递。
+- 本轮未运行应用测试/构建、数据库/浏览器或完整门禁，未触发新 CI；未取得新独立代码复核。现有 S3 合同由主代理源码对照及文档自查，实际实现的归属/权限/异步快照独立复核留到 S3 候选与 S3.6。后续 producer 覆盖与运行验收清单在合同中明确，不勾选后续任务。
+
+证据根目录：`/Users/sc/.codex/validation/sub2api-kin/20261009-s31`；保留 baseline.json、reused-evidence.json、PR 元数据、固定 Plus 原文及最终检查产物。本轮文档未提交，应用候选保持干净；未 push/修改 PR、更新 personal、合并、发布镜像、生成 digest 或部署生产。
+
+**S3.1 已完成；下一项 S3.2「接入实际决策 producer」，本轮停止，不自动进入。**
+
+
+## S3.2 实际决策 producer 接入
+
+本轮仅S3.2。开工与收尾只读确认personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`、main仍`b43a472f4b1bde5983b3bdfa1447cd3622a77540`；[草稿PR #5](https://github.com/ccisnoxx/sub2api/pull/5)仍OPEN/draft、head `88156f09fcf980a771a8aab570f0dbaec5de25fb`、base personal且未合并。KlN `.5/c7aacf5d`来源保持。核对7处旧工作树31283个已有文件及未提交改动后，从干净S2.7 personal候选创建独立`codex/plus-routing-producer-s32`，应用位于`/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin`，本地应用提交`cee1e908261c68880040b740aae8054410e03070`，13个应用/测试文件。main来源维护树仅承担文档登记；原S0的17项应用改动、旧S2.7门禁候选及其他工作树源码全部保留。
+
+### 实际行为与范围
+
+新增v1 `RoutingDiagnostics`及请求/turn内选择owner，由真实分支形成选择层、原因、池、过滤数量/理由及coverage。列表成功返回后、阈值/Grok后置过滤前观察入口；池与过滤均按不同账号ID计一次。实际空列表为`0/0/{}/complete`；预检查拒绝、列表失败及只查单号的sticky未观察池时为NULL，不解析错误summary、不额外查询或重跑有副作用的限制。TopK、子池、未probe、排序及WaitPlan不算过滤；compact stale恢复不算最终排除；信息不全保留partial。
+
+覆盖OpenAI主调度advanced/legacy、公开OpenAI `SelectAccountWithLoadAwareness` legacy、previous/guardian/session/weighted sticky与load balance、订阅/普通子池、渠道定价/阈值/Grok额度/compact fresh与DB复核、proxy第二评估、gwpool重选/终检及图片native→basic。每次真实新评估生成新attempt及全新字段；成功结果、决策、结构化错误和当前请求状态分别深复制，保留`Error()`与`errors.Is/As`，结果及决策字段为`json:"-"`。
+
+实际HTTP/SSE入口复用`setOpsRequestContext`的请求owner。Responses WS在业务ctx、当前Request及gwpool wait写回之间显式绑定同一owner；建连重选保留Turn=NULL，Proxy开始后以连接逻辑turn建新owner。Proxy局部turn重启、同账号重试和后续429换号不能使新turn借用旧快照或序号；已有Ops/计费/安全钩子的局部编号保持。Grok Voice和Realtime预accept选路循环补齐请求owner；Realtime后续音频帧没有新turn producer。未重新选路的新WS turn没有当前诊断，不能冒充观察过池。
+
+其他平台的generic GatewayService、独立兼容或直接返回账号的旧入口、TokenCount尚未接入，保持nil；本轮不宣称全部平台覆盖。provider发送/终态绑定、Ops失败快照/队列预算、持久化/迁移、DTO/API及管理员页面尚未实现，用户错误白名单没有扩展。范围详见[合同补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。
+
+### 验证、复核与保留
+
+最终候选13文件SHA-256与测试/复核固定输入一致，gofmt和实际diff检查通过。Go `1.27.2 darwin/arm64`在应用树backend内完成：
+
+| 定向范围 | 最终实际结果 | 原始记录 |
+|---|---|---|
+| producer与既有派生值合同 | 17顶层、59 PASS项、0 FAIL、package pass、exit 0 | `service-final.jsonl` |
+| HTTP请求/WS/音频owner、既有归因与native/passthrough回归 | 17顶层、22 PASS项、0 FAIL、package pass、exit 0 | `handler-final.jsonl` |
+| 既有advanced/legacy/DB/compact/子池/gwpool/利润调度 | pass、exit 0 | `service-regression-final.log` |
+| 核心不可变副本/并发owner race | pass、exit 0 | `core-race-final.log` |
+| WS逻辑turn/实际failover/音频请求归属 race | pass、exit 0 | `handler-race-final.log` |
+
+服务合同包括提前NULL/真空池0、Grok原位全过滤、同ID去重及全排除、compact恢复、TopK/子池/WaitPlan部分观察、重复DB复核、新评估/网关池/图片fallback及TokenCount未知。实际本地httptest WS覆盖BeforeRequest前凭据重选与第二turn真实429换号后第三turn清空；Voice/Realtime实际handler三次凭据失败保持attempt=3且无上游发送。使用合成账号与本地假上游，无付费/生产请求。
+
+1次fresh独立只读复核完整diff、新文件、合同和日志，确认并修正4项：重复ID池统计；WS初始及gwpool wait写回丢owner；Proxy重启导致逻辑turn复用；Grok音频入口未保存请求owner。每次修正先检查受影响失败，再执行上述最终范围；最终无确认仍未修复的P0/P1/P2。复核未独立运行Go测试，结论来自原始日志与稳定源码。native/passthrough重试后的第三turn未新增同等E2E诊断断言，当前证据为共享映射源码、scope测试及既有WS回归；日志队列/终态和权限边界留S3.3。委派[执行摘要](evidence/s3.2-subagent-digest.md)已由审计工具close/verify通过。
+
+初次Grok夹具用APIKey代替仅OAuth的team gate并缺UsageLogRepository，修正后定向及最终通过；WS反例最初以第二turn 402触发换号，与既有仅后续429换号合同不符，改用429及正确input后通过。临时zaptest日志辅助在测试前要求间接依赖，改回已安装zap，没有go.mod/go.sum变化；没有盲重试或借测试改变调度。
+
+S3.1合同按原语义复用；S2.7 Personal CI `37982040213`/personal-ready仅继续证明旧88156f09，不作为本次应用门禁。未运行无关完整测试/CI、数据库或浏览器；无新存储、迁移、依赖、页面或workflow改动。AGENTS引用的outbound identity/account extra约定在相关personal文件及Git tree中未找到，本轮不触及对应owner，未借main替代或猜测规则。原始记录根为`/Users/sc/.codex/validation/sub2api-kin/20261009-s32`，完整命令/哈希/早期失败与复核边界见[验证清单](evidence/s3.2-validation.json)。
+
+完成时[文档与保留检查](evidence/s3.2-document-checks.json)核对旧7处工作树、原17项应用改动及旧证据；三处登记树分别追加文档并保留各自旧journal全文。独立应用树同步S2.7/S3.1既有登记与本轮S3.2文档，各自旧历史不覆盖；旧门禁候选保持干净原HEAD。应用与文档仅本地固定，维护/原计划/S2.5登记树的既有未提交文档保持未提交，没有push/修改PR、新CI、更新personal、合并、镜像发布或生产部署。
+
+**S3.2已完成；下一项S3.3「贯通错误存储与DTO」。本轮停止，不自动开始S3.3，S3.5/S3.6也未提前勾选。**

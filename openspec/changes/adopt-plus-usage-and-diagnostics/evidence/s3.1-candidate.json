@@ -1,0 +1,379 @@
+{
+  "task": "S3.1",
+  "status": "合同冻结；应用实现未开始",
+  "recorded_utc": "2026-10-09T20:41:00.275562+00:00",
+  "personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "application_candidate": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+  "kin_source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "application_read_root": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+  "documentation_owner": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+  "documentation_sync_roots": [
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+    "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin"
+  ],
+  "pr": {
+    "baseRefName": "personal",
+    "baseRefOid": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "headRefName": "codex/verify-personal-ci-plus-catalog-s27",
+    "headRefOid": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "isDraft": true,
+    "mergedAt": null,
+    "number": 5,
+    "state": "OPEN",
+    "url": "https://github.com/ccisnoxx/sub2api/pull/5"
+  },
+  "worktrees_at_start": [
+    {
+      "path": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+      "head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+      "branch": "codex/verify-personal-ci-plus-catalog-s27",
+      "status": "",
+      "manifest_files": 4577
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head": "aeead84a68545ed8ee6697345f42aa00e59f1cef",
+      "branch": "codex/plus-pricing-s22-evidence",
+      "status": "M docs/dev-journal.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/plan.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json",
+      "manifest_files": 4261
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "branch": "codex/fix-version-usage-help",
+      "status": "M backend/internal/handler/admin/system_handler.go\n M backend/internal/handler/admin/system_handler_test.go\n M backend/internal/service/update_service.go\n M backend/internal/service/update_service_test.go\n M docs/dev-journal.md\n M frontend/src/api/admin/system.ts\n M frontend/src/components/admin/usage/UsageTable.vue\n M frontend/src/components/admin/usage/UsageTps.vue\n M frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts\n M frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts\n M frontend/src/components/common/VersionBadge.vue\n M frontend/src/components/common/__tests__/VersionBadge.spec.ts\n M frontend/src/i18n/locales/en/dashboard.ts\n M frontend/src/i18n/locales/en/misc.ts\n M frontend/src/i18n/locales/zh/dashboard.ts\n M frontend/src/i18n/locales/zh/misc.ts\n M frontend/src/stores/__tests__/app.spec.ts\n M frontend/src/stores/app.ts\n?? openspec/changes/adopt-plus-usage-and-diagnostics/",
+      "manifest_files": 4555
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+      "head": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+      "branch": "codex/plus-catalog-verify-s25",
+      "status": "M docs/dev-journal.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/plan.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json",
+      "manifest_files": 4580
+    },
+    {
+      "path": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "branch": "codex/ci-validation-scope",
+      "status": "",
+      "manifest_files": 4219
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+      "branch": "codex/plus-pricing-s22",
+      "status": "",
+      "manifest_files": 4547
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+      "branch": "codex/plus-usage-s1",
+      "status": "",
+      "manifest_files": 4535
+    }
+  ],
+  "sources": [
+    {
+      "path": "backend/internal/service/openai_account_scheduler.go",
+      "sha256": "574417a1291424aed0e1bb26d2f9b5816df04501312627a5446a969a61c3f308",
+      "symbols": {
+        "Select": 382,
+        "selectByLoadBalance": 1407,
+        "buildOpenAIAccountLoadPlan": 860,
+        "tryAcquireOpenAISelectionOrderWithBudget": 1178,
+        "finishLoadBalanceSelectionFallback": 1680,
+        "isAccountRequestCompatibleReason": 1787,
+        "selectAccountWithScheduler": 2185,
+        "selectAccountWithSchedulerOnce": 2384,
+        "SelectAccountWithSchedulerForImages": 2159
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/openai_gateway_scheduling.go",
+      "sha256": "fb3ba19cdb4ddfb5111241987525da3885006732994da2f5446da8ce12dbdb7c",
+      "symbols": {
+        "listSchedulableAccounts": 1517,
+        "selectAccountWithLoadAwareness": 1146,
+        "openAICompatibleAccountEligibilityFailureReason": 371,
+        "shouldAutoPauseOpenAIAccountByQuota": 536,
+        "shouldAutoPauseGrokAccountByQuota": 472,
+        "filterOpenAIAccountsBySchedulingThreshold": 1718
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/gateway_scheduling.go",
+      "sha256": "3136df451cb9c72b0f76a27fc1c8f02c870785959628e33de70914adf53bd9ef",
+      "symbols": {
+        "SelectAccountWithLoadAwareness": 100,
+        "listSchedulableAccounts": 1014,
+        "filterAccountsBySchedulingThreshold": 1539
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/openai_gateway_service.go",
+      "sha256": "662af7eaaefff819fffbebf53b3623546903a35867621bc62a61a769790312a8",
+      "symbols": {
+        "checkChannelPricingRestriction": 682
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/gateway_forward.go",
+      "sha256": "5cacfcd02bd9cad5db406ebc1fadb9f0413519375e4cab65ee899b5f02cd02e6",
+      "symbols": {
+        "checkChannelPricingRestriction": 987,
+        "billingModelForRestriction": 1001
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/channel_service.go",
+      "sha256": "906c654a5e3d2486b7a818dc1b88cd7a03d337a01259c3a95a098643b6bdd17e",
+      "symbols": {
+        "IsModelRestricted": 581
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/grok_free_quota_gate.go",
+      "sha256": "1c2122f0d2a79d7fd53e4e3ba2cf6c7e585abfc04682ca4c6ebcf5f052f70769",
+      "symbols": {
+        "filterGrokFreeQuotaAccountsCore": 133
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/grok_team_rate_limit.go",
+      "sha256": "645a235a5c642b742071b005a2c71e1bc7b4f620e437436f0feaaf0abb56341c",
+      "symbols": {
+        "filterGrokTeamModelRateLimitedAccounts": 117
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/grok_model_quota_block.go",
+      "sha256": "e8975bcee3fd2040415aaee82940cd29bbbd48d14472773a0239c8a37a1aa8a1",
+      "symbols": {
+        "filterGrokModelQuotaBlockedAccounts": 110
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/openai_gwpool_candidate_accounts.go",
+      "sha256": "51bc8c9b460792df5b9285120bfa51f9b0d79add67e9c65ed41253675583cf67",
+      "symbols": {
+        "gatewayPoolDedupeCandidates": 5
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/openai_profit_control.go",
+      "sha256": "c62cf1e31b92f7946a565529bfcf889ed9bb0368eb30f30060bf66ec0cf9a0b2",
+      "symbols": {
+        "openAIProfitControlVetoReason": 302
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/openai_turn_state_hold.go",
+      "sha256": "3f30f9bc774bf46071f70816a424e96b47cd7b73771a527df64dc824a9a3ca35",
+      "symbols": {},
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/account_scheduling_threshold_reason.go",
+      "sha256": "c2fa6d8ca4af9b4212743c1ee5b2a018621ad355c5b969155be7dfbe1771f8a3",
+      "symbols": {},
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/handler/openai_gateway_handler.go",
+      "sha256": "40a2f004f783d5e02e09e2f7b98edadaa2d614f89925144175ec7846801d9710",
+      "symbols": {},
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/handler/gateway_handler.go",
+      "sha256": "6e315e8f5c2c30e069ae67aa4347f067b54a42d42cbc6966b605d237241adf5d",
+      "symbols": {},
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/handler/failover_loop.go",
+      "sha256": "a0cf6a9a4492c6fe7126c0d37e45f36e0e8aba8e30e8d69dc69363467438637c",
+      "symbols": {
+        "HandleFailoverError": 202,
+        "HandleSelectionExhausted": 285
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/handler/no_account_error.go",
+      "sha256": "d3de91f864eeb6087672d14128c629af7a59cbeb2557ef00d6deab68e20e4816",
+      "symbols": {
+        "classifySelectionFailureError": 75,
+        "classifyNoAccountError": 144
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/ops_upstream_context.go",
+      "sha256": "08b511898dda5217b09d6c6152060f6245893b2bd513a113d0d0312316de9b2d",
+      "symbols": {
+        "BeginOpsStreamTurn": 177,
+        "snapshotOpsStreamErrorContext": 260,
+        "appendOpsUpstreamError": 440
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/handler/ops_error_logger.go",
+      "sha256": "2b19bf6a94495e882f0671e0bc5cf7338b62ac419e2651f9fffcf4df700d4746",
+      "symbols": {
+        "enqueueOpsErrorLog": 211,
+        "estimateOpsErrorLogJobBytes": 398,
+        "logOpsRecoveredUpstream": 1283,
+        "logOpsStreamErrorValue": 1437,
+        "applyOpsStreamErrorSnapshot": 1587,
+        "applyOpsUpstreamErrorEvents": 1716
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/ops_service.go",
+      "sha256": "f22a960898960a5341784e0b764975ff92ff97dea20c7af7a50149dd6dfbd90d",
+      "symbols": {
+        "prepareErrorLogInput": 461,
+        "sanitizeOpsUpstreamErrors": 569,
+        "GetErrorLogByID": 746,
+        "GetUserErrorRequestDetail": 770
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/ops_port.go",
+      "sha256": "7087acfc05cdbb7e4d52379e0f6d3956c0fc946354aecde7e36068a9a5a46503",
+      "symbols": {},
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/ops_models.go",
+      "sha256": "b8b2fa16362a16a42aa8959e725bc0224ac7e416cef51df9fe932667d8541533",
+      "symbols": {},
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/service/ops_user_error.go",
+      "sha256": "938909d29d66554e0b97819c8573546606d31d1819b2ae8f46fdb2049091a3c9",
+      "symbols": {
+        "ToUserErrorRequest": 93,
+        "ToUserErrorRequestDetail": 134
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/repository/ops_repo.go",
+      "sha256": "a5e240d163b138cba7346da74ecbac60f6e467f4fe8f53415c3a7af046d57a79",
+      "symbols": {
+        "GetErrorLogByID": 397
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/handler/admin/ops_handler.go",
+      "sha256": "99131f870b2c1abceec478827f48bb86823137b04c912f7f0277eff7dda1d0dc",
+      "symbols": {
+        "GetErrorLogByID": 22
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    },
+    {
+      "path": "backend/internal/server/routes/admin.go",
+      "sha256": "548b84e60b1c6faa18164af34986067743e755ae1993782267448e6ea5ab780d",
+      "symbols": {
+        "RegisterAdminRoutes": 14
+      },
+      "inspection": "现有 owner 源码结构及相关函数；未执行应用测试"
+    }
+  ],
+  "existing_test_boundaries": [
+    {
+      "path": "backend/internal/service/openai_legacy_scheduler_decision_test.go",
+      "sha256": "dcd223e048059fe1e9089465408fdec0b618499572c23e24936b1f1cfd2107fd",
+      "scope": "读取相关既有案例或定位对应边界；本轮未运行，不证明新诊断合同已实现"
+    },
+    {
+      "path": "backend/internal/service/openai_account_scheduler_compact_test.go",
+      "sha256": "cc02a4cce6e1864f2f501f4a987ef988e7aef48379de28cb097a465a644fe03a",
+      "scope": "读取相关既有案例或定位对应边界；本轮未运行，不证明新诊断合同已实现"
+    },
+    {
+      "path": "backend/internal/service/grok_free_quota_gate_test.go",
+      "sha256": "173d7762f3f4ee6572411e9d528a1ea104c04d47d886c080ffa78b6147beac72",
+      "scope": "读取相关既有案例或定位对应边界；本轮未运行，不证明新诊断合同已实现"
+    },
+    {
+      "path": "backend/internal/service/ops_upstream_context_test.go",
+      "sha256": "f55f50e001d5b5892e1d082215d688386201aa6a3c2fe4818e8ecef5e0f864d4",
+      "scope": "读取相关既有案例或定位对应边界；本轮未运行，不证明新诊断合同已实现"
+    },
+    {
+      "path": "backend/internal/service/ops_user_error_test.go",
+      "sha256": "bba6a656111c1cfdc33cad65f0d0bdad1502bbc283b919c0a9c02ad11d603abb",
+      "scope": "读取相关既有案例或定位对应边界；本轮未运行，不证明新诊断合同已实现"
+    },
+    {
+      "path": "backend/internal/handler/ops_error_logger_test.go",
+      "sha256": "a7fbf9418f58097ff8e9aa7abf92f4cc16e820a6ef9d85ceb477e243ed204c3d",
+      "scope": "读取相关既有案例或定位对应边界；本轮未运行，不证明新诊断合同已实现"
+    }
+  ],
+  "plus_reference": {
+    "commit": "90da415c62b94c9417d9ce2b72b1507ed22f0303",
+    "url": "https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/ERROR_REQUEST_DIAGNOSTICS.md",
+    "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261009-s31/plus-reference.md",
+    "sha256": "ec0f7c367b13ed63b174a5cfb860a36015c206b4a7a8b861b04854570fba300f",
+    "borrowed_scope": "完整 owner 快照与已观察/未知边界；KIN 具体池、过滤、归属和权限由本地合同决定"
+  },
+  "startup_artifacts": [
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s31/baseline.json",
+      "sha256": "5e4d1ee16f2436f91837727aa608ed36dad121a84d84bd3700a8309e85d9dae7"
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s31/reused-evidence.json",
+      "sha256": "f663351fba61ca72daaedf486d85e90ad85b836fb23ad859ac7775af7aaf70f5"
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s31/pr-start.json",
+      "sha256": "d8aa083f193c450132dc6990d9ab2e82a8cdcc5ca4acfcc4b13330a6573e12d3"
+    }
+  ],
+  "not_implemented": [
+    "producer",
+    "snapshot transmission",
+    "persistence/migration",
+    "DTO",
+    "page"
+  ],
+  "not_executed": [
+    "application tests/build",
+    "database/browser",
+    "full gate",
+    "independent code review",
+    "commit/push/PR mutation",
+    "merge",
+    "image release",
+    "production deployment"
+  ],
+  "independent_review": "文档冻结由主代理源码对照与自查；未取得新独立复核。实现归属/权限及快照复核留实际 S3 候选（S3.6）。",
+  "next_task": "S3.2 接入实际决策 producer；本轮停止"
+}

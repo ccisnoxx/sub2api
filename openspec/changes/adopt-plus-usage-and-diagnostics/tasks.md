@@ -2,7 +2,7 @@
 
 - 对应方案：[plan.md](plan.md)。
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 当前状态：S0.1、S1.1–S1.4本地部分和S2.1–S2.6已完成；S2.7未开始。应用在独立personal来源候选本地提交，原S0文件保留；远端CI、合并、发布和生产部署未执行。
+- 当前状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.2已完成；S3.3未开始。S3.2本地应用`cee1e908261c68880040b740aae8054410e03070`只完成实际producer与请求/逻辑turn归属，定向测试及独立复核通过；草稿PR #5仍是S2.7候选，原S0及其他工作树改动保留，合并、发布和生产部署未执行。
 - `[x]` 表示本任务的交付与验证已经完成；`[ ]` 表示待执行。已具备的旧候选不等于本计划的新功能完成。
 - 每项勾选时记录最终候选 SHA、验证结果、覆盖入口及限制；涉及线上动作时另记真实版本和 digest。
 
@@ -81,14 +81,14 @@
 - [x] **S2.4 改造已有可用渠道页面。**增加模型检索、分组报价详情及计费单位展示；支持键盘与双语，避免把目录当实时健康或最低价路由承诺。 应用`b8cf49ca25007cbc23338a9443b71df4c0411155`；10前端合同、lint/类型/build、4组浏览器及fresh只读复核通过。见[执行证据](implementation-evidence.md#s24-可用渠道页面模型与分组报价目录)；S2.4完成时S2.5/S2.6未执行，S2.5/S2.6后续结果分别见下一项及执行证据。
 - [x] **S2.5 验证权限与报价一致性。**定向测试保护旧接口、不可见分组、零/未知价、重复倍率及阶梯上下文；同样计费输入与现有解析比较。验证候选`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`；真实JWT/PG16/Redis用户路由2顶层/11 PASS、64组HTTP报价与生产owner对账通过，S2.2–S2.4的30输入/51产物校验后按原边界复用。两次fresh只读复核完成，三项测试保护缺口关闭；见[执行证据](implementation-evidence.md#s25-权限与报价一致性验证)及[验证清单](evidence/s2.5-validation.json)。S2.6未自动开始。
 - [x] **S2.6 验收模型查看流程。**浏览器验证检索、详情、报价切换与无权限状态；独立复核可见范围与价格来源。复用S2.5 personal候选HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`（功能`b8cf49ca25007cbc23338a9443b71df4c0411155`、验证`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`）；中文1440/英文390两组新完整流程通过，覆盖权限收窄/403清空/空目录/关闭入口/重试，S2.2–S2.5证据校验后按原边界复用。fresh只读复核无确认问题，未改生产源码。见[执行证据](implementation-evidence.md#s26-模型查看流程验收)及[验证清单](evidence/s2.6-validation.json)。下一项S2.7未自动开始。
-- [ ] **S2.7 登记阶段交付。**确认实际 diff 不改变扣费或调度；按稳定候选执行必需门禁并登记发布/部署状态。
+- [x] **S2.7 登记阶段交付。**确认实际 diff 不改变扣费或调度；按稳定候选执行必需门禁并登记发布/部署状态。累计候选`88156f09fcf980a771a8aab570f0dbaec5de25fb`基于personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；首轮CI定位并修正历史用量测试预期及两项lint，定向API/服务测试通过，最终[草稿PR #5](https://github.com/ccisnoxx/sub2api/pull/5)的[Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/37982040213)全部必要job及App 15368的personal-ready通过。S2无新增迁移，累计候选继承S1迁移251；未合并/发布/部署。见[阶段证据](implementation-evidence.md#s27-阶段交付登记)、[门禁清单](evidence/s2.7-validation.json)与[交付说明](delivery.md#s2-阶段交付s27)。下一项S3.1未自动开始。
 
 完成条件：目录清楚展示用户可调用模型和对应报价，默认 API、实际扣费与调用权限保持原样。
 
 ## S3：错误诊断增强
 
-- [ ] **S3.1 冻结结构化诊断合同。**定义选择层、原因、候选池和过滤数量/原因；空池 `0` 与未观察 `NULL` 明确区分。
-- [ ] **S3.2 接入实际决策 producer。**从 KIN 调度/限制 owner 生成完整快照；不解析错误文案、不从上一次尝试继承数量。
+- [x] **S3.1 冻结结构化诊断合同。**基于personal累计候选`88156f09fcf980a771a8aab570f0dbaec5de25fb`的实际调度、限制与日志owner，冻结选择层/原因、入口池、已知过滤及完整/部分/未知口径，明确空池 `0` 与未观察 `NULL`；定义请求/选择/发送尝试/WS归属、管理员详情可见范围和敏感白名单。26个owner文件及6个既有测试边界源码对照，24个S2.7证据产物按未变候选复用；样例/链接/保留检查通过，应用源码未改。见[合同](routing-diagnostics-contract.md)、[执行证据](implementation-evidence.md#s31-结构化诊断合同冻结)、[来源](evidence/s3.1-candidate.json)和[文档检查](evidence/s3.1-document-checks.json)。仅文档，未实现producer/存储/DTO/页面；下一项S3.2未自动进入。
+- [x] **S3.2 接入实际决策 producer。**从实际OpenAI advanced/legacy调度及限制owner生成完整快照；同ID池/过滤只计一次，保持0/NULL、partial、错误链及深副本，新评估清空旧数量。应用`cee1e908261c68880040b740aae8054410e03070`；HTTP/SSE请求、WS建连/逻辑turn及Grok音频重选归属接入，其他平台/独立旧入口/TokenCount未知。服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归及两组race通过；fresh只读复核四项确认问题全部关闭。见[覆盖](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)、[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)与[验证清单](evidence/s3.2-validation.json)。发送/终态及日志队列绑定、存储/DTO/页面留后续；下一项S3.3未自动开始。
 - [ ] **S3.3 贯通错误存储与 DTO。**向既有日志链传递可选诊断；确有持久化需求时新增可空 JSONB 迁移，保留历史缺失与当前权限。
 - [ ] **S3.4 扩展现有错误详情。**展示已知候选数量、过滤原因和未知状态，保留原有阶段、来源、责任方；不显示敏感请求或认证信息。
 - [ ] **S3.5 验证归属与行为保持。**覆盖账号选择前拒绝、空池、筛选后耗尽、重试成功和 WS 多 turn；确认调度、冷却、切换和扣费结果不变。
@@ -129,5 +129,8 @@
 | S2.4 | 页面本地实现与验证完成 | 应用`b8cf49ca25007cbc23338a9443b71df4c0411155`；personal来源S2.3 `b8db95969` | 10前端合同、lint/类型/build，4组中英/桌面/窄屏浏览器及2组价格表键盘 | 1次fresh只读复核；合成API，该轮未执行真实JWT/数据库及S2.5/S2.6；[证据](evidence/s2.4-validation.json) | 未执行 |
 | S2.5 | 权限与报价本地验证完成 | 验证候选`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`；personal来源S2.4 `1696d054c` | 真实JWT/SQL/PG16/Redis权限及旧数组；2顶层/11 PASS、64组HTTP/计费对账；30输入/51产物按原边界复用 | 两次fresh只读复核，三项测试缺口修正并关闭；未改生产逻辑；[证据](evidence/s2.5-validation.json) | 未执行 |
 | S2.6 | 模型查看流程本地验收完成 | personal候选HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`；S2.4功能/S2.5验证源码无变化 | 中文1440/英文390检索、详情、报价、权限收窄/403/空目录/关闭入口/重试；原证据校验复用 | 1次fresh只读复核无确认问题；新浏览器使用合成API，真实JWT/SQL/价格证据复用S2.5；[证据](evidence/s2.6-validation.json) | 未执行 |
+| S2.7 | 最终候选与阶段交付登记完成 | 累计personal候选`88156f09fcf980a771a8aab570f0dbaec5de25fb`；草稿PR #5 | S2扣费/调度diff核对；首轮失败修正3文件，定向12/23 PASS项；最终Personal CI `37982040213`全部必要job/personal-ready通过，开始/结束base/SHA一致 | 原行为复核及未变输入证据复用；S1迁移/未接入平台和原测试边界保留；[证据](evidence/s2.7-validation.json) | 合并/发布/部署未执行 |
+| S3.1 | 结构化诊断文档合同完成 | personal来源累计候选`88156f09fcf980a771a8aab570f0dbaec5de25fb`，未改应用 | 调度/限制/日志owner对照；0/NULL/部分统计与样例、链接、工作树保留检查通过；S2.7的24产物按原边界复用 | 无新独立代码复核；producer/存储/DTO/页面和S3运行验收留后续；[合同](routing-diagnostics-contract.md)及[检查](evidence/s3.1-document-checks.json) | 未执行 |
+| S3.2 | 实际producer本地实现与验证完成 | 应用`cee1e908261c68880040b740aae8054410e03070`；personal来源S2.7 `88156f09`；OpenAI主调度及请求/WS owner | 服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归、core/handler race及格式/diff检查通过 | 1次fresh只读复核，4项问题关闭；未接入平台未知，发送/日志/DB/DTO留S3.3；[清单](evidence/s3.2-validation.json) | 未执行；无push/PR更新/新CI |
 
 发布和部署栏在真实发生前保持“未执行”。运行进程、空输出、计划中的命令或已有其他候选的成功结果，都不作为本任务完成证据。

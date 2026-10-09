@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S3.2 实际决策 producer 接入完成
+
+- 本轮仅S3.2。最新personal仍9397eb8af，草稿PR #5仍S2.7候选88156f09且未合并；从personal来源建立独立`codex/plus-routing-producer-s32`，应用提交`cee1e908261c68880040b740aae8054410e03070`。main维护树只登记，原S0的17项应用改动及全部旧工作树保留。
+- 接入OpenAI主调度advanced/legacy及公开LoadAwareness、渠道/Grok/阈值/compact/DB、sticky/子池、proxy第二轮/gwpool/图片fallback真实快照。入口池与过滤按不同ID计一次，保持0/NULL/partial；完整新评估、深副本及结构化错误保持原错误链。HTTP/SSE请求、Responses WS建连/逻辑turn、Voice/Realtime预accept重选owner接入；未接入平台/独立旧入口/TokenCount保持nil。
+- 最终服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归及core/handler race通过，13文件格式/hash/diff检查通过。fresh只读复核四项问题全部关闭；复核未独立运行测试，native/passthrough后续第三turn仍用共享映射/scope及既有回归，HTTP bridge有新增实际WS反例。夹具早期Grok/WS失败原因与修正记录完整，无依赖变更。
+- 已更新[任务证据S3.2](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s32-实际决策-producer-接入)、合同覆盖补充、验证/保留清单及已关闭验证的[委派摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md)。旧执行证据与各树journal全文保留；本地应用树同步既有S2.7/S3.1登记，其他树原源码不改。S2.7旧CI只证明旧候选，没有新完整门禁/DB/浏览器或付费上游。
+- S3.2勾选；下一项S3.3「贯通错误存储与DTO」，未自动开始。发送/终态和Ops队列绑定、持久化/迁移、DTO/API/页面未实施；S3.5/S3.6未提前勾选。没有push/修改PR、更新personal、合并、镜像发布或生产部署。
+
 ## 2026-10-09：KIN 借鉴 Plus S2.6 模型查看流程验收完成
 
 - 本轮仅S2.6。personal仍`9397eb8af`、KlN `.5/c7aacf5d`；复用干净S2.5 personal来源工作树HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`（S2.4功能`b8cf49ca2`、S2.5验证`3722c48cc`），未用main应用源码。原S0的17应用文件及应用4380个源文件校验保持，未改生产代码/扣费/调度/迁移/依赖。

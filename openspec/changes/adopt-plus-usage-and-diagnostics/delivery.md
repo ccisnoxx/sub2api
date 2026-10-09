@@ -1,4 +1,6 @@
-# S1 第一批交付准备
+# KIN 借鉴 Plus候选交付与回退
+
+本文件保留S1第一批历史准备，当前累计候选和真实门禁见文末S2.7；S1段落的“本会话/下一项”指当时准备轮，当前状态以S2.7为准。
 
 本文件准备后续交付操作；本会话不推送、不合并、不发布镜像、不连接生产。已验证应用提交为 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`；实际覆盖、检查与独立复核结果登记在 [执行证据](implementation-evidence.md)。文档归档会推进本地HEAD；后续远端门禁必须绑定届时的真实完整候选，不能将本地结果称作远端通过。
 
@@ -34,3 +36,15 @@ pg_restore --list usage-s1-before.dump > usage-s1-before.list
 ## 下一项
 
 第一批验收完成后暂停。按主线推荐下一项 S2.1 模型价格目录权限与接口合同；S1.5 的第二批入口按实际使用需要另选；本会话不自动进入两者。S0.2/S0.3、S1发布/生产验收继续保持独立状态。
+
+
+## S2 阶段交付（S2.7）
+
+- 最终累计候选：`88156f09fcf980a771a8aab570f0dbaec5de25fb`，KlN来源`v0.2.14-klno.5/c7aacf5d`，personal基础`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`。工作树`codex/verify-personal-ci-plus-catalog-s27`，旧候选及未提交改动保留。
+- [草稿PR #5](https://github.com/ccisnoxx/sub2api/pull/5)及[Personal CI `37982040213`](https://github.com/ccisnoxx/sub2api/actions/runs/37982040213)绑定相同候选/基础，全部必要job及App 15368 personal-ready通过。首轮失败按证据修正3处，定向通过后才触发最终SHA门禁，总计2个不同SHA原生run，无额外dispatch或本地完整gate，未采用未合入CI选择优化。
+- 范围包含S0修复、S1第一批用量和S2目录。S2只读GET保留默认数组/JWT/分组权限；价格同源，个人倍率一次，0与unknown可区分。未改变实际Token计算、余额/订阅结算、调度、gwpool或重试。
+- 数据边界：S2无新增迁移；累计候选继承S1迁移251。原固定旧源码/扩展schema兼容与上述备份恢复要求继续适用，不删除列或migration ledger，不宣称整个候选无数据变化。
+- 状态：PR保持草稿，personal未更新，未合并/发布/生成镜像或digest/部署生产。合并后的最终personal完整SHA仍需自身成功personal-ready；S0.2/S0.3的合并发布/线上验收继续独立待执行。
+- 未覆盖范围：S1第二批平台、生产审计/会话绑定/实际上游与扣款、真实后端浏览器E2E、媒体/请求依赖报价及原始HTTP字段白名单测试限制保持原边界；本轮无新fresh独立复核。
+
+[本阶段门禁、修正及来源清单](evidence/s2.7-validation.json)。下一项S3.1未自动开始，本轮到此结束。
