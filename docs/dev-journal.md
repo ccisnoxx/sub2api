@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S2.2 权威价格解析完成
+
+- 本轮只执行 S2.2。核对 personal 仍为 `9397eb8af`，来源 KlN `.5/c7aacf5d`；从干净 personal 来源 S1 `e3edb5666` 建立 `codex/plus-pricing-s22`，已验证应用 `e82287300d1b7cc625295c5307ebaa83c707c019`。main 来源新文档树 `codex/plus-pricing-s22-evidence` 仅登记文档，没有替代应用源码。
+- [权威价格服务](../openspec/changes/adopt-plus-usage-and-diagnostics/pricing-contract.md)复用 KIN 真实 resolver、计费探针、上下文/服务档位、FreeFast、分时/effort 与个人/分组/高峰/媒体倍率；明确零价和未知分开，实际依赖请求或未支持单位保留规则/unknown。零标签继续按真实上下文求价，不展示成固定价。
+- 新增15顶层/22 PASS项及48组生产 owner 对账通过；既有98顶层/158 PASS项定向回归通过。2次fresh只读复核确认4项问题均以反例先红后绿关闭；最终标签小修遵循第二轮认可方向并完成对账，没有第三次fresh全文复核。审计 `20261009T151715Z-kin-plus-pricing-s22-ef4e4438` closed/verify passed。
+- 原17应用改动、S1候选和聊天checkout保持原值；S0/S1的17/54文件及45个原产物校验匹配，复用原边界成功证据。三处本计划及各自历史日志增量保留。详见[执行证据 S2.2](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s22-kin-权威价格解析)。
+- S2.2已勾选；下一项S2.3模型聚合DTO与查询分支未开始。目录API/权限聚合、页面及媒体单价未接入；本轮不运行对应浏览器/数据库或全量门禁，不推送、不合并、不发布镜像、不部署生产。
+
 ## 2026-10-09：KIN 借鉴 Plus S1.1–S1.4 第一批完成
 
 - 本次只执行S1.1–S1.4。开始/结束只读核对personal仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；来源保持KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。新应用工作树 `codex/plus-usage-s1` 从personal创建，完整保存原S0候选到 `6bf78b18ce759e4f211c62b0518c3bca7418efde`，原17应用文件未修改；原聊天CI维护checkout保持干净，没有使用main应用源码。

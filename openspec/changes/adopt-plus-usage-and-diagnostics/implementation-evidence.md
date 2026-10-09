@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅 S1.1–S1.4；[任务清单](tasks.md)和[计划](plan.md)。下方 S0.1 保留当时记录，S1 是本次结果。
-- 维护登记位置：从默认 main 准备的既有 `codex/plus-s01-evidence`，增量同步本 change 与开发日志，保留原历史内容；原计划位置与新应用工作树同步相同记录。应用始终从 personal 出发。
-- 当前完成 S0.1 与 S1.1–S1.4 本地部分；远端 CI、合并、镜像发布、生产部署、S0.2/S0.3、S1.5 及 S2–S5 均未执行。
+- 当前续接范围：仅 S2.2；[任务清单](tasks.md)和[计划](plan.md)。下方 S0.1、S1、S2.1 保留当时记录，本轮价格解析结果见文末 S2.2。
+- 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
+- 当前完成 S0.1、S1.1–S1.4 本地部分、S2.1 合同及 S2.2 价格服务本地实现与验证；远端 CI、合并、镜像发布、生产部署、S0.2/S0.3、S1.5、S2.3 及后续任务均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -134,3 +134,66 @@ AGENTS 引用的 `docs/conventions/codex-outbound-identity.md` 与 `docs/tasks/`
 [交付准备](delivery.md)已记录增量迁移、备份/恢复、固定旧应用兼容边界及保留扩展schema的回退策略。personal当前必要CI仍是binding、existing-ci、existing-security、tps、sync-contracts及personal-ready；当前聊天的CI范围候选未生效，未借用。远端CI/安全/发布gate未执行，需后续推送/PR授权并绑定实际最终候选；部署工具的真实运行树兼容仍须针对实际生产候选审定。本会话没有推送、PR、Actions dispatch、合并、版本分配、镜像发布、SSH或生产部署，没有把历史tps.1当本候选证据。
 
 **S1.1–S1.4 已完成本地实现、验证与交付准备。** S1.5、S2–S5不自动开始；按计划推荐下一项为 **S2.1 模型价格目录的权限与接口合同**，S1.5第二批采集按实际使用入口另行选择。合并、发布和生产验收保持独立未执行状态。
+
+## S2.1 模型与价格目录权限与接口合同
+
+### 基线与工作位置
+
+- 先读取指定 plan/tasks/journal，再只读查询远端 `personal/main`。远端 personal、本地 personal 与 origin/personal 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；远端 main 与 origin/main 均为 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`。未 fetch、push 或修改远端。
+- 当前聊天仍为干净的 CI 维护 checkout `7949efe62e3854c83f39a21a0c36e03402c05688`，未用其应用源码。原 `fix-version-usage-help` 基线仍为 `9397eb8af`，17 个未提交应用文件保留。
+- 本轮核对应用使用干净的 `/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin`，HEAD `e3edb5666a03a582bfbb83a718aedda03ba6ea08`，包含 S1 已验证应用 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`；personal 是其祖先。与 personal 比较的九个核心渠道/授权/客户端文件无差异，S1 不改变本次旧接口基线。
+- 文档沿用 `/Users/sc/.codex/worktrees/plus-s01-evidence/sub2api-kin`，只增量编辑本 change 与 journal，并同步用户指定的原计划目录。两处 plan/tasks/implementation-evidence 编辑前逐字一致，日志各自旧内容保留。S1 源码工作树、HEAD 和历史应用证据不变。
+
+### 合同结果
+
+[目录权限与接口合同](catalog-contract.md)已冻结：
+
+1. 同一路由只有单个、大小写精确的 `view=catalog` 选择新对象；缺失、空、未知、重复值仍返回旧数组。成功封装、原客户端类型、认证/后台模式/限流不变。
+2. 分组授权复用 GetAvailableGroups；公开限制、专属授权、有效订阅独立处理，订阅组必须有 active 且未过期的本人订阅。用户参数和管理员身份不能扩大目录范围。
+3. 先授权分组，再关联 active 绑定渠道，再做普通/复合平台隔离与模型筛选。有权无模型组保留 models=[]；全局价格不扩增模型。新目录额外复用 KIN 现有 Group.ModelAllowlist.Allows；旧数组本轮不修改。
+4. 冻结目录外层、分组/offer 基本字段、稳定身份、白名单与空值；个人倍率读取失败与授权失败分开。旧展示价格包含仅供展示的全局合成，不当作实际扣费报价。
+5. S2.2 冻结并接入 KIN 权威价格解析，S2.3 实现目录 DTO 和查询分支。S2.1 未提前新增 resolver、API、前端、迁移或测试代码。
+
+### 本轮检查与未验证项
+
+源码核对覆盖路由/JWT/后台模式、设置读取、分组授权/订阅 SQL、渠道状态/平台/模型枚举、分组模型白名单、旧 DTO 与客户端；关键源文件的实际 SHA-256、Git 基线和检查结果见[检查清单](evidence/s2.1-contract-checks.json)。既有权限、平台、白名单与错误传播用例只作覆盖定位，没有宣称本轮运行通过。
+
+文档链接、任务编号、唯一勾选变化、空白/代码块、两处同步与历史日志保留均检查；四个工作树的 HEAD、既有17个应用改动和关键源文件校验值不变，S1 应用树与当前 CI checkout 保持干净。使用临时快照核验保留内容，持久证据只登记实际结果与必要校验值，不保存无关日志或凭据。
+
+依计划的文档阶段规则未运行应用构建、Go/前端测试、数据库、浏览器或完整门禁；S1 成功证据没有扩大为目录验证。本轮没有新委派或独立代码复核。当前接口未实现 catalog；新分支、跨用户权限、倍率失败状态与权威报价的一致性由 S2.3/S2.5 的实际候选验证。
+
+**S2.1 已完成。下一项为 S2.2 接入 KIN 权威价格解析；未自动开始。** 合并、镜像发布与生产部署均未执行。
+
+
+## S2.2 KIN 权威价格解析
+
+### 基线、工作位置与保留结果
+
+先读取用户指定 plan/tasks/journal，核对当前 personal、S0/S1 候选与未提交内容。远端、本地及 origin/personal 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；main 为 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`。应用从干净 S1 候选 `e3edb5666a03a582bfbb83a718aedda03ba6ea08` 创建 `codex/plus-pricing-s22`，位于 `/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin`。S1 已验证应用 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0` 是其祖先，来源继续为 KlN `.5/c7aacf5d`；没有使用 main 应用源码。
+
+原 S0 工作树的17个未提交应用文件逐一匹配原 manifest；S1 的54个应用文件、45个原始验证产物校验值均匹配。原 S0 应用文件及 HEAD、S1 工作树与 HEAD、聊天 CI checkout `7949efe62` 均保留。此前 `plus-s01-evidence` 在本轮文档写入前已不在磁盘，未由本会话删除；指定原计划目录保存最新 S2.1。因此新建 main 来源 `codex/plus-pricing-s22-evidence` 仅登记文档，各位置旧 journal 原文保留。
+
+最终已验证应用提交 `e82287300d1b7cc625295c5307ebaa83c707c019`，6个服务源码/测试文件；[候选清单](evidence/s2.2-candidate.json)登记真实 commit、tree、来源及文件/依赖校验值。其后的文档归档提交不替代这个应用身份。完整行为与 S2.3 接线要求见[价格合同](pricing-contract.md)。
+
+### 实现与计费责任
+
+新增 CatalogPricingResolver 消费已授权活跃分组和绑定渠道快照，复用 KIN 平台索引、精确/通配/模型归一化、requested/channel_mapped 及 Group → Channel → LiteLLM → 内置来源链。构造检查不代替权限；模型枚举、白名单、聚合与 DTO 仍属于 S2.3。upstream/response_model 与无显式价卡的 Composite 不伪造最终模型报价。
+
+Token 与按请求次数价格从真实计费探针求值，固定 ReferenceAt，输出 (min,max] 有效上下文段、服务档位、FreeFast、独立分时与最终 effort 规则。个人倍率覆盖分组默认值（含0），订阅高峰及独立图片/视频倍率复用实际 owner；各因素仅应用一次。未知与明确零分别保留 nil/0，来源存在性随同次价格读取传递，不因价格刷新混用版本。
+
+按次合法重叠区间按真实首次命中拆段；零标签表示随请求上下文继续求价，FallsBackToContext=true、Price=nil，引用有效上下文与默认价。只有明确 UsageKind=request 才输出 USD/request；媒体按张/秒/分钟/字符和图片 Token 单价没有可靠完整入口，明确 unsupported_unit/UnsupportedComponents。resolved 的 reason 为空，后续 DTO 映射 null；所有规则为参考，不能承诺未来完整账单。
+
+旧 ModelPricingResolver 构造、旧模型广场和计费公式/结算/调度保持原行为。新增元数据不序列化；未新增 HTTP、DTO、前端或迁移代码，不直接序列化 Group/Channel 等领域对象。
+
+### 实际验证与独立复核
+
+- backend 的实际 Go toolchain 为 go1.27.2 darwin/arm64。首次编译发现包内 int max 和原测试访问 concrete channelService；分别改用 math.Max、保留原字段并增加私有快照来源，编译错误消除。失败日志保留，不记为测试通过。
+- 最终 `go test -tags unit ./internal/service -run '^TestCatalog' -count=1 -v` 通过：15个顶层、22个含子用例 PASS 项；其中48组服务档位/上下文/缓存输入与生产 ChannelService 和独立 ModelPricingResolver 逐项对账。
+- 受影响既有 resolver、阶梯、Token/按次、缓存零价、动态价格解析及旧模型广场定向回归通过：98个顶层、158个含子用例 PASS 项。来源元数据修正后重新执行；最后仅目录零标签表示改动，其 owner 输入未变，复用最终通过结果。已有夹具 warning 如实保留。
+- 2次 fresh critical_reviewer 只读实际 diff 与日志；4项 P2 已修正：重叠按次区间、刷新时零值存在性、成功 reason、零标签跨上下文。四项都有针对合同的先红后绿证据，零标签覆盖默认0/0.25和0/1/100/101/300 Token。第二轮明确认可回退标记方向；最后小修由主代理按该方向实施并对账，没有第三次 fresh 全文复核。复核代理未独立运行测试。
+- 委派审计 `20261009T151715Z-kin-plus-pricing-s22-ef4e4438` 已 closed、audit-verify passed；计划/执行记录均校验，源码写入观测为零。见[复核与关闭记录](evidence/s2.2-reviews.json)、[生成执行摘要](evidence/s2.2-subagent-digest.md)。验收通过计数表示复核交付被接受，不表示含问题的早期候选被接受。
+- S0/S1 输入和原验证产物校验成功，仅复用它们原有边界；不扩大为新目录权限验证。详见[验证记录与日志校验](evidence/s2.2-validation.json)。文档链接、唯一勾选变化、三处计划同步、旧日志保留、最终 diff 与工作树检查登记在[文档收尾检查](evidence/s2.2-document-checks.json)。
+
+没有运行新 HTTP/权限/DTO、前端/浏览器、数据库/迁移、完整回归、远端 CI 或真实上游请求：本轮只改只读价格服务，对应新目录行为由 S2.3–S2.6 的实际候选取得证据。未执行推送、PR、合并、镜像发布或生产部署。
+
+**S2.2 已完成。下一项是 S2.3 实现模型聚合 DTO 与 opt-in 查询接线，未自动开始。** 当前接口仍返回旧渠道数组，目录功能尚未对用户启用。

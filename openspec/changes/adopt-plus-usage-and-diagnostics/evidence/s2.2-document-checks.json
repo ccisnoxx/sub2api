@@ -1,0 +1,38 @@
+{
+  "task": "S2.2",
+  "recorded_utc": "2026-10-09T15:39:36.935104+00:00",
+  "candidate_commit": "e82287300d1b7cc625295c5307ebaa83c707c019",
+  "result": "passed",
+  "local_markdown_files_checked": 12,
+  "local_links_checked": 50,
+  "local_links_errors": [],
+  "checkbox_changes": [
+    "S2.2"
+  ],
+  "checkbox_baseline": "S1 已归档任务清单 + 已冻结 S2.1 状态，与本轮开始读取的状态一致",
+  "task_numbers_unique": true,
+  "subsequent_tasks_unchecked": true,
+  "change_directory_identical_in_three_locations": true,
+  "all_three_journal_histories_preserved": true,
+  "source_and_build_input_hashes_match_verified_candidate": true,
+  "original_worktrees_preserved": {
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin": {
+      "head_unchanged": true,
+      "existing_files_sha256_unchanged": 17,
+      "original_index_unchanged_empty": true
+    },
+    "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin": {
+      "head_unchanged": true,
+      "existing_files_sha256_unchanged": 0,
+      "original_index_unchanged_empty": true
+    },
+    "/Users/sc/PycharmProjects/sub2api-kin": {
+      "head_unchanged": true,
+      "existing_files_sha256_unchanged": 0,
+      "original_index_unchanged_empty": true
+    }
+  },
+  "git_diff_check": "passed_in_application_original_and_maintenance_worktrees",
+  "maintenance_scope": "docs/dev-journal.md + openspec/changes/adopt-plus-usage-and-diagnostics only",
+  "external_actions": "not_executed"
+}
