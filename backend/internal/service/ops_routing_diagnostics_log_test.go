@@ -163,3 +163,20 @@ func TestOpsRoutingDiagnosticsHistoryAndListProjection(t *testing.T) {
 	require.NotContains(t, normalized, "routing_diagnostics")
 	require.Contains(t, normalized, "real failure")
 }
+
+func TestOpsRoutingDiagnosticsTurnOwnerCannotReuseConnectionBinding(t *testing.T) {
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest("GET", "/v1/responses", nil)
+	c.Request = c.Request.WithContext(WithRoutingDiagnosticsRequest(c.Request.Context(), 0))
+	_, b := beginRoutingDiagnosticsSelection(c.Request.Context())
+	b.observePool([]Account{{ID: 1}})
+	b.pass(1)
+	_, _, _ = finishRoutingDiagnosticsSelection(b, &AccountSelectionResult{Acquired: true}, "load_balance", nil)
+	BindOpsRoutingDiagnosticsAttempt(c)
+	// beginProxy 先改变 owner，随后 BeforeRequest 进入同一 turn；后者不能借建连绑定。
+	c.Request = c.Request.WithContext(EnsureRoutingDiagnosticsTurn(c.Request.Context(), 1))
+	BeginOpsStreamTurnWithRoutingTurn(c, 1, 1)
+	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{UpstreamStatusCode: 502, Message: "reused connection"})
+	events, _ := c.Get(OpsUpstreamErrorsKey)
+	require.Nil(t, events.([]*OpsUpstreamErrorEvent)[0].RoutingDiagnostics)
+}

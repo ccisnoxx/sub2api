@@ -103,21 +103,32 @@ func ClearOpsUpstreamModel(c *gin.Context) {
 	c.Set(OpsUpstreamModelKey, "")
 }
 
+type opsRoutingDiagnosticsAttempt struct {
+	owner       *routingDiagnosticsRequest
+	diagnostics *RoutingDiagnostics
+}
+
 // BindOpsRoutingDiagnosticsAttempt 在选定账号后绑定本次发送；重选不能改写旧失败。
 func BindOpsRoutingDiagnosticsAttempt(c *gin.Context) {
 	if c == nil || c.Request == nil {
 		return
 	}
-	c.Set(OpsRoutingDiagnosticsAttemptKey, GetRoutingDiagnostics(c.Request.Context()))
+	owner, _ := c.Request.Context().Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
+	c.Set(OpsRoutingDiagnosticsAttemptKey, opsRoutingDiagnosticsAttempt{owner: owner, diagnostics: GetRoutingDiagnostics(c.Request.Context())})
 }
 
 func getOpsRoutingDiagnosticsAttempt(c *gin.Context) *RoutingDiagnostics {
-	if c == nil {
+	if c == nil || c.Request == nil {
 		return nil
 	}
 	value, _ := c.Get(OpsRoutingDiagnosticsAttemptKey)
-	d, _ := value.(*RoutingDiagnostics)
-	return d.Clone()
+	bound, _ := value.(opsRoutingDiagnosticsAttempt)
+	owner, _ := c.Request.Context().Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
+	// beginProxy 可能先于 BeginOpsStreamTurn 推进逻辑 turn；归属不一致时旧连接绑定无效。
+	if owner == nil || owner != bound.owner {
+		return nil
+	}
+	return bound.diagnostics.Clone()
 }
 
 func MarkOpsClientBusinessLimited(c *gin.Context, reason string) {
