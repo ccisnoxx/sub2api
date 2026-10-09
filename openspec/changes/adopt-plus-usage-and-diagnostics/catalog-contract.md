@@ -1,7 +1,7 @@
 # S2.1 模型与价格目录权限及接口合同
 
 - 冻结日期：2026-10-09（America/Los_Angeles）。
-- 状态：S2.1 合同冻结；S2.2 [权威价格服务](pricing-contract.md)已本地实现与验证；目录查询分支和 DTO 尚未实现。
+- 状态：S2.1 合同冻结；S2.2 [权威价格服务](pricing-contract.md)已本地实现与验证；S2.3 已实现目录查询分支和 DTO；页面留在 S2.4。
 - 范围：仅 S2.1；对应[计划](plan.md)、[任务](tasks.md)与[执行证据](implementation-evidence.md#s21-模型与价格目录权限与接口合同)。
 - 本轮读取应用：`codex/plus-usage-s1` / `e3edb5666a03a582bfbb83a718aedda03ba6ea08`；其中已验证应用为 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`，后续 HEAD 只归档文档。
 - 最新远端及本地 personal：`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；KIN 来源保持 `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。
@@ -190,3 +190,32 @@ interface CatalogOffer {
 - `backend/internal/repository/group_repo.go`、`user_subscription_repo.go`；`backend/migrations/081_create_channels.sql`。
 - `frontend/src/api/channels.ts`、`frontend/src/views/user/AvailableChannelsView.vue`。
 - [Plus 固定提交的可用渠道合同](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/AVAILABLE_CHANNELS.md)：只参考 opt-in 选择与目录组织，KIN 现有权限和计费 owner 保持权威。
+
+## S2.3 已实现的目录 DTO 与查询分支
+
+S2.3 已在 personal 来源候选中实现，目录仍受现有 `available_channels_enabled` 开关与用户路由 middleware 控制。默认客户端继续读取旧渠道数组；仅单个精确 `view=catalog` 返回本文定义的目录外层。页面改造属于 S2.4。
+
+目录外层以分组保留每份报价；每组 `models` 按具体平台、大小写无关请求模型 ID 排序/去重，使用 `Channel.SupportedModels()` 的有限集合与 `Group.ModelAllowlist.Allows()`。同平台同模型的不同分组 offer 继续分别输出，供 S2.4 聚合卡片。无绑定、停用渠道、无配置或被白名单全部过滤的有权组保留 `models=[]`。
+
+`offer_key` v1 是 `offer_` 加 SHA-256 的64位小写十六进制：输入为 `catalog-offer-v1`、十进制分组 ID、十进制绑定渠道 ID、具体平台、`strings.ToLower` 后请求模型 ID，以 NUL 分隔。显示名称、描述、价格、分组排序及模型 ID 的大小写变化不改变 key；请求 ID 或绑定渠道身份改变会改变 key。内部渠道 ID 不以可读字段输出，key 不提供授权保证。
+
+S2.2 允许的分组价格上下文补充为 `long_context_pricing_enabled`、`image_rate_independent/image_rate_multiplier`、`video_rate_independent/video_rate_multiplier` 与 `rate_multipliers`。后者包含 `token/image/video`、`reference_only`、`pricing_at`、`timezone`，由 `ResolveCatalogRateMultipliers` 求得；个人值覆盖默认值含0，读取失败忽略残留个人值。时点采用同一次请求的价格参考时点，时区来自真实高峰 owner。消费者使用适用的已解析倍率一次，不再同时乘默认/个人值；时点可能变化，仍应展示规则。目录不提供实际媒体单价。
+
+`CatalogPricing` 的显式输出白名单如下；时间按 Go `time.Time` 的 RFC3339 格式序列化，数值使用美元原始单位：
+
+| DTO | 字段与含义 |
+|---|---|
+| pricing | `reference_at/reference_only`、`service_tiers`、`request_pricing`、`time_pricing`、`reasoning_effort_multipliers`、`unsupported_components` |
+| service_tiers[] | `service_tier`、`context`；服务档单价已含该档策略，不再次乘 Fast/Flex |
+| context | `basis`、`intervals`；当前 basis 为 `whole_request` |
+| intervals[] | `min_tokens/max_tokens/tier_label`、`input_price/output_price/cache_write_price/cache_write_1h_price/cache_read_price`；保留 (min,max] 和 nil/0 |
+| request_pricing | `default_price/context_tiers/size_tiers`；每个 tier 为 `min_tokens/max_tokens/label/price/falls_back_to_context` |
+| time_pricing | `timezone/weekdays_only/periods`；period 为 `start_time/end_time/multiplier`，与基础单价分开应用一次 |
+
+所有列表为空时输出 `[]`，effort 映射为空时为 `{}`；未知价格、成功 reason、未知模式使用 `null`。`falls_back_to_context=true` 与 `price=null` 成对保留，消费者读取真实上下文规则，不将空标签价解释为免费。
+
+目录 GET 没有实际请求入口或媒体分类事实，因此未显式提供 `UsageKind=request`；按次/图片/视频配置保留模式并返回 `unsupported_unit/unknown`。映射依赖上游或响应模型返回 `request_dependent`。DTO 支持 S2.2 的按次回退规则映射，当前 GET 不据 `per_request` 模式猜测 USD/request。
+
+授权在渠道读取和模型聚合之前完成，渠道枚举及 resolver 复用同一次 `ListAll` 的克隆配置。用户倍率只读一次；仅此读取失败可形成 `unavailable` 与参考默认倍率。其他授权/渠道/价格错误沿用 `response.ErrorFrom`，不夹带部分目录。不新增缓存、结算、调度、上游探测或媒体计费算法。
+
+本轮 HTTP 夹具验证新分支、主体不受查询参数切换、公开/专属/订阅授权、白名单/平台隔离、空组、错误和倍率状态、报价与字段白名单。夹具注入仓库边界但执行真实授权与价格 owner；没有真实 JWT/生产凭据或数据库读取，S2.5 的进一步一致性验收、S2.6 的浏览器查看流程仍未执行。

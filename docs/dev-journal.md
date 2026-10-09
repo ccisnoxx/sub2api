@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S2.3 模型目录 DTO 与查询分支完成
+
+- 本轮只执行 S2.3。personal 仍为 `9397eb8af`、来源 KlN `.5/c7aacf5d`；从干净 S2.2 候选 `e4083c38f` 建立 `codex/plus-catalog-s23`，已验证应用 `49c209a77059d2927f78bbd31c1dd479b509dc6f`。复用 main 来源文档工作树仅登记文档，没有替代应用源码。
+- 同一用户 GET 仅单个精确 `view=catalog` 返回目录，默认/其他/重复值兼容旧数组。真实 GetAvailableGroups 先授权，active绑定与平台/公开请求名白名单先于聚合；保留分组报价、空组、稳定offer_key及显式DTO。报价来自S2.2同次配置快照，倍率只读当前用户一次、覆盖含0、失败标参考；未知单位不猜测，不改扣费/调度。
+- 新HTTP/DTO合同13顶层/32PASS及旧helper10用例通过，共23顶层/42PASS；服务端构造编译通过（无业务测试运行）。固定Wire v0.7.0用生成器临时modfile完成，应用go.mod/go.sum原值保留；两次生成环境失败保留诊断。S2.2同输入owner对账和定向回归复用。
+- 1次fresh只读复核未确认可操作缺陷；未独立重跑测试。审计 `20261009T155935Z-kin-plus-catalog-s23-f949dc81` closed/verify passed。复核后仅修正分支注释；S0原17文件、S1的54文件/45原产物、S2.2的6文件/12原产物均匹配，原候选与聊天checkout保留。三处计划及各自旧journal增量保留。
+- [任务状态与执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s23-模型目录-dto-与查询分支)已更新；[DTO合同](../openspec/changes/adopt-plus-usage-and-diagnostics/catalog-contract.md#s23-已实现的目录-dto-与查询分支)记录单位、倍率与白名单。S2.3已勾选，下一项S2.4页面未开始；真实JWT/数据库/浏览器、S2.5/S2.6、全量与远端门禁未执行；不推送、不合并、不发布镜像、不部署生产。
+
 ## 2026-10-09：KIN 借鉴 Plus S2.2 权威价格解析完成
 
 - 本轮只执行 S2.2。核对 personal 仍为 `9397eb8af`，来源 KlN `.5/c7aacf5d`；从干净 personal 来源 S1 `e3edb5666` 建立 `codex/plus-pricing-s22`，已验证应用 `e82287300d1b7cc625295c5307ebaa83c707c019`。main 来源新文档树 `codex/plus-pricing-s22-evidence` 仅登记文档，没有替代应用源码。

@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅 S2.2；[任务清单](tasks.md)和[计划](plan.md)。下方 S0.1、S1、S2.1 保留当时记录，本轮价格解析结果见文末 S2.2。
+- 当前续接范围：仅 S2.3；[任务清单](tasks.md)和[计划](plan.md)。下方 S0.1、S1、S2.1、S2.2 保留当时记录，本轮目录结果见文末 S2.3。
 - 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
-- 当前完成 S0.1、S1.1–S1.4 本地部分、S2.1 合同及 S2.2 价格服务本地实现与验证；远端 CI、合并、镜像发布、生产部署、S0.2/S0.3、S1.5、S2.3 及后续任务均未执行。
+- 当前完成 S0.1、S1.1–S1.4 本地部分、S2.1 合同、S2.2 价格服务及 S2.3 目录本地实现与验证；远端 CI、合并、镜像发布、生产部署、S0.2/S0.3、S1.5、S2.4 及后续任务均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -197,3 +197,41 @@ Token 与按请求次数价格从真实计费探针求值，固定 ReferenceAt�
 没有运行新 HTTP/权限/DTO、前端/浏览器、数据库/迁移、完整回归、远端 CI 或真实上游请求：本轮只改只读价格服务，对应新目录行为由 S2.3–S2.6 的实际候选取得证据。未执行推送、PR、合并、镜像发布或生产部署。
 
 **S2.2 已完成。下一项是 S2.3 实现模型聚合 DTO 与 opt-in 查询接线，未自动开始。** 当前接口仍返回旧渠道数组，目录功能尚未对用户启用。
+
+## S2.3 模型目录 DTO 与查询分支
+
+### 基线、候选与保留结果
+
+先读取用户指定 plan/tasks/journal，再核对远端及本地 personal、现有 S0/S1/S2.2 工作树与未提交改动。personal 保持 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，main 保持 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`；应用来源仍为 KlN `v0.2.14-klno.5/c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。
+
+从干净 personal 来源的 S2.2 HEAD `e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2` 创建并附加 `codex/plus-catalog-s23`，路径 `/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin`。其中包含已验证价格实现 `e82287300d1b7cc625295c5307ebaa83c707c019`；本轮已验证应用提交为 `49c209a77059d2927f78bbd31c1dd479b509dc6f`，5个源码/测试/正规生成文件。完整身份见[候选清单](evidence/s2.3-candidate.json)。文档归档提交会推进本地 HEAD，后续 CI 仍须绑定真实最终候选 SHA。
+
+复用干净的 main 来源文档工作树 `codex/plus-pricing-s22-evidence` 仅增量登记本 change 和日志，同步指定原计划位置与新应用树；没有使用 main 应用源码替代 personal，也没有合入 main。原 S0 工作树17个未提交应用文件保持原值；S1的54个应用文件及45个原产物、S2.2的6个应用文件及12个原产物校验一致。新应用相对 S0 的6个用量文件差异是 S1 已有演进，不能称本轮改变。原 S1/S2.2 候选和聊天 checkout 的 HEAD、状态均保持原值；三个登记位置各自历史 journal 全文保留。
+
+AGENTS 引用的出站身份约定和 docs/tasks 在可用应用/维护树与本地历史 refs 中仍未找到，本轮继续登记缺失，不补造规则；实现不涉及出站身份。
+
+### 实际行为与责任
+
+- 同一 GET 路由只在 URL 解码后 `view` 恰有一个值且精确为 `catalog` 时返回对象；默认、空、未知、大小写变体及重复参数继续返回旧渠道数组。用户查询参数不切换 JWT 主体，旧数组的模型白名单行为不改。
+- 先执行真实 `APIKeyService.GetAvailableGroups`，再读取一次绑定授权组的活跃渠道配置；分组模型使用 `SupportedModels` 有限候选、普通/复合平台筛选及公开请求名 `ModelAllowlist.Allows`。目录按分组保留报价并在平台/模型维度稳定排序/去重，有权空组保留 models=[]。页面卡片聚合留在 S2.4。
+- 每个分组的模型枚举与 S2.2 价格 resolver 使用同次克隆渠道配置，避免再读旧展示合成价或共享渠道缓存。只读取一次当前用户倍率，仅嵌入授权组覆盖；成功且无覆盖为 null、明确零为0、读取失败为 unavailable 和参考默认倍率。授权/渠道/价格失败显式返回，不夹带部分目录。
+- 显式 DTO 白名单保留上下文/服务档位/分时/effort、UnsupportedComponents 与按次零标签回退规则；缺失和0分开。单价未乘用户/分组倍率，已解析适用倍率单独输出，消费者仅应用一次。offer_key 用分组、渠道、具体平台和小写请求ID派生SHA-256，不输出原始内部渠道ID。
+- GET 没有可信媒体/按次请求入口事实，per_request/image/video 配置返回 unsupported_unit，单位unknown；upstream/response_model 依赖真实请求时返回 request_dependent。不改变扣费、结算、调度、数据库或前端。实现字段和算法见[目录合同补充](catalog-contract.md#s23-已实现的目录-dto-与查询分支)。
+
+### 检查、复用与独立复核
+
+| 实际检查 | 结果与证据边界 |
+|---|---|
+| 新 handler/DTO 与旧接口定向检查 | `go test -tags unit ./internal/handler -run '^(TestAvailableModelCatalog\|TestUserAvailableChannel\|TestFilterUserVisibleGroups\|TestToUserSupportedModels\|TestBuildPlatformSections)' -count=1 -v` 通过；新增13顶层/32含子项PASS，旧helper10顶层/PASS，共23顶层/42PASS。表格中的竖线为Markdown转义，机器命令见JSON；夹具预期的500错误日志保留 |
+| 权限与响应验证边界 | 在仓库边界注入夹具，执行真实授权/平台/白名单/价格owner，覆盖选择兼容、公开限制/专属/有效及过期订阅/他人订阅、跨用户、短路、错误、零/未知、参考倍率、单次快照与DTO白名单；不称真实JWT或生产隔离验证 |
+| 服务端构造编译 | `go test ./cmd/server -run '^$'` 通过；明确无业务测试运行，保护新增BillingService注入与生成结果可编译 |
+| 正规Wire生成 | 固定v0.7.0。首次被工具go.sum缺项阻止；全局GOFLAGS临时modfile又触发loader非module目录错误；按诊断仅给生成器构建传入临时modfile后成功。应用go.mod/go.sum未变化。生成器还重排两项独立构造并省略维护源码中的注释；实际调用与生命周期不变，未手改生成文件 |
+| 证据复用 | S2.2同输入的15顶层/22PASS、48组owner对账及既有98顶层/158PASS结果复用；本轮未重跑这些检查。S0/S1仅复用其未变边界，不作为目录权限、真实数据库、浏览器或当前远端CI证据 |
+| fresh独立只读复核 | 1次critical_reviewer完成，未确认可操作缺陷；复核实际diff/5文件/原始日志，未重跑测试。派发前后5文件校验一致；其后主代理只修正handler的分支注释，不改生产逻辑，复用行为测试与构造编译 |
+| 实际diff与收尾 | 应用5文件、902新增/6删除，未改扣费/调度/前端/迁移/依赖；git diff --check、格式与保留工作树核对通过。三处任务及合同同步、唯一新增S2.3勾选、链接与历史日志保留另见[收尾检查](evidence/s2.3-document-checks.json) |
+
+委派审计 `20261009T155935Z-kin-plus-catalog-s23-f949dc81` 已closed、audit-verify passed、无errors/warnings。验收通过只表示复核交付被接受；模型/effort是Agent TOML配置证据。见[复核记录](evidence/s2.3-reviews.json)、[确定性执行摘要](evidence/s2.3-subagent-digest.md)和[原始日志及复用清单](evidence/s2.3-validation.json)。
+
+本轮未执行真实JWT/后台模式/面板限流运行链、真实数据库/生产报价链、前端构建或浏览器、全量回归、远端CI或上游凭据请求。路由及middleware未改，复杂价格owner输入未变；本轮只实现S2.3，进一步阶段一致性验证与完整页面流程仍由S2.5/S2.6取得实际证据。没有推送、PR、Actions、合并、镜像发布、SSH或生产部署。
+
+**S2.3 已完成本地实现、验证与执行证据。下一项是 S2.4 改造已有可用渠道页面，未自动开始。** S2.5–S2.7及其他阶段保持未执行。

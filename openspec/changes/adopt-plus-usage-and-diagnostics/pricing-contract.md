@@ -1,7 +1,7 @@
 # S2.2 KIN 权威价格解析合同
 
 - 日期：2026-10-09（America/Los_Angeles）。
-- 范围：只读价格解析与实际计费 owner 对账；权限、聚合 DTO、HTTP 分支和页面仍由 S2.3–S2.6 实现。
+- 范围：只读价格解析与实际计费 owner 对账；权限、聚合 DTO 与 HTTP 分支已由 S2.3 接入；页面与阶段验收留在 S2.4–S2.6。
 - 应用基础：personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92` → S1 候选 `e3edb5666a03a582bfbb83a718aedda03ba6ea08`；来源 `.5/c7aacf5d` 不变。
 - 对应：[权限合同](catalog-contract.md)、[任务清单](tasks.md)、[执行证据](implementation-evidence.md)。
 
@@ -48,3 +48,7 @@ ReasoningEffortMultipliers 是真实 owner 对最终 none/minimal/low/medium/hig
 本轮入口是服务层候选；`view=catalog` 仍未实现，默认数组不变。S2.3 按输出白名单映射以上价格数据，不直接 JSON 序列化 Group、Channel、ChannelModelPricing、PricingInterval 或 resolver。元数据内部 ID、映射目标、账号/上游信息不能带出。零标签的 FallsBackToContext 与 Price=null 必须一起映射，按真实上下文选择规则；尚无上下文时展示回退规则。数组无结果保持 []；未知模式在 DTO 中使用 null，不将服务层空枚举输出为已知模式。
 
 本轮执行服务层定向用例、生产 owner 对账、受影响 resolver/阶梯/价格解析/旧模型广场回归及独立只读复核。现有 S0/S1 未改动输入的成功证据保留，不扩大为新目录权限/API/浏览器验证。后续 S2.5–S2.6 仍需对新聚合、跨用户隔离、HTTP 兼容与页面流程取得实际证据。
+
+## S2.3 目录接线状态
+
+S2.3 已使用本合同的同次配置快照、价格/倍率 owner 与显式 DTO 白名单；实现形状和单位边界见[目录 DTO 合同](catalog-contract.md#s23-已实现的目录-dto-与查询分支)，实际检查见[执行证据 S2.3](implementation-evidence.md#s23-模型目录-dto-与查询分支)。前文“S2.3 接线要求及验证边界”保留 S2.2 当时记录；当前 GET 只确认 token 单位，不据 per_request 配置猜测按次数、音频或媒体单位。

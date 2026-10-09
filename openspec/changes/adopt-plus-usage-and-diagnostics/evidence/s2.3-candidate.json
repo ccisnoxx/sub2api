@@ -1,0 +1,32 @@
+{
+  "task": "S2.3",
+  "status": "local_implementation_and_validation_complete",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "candidate_base": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+  "candidate_commit": "49c209a77059d2927f78bbd31c1dd479b509dc6f",
+  "application_tree": "a44fa724613710789104fe844295b5b60e651df7",
+  "application_branch": "codex/plus-catalog-s23",
+  "application_worktree": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin",
+  "maintenance_branch": "codex/plus-pricing-s22-evidence",
+  "source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "files_sha256": {
+    "backend/cmd/server/wire_gen.go": "a518f14f8024f2da9cd6fd1d2fa9020bd9f7ec9c8b37d74e7b1870c9719b9ab2",
+    "backend/internal/handler/available_channel_handler.go": "9ca659c4803dc5cbe2e1909b334ac5dbc431dab9838d61a380829b596a0e26f0",
+    "backend/internal/handler/available_model_catalog.go": "d133f3e9bd21162f7034b02f1fb984a188f310fba00e54531b7fb1539ed2d602",
+    "backend/internal/handler/available_model_catalog_test.go": "1eb098533b096595ca462f13d9c1d98d2adaebb9ea9676f1c8c50bd99b8cb0e1",
+    "backend/internal/service/channel_catalog.go": "0e50c3823dafc4b0cce4fd154fe435ff69288b42988735a5d3b1bb85043539a1"
+  },
+  "build_inputs_sha256": {
+    "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+    "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+  },
+  "review_status": "one_fresh_read_only_review_no_confirmed_findings",
+  "review_limit": "复核后只修正handler分支注释；生产逻辑、生成结果和测试保持复核时原值，复用对应通过证据。",
+  "recorded_utc": "2026-10-09T16:09:13.350603+00:00",
+  "remote_ci": "not_executed",
+  "merge_image_release_production_deploy": "not_executed"
+}

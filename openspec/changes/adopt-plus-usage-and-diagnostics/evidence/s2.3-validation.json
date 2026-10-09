@@ -1,0 +1,248 @@
+{
+  "task": "S2.3",
+  "candidate_commit": "49c209a77059d2927f78bbd31c1dd479b509dc6f",
+  "recorded_utc": "2026-10-09T16:09:13.350603+00:00",
+  "checks": [
+    {
+      "name": "wire",
+      "command": [
+        "go",
+        "generate",
+        "./cmd/server"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin/backend",
+      "exit_code": 1,
+      "seconds": 0.15,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire.log",
+      "result": "generation_blocked",
+      "explanation": "生成器依赖github.com/google/subcommands缺少go.sum项；业务测试未执行"
+    },
+    {
+      "name": "wire-modfile",
+      "command": [
+        "env",
+        "GOFLAGS=-modfile=/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire.go.mod",
+        "go",
+        "run",
+        "-mod=mod",
+        "github.com/google/wire/cmd/wire",
+        "./cmd/server"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin/backend",
+      "exit_code": 1,
+      "seconds": 2.97,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire-modfile.log",
+      "result": "generation_failed",
+      "explanation": "全局GOFLAGS的-modfile传入Wire loader非module探测目录；业务测试未执行"
+    },
+    {
+      "name": "wire-generator-only-modfile",
+      "command": [
+        "go",
+        "run",
+        "-modfile=/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire.go.mod",
+        "-mod=mod",
+        "github.com/google/wire/cmd/wire",
+        "./cmd/server"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 2.42,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire-generator-only-modfile.log",
+      "result": "passed",
+      "explanation": "只对生成器构建应用临时modfile，固定Wire v0.7.0；应用go.mod/go.sum不变"
+    },
+    {
+      "name": "handler-initial",
+      "command": [
+        "go",
+        "test",
+        "-tags",
+        "unit",
+        "./internal/handler",
+        "-run",
+        "^(TestAvailableModelCatalog|TestUserAvailableChannel|TestFilterUserVisibleGroups|TestToUserSupportedModels|TestBuildPlatformSections)",
+        "-count=1",
+        "-v"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 16.54,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/handler-initial.log",
+      "result": "passed",
+      "explanation": "真实授权和价格owner、仓库边界夹具；新增13顶层/32PASS、既有helper10顶层/PASS"
+    },
+    {
+      "name": "server-compile",
+      "command": [
+        "go",
+        "test",
+        "./cmd/server",
+        "-run",
+        "^$"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 8.95,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/server-compile.log",
+      "result": "passed",
+      "explanation": "生成依赖构造可编译；无业务测试运行"
+    }
+  ],
+  "new_contract_top_level_tests": 13,
+  "new_contract_pass_entries": 32,
+  "legacy_helper_tests": 10,
+  "total_top_level_tests": 23,
+  "total_pass_entries": 42,
+  "reuse": {
+    "s0.1-candidate.json": {
+      "checked": 17,
+      "mismatch": [
+        "frontend/src/components/admin/usage/UsageTable.vue",
+        "frontend/src/components/admin/usage/UsageTps.vue",
+        "frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts",
+        "frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts",
+        "frontend/src/i18n/locales/en/dashboard.ts",
+        "frontend/src/i18n/locales/zh/dashboard.ts"
+      ],
+      "classification": "新应用中的6个用量文件已由S1合法演进；S0原工作树17个文件全部保留，不能把6项差异称本轮改动。"
+    },
+    "s1.1-4-candidate.json": {
+      "checked": 54,
+      "mismatch": []
+    },
+    "s2.2-candidate.json": {
+      "checked": 6,
+      "mismatch": []
+    },
+    "s2.2_artifacts": {
+      "checked": 12,
+      "missing_or_mismatched": []
+    },
+    "s0_original_preserved": {
+      "checked": 17,
+      "mismatch": []
+    },
+    "s2.2_build_inputs": {
+      "checked": 2,
+      "mismatch": []
+    },
+    "s1_raw_artifacts": {
+      "checked": 45,
+      "missing_or_mismatched": []
+    }
+  },
+  "reuse_scope": "S2.2同输入的目录价格owner15顶层/22PASS、48组对账与既有98顶层/158PASS复用；S0/S1只保持各自原边界，不扩大为目录或当前CI成功。",
+  "artifacts": [
+    {
+      "name": "baseline.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/baseline.json",
+      "sha256": "b19a948ae2ef21bf9ebae29bc9e820e2043778be90a4556b96655343d74824bb",
+      "bytes": 4860
+    },
+    {
+      "name": "reuse-checks.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/reuse-checks.json",
+      "sha256": "0921ce79037c3f9ea6cab0f5e65b37cf8cfd278c195fdb7b07da82a936c61c61",
+      "bytes": 1038
+    },
+    {
+      "name": "document-inputs.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/document-inputs.json",
+      "sha256": "e19bb80ba44fd789d914958ef133ebbfc73e9253b5db5b6d5cbdf202f44d0f83",
+      "bytes": 10720
+    },
+    {
+      "name": "review-source-before.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/review-source-before.json",
+      "sha256": "1fa02500b827376f952a2999aa5f0b9b49ced75b6548ac934bded66bd3957889",
+      "bytes": 606
+    },
+    {
+      "name": "review-result.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/review-result.json",
+      "sha256": "e2694c65fdfd75acd821c703b9fa40eb238c3e93f591b8386060b36c38a8f5b1",
+      "bytes": 654
+    },
+    {
+      "name": "handler-initial.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/handler-initial.log",
+      "sha256": "7a63cc1abb65fed2b59b47a75522ae5fe42d54067ab03d98ed819f534c1bc1e7",
+      "bytes": 7820
+    },
+    {
+      "name": "handler-initial.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/handler-initial.json",
+      "sha256": "433815f02c65cb5b073ad4f6976c83ef649ec90c95f08025ce63c274386ae3a9",
+      "bytes": 502
+    },
+    {
+      "name": "server-compile.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/server-compile.log",
+      "sha256": "51287acd882099708aef226f01756d7da158b3649f755c82f1dab1f634413bfc",
+      "bytes": 69
+    },
+    {
+      "name": "server-compile.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/server-compile.json",
+      "sha256": "9498362ff874901e8e1ded369857c2771b1876d7f73d0075be7058121d5480d2",
+      "bytes": 311
+    },
+    {
+      "name": "wire.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire.log",
+      "sha256": "750802cd4b30eb3604414e97caeb1172f4d965850f9167aa397a8426c2572201",
+      "bytes": 306
+    },
+    {
+      "name": "wire-modfile.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire-modfile.log",
+      "sha256": "151231591de6d6fb08e0ab2c629d199ab6b994f95c7f21d9386f53462c1deed8",
+      "bytes": 175
+    },
+    {
+      "name": "wire-generator-only-modfile.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/wire-generator-only-modfile.log",
+      "sha256": "59a2c855006167a6441aa6ea51c5d0f2a7c254196dbfd6a3ad7fadb09b67686d",
+      "bytes": 139
+    },
+    {
+      "name": "audit-verify.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/audit-verify.log",
+      "sha256": "18f7174ed8af5c6b0041b833f6215c2503a48cb8cd3b219146a1b8005266bc7b",
+      "bytes": 459
+    },
+    {
+      "name": "document-checks-initial.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s23/document-checks-initial.json",
+      "sha256": "082d23e74d4edfc2fb8cf75adb90c8f70e3a19b3602fed917ebb5d1a74a9b2cf",
+      "bytes": 4764
+    }
+  ],
+  "independent_review": {
+    "audit_id": "20261009T155935Z-kin-plus-catalog-s23-f949dc81",
+    "fresh_reviews": 1,
+    "confirmed_findings": 0,
+    "audit_verify": "passed",
+    "source_hashes_unchanged_during_review": true,
+    "post_review_change": "仅handler分支注释，无生产逻辑修改"
+  },
+  "not_run": [
+    "真实JWT/后台模式/面板限流运行链",
+    "真实数据库和生产报价链",
+    "前端构建/页面/浏览器流程",
+    "全量Go回归/远端CI/安全及发布门禁",
+    "上游凭据请求",
+    "push/PR/Actions/合并/镜像发布/SSH/生产部署"
+  ],
+  "not_run_reason": "本轮仅S2.3；未改middleware/仓库/数据库/计费owner/前端，复杂价格owner输入一致并复用既有证据。S2.4页面与S2.5–S2.7阶段验证/交付未开始。",
+  "known_limits": [
+    "GET未确认按次/媒体入口，unsupported_unit",
+    "价格规则仅参考，个人倍率读取失败明确unavailable",
+    "handler注入认证主体，不能称真实JWT或生产权限隔离验收"
+  ],
+  "verified_runtime": "go1.27.2 darwin/arm64",
+  "document_check_events": [
+    "首次收尾检查时自身输出s2.3-document-checks.json尚未创建，三个自链接暂缺；生成实际记录后重新检查通过，其他检查无失败。"
+  ]
+}
