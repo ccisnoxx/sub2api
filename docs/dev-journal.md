@@ -1,5 +1,15 @@
 # 开发日志
 
+## 2026-10-08：TPS 展示候选完成，等待精确 lint 兼容补丁范围决定
+
+- 从最新 main `1c2e51bee` 读取阶段记录，从 personal `896de21b` 建立 codex/tps-display-alignment；[PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 当前候选 `e5acf91d204c6dc56516e88cf2ba906d9fb7c59e`，未绕过 strict personal-ready / App15368、管理员约束和 merge-only。控制工具和证据继续留在 main，未合入 main 应用树。
+- Plus 固定参考90da415c：TPS标签、有效青色、不可用灰色 -、三段紧凑数字和tok/s；唯一说明按钮移至首字旁，复用 HelpTooltip。保留整段平均公式、首字不扣除、原适用范围/不可用原因、首字/总耗时/色条。未引入 Plus 完整计时字段或严格首字判定，业务源码、数据库和计费不变。
+- 97项定向组件/表格/提示测试、六文件lint、i18n/类型/Vite构建通过。实际构建预览管理员/用户、1440px/390px、明暗主题、13类合成记录和鼠标/键盘/触屏提示交互通过；修复窄屏关闭按钮与文字重叠，截图和结果留在Git外。
+- 动态安全扫描先报告既有Go1.27.0的12项可达漏洞，再报告x/net五项。用户分别明确授权最小Go1.27.2和依赖安全升级；最低八个x/*模块、16条新增校验行，无业务代码修改。x/tools0.50和lint2.14.0修复Go导出数据V5兼容，原失败schema用例已通过。
+- 三轮fresh独立只读复核修复 main 版本断言及普通deploy反向恢复漏洞，最终无确认阻断；审计 `20261009T015946Z-tps-display-alignment-safe-release-8ee15421` closed/verify通过。main `50290816c` 保存workflow更新，`4629a8ad7` 保存四文件完整字节清单及34项部署合同测试。
+- 最终 [Personal CI37873707977](https://github.com/ccisnoxx/sub2api/actions/runs/37873707977) 安全扫描与单元测试已通过，lint因现有HTTP/2接口弃用SA1019失败，集成/recording仍待结束。精确三规则、五文件的配置补丁在Git外准备，官方配置校验与受影响三包staticcheck为0 issues；维护配置未改。其新增 lint 文件超出此前go.mod/go.sum限定，已请求范围决定，尚未收到授权。
+- P5.1–P5.5完成；P5.6–P5.8未完成，尚未合并、分配版本、发布GHCR或部署，hostdzire仍是tps.1固定digest。线上预核对覆盖现有管理员会话的两个页面，仍为旧格式，不算新版本验收或独立普通用户身份验收。KlN .5升级和Plus完整计时能力保持独立事项。完整事实见[实施证据第9节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。
+
 ## 2026-10-08：P4 部署工具、hostdzire tps.1 上线与 P4.9 验收完成
 
 - 从最新 main `59e07a09a` 创建 `codex/personal-deploy`，工具与阶段结果留在 main 控制线；提交 `2e5da44431efe152b4b6105a80b7a84f233436a6` 快进 main 后普通 push，没有绕过 personal 保护。personal 和 `v0.2.14-klno.3-tps.1` 仍为固定应用 SHA `896de21b4be7f4ec4b4236f4df663b47371665b0`，未合入 main 应用树、移动标签或重发镜像，未处理 KlN .5。

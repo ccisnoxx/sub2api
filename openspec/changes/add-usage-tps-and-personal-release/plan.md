@@ -1,7 +1,7 @@
 # Sub2API 平均输出 TPS 与个人分支维护方案
 
 - 编制日期：2026-10-08（America/Los_Angeles）。
-- 状态：P0/P1、P2.1–P2.8 和 P2.10 已完成；P2.9 真实 v0.2.14-klno.5 升级因历史改写/冲突停止，P3.1–P3.9 已完成并首次发布；P4.1–P4.10 已完成，hostdzire 运行固定 tps.1，两个使用记录页面及单次官方客户端 HTTP 烟测通过；P2.11 待实施。实际结果及身份验收边界见 [实施证据](implementation-evidence.md)。
+- 状态：P5 展示候选、本地页面验收及最小 Go/依赖安全补丁完成；安全扫描、后端单元测试通过，完整候选 CI 被现有 HTTP/2 接口弃用告警阻塞。精确 lint 配置兼容补丁已准备，等待新增范围授权；尚未合并、发布或部署。P0–P4 既有范围已完成，hostdzire 仍为固定 tps.1；P2.9 真实 KlN .5 历史升级与 P2.11 仍待处理。实际结果及身份验收边界见 [实施证据](implementation-evidence.md)。
 - 执行入口：[实施任务清单 tasks.md](tasks.md)，按 P0–P4 编号逐项实施并登记验证结果。
 - 讨论来源：[排查 Codex fast 开关配置](codex://threads/01a11a74-fc24-7473-a94f-e61b253867ac)，重点承接该会话最后关于 TPS、自有分支、镜像构建与 hostdzire 更新的讨论。
 - 目标仓库：`ccisnoxx/sub2api`；功能上游：`KlN-4096/sub2api` 的 `klno` 发布线。
@@ -54,24 +54,24 @@
 平均输出 TPS = output_tokens × 1000 ÷ duration_ms
 ```
 
-适用于可识别的普通文本输出记录，流式、非流式及 WebSocket 文本请求使用同一口径。分母沿用接口记录的总耗时，不减去 `first_token_ms`。例如 `output_tokens=1040`、`duration_ms=24650` 时显示 `42.19 tok/s`。
+适用于可识别的普通文本输出记录，流式、非流式及 WebSocket 文本请求使用同一口径。分母沿用接口记录的总耗时，不减去 `first_token_ms`。例如 `output_tokens=1040`、`duration_ms=24650` 时紧凑显示 `42.2 tok/s`。
 
 提示文案说明：该值包含首 token 等待时间，输出统计可能包含推理 token；反映记录中的平均输出速率，不能单独证明 Fast 生效或代表屏幕可见文字的纯生成速度。保留首字与总耗时，便于结合请求档位、模型和输出长度比较。
 
-[Plus 固定提交的实现](https://github.com/LuckyKuang/sub2api-plus/blob/e677d6a0076df48e529097be35ace28f7b7ea4f3/frontend/src/utils/usageTiming.ts)可作为口径参考。该实现还依赖音频 token、计时版本、首输出类型和完成状态等字段；本项目第一版按现有字段定义自己的可用范围，不直接覆盖其表格或复制整套计时状态判断。
+[Plus 固定提交的实现](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/frontend/src/utils/usageTiming.ts)可作为口径参考。该实现还依赖音频 token、计时版本、首输出类型和完成状态等字段；本项目第一版按现有字段定义自己的可用范围，不直接覆盖其表格或复制整套计时状态判断。
 
 ### 3.2 可用范围与缺失值
 
-| 记录条件 | 第一版显示 |
+| 记录条件 | 当前显示（P5） |
 |---|---|
-| 普通文本记录，输出 token 为有限正数，总耗时为有限正数 | 两位小数，例如 `42.19 tok/s` |
+| 普通文本记录，输出 token 为有限正数，总耗时为有限正数 | 紧凑显示，例如 `42.2 tok/s` |
 | 历史记录满足上述条件，缺少首字耗时 | 正常计算，首字耗时不参与公式 |
-| 输出为 0、缺少输出、输出为负数或非有限数 | `—`，提示无有效输出统计 |
-| 总耗时缺失、为 0、为负数或非有限数 | `—`，提示缺少有效总耗时 |
-| 图片生成、图片输出 token 大于 0、明确的视频/其他媒体记录 | `—`，提示当前记录不适用 |
+| 输出为 0、缺少输出、输出为负数或非有限数 | `-`，提示无有效输出统计 |
+| 总耗时缺失、为 0、为负数或非有限数 | `-`，提示缺少有效总耗时 |
+| 图片生成、图片输出 token 大于 0、明确的视频/其他媒体记录 | `-`，提示当前记录不适用 |
 | 仅有图片输入、输出仍为普通文本 | 可以计算 |
-| 原生 compaction、live、probe 或 gwpool_degraded 记录 | `—`，不作为普通文本生成速率 |
-| 有效结果小于 0.01 tok/s | `<0.01 tok/s`，避免正值舍入成 0 |
+| 原生 compaction、live、probe 或 gwpool_degraded 记录 | `-`，不作为普通文本生成速率 |
+| 有效结果小于 0.1 tok/s | 两位有效数字，例如 `0.0081 tok/s`，保留低速正值 |
 
 沿用 `billingMode.ts`、`imageUsage.ts` 和请求类型工具的既有识别合同。`billing_mode=token` 或缺省的历史文本记录可参与计算；明确的 image、video、per_request 记录暂不参与。未知模式不猜测为文本。媒体识别还应检查已返回的图片输出字段，不能只依赖 `isImageUsage()`，因为该函数允许 token 计费的图片请求通过。
 
@@ -89,7 +89,7 @@
 | `frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts` | 渲染 `cell-latency`，验证真实表格接入及既有耗时保留 |
 | `frontend/src/components/common/HelpTooltip.vue` 及其测试 | 窄屏验收暴露 fixed 坐标叠加滚动量和边缘越界；在既有定位 owner 修正视口坐标与边距，保护已有 hover/click 交互 |
 
-计算只在此组件中使用时直接放在组件内；出现真实复用需求后再提取工具函数。尽量不改 `UsageView.vue` 的列配置，因为第一版继续使用现有耗时栏，不新增排序字段。提示复用现有组件或项目交互方式，兼顾键盘焦点，不引入新依赖。
+计算和不可用原因仍由 UsageTps 组件唯一拥有；`timing` 插槽将同一口径说明交给 UsageTable 的首字旁 HelpTooltip，避免复制判断。尽量不改 `UsageView.vue` 的列配置，因为第一版继续使用现有耗时栏，不新增排序字段。提示复用现有组件或项目交互方式，兼顾键盘焦点，不引入新依赖。
 
 TPS 代码、测试和文案作为一个功能提交；同步、发布、部署分别独立提交。以后上游提供相同指标时，核对计算口径和媒体处理后撤除自定义组件及接入点。
 
@@ -235,9 +235,9 @@ P0 的流程文件需要出现在默认分支，不能只在 personal 上修正�
 
 ### 8.1 TPS 的定向验证
 
-现有 `UsageTable.spec.ts` 的 `DataTableStub` 没有渲染 `cell-latency`。新增断言前必须补上该插槽，并让 TPS 小组件真实渲染；否则测试无法观察本次接入点。
+`UsageTable.spec.ts` 的 `DataTableStub` 已在 P1 补齐 `cell-latency`，测试继续真实渲染 UsageTps；P5 增加标签、颜色及首字旁唯一说明入口的合同断言。
 
-最小行为用例：示例 `1040/24650 → 42.19`；首字为空仍可计算；无效耗时/输出显示 `—`；图片、视频及 compaction/live/probe/gwpool_degraded 显示不可用；图片输入+文本输出可用；小于 0.01 的正值正确显示；表格同时保留首字、总耗时和 TPS。计算用例放在组件测试，表格测试只保护接入合同，避免重复同一组数学边界。
+最小行为用例：示例 `1040/24650 → 42.2`；首字为空仍可计算；无效耗时/输出显示 `-`；图片、视频及 compaction/live/probe/gwpool_degraded 显示不可用；图片输入+文本输出可用；小于 0.01 的正值正确显示；表格同时保留首字、总耗时和 TPS。计算用例放在组件测试，表格测试只保护接入合同，避免重复同一组数学边界。
 
 实施后从仓库根目录运行：
 
@@ -306,3 +306,25 @@ P3.1–P3.9 已完成。[PR #3](https://github.com/ccisnoxx/sub2api/pull/3) 普�
 P4 固定部署输入为 `ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。P4 工具属于 main 部署控制线，已通过 Python 3.11/Linux 的 28 个合同用例及两次 fresh 独立只读复核。真实隔离栈完成旧镜像→tps.1→旧镜像，生产仅切换一次应用服务；正式部署记录 `20261008T190259Z-2bb5bc1b6d52` 为 success，实际 digest、版本、revision、健康、数据库/Redis 和迁移状态均核对通过。配置/数据备份及旧镜像保留，生产没有回滚或恢复数据库。
 
 P4.1–P4.10 完成。管理员和我的账户使用记录页面的新/历史 TPS、首字与总耗时已实际验收，原始毫秒值与页面计算一致；两个页面复用同一管理员会话，独立普通用户身份未验证。首次自写 HTTP 烟测的 403 已确认来自本地官方客户端限制检测，原因是缺少引擎指纹，并非已确认的上游拒绝。用户要求继续解决 P4.9 后，使用真实 Codex CLI 0.159.0 执行一次关闭工具调用、禁止重试的 HTTP 文本烟测，HTTP 200、完整响应 OK、唯一新增使用记录及两个页面展示均通过：5 output / 1675 ms = 2.99 tok/s，首字 1607 ms。本次没有再次部署、修改客户端限制或改变固定版本。P2.9 真实升级部分与 P2.11 保持未完成；发布证据见第 7 节，部署及验收边界见 implementation-evidence.md 第 8 节。
+
+
+## 11. P5：TPS 前端展示对齐（2026-10-08）
+
+本轮从 personal 应用维护分支建立 `codex/tps-display-alignment`，以 Plus 固定提交 `90da415c62b94c9417d9ce2b72b1507ed22f0303` 的 UsageTable、usageTiming 和中文 dashboard 为参考。只对齐展示，继续采用 `output_tokens × 1000 ÷ duration_ms`；不扣除 first_token_ms，保持原可用范围、原因判断、首字/总耗时及左侧耗时色条合同。
+
+- 第三行统一为 TPS；有效数值为 `text-cyan-600 / dark:text-cyan-400`，不可用为灰色 `-`，青色不表示速度等级。
+- 小于 0.1：两位有效数字；0.1 至小于 100：一位小数并去掉末尾 .0；100 起：整数。保留 tok/s，例如 42.19 → 42.2、7.00 → 7、150.45 → 150。低速正值不改成 0 或固定阈值占位。
+- TPS 标签和数值使用同一口径提示；唯一常驻按钮位于首字旁，复用 HelpTooltip 和原生按钮。说明只包括公式、首 token 等待、可能的推理 token及现有不可用原因；为关闭按钮保留文字间距。
+- 不引入 Plus 的严格首字判断、first_output_ms、last_token_ms、timing_version、is_complete、后端、迁移或计费变更；前端展示对齐不代表已具备 Plus 完整计时能力。
+- 本地采用定向组件/表格/提示测试、改动文件 lint、i18n/类型/构建及实际双页面、明暗主题、窄屏和提示交互验证。远端保留完整 Personal CI、personal-ready 与 Release 门禁。
+- 应用通过保护规则 PR 合入 personal，既有流程分配下一 tps.N；不移动/覆盖标签及版本镜像。部署继续由 main 的 P4 工具完成兼容性与备份检查，以固定 digest 仅切换应用。
+
+实际结果与发布部署状态以 tasks.md 的 P5 和 implementation-evidence.md 第 9 节为准。阶段结果回写 main，不合入 main 的应用树，不反复改变已发布 personal SHA；P2.9/P2.11 的 .5 历史升级保留为独立事项。
+
+### P5 安全门禁所需的授权补丁
+
+原前端范围完成后，动态 govulncheck 报告既有 Go1.27.0标准库漏洞，升级1.27.2后又确认x/net五项可达漏洞。用户两次明确授权最小安全升级继续上线；因此增加独立工具链与依赖提交，业务源码、数据库、计费和TPS计算不改动。最低解析为Go1.27.2及x/crypto0.57、x/net0.60、x/sys0.48、x/term0.46、x/text0.42、x/tools0.50、x/mod0.41、x/sync0.23。不得绕过扫描或门禁。
+
+P4对安全补丁仅接受审定前后backend/go.mod、backend/go.sum、两份Dockerfile的固定完整字节hash及普通文件模式；四路径必须全部同方向变化，其他运行差异仍拒绝，新增proof经fresh独立复核后使用。反向故障恢复仍须满足记录、配置、迁移、依赖条件；旧Go有已知漏洞，不应长期停留旧镜像。
+
+最新门禁补充：x/net0.60 和 Go1.27.2 使既有 HTTP/2 接口产生 SA1019 弃用告警。Git 外已准备三个按固定文件与明确接口匹配的 lint 兼容规则，五个文件、16个原始报告行（另一个同一行 Server 告警原被去重），配置校验及三个受影响包的 staticcheck 为0 issues。尚未修改维护的 backend/.golangci.yml；新增该文件与 P4 字节清单超出此前 go.mod/go.sum 授权，须先取得范围决定、独立复核及最终完整门禁。

@@ -1,7 +1,7 @@
 # P0–P4 实施证据
 
 - 实施日期：2026-10-08（America/Los_Angeles）。
-- 最新阶段：P3.1–P3.9、P4.1–P4.10 已完成；hostdzire 运行固定 tps.1，两个使用记录页面的新/历史 TPS、耗时及真实官方客户端单次 HTTP 烟测和唯一新增记录均通过。下文第 1–7 节是各阶段当时的记录，当前状态及身份验收边界以第 8 节和 tasks.md 为准。P2.9/P2.11 的 .5 升级不属于本轮。
+- 最新阶段：P5 前端展示候选与本地验收完成，安全门禁阻塞，未合并/发布/部署（第 9 节）。P3.1–P3.9、P4.1–P4.10 已完成；hostdzire 运行固定 tps.1，两个使用记录页面的新/历史 TPS、耗时及真实官方客户端单次 HTTP 烟测和唯一新增记录均通过。下文第 1–7 节是各阶段当时的记录，当前状态及身份验收边界以第 8 节和 tasks.md 为准。P2.9/P2.11 的 .5 升级不属于本轮。
 - 前轮范围：本地 P0 基线准备、P1 平均输出 TPS，以及 hostdzire 只读检查。GitHub 设置修改、远端推送、镜像发布、生产部署均未执行。
 - 前轮结论：P1 本地完成；P0 本地准备完成，P0.2/P0.6 的远端定义替换当时仍待执行。不能把本地暂停文件认定为远端已生效。
 - 功能代码 SHA：`f74554702e6d55554342134b68fc54ff4a4ff541`，由 `codex/usage-tps` 快进合入本地 `personal`。此后的证据提交只修改文档，复用相同源码的有效验证结果。
@@ -384,3 +384,81 @@ ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1d
 当前成功记录、配置、来源和迁移仍匹配时，可在本仓库执行 `deploy/personal/deploy-hostdzire.sh --rollback 20261008T190259Z-2bb5bc1b6d52`。工具会再校验当前选择、旧 digest/revision/source、Git 兼容性、数据库指纹和依赖，以旧固定 digest 仅重建应用，通过健康后生成新的成功回滚记录；不自动恢复数据库或应用数据。如果这些条件漂移或不兼容，工具明确停止并保留诊断，不自动恢复数据库。本轮生产仍运行 tps.1，没有执行该生产回滚命令。
 
 P4.1–P4.10 完成；P4.9 已取得两个生产页面的新/历史 TPS、原有耗时、说明交互和官方客户端单次 HTTP 转发及唯一新增使用记录证据。独立普通用户身份、实际数据库恢复和每个客户端的重连仍未验证；这些边界不以替身或自查填补。本次只更新四份阶段文档，复用未变工具及应用的既有检查，没有重复运行应用全量测试。P2.9/P2.11 的 KlN .5 升级仍不属于本轮。最终登记只修改 main 文档，personal/标签/应用镜像保持固定。
+
+
+## 9. P5 TPS 前端展示对齐（2026-10-08）
+
+### 起点与范围
+
+- 起点 main/origin/main=`1c2e51beef1b6ce4697435b56c26810003b0ab27`；fetch origin 后 personal 仍为 `896de21b4be7f4ec4b4236f4df663b47371665b0`，初始工作区干净。读取最新 main 的四份阶段文档、用户给出的规则及 `/Users/sc/.codex/AGENTS.md`；工作树和祖先目录未发现额外 AGENTS.md。
+- 从 origin/personal 创建 `codex/tps-display-alignment`；功能提交 `37cf8f69fcf10da766f3595dfb8a2c321f028bd2`，普通 push，建立 [PR #4](https://github.com/ccisnoxx/sub2api/pull/4)，base=personal。没有合入 main 应用树。另从最新 main 创建 codex/tps-display-evidence 登记阶段结果。
+- 读回保护：personal strict personal-ready / GitHub Actions App 15368，enforce_admins=true，禁止 force/delete，仓库只允许 merge commit；Rulesets 为空。没有修改保护或授权设置。PERSONAL_RELEASE_ENABLED 和 PERSONAL_SYNC_SCHEDULE_ENABLED 保持 true。
+- SSH 重新确认 hostdzire `/root/sub2api-kin`、sub2api-kin 项目、sub2api 服务、x86_64；应用固定 tps.1 digest/revision、启动时间 `2026-10-08T19:03:16.515665323Z`，应用/PG/Redis healthy，/health=ok。首次直接 Compose ps 缺少 SUB2API_IMAGE，被现有必填检查拒绝；按既有 .env + .personal-deploy/image.env 重查通过，没有修改配置。
+- Plus 参考固定为 `90da415c62b94c9417d9ce2b72b1507ed22f0303`，读取 UsageTable.vue、usageTiming.ts、zh/dashboard.ts。gread 确认公有仓库后，因其安装合同没有固定 ref 参数，用 GitHub 官方 raw URL 取得指定提交，未把最新分支当成固定参考。
+
+### 实际前端变更
+
+仅六个维护文件：UsageTps.vue、UsageTable.vue、两份既有测试与 zh/en dashboard.ts。
+
+- 第三行标签 TPS；有效数值 `text-cyan-600 / dark:text-cyan-400`，不可用灰色 `-`。所有有效速度使用相同青色，没有速度分档。
+- 小于 0.1 两位有效数字，0.1 至小于 100 四舍五入一位小数并去除 .0，100 起取整数；tok/s 保留。样例 42.19→42.2、7.00→7、150.45→150，1/200000ms→0.005 tok/s，低速正值不会显示为零。
+- 标签及数值的 title 提供同一份统计口径和原因；唯一常驻说明按钮移至首字旁，复用 HelpTooltip、原生 button 和既有关闭交互。UsageTps 通过 timing 插槽提供同一 explanation，计算/适用范围不复制到表格。窄屏实际截图发现关闭按钮叠到首行文字，在本处提示内容增加 pr-5 间距后复验。
+- unavailableReason 函数与原公式未改动；首字不扣除、历史首字缺失仍可计算。原首字/总耗时及色条表达式保留。前端功能提交37cf8f69 的 backend、迁移、接口类型、计费、锁文件和发布/部署工具差异为空；随后工具链安全升级范围另列。
+- 未引入 Plus 的严格首字判断或 first_output_ms、last_token_ms、timing_version、is_complete。前端展示对齐候选完成，不代表已具备 Plus 完整计时能力，也不代表已上线。
+
+### 本地验证与页面证据
+
+macOS / Node v24.16.0 / pnpm 9.15.9 / Vitest 2.1.9 / Playwright 1.62.1，复用冻结依赖与已安装 Chromium headless shell 1228。Browser 插件技能未列出（Browser plugin not available）；CUA 浏览器清点另报 Codex auth token is unavailable，线上预核对改用原生 Chrome UI。没有安装浏览器依赖或更改锁文件。
+
+- 更新合同在旧实现上 52 项失败，涉及旧格式、旧占位、缺少新标签、颜色与说明入口；实现后 UsageTps 51、UsageTable 41、HelpTooltip 5 共 97 项通过。首字旁归属断言最初只查直接父级（HelpTooltip 的内部 wrapper）而失败，修正为实际标签容器后通过。提示间距修正后重新跑受影响的 UsageTable 41 项通过，其他未变化测试复用既有成功结果。
+- 六个改动文件 ESLint 通过；间距修正后 UsageTable lint 再通过。最终 frontend build 通过，内含 i18n 键检查、vue-tsc -b、Vite；构建耗时 10.99s。仅有既有类别的 Browserslist 陈旧、Node shell deprecation、混合导入和大 chunk 提示，没有为提示改动依赖或分包。git diff --check 通过。
+- 实际构建预览 `http://127.0.0.1:4173`，API 拦截为明确合成记录和 QA 身份；覆盖 13 类文本/历史/图片输入/无效耗时/媒体/compaction/live/probe/degraded/零输出/低速/整数/高速记录。未使用生产认证或模型请求作为本地 fixture。
+
+| 页面 / 语言 / 主题 | 视口 | 结果 |
+|---|---|---|
+| 管理员 / 中文 / 明亮 | 1440×1100 | 通过 |
+| 用户 / 英文 / 暗色 | 1440×1100 | 通过 |
+| 管理员 / 中文 / 暗色 | 390×844，触屏上下文 | 通过 |
+| 用户 / 中文 / 明亮 | 390×844，触屏上下文 | 通过 |
+
+每组确认 URL/title、非空、无框架 overlay、console error/warning 为空；13 类记录的格式、title 和实际计算颜色正确，原有三行及色条可见。提示位于视口内、文字避开关闭按钮；鼠标点击、Enter、Space、Escape、触屏 tap、关闭按钮与外部点击均实际行使。桌面保留原表格横向滚动，各 TPS 可在所属单元完整查看；窄屏卡片无行间重叠。自动化第一次窄屏 outside-click 选中了隐藏 h1 超时，改为可见 heading 后仅重验窄屏通过；不是应用失败。随后对新间距候选重验四组，并针对桌面完整单元边界和横向滚动截图补证，均通过。
+
+脚本、results.json 和实际截图留在 Git 外：`/Users/sc/.codex/visualizations/2026/10/09/01a11e53-7467-7a71-9b08-79e6c0d2714d/tps-alignment/`。路径的归档日期不代替本节 America/Los_Angeles 的实施日期。代表截图为 admin-zh-light-1440-rows.png、admin-zh-dark-390-tooltip.png、user-en-dark-1440-rows.png、user-zh-light-390-tooltip.png；已人工查看管理员桌面和窄屏提示。
+
+### 远端门禁与安全升级
+
+- [候选 Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/37871626629) 绑定完整候选 37cf8f69 和 personal 基础 896de21b；既有全部 CI/Security Scan 保留。没有把 P3 旧结果当成本轮检查。
+- existing-security/backend-security 的 govulncheck 返回 exit 3：当前 Go 1.27.0 被判定命中 12 项可达标准库漏洞，修复版本 Go 1.27.2。既有独立 [Security Scan](https://github.com/ccisnoxx/sub2api/actions/runs/37871622419) 同样失败。候选 backend 和构建输入与 tps.1 相同，失败不是本轮前端修改引入；动态安全数据库的变化使旧成功结果不再满足当前发布门禁。
+- [Go 官方发布记录](https://go.dev/doc/devel/release#go1.27) 确认 1.27.2 于 2026-10-08 发布；[GO-2026-6600](https://pkg.go.dev/vuln/GO-2026-6600) 同日公布且影响 1.27.0 至 1.27.2 之前。扫描涉及 GO-2026-6617、6613、6612、6611、6610、6609、6608、6607、6605、6603、6600、6599；另有未可达的导入/依赖漏洞，不能把它们全部写成运行路径已受影响。
+- 解阻需要独立的最小 Go 工具链安全升级（backend/go.mod、三个 CI/Release 版本断言、两个构建 Dockerfile），并评估 P4 对完整 backend/运行资源 diff 的严格兼容限制。用户原范围明确“只调整前端”，因此先请求额外范围决定；用户随后明确选择“允许最小安全升级并继续上线”。在授权前没有改工具链、放宽检查、合并 PR、创建新标签、发布镜像或部署。
+- 新版本、digest、部署记录和新页面线上验收均尚未产生。原生 Chrome 预核对确认既有管理员会话能打开真实 /admin/usage，仍显示 tps.1 的旧两位小数；此证据不是新版本验收，也不是独立普通用户身份验收。
+
+首次安全门禁时的阶段状态：P5.1–P5.5 完成；P5.6–P5.8 在安全升级授权下继续执行。线上保持 `v0.2.14-klno.3-tps.1` / `sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。P2.9/P2.11 的 KlN .5 升级与 Plus 完整计时能力保持独立待办。前端自查不充当独立复核；本轮新增 P4 工具链兼容例外安排 fresh critical_reviewer 只读复核，结果随后登记。
+
+### 经授权的最小安全升级候选
+
+- 应用提交 `d0b8be3548538ebf0ead15ed2f720ff5ce28cc79` 仅将 backend/go.mod、两个构建 Dockerfile、backend-ci/security-scan/release 的版本断言从 1.27.0 更新为 1.27.2：六文件、七处版本替换；业务源码、go.sum、require 依赖和运行层镜像未变。普通 push 延续 PR #4，相关 actionlint 与 diff check 通过。
+- main 的三个控制 workflow 同步版本断言。P4 比较完整运行路径的合同继续有效，仅授权三个固定路径全部同方向替换指定 Go 版本行；普通100644文件、其他字节相同，记录双方文件SHA-256和方向。零差异旧证据继续接受，精确补丁反向切换仍须满足旧成功记录、配置、迁移与依赖条件。旧Go有已知漏洞，反向恢复仅用于故障恢复。
+- P4 定向33项通过，保护真实Git字节比较、额外依赖/源码/Docker指令/版本/权限/部分路径拒绝、proof边界、健康失败和显式恢复。没有削弱扫描、迁移或数据备份检查。独立复核进行中，当前未部署新候选。
+
+- Go1.27.2 新候选的独立 Security Scan `37872430782` 继续返回 exit3：标准库报告消失，但 x/net v0.58.0 命中5项可达漏洞（GO-2026-6617、6612、6611、6610、6603），均由 v0.60.0 修复。官方模块 go.mod 要求 x/crypto v0.57.0、x/sys v0.48.0、x/term v0.46.0、x/text v0.42.0，现有版本须随之最低更新。已请求新的最小依赖补丁范围决定；未将纯工具链授权扩写为自动依赖升级/部署授权，线上仍 tps.1。
+
+- 用户再次明确选择“允许最小依赖安全补丁并继续上线”。在隔离工作树准备并检查精确补丁后，普通push提交 `2b19ca02d950efe9cc3609b2b9830802193f6b6f`，仅go.mod八个x/*模块与go.sum新增16条校验行。官方模块go.mod显示text0.42要求tools0.49、mod0.41、sync0.23，故实际最低解析为八模块。Go1.27.2的go mod verify通过，模块图已保存Git外。新Personal CI `37872758394`绑定该提交。
+
+- 首轮fresh critical_reviewer完成，只读追踪Git证明、远端生命周期、旧证据及恢复；确认一项控制分支直接CI回归（main Go声明旧版而固定断言新版）。通过应用提交 `14afc9891e4eff9eea6d9f21dc48cbf8b0cfd4eb` 及main同步定义改为精确核对实际checkout go.mod声明，setup-go与原安全/发布门禁保留。最终四文件安全hash清单及依赖补丁已安排第二个fresh critical_reviewer；未复用前轮线程，结果随后登记。
+- 最终P4候选仅接受已审定四文件完整字节hash，不再保留初步的泛版本行例外。更新后33项定向用例、3份workflow actionlint、shell语法及diffcheck通过；验证额外依赖、校验行、源码、Docker指令、版本、权限、symlink、部分路径、混合方向和未审定有效长度hash全部拒绝。
+
+- 第二轮fresh复核确认并关闭反向例外入口问题：原候选允许普通deploy旧tps.1使用合法reverse proof，绕过显式rollback成功记录/配置绑定。远端validate_proof现拒绝deploy+rollback方向，位于备份、拉取、启动前。新增真实状态回归在旧实现返回0而失败，修复后普通反向拒绝、显式和自动恢复3项通过；最终P4 34项通过。生命周期、迁移、依赖和持久提交原合同继续保留。
+- 完整Personal CI `37872892187` 安全/TPS通过，但backend unit及lint因Go1.27.2 V5 export data被旧x/tools拒绝而失败；没有当成flaky重跑或忽略。官方x/tools v0.50.0支持V5，golangci-lint v2.14.0包含该读取器，按安全升级所需工具兼容更新后，失败的TestAuthIdentityFoundationSchemas定向通过（1.941s），go mod verify通过。最终应用候选 `e5acf91d204c6dc56516e88cf2ba906d9fb7c59e`、x/tools0.50、lint2.14.0；sum删除本轮中间0.49两行，最终相对原版本仅新增16条checksum。
+- 四文件安全清单刷新为896de→e5acf固定blob；P4 34项及actionlint/diffcheck通过。该最终工具兼容及清单刷新由第三个fresh critical_reviewer窄范围复核，不复用前轮上下文或重复生命周期验证；新candidate全门禁仍须实际通过。
+
+### 最新门禁核对与待授权的 lint 兼容补丁
+
+- 第三轮 fresh critical_reviewer 对最终 e5acf91 的 x/tools v0.50.0、lint v2.14.0 和四文件完整字节清单复核完成，没有确认阻断项；旧门禁失败由 schema V5 导出数据兼容问题导致，定向失败用例已在修复后通过。三轮复核的审计 Bundle `20261009T015946Z-tps-display-alignment-safe-release-8ee15421` 已 closed，audit-verify 通过。复核不代表后续 CI 自动成功。
+- main 控制定义提交 `50290816c` 普通快进推送至 origin/main，仅包含三个 workflow 的 Go 声明精确断言和 lint2.14.0，不包含 personal 应用源码。
+- e5acf91 的 Personal CI `37873707977` backend-security 已通过，后端 Unit tests 已通过；golangci-lint2.14.0 报告16条 SA1019：x/net0.60 将既有 HTTP/2 Transport、ConfigureTransports、Server 参数和 GoAwayError 标记为弃用。没有据此改动 PING、H2C 或错误分类业务代码；集成和 recording/race 门禁尚待最终结果。
+- 已在Git外准备 backend/.golangci.yml 的三条精确配置规则，只匹配五个固定文件内列举接口的弃用告警；官方 lint config verify 通过，逐条对照当前16条告警及四项不同文件/接口/检查反例通过。此前依赖授权明确限定 go.mod/go.sum，已请求新增 lint 配置与 P4 精确字节清单的范围决定，尚未把该候选配置写入应用、推送或合并。临时定向 staticcheck 仍在执行，结果随后登记。
+
+- 临时配置第一次置于 /tmp，lint 默认按配置目录计算路径，精确路径规则未匹配，故仍报告16条；按真实 backend 配置目录验证后，原输出按行去重隐藏的同一行 http2.Server 弃用告警显现。补齐明确列举的 Server 类型后，官方 config verify 与三个受影响包的 staticcheck 为 `0 issues`，退出0；只使用临时候选文件，检查后已删除，维护配置未变。没有把原始失败记作成功，也没有清缓存或迁移业务接口。
+- main 的四文件 P4 兼容补丁已保存为 `4629a8ad7` 并普通快进推送，实际工具 SHA-256=`3ccd5856db26a41fe31de85d2c2d5ff170fc57407c931bcf2c5bdd58965b326c`；34项既有及新合同用例通过。临时 lint 补丁尚不在该清单中，后续实施时必须更新精确第五文件及 fresh 复核，不能凭四文件旧复核直接部署新的不同候选。
+- 截至本次登记，尚未收到 lint 配置新增范围授权；PR #4 仍 open/head=e5acf91/base=personal/merge blocked。Personal CI37873707977：安全扫描、前端、TPS、单元测试等通过，lint失败，集成及recording/race尚待结束。没有新个人标签、镜像或部署记录。线上仍为 tps.1 及原固定digest；展示对齐候选完成，发布上线未完成。
