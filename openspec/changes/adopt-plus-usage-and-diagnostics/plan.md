@@ -1,10 +1,10 @@
 # KIN 借鉴 Plus 功能的实施计划
 
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 状态：S0.1 现有修复最终内容核对完成；新增功能尚未实施，本候选未合并、发布或部署。
+- 状态：S0.1 保持完成；S1.1–S1.4 第一批本地实现、验证与交付准备完成。S1.5 及后续阶段未开始，合并、发布与生产部署未执行。
 - 执行入口：[任务清单](tasks.md)；当前结果见[执行证据](implementation-evidence.md)。
 - 推荐顺序：S0 现有修复交付 → S1 用量计时和请求完成状态 → S2 模型价格展示 → S3 错误诊断；S4 服务状态、S5 用户协助视图按使用规模另行排期。
-- 计划编制轮仅授权文档；2026-10-09 本次续接仅执行 S0.1。合并、镜像发布、生产部署及后续阶段均未执行。
+- 计划编制轮仅授权文档；S0.1 续接完成内容核对。本次续接只执行 S1.1–S1.4，实际结果见执行证据；不自动进入 S1.5 或 S2，不执行合并、镜像发布或生产部署。
 
 ## 1. 目标与范围
 
@@ -34,7 +34,7 @@
 | 已有错误能力 | 已有错误阶段、来源、责任方及详情组件 | S3 增加调度快照，不重复建设错误系统 |
 | 当前交付状态 | 版本提示、TPS 点击说明和旧首字文案已有本地候选与验证；本次未确认线上是否采用该候选 | S0 将本地证据和线上验收分开登记 |
 
-本方案根据本地维护源码和固定 Plus 提交制定，不是已完成的移植兼容性验证。`main` 是维护与调度宿主，应用实施从 `personal` 出发；运行证据遵循 `docs/conventions/personal-maintenance.md` 的登记职责。旧计划内的历史进度不替代当前源码与实际运行状态。
+本方案最初根据本地源码与固定 Plus 提交制定；S1.1–S1.4 的实际实现、兼容验证与未接入范围现已分别登记，不能据此推导其他平台完成。`main` 是维护与调度宿主，应用实施从 `personal` 出发；运行证据遵循 `docs/conventions/personal-maintenance.md` 的登记职责。旧计划内的历史进度不替代当前源码与实际运行状态。
 
 ## 3. 阶段与交付边界
 
@@ -57,20 +57,20 @@ S1 的开发准备不依赖 S0 已经更新生产；进入合并和发布前核�
 
 KIN 的旧 `first_token_ms` 已有设置和统计消费者。推荐保留旧字段，新增 `strict_first_token_ms`，避免同名字段在页面、统计和历史数据中混用两种口径。这是本方案有意与 Plus 不同的兼容决定；复用 Plus 前端辅助函数时，显式适配新字段。
 
-下表为拟议字段，尚未在 KIN 实现。S1.1 冻结字段、枚举和采集边界后再写代码。
+下表字段已在 S1.1 冻结并落地。类型、历史值及事件边界以 [冻结合同](spec.md) 为准；实际第一批 owner、提交入口与限制见 [覆盖表](coverage.md)。
 
-| 字段 | 类型与历史值 | 拟议含义 |
+| 字段 | 类型与历史值 | 冻结含义 |
 |---|---|---|
 | `first_token_ms` | 沿用现状 | KIN 原口径，不覆盖、不回填 |
 | `timing_version` | 整数，历史为 `0` | `1` 表示本记录使用已验证的新采集器；不是全局功能开关 |
 | `strict_first_token_ms` | 可空整数，历史为 `NULL` | 首个有效文本、推理或工具输出的相对毫秒数 |
 | `last_token_ms` | 可空整数，历史为 `NULL` | 同一计时起点下最后一个有效 Token 类输出的时点 |
 | `first_output_ms` | 可空整数，历史为 `NULL` | 首个有效输出时点，包括可识别的媒体输出 |
-| `first_output_kind` | 可空字符串 | 拟用 `text/reasoning/tool/image/audio/compaction`，采集不到不猜测 |
+| `first_output_kind` | 可空字符串 | 使用 `text/reasoning/tool/image/audio/compaction`，采集不到不猜测 |
 | `audio_output_tokens` | 可空整数，历史为 `NULL` | 有可信统计才记录；新纯文本记录能确认无音频输出时为 `0` |
-| `completion_status` | 字符串，历史为 `unknown` | 拟用 `completed/client_disconnected/upstream_error/interrupted/unknown` |
+| `completion_status` | 字符串，历史为 `unknown` | 使用 `completed/client_disconnected/upstream_error/interrupted/unknown` |
 | `is_complete` | 可空布尔，历史为 `NULL` | 从已观察到的终态派生；未知不等同于成功 |
-| `usage_source` | 字符串，历史为 `unknown` | 标识当前实际使用量的来源；拟区分可信上游最终用量、部分用量与未知 |
+| `usage_source` | 字符串，历史为 `unknown` | 标识当前实际用量的来源；upstream_final/upstream_partial/unknown |
 
 新字段采用增量迁移，不删除旧设置，不清空旧首字聚合，不修改已应用的迁移。Plus 的迁移文件只作结构参考，不复制其编号或历史清理语句。Ent 生成代码由仓库既有生成入口产生，不手改生成文件。
 
@@ -193,4 +193,4 @@ S1 的持久化与异步快照、S2 的权限与报价、S3 的诊断归属，�
 - [Plus V3 服务状态](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/CHANNEL_MONITOR.md)：终态聚合与未知状态。
 - [Plus 用户协助视图](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/USER_SUPPORT_VIEW.md)：真实管理员与只读目标用户的职责分离。
 
-引用只说明借鉴来源。实施以 KIN 本地合同为准，保留适用的代码来源与项目许可声明；文档中的拟议字段、入口和文件不宣称已在当前产品实现。
+引用只说明借鉴来源。实施以 KIN 本地合同为准，保留适用的代码来源与项目许可声明；S1 第一批的实现声明仅限覆盖表与执行证据；其他阶段的拟议入口和文件不宣称已在当前产品实现。

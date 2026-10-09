@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 本次范围：仅 S0.1；[任务清单](tasks.md)和[计划](plan.md)。
-- 维护登记位置：从远端默认 main 准备的 `codex/plus-s01-evidence`，本地文档候选尚未提交或推送；原计划位置同步相同记录。应用检查始终使用 personal 修复工作树。
-- 合并、镜像发布、生产部署及 S0.2/S0.3/S1–S5 均未执行。
+- 当前续接范围：仅 S1.1–S1.4；[任务清单](tasks.md)和[计划](plan.md)。下方 S0.1 保留当时记录，S1 是本次结果。
+- 维护登记位置：从默认 main 准备的既有 `codex/plus-s01-evidence`，增量同步本 change 与开发日志，保留原历史内容；原计划位置与新应用工作树同步相同记录。应用始终从 personal 出发。
+- 当前完成 S0.1 与 S1.1–S1.4 本地部分；远端 CI、合并、镜像发布、生产部署、S0.2/S0.3、S1.5 及 S2–S5 均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -74,3 +74,63 @@
 - 本次未执行完整回归、新的 Personal CI/Release gate、数据库检查或新的浏览器矩阵；本次没有新增对应业务、迁移或交互变化，已有直接证据覆盖 S0.1。真实权限隔离、生产页面及生产版本不属于本次本地核对证据。
 - 现有部署工具按固定后端运行树约束兼容；本候选改动 update_service.go，不能沿用 `.5` 旧候选的固定运行树证明。针对真实提交审定部署兼容与回退边界，留待后续交付准备。
 - **下一项是 S0.2**：先固定实际应用提交 SHA，按仓库必要门禁取得该候选的 CI 证据，准备合并、个人发布和部署兼容条件。实际合并与发布须在相应授权范围内执行；本会话止于 S0.1。S0.3 与 S1 仍未开始。
+
+
+## S1.1–S1.4 第一批本地实施与交付准备
+
+### 基线、保存原候选与稳定身份
+
+本次先读取指定 plan/tasks/journal，读取 personal 约定、相关领域/用量/计费、迁移、DTO、页面与导出合同，再核对工作树与候选。只读远端复查在 UTC 2026-10-09 14:19:42 完成：personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，main 为 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`。`deploy/personal-source.json` 保持 KlN `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`；Plus 参考仍为固定 `90da415c62b94c9417d9ce2b72b1507ed22f0303`。
+
+| 对象 | 实际状态 |
+|---|---|
+| 工作位置 | `/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin`，`codex/plus-usage-s1`，工具创建并附加的独立 personal 工作树 |
+| 原 S0 候选 | 原 tracked diff 与 untracked change 文档按字节复制，再在新树本地提交 `6bf78b18ce759e4f211c62b0518c3bca7418efde`；原17个应用文件未修改 |
+| 数据/迁移 | `0e2ea47950564aa05dd6e8eca374874725047057`，包含主代理冻结的 `UsageTiming` 与 spec；Ent 由正规 generator 维护 |
+| 页面/导出 | `12499e1a7`，15文件；后续说明修正在下列独立补丁 |
+| HTTP/SSE/WS采集 | `f9d9fbbd7ce6048b3b18be46a55f964a8db4b34e`，19文件；后续复核修正 `36ba3360d6c0839af1593d017e729ff9b0fdaba5` |
+| 最终验证应用 | `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`，最终音频事实修正后再通过受影响采集与race；相对已保存S0新增/修改54个应用文件 |
+| 当前聊天 checkout | `codex/ci-validation-scope` / `7949efe62e3854c83f39a21a0c36e03402c05688` 继续干净，没有借用其 main 应用源码或未合入CI选择候选 |
+| 文档职责 | 新应用树保存阶段记录；原指定位置与 main 来源的既有文档候选增量同步。各自既有journal全文保留，未合入远端main |
+
+[候选清单](evidence/s1.1-4-candidate.json)固定最终应用完整 SHA、54文件 SHA-256、构建/依赖输入和来源。该 SHA 是已验证应用提交；文档归档提交会推进本地分支 HEAD，后续 CI 必须重新绑定届时的实际完整候选 HEAD，不能把旧 SHA 的结果改标成新 SHA。
+
+AGENTS 引用的 `docs/conventions/codex-outbound-identity.md` 与 `docs/tasks/` 在当前 personal 与 main 来源树中缺失；已搜索相关本地/历史来源，没有补造规则。本期未修改出站身份、指纹、账号调度、gwpool、自动重试、现有计费解析与结算 owner。`openai_ttft_mode`、旧 `first_token_ms`、旧迁移/聚合均保留。
+
+### 数据与实际入口
+
+- 新增 `251_add_usage_log_timing.sql`，只追加9项观测字段及注释；事务内 lock_timeout=5s，历史值为0/NULL/unknown，不回填成功、不清理数据。原SQL文件 SHA-256 为 `abce11c5a8cf8fa993d9a0fb25190af3130722fcc419f1f94b5a5397ff60003b`；runner 对 TrimSpace 后内容计算 ledger checksum，两者不能混用。
+- 领域、Ent schema/8个生成文件、6组显式SQL列/参数、扫描、单条/批量/幂等/best-effort fallback、用户与管理员DTO及前端类型贯通。规范化仅处理空状态/source→unknown，不猜未知枚举。go.mod/前端锁文件无变更；go.sum只追加8行正规generator依赖checksum，无版本升级。
+- [冻结合同](spec.md)与[覆盖表](coverage.md)分别说明数据和实际owner。第一批原生 Responses 普通/透传 HTTP/SSE、非流式JSON/SSE转JSON、pooled WS/ingress/WS→HTTP桥接、原生WS relay已接线；用原duration起点与权威turn/ID，提交深复制快照。
+- 首次终态冻结；取消/完成、failure/DONE、多turn、重试attempt隔离均有定向反例。流式只有done聚合不补造严格时点；非流式是完整内容观察时点。可信正音频统计也保留持续音频事实；权威缺失拆分保持NULL，明确零才为0，拒绝的全零终态保留原部分值。
+- 页面与导出使用同一helper。平均TPS使用总耗时及可信文本/媒体拆分，保留原始未舍入值；历史旧首字、新严格首Token与部分状态分开说明。所有新行说明非流式观察边界，避免pooled WS旧DTO没有原请求模式时漏说明；未改变旧request_type。
+
+### 实际验证与复用
+
+完整实际命令、退出、原始日志SHA-256、浏览器结果和环境事件见[验证登记](evidence/s1.1-4-validation.json)。原始输出已持久保存至 `/Users/sc/.codex/validation/sub2api-kin/20261009-s1`，可由JSON清单核验，不只保存在/tmp。原始green日志自身没有记录筛选命令/HEAD，登记中的命令及退出来自本次实际工具调用记录；不把日志单独视为这两项元数据证明。
+
+| 检查 | 结果与范围 |
+|---|---|
+| Ent generator / repository unit / DTO | 正规生成通过；55个repository顶层定向检查、13个DTO顶层检查通过。新夹具时序调整后只重跑受影响范围 |
+| PostgreSQL 16集成 | 7个顶层检查通过，后续仅4个新字段夹具重跑；真实单条/批量/重复写、Ent、历史未知、真实FK引发best-effort失败后single fallback、新字段读回。不是skip或纯mock |
+| 旧应用与恢复往返 | 固定6bf78b18c旧源码执行真实ApplyMigrations、SQL/DTO；真实pg_dump/pg_restore隔离库；修checksum夹具后同库S1→S0→S1启动、迁移与新SQL/双DTO读回通过 |
+| 最终Responses采集 / 计费快照 | service与WS relay定向集合对最终3f0443757通过；覆盖HTTP六种组合、取消/失败、重试隔离、WS owner、多ID/两turn、legacy/atomic×balance/subscription费用/倍率/扣费次数/原command保持、可空字段深复制 |
+| 既有回归 / race | 原失败、lease、多turn、bridge retry与计费幂等通过并复用；36ba修正的定向race两包通过；3f最终正音频事实与WS归属race通过。未运行完整Go suite |
+| 前端定向 / lint / build | 7相关测试文件合计162个去重用例通过，含最终首Token组件6项；15个改动文件lint及后续2文件lint通过；最终i18n3项、vue-tsc、Vite通过。既有Node/Browserslist/import/chunk警告仍登记 |
+| 页面与真实导出 | 合成API的4组Chromium配置：管理员/用户、zh/en、light/dark、1440/390；说明点击/Enter/Space/Escape、互斥、外部关闭、视口边界；实际四份CSV/Excel共32行解析，原始TPS/空值/bool/旧列语义一致 |
+| 最终说明布局 | 更新条件说明后仅重跑四组tooltip流程，无error/warning、无裁切；未改导出helper，先前32行一致性证据复用 |
+| S0证据 | 版本service/handler、VersionBadge/store等文件保持原内容，沿用S0.1仍有效证据；变化的TPS/表格由本期验证替换，未把S0成功结果套给新功能 |
+
+首次新增首Token组件用例的detached DOM断言失败，修挂载后重跑；浏览器精确文本、窄屏focus滚动和外部点击目标的夹具问题已诊断修正，只重跑失败mobile。新复核反例先红后绿；shell首轮测试直接解引用NULL产生panic，改NotNil断言后证实同一遗漏。共享定向集合还发现纯文本零音频在替换后被清空，调整接受后确认顺序后通过。用户暂停后预览进程结束，继续时连接拒绝；核对端口无进程后重新启动，本次补验通过。这些结果没有被写成首轮全通过，也没有盲重试。
+
+### 独立复核与交付限制
+
+4次fresh独立只读复核的实际候选与逐项关闭见[复核登记](evidence/s1.1-4-reviews.json)：存储确认临时checksum夹具缺陷已以真实往返关闭；采集/导出确认四类P2指标边界已修；进一步确认usage-only正音频事实分支已补先红后绿回归。最后20行按实际3f0443757独立复核，可关闭，未确认残余阻断。独立复核未单独执行测试，不等于独立测试。
+
+本任务审计 `20261009T092527Z-kin-plus-usage-s1-c8034a11` 已closed、audit-verify passed，34产物完整校验，无errors/warnings。[确定性子代理摘要](evidence/s1.1-4-subagent-digest.md)来自当前5个stage的校验结果；模型/effort只表示Agent TOML配置，未冒充运行时遥测。
+
+实际未覆盖边界：HTTP原失败仍返回nil、不新增失败用量行；WS缺少可信turn/ID/start的fallback、opaque binary保留旧版本或未知；Cyber、CC/Anthropic/Gemini/Grok转换及其他媒体API未接入。没有真实provider凭据请求、生产/真实用户授权隔离或跨浏览器矩阵。第一批不能宣布全部平台完成。
+
+[交付准备](delivery.md)已记录增量迁移、备份/恢复、固定旧应用兼容边界及保留扩展schema的回退策略。personal当前必要CI仍是binding、existing-ci、existing-security、tps、sync-contracts及personal-ready；当前聊天的CI范围候选未生效，未借用。远端CI/安全/发布gate未执行，需后续推送/PR授权并绑定实际最终候选；部署工具的真实运行树兼容仍须针对实际生产候选审定。本会话没有推送、PR、Actions dispatch、合并、版本分配、镜像发布、SSH或生产部署，没有把历史tps.1当本候选证据。
+
+**S1.1–S1.4 已完成本地实现、验证与交付准备。** S1.5、S2–S5不自动开始；按计划推荐下一项为 **S2.1 模型价格目录的权限与接口合同**，S1.5第二批采集按实际使用入口另行选择。合并、发布和生产验收保持独立未执行状态。

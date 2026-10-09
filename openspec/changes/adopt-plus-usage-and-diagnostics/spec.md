@@ -12,12 +12,12 @@
 | last_token_ms | 可空整数 | NULL | 同一起点下最后一个有效 Token 类输出的时点 |
 | first_output_ms | 可空整数 | NULL | 首个有效输出，包括可识别媒体 |
 | first_output_kind | 可空字符串 | NULL | text / reasoning / tool / image / audio / compaction |
-| audio_output_tokens | 可空整数 | NULL | 只记录可信拆分；确认无音频才为 0 |
+| audio_output_tokens | 可空整数 | NULL | 只记录可信拆分；确认无音频才为 0；正音频统计是持续事实，最终缺失拆分不沿用部分值也不猜零 |
 | completion_status | 字符串 | unknown | completed / client_disconnected / upstream_error / interrupted / unknown |
 | is_complete | 可空布尔 | NULL | 已观察终态派生；unknown 不等于 true |
-| usage_source | 字符串 | unknown | upstream_final / upstream_partial / unknown；描述既有计費 Token 来源，不估算 |
+| usage_source | 字符串 | unknown | upstream_final / upstream_partial / unknown；描述既有计费 Token 来源，不估算；JSON只有明确completed/成功compaction为final，未知状态不猜完成 |
 
-领域快照为 `UsageTiming` 值，提交用量前深复制可空字段；异步 worker 只消费快照。只有空字符串规范为 unknown，不用默认值修复未知枚举。新迁移身份为 `251_add_usage_log_timing.sql`，仅加字段/约束；不修改旧迁移、不删除设置/聚合、不回填历史时点。
+领域快照为 `UsageTiming` 值，提交用量前深复制可空字段；异步 worker 只消费快照。只有空字符串规范为 unknown，不用默认值修复未知枚举。新迁移身份为 `251_add_usage_log_timing.sql`，仅加字段及注释；不修改旧迁移、不删除设置/聚合、不回填历史时点。
 
 ## 事件与生命周期
 

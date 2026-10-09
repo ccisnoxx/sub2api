@@ -1,0 +1,36 @@
+# S1 第一批交付准备
+
+本文件准备后续交付操作；本会话不推送、不合并、不发布镜像、不连接生产。已验证应用提交为 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`；实际覆盖、检查与独立复核结果登记在 [执行证据](implementation-evidence.md)。文档归档会推进本地HEAD；后续远端门禁必须绑定届时的真实完整候选，不能将本地结果称作远端通过。
+
+## 候选与门禁
+
+应用分支 `codex/plus-usage-s1` 基于 personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，既有 S0 修复单独保留于 `6bf78b18ce759e4f211c62b0518c3bca7418efde`。交付前再次核对最新远端 personal、来源 JSON、候选 diff 与 SHA；基础变化时先评估并更新候选，不能继续复用失效的绑定。
+
+应用不包含 main/CI 维护候选的应用源码。当前聊天 `codex/ci-validation-scope` 的未合入 CI 选择变更不作为 personal 已生效门禁。按 personal 当前定义，后续必需 Personal CI 包含 binding、existing-ci、existing-security、tps、sync-contracts，最后由 personal-ready 在开始/结束核对相同 SHA 与最新基础。不得使用其他 SHA、旧个人镜像或 S0 的检查冒充 S1 门禁。远端完整 CI 尚未运行，本次只完成本地与交付准备；获得后续推送/PR授权后对稳定候选执行当前必需门禁，不重复中间全套 gate。
+
+数据、采集与页面必须作为同一兼容候选交付，不单独部署要求新字段但迁移尚不存在的消费者。发布仍沿个人 simple/linux/amd64、来源 SHA、固定 digest 和部署工具合同；本期没有新的发布机制。
+
+## 增量迁移
+
+`backend/migrations/251_add_usage_log_timing.sql` 仅扩展 usage_logs；旧迁移和 schema_migrations 的历史 checksum 不变。启动时仍由现有 ApplyMigrations 加锁并应用未执行迁移。历史时点/音频/完成布尔保留 NULL，timing_version=0，status/source=unknown；无需回填或清空统计。
+
+数据库真实验证与旧应用兼容范围见执行证据。兼容证明针对本次固定旧源码及扩展 schema 的迁移启动、用量 SQL 和 DTO；不代表未知的未来候选、其他迁移或未经核对的部署工具自动获得兼容授权。
+
+## 备份、恢复与应用回退
+
+后续生产更新前，由实际部署 owner 核对 PostgreSQL 版本、数据库名、卷及可用空间，准备维护窗口、当前固定镜像 digest 和 revision。备份必须先完成并确认可读；文件限制访问，避免将数据库内容提交到仓库。示例命令由部署环境中的真实变量决定，不能复制测试库参数到生产：
+
+```sh
+# 在已经授权的部署主机执行，按实际 compose/容器名称适配。
+docker compose exec -T postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > usage-s1-before.dump
+chmod 600 usage-s1-before.dump
+pg_restore --list usage-s1-before.dump > usage-s1-before.list
+```
+
+恢复演练应使用隔离数据库，检查 schema_migrations 和用量样本读写，然后再按已授权窗口实施。恢复到备份时间点会丢失其后写入，因此仅回退应用优先保留扩展 schema 和 migration ledger；不得为回退镜像删除新列、清理 ledger、修改旧 SQL 文件或回填历史成功状态。只有执行证据确认的旧应用在扩展 schema 可运行时，才可声明该固定旧应用的数据兼容。部署工具仍需针对真实部署候选审定运行树兼容信息；S0 的无迁移证明不足以覆盖 S1。
+
+若后续必须恢复数据库，先停止用量写入和相关 worker，保存当前库以保留恢复期间的数据证据；按实际批准的恢复点恢复到隔离库验证，再决定切换。不能在在线计费期间覆盖数据库。最终生产 revision、镜像版本/digest、迁移结果与线上验收必须另行记录；本文件不代表这些动作已完成。
+
+## 下一项
+
+第一批验收完成后暂停。按主线推荐下一项 S2.1 模型价格目录权限与接口合同；S1.5 的第二批入口按实际使用需要另选；本会话不自动进入两者。S0.2/S0.3、S1发布/生产验收继续保持独立状态。

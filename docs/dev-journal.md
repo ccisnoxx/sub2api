@@ -1,5 +1,15 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S1.1–S1.4 第一批完成
+
+- 本次只执行S1.1–S1.4。开始/结束只读核对personal仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；来源保持KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。新应用工作树 `codex/plus-usage-s1` 从personal创建，完整保存原S0候选到 `6bf78b18ce759e4f211c62b0518c3bca7418efde`，原17应用文件未修改；原聊天CI维护checkout保持干净，没有使用main应用源码。
+- 最终已验证应用 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`。冻结9项新计时/终态字段与历史0/NULL/unknown；新增251迁移，正规Ent生成，显式SQL/单条/批量/幂等/best-effort fallback/DTO/前端类型贯通。保留旧first_token_ms/openai_ttft_mode、Token/费用/调度/重试与原用量owner。
+- 第一批原生Responses普通/透传HTTP/SSE、JSON/SSE转JSON、pooled/ingress/桥接/原生WS采集接线；沿用既有duration/turn起点、ID归属、首次终态冻结与异步深复制。页面与CSV/Excel共用TPS helper，分清旧首字/严格首Token、媒体与部分状态，统一说明非流式完整内容观察边界。
+- 验证：真实PG16单条/批量/重复写/历史未知/失败fallback/Ent，55个repository与13个DTO顶层检查通过；真实备份恢复后固定旧源码与新源码S1→S0→S1启动/迁移/SQL/DTO往返通过。最终定向采集、计费快照、WS与race通过；前端162去重用例、改动lint、i18n/类型/Vite通过；四组本地Chromium页面/键盘/窄屏/双语及实际32行CSV/Excel解析一致，说明修正后四组弹层重新验收。仍有效的S0和未改动证据复用，构建既有warning如实保留。
+- 4次fresh只读复核完成，确认的checksum临时夹具、权威音频拆分/同源用量/shell item/JSON来源及usage-only音频事实问题均关闭；新增反例先红后绿。最终20行按实际3f0443757复核可关闭；审计 `20261009T092527Z-kin-plus-usage-s1-c8034a11` closed/verify passed，34产物完整，无异常。复核是代码/日志检查，不称独立执行测试。
+- [任务与证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md)、[实际覆盖](../openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md)、[交付准备](../openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)已更新并按维护职责增量同步main来源文档候选及原指定位置，各自旧journal全文保留。文档提交会推进本地HEAD，后续CI绑定真实最终候选；远端必要CI尚未执行，部署运行树兼容仍需针对真实生产候选审定。
+- HTTP原失败不新增用量行；无可信turn/ID、opaque frame、Cyber和转换/其他平台仍旧版本或未知，不能称全平台完成。没有provider凭据请求、生产权限隔离或浏览器矩阵；没有推送/PR/Actions、合并、镜像发布、SSH或生产部署。S1.1–S1.4已勾选，S0.2/S0.3、S1.5与后续保持未执行；下一项推荐S2.1权限与接口合同，本会话到此暂停，不自动推进。
+
 ## 2026-10-09：KIN 借鉴 Plus S0.1 最终候选核对完成
 
 - 本次仅执行 S0.1。远端 personal、本地 personal 与 `codex/fix-version-usage-help` HEAD 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，应用仍从该 personal 工作树核对；来源保持 KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。没有使用 main 应用源码替代候选。

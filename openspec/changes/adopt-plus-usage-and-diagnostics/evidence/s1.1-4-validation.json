@@ -1,0 +1,1068 @@
+{
+  "task": "S1.1–S1.4",
+  "recorded_utc": "2026-10-09T14:19:42Z",
+  "validation_status": "passed_for_first_batch_local_delivery_preparation",
+  "checks": [
+    {
+      "name": "Ent正规生成",
+      "command": "go generate ./ent",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "storage-generate.log"
+    },
+    {
+      "name": "repository定向unit",
+      "command": "go test -tags unit ./internal/repository -run 'UsageLog|PrepareUsageLog|BuildUsageLog|ExecUsageLog|ScanUsageLog|AppendUsageLog|RequestType' -count=1 -v",
+      "cwd": "backend",
+      "result": "passed",
+      "top_level_passes": 55,
+      "log": "storage-unit.log"
+    },
+    {
+      "name": "用户/管理员DTO定向",
+      "command": "go test ./internal/handler/dto -run 'TestUsageLogFromService' -count=1 -v",
+      "cwd": "backend",
+      "result": "passed",
+      "top_level_passes": 13,
+      "log": "storage-dto.log",
+      "affected_fixture_rerun": "storage-dto-fixture.log"
+    },
+    {
+      "name": "真实PG16 repository/migration/幂等",
+      "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock SUB2API_TEST_POSTGRES_IMAGE=postgres:16-alpine CI=true go test -tags integration ./internal/repository -run '^(TestUsageLogTiming_|TestMigration251_|TestUsageLogRepositoryCreate_BatchPathDuplicateRequestID|TestUsageLogRepositoryFlushCreateBatch_DeduplicatesSameKeyInMemory)' -count=1 -v",
+      "cwd": "backend",
+      "result": "passed",
+      "top_level_passes": 7,
+      "log": "storage-integration.log",
+      "affected_fixture_rerun": "storage-integration-final.log",
+      "observed": "单条/批量/重复写、Ent写、历史未知与旧首字、真实FK导致best-effort失败后single fallback，全部新字段读回"
+    },
+    {
+      "name": "旧应用兼容、备份恢复与往返启动",
+      "command_evidence": "old-compat.go、current-compat.go及roundtrip.log",
+      "result": "passed",
+      "old_source": "6bf78b18ce759e4f211c62b0518c3bca7418efde",
+      "log": "roundtrip.log",
+      "observed": "真实迁移runner、旧SQL/DTO、新SQL/双DTO；pg_dump/pg_restore隔离库；同一恢复库 S1→S0→S1 ApplyMigrations",
+      "fixture_correction": "初始临时夹具以raw SQL计算251 checksum；复核指出runner用TrimSpace，已修夹具与两测试库ledger并重新备份恢复；生产代码未因此改动"
+    },
+    {
+      "name": "Responses采集与计费/快照",
+      "command": "go test ./internal/service ./internal/service/openai_ws_v2 -run 'TestResponses(OutputTiming|UsageTiming)|TestRelayUsageTimingCallback|TestOpenAIUsageTiming|TestForwardOpenAIWSV2_ClientCancellation|TestForwardResponsesChatCompletionsFallbackKeeps' -count=1",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "final-timing-audio-evidence.log",
+      "validity": "所有直接受影响定向集合对最终应用3f0443757实际执行并通过；原始日志不含命令/HEAD，完整命令由本次工具执行记录在本JSON及final-commands.txt登记",
+      "candidate_commit": "3f04437572e2819f0313ccc2a3f1a618a2afcdf0"
+    },
+    {
+      "name": "既有失败、多turn、bridge retry与计费幂等",
+      "command": "go test ./internal/service -run 'TestOpenAIGatewayService_Forward_WSv2_(SuccessAndBindSticky|ResponseFailedIsNotSchedulingSuccess)|TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_KeepLeaseAcrossTurns|TestOpenAIStreaming(Passthrough)?(BareError|ResponseFailed|FailedAfterOutput)|TestProxyOpenAIWSHTTPBridgeTurn(BareError|RetriesRejectedField)|TestOpenAIGatewayServiceRecordUsage_(Duplicate|SimpleMode|SubscriptionBilling)' -count=1",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "collector-regression.log"
+    },
+    {
+      "name": "采集并发定向race",
+      "command": "go test -race ./internal/service ./internal/service/openai_ws_v2 -run 'TestResponsesUsageTiming_(WSRegistryInterleavedIDs|WSPassthroughAdmittedTurns)|TestResponsesOutputTiming_TerminalOrdering|TestForwardOpenAIWSV2_ClientCancellation|TestRelayUsageTimingCallback' -count=1",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "collector-race-stable.log",
+      "validity": "首次采集并发结构证据；增量后的完整定向race及最终正音频/WS race另有登记，不以旧日志证明新数值反例"
+    },
+    {
+      "name": "前端相关七文件",
+      "command_evidence": "frontend-commands.log",
+      "result": "passed",
+      "deduplicated_passes": 162,
+      "log": "frontend-tests.log",
+      "affected_reruns": [
+        "frontend-tests-first-token.log",
+        "frontend-tests-table.log",
+        "review-ui-after.log"
+      ],
+      "fixture_correction": "首轮158通过/2失败为新组件detached DOM断言；挂载document.body后失败文件5通过；新增同表历史/新行合同后表格42通过，其他成功文件复用"
+    },
+    {
+      "name": "15改动前端文件lint",
+      "command_evidence": "frontend-commands.log",
+      "result": "passed",
+      "log": "frontend-lint.log",
+      "affected_reruns": [
+        "frontend-lint-table.log",
+        "review-ui-lint.log"
+      ]
+    },
+    {
+      "name": "前端build",
+      "command_evidence": "frontend-commands.log",
+      "result": "passed",
+      "log": "final-build.log",
+      "observed": "pnpm9.15.9；i18n3用例、vue-tsc -b、Vite",
+      "warnings": [
+        "Node DEP0190",
+        "Browserslist数据过期",
+        "动态/静态同模块import",
+        "chunk大于500kB"
+      ]
+    },
+    {
+      "name": "页面完整查看与真实导出",
+      "command": "node <visualization-dir>/qa.cjs；失败夹具修正后仅重跑mobile配置",
+      "result": "passed",
+      "log": "browser-mobile-final.log",
+      "observed": "4组Chromium、8合成记录；用户/管理员、zh/en、light/dark、1440/390；点击/键盘/互斥/关闭/边界；四份32行CSV/Excel下载解析",
+      "fixture_correction": "partial说明内联使精确文本断言错误；mobile focus不滚到第二行、hidden h1不适合作外部点击目标；修QA脚本无应用变更，桌面成功证据复用",
+      "console_errors": 0,
+      "console_warnings": 0,
+      "browser_matrix": false
+    },
+    {
+      "name": "最终音频事实与WS定向race",
+      "command": "go test -race ./internal/service -run 'TestResponsesOutputTiming_PositivePartialAudioPreventsGuessedZero|TestResponsesUsageTiming_(WSRegistryInterleavedIDs|WSPassthroughAdmittedTurns)' -count=1",
+      "cwd": "backend",
+      "result": "passed",
+      "candidate_commit": "3f04437572e2819f0313ccc2a3f1a618a2afcdf0",
+      "log": "final-audio-race.log"
+    },
+    {
+      "name": "复核修正的回归证据",
+      "result": "passed",
+      "before_logs": [
+        "review-regressions-before.log",
+        "review-shell-before.log",
+        "review-ui-before.log",
+        "review-positive-audio-before.log"
+      ],
+      "after_logs": [
+        "final-timing-audio-evidence.log",
+        "review-ui-after.log"
+      ],
+      "observed": "四类指标反例、ws_v2说明以及usage-only正音频事实先红后绿；原费用/Token保持断言同时通过",
+      "diagnosis": "shell新测试最初直接解引用NULL造成panic，补NotNil断言后重跑该失败范围确认遗漏；共享采集集合先发现confirmNoAudio先于最终usage赋值，修正接受后的确认顺序再通过"
+    },
+    {
+      "name": "四类修正后的定向race",
+      "command": "go test -race ./internal/service ./internal/service/openai_ws_v2 -run 'TestResponsesUsageTiming_(WSRegistryInterleavedIDs|WSPassthroughAdmittedTurns|SSEToJSONUsesAcceptedFinalUsage)|TestResponsesOutputTiming_(TerminalOrdering|FinalUsageReplacesAudioBreakdown|JSONUsageNeedsFinalEvidence|ShellCallItemContent)|TestForwardOpenAIWSV2_ClientCancellation|TestRelayUsageTimingCallback' -count=1",
+      "candidate_commit": "36ba3360d6c0839af1593d017e729ff9b0fdaba5",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "final-race.log"
+    }
+  ],
+  "local_raw_evidence_dir": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1",
+  "artifacts": [
+    {
+      "name": "browser-mobile-diagnostic.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/browser-mobile-diagnostic.log",
+      "sha256": "7684c87708d7a86f2b3f9a6c586966c60e0832448eb712b818f11a4b70b39e01",
+      "bytes": 628
+    },
+    {
+      "name": "browser-mobile-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/browser-mobile-final.log",
+      "sha256": "6d19d427522e2f2ae48a04b3b5c1e5c199a114b14489ccbd29fcd3a04dc3b87a",
+      "bytes": 52
+    },
+    {
+      "name": "browser.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/browser.log",
+      "sha256": "bca40284544aa0733846ccbfafe326db080cce9e2b87f7d587c9b1c5752d447d",
+      "bytes": 515
+    },
+    {
+      "name": "collector-commands.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/collector-commands.log",
+      "sha256": "127654b2911fe6e70d6dacbd0bef40f769c6069b1a900c8f3cacef59eabd2ff1",
+      "bytes": 5052
+    },
+    {
+      "name": "collector-race-stable.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/collector-race-stable.log",
+      "sha256": "5391c0eea34895b3568ff32433ad47fa16099bdb5b02ab057758837f98ef1d6d",
+      "bytes": 127
+    },
+    {
+      "name": "collector-regression.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/collector-regression.log",
+      "sha256": "6db1af455343bd0e00004b26547af1e089e045cdbf7ac2ef584250c2e0b49ada",
+      "bytes": 57
+    },
+    {
+      "name": "collector-timing-stable.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/collector-timing-stable.log",
+      "sha256": "78b64fbd0d9836942cbb16e6285484c55162e74890323e13456535cf331595b8",
+      "bytes": 127
+    },
+    {
+      "name": "compat.dump",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/compat.dump",
+      "sha256": "810d1535c525a38058612c6aff5accfb1188609a7308b4a81b53ff9bcf72f3f2",
+      "bytes": 522674
+    },
+    {
+      "name": "current-compat.go",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/current-compat.go",
+      "sha256": "918fa4329828f20c21a8c3c2b33440de3e8d6a92e82b958fefd4f2551015f63e",
+      "bytes": 1659
+    },
+    {
+      "name": "current-compat.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/current-compat.log",
+      "sha256": "357e9e3c14de19fa669ff115dd0be41da5a8a717d985a704f0fae27ab941e9eb",
+      "bytes": 181
+    },
+    {
+      "name": "final-audio-race.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-audio-race.log",
+      "sha256": "0e5069ed23ef03f40434b849a00f4ea33490873924288ae8ce1d7b8ea65fded8",
+      "bytes": 57
+    },
+    {
+      "name": "final-browser-tooltip-corrected.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-browser-tooltip-corrected.log",
+      "sha256": "503993b0edff4e4fa327baeb1590f40e174e855e68340ccc4c7b62e988b5fcb7",
+      "bytes": 106
+    },
+    {
+      "name": "final-browser-tooltip.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-browser-tooltip.log",
+      "sha256": "548f8598350dcd87f9e11be808eb254487a4a450423535b9045cb8d306a49a1c",
+      "bytes": 407
+    },
+    {
+      "name": "final-build.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-build.log",
+      "sha256": "105e4da666269fc3486f55e1407ed70e0ba5518c59278937b7ee2badb3e4d7ca",
+      "bytes": 45073
+    },
+    {
+      "name": "final-commands.txt",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-commands.txt",
+      "sha256": "97c447ee6f959eab6f0fb29aa3fcb3fda17e799b1fa3c6297e80afcbc2814570",
+      "bytes": 1881
+    },
+    {
+      "name": "final-race.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-race.log",
+      "sha256": "27d846ca5a8741f5f55092c20e1080ac2eda247a6041862bbfb589f9b7e15f51",
+      "bytes": 127
+    },
+    {
+      "name": "final-timing-audio-evidence.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-timing-audio-evidence.log",
+      "sha256": "5587e5a29e5215b8acee2961b93237cc960cd387164c9b208241fc7a62905ae3",
+      "bytes": 127
+    },
+    {
+      "name": "final-timing-corrected.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-timing-corrected.log",
+      "sha256": "69aebff4b93a64e35f0751ebe5e701abe2d981349b0d50acbbb750759e231dc7",
+      "bytes": 127
+    },
+    {
+      "name": "final-timing.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-timing.log",
+      "sha256": "77a80604d3ad5ad2a16bbbd84a347ed87d39f99d230db2d58618b2b1ae6e3731",
+      "bytes": 5492
+    },
+    {
+      "name": "frontend-build.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-build.log",
+      "sha256": "77f1118e2ff3a03616f93f6141e4384fc285a08b7fe661217ccdcd71e02efdbc",
+      "bytes": 45075
+    },
+    {
+      "name": "frontend-commands.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-commands.log",
+      "sha256": "9ba8a2b769f9db8f595567a9ab33671a3f60ef7b3921079865e8b30e9b43e125",
+      "bytes": 3183
+    },
+    {
+      "name": "frontend-lint-table.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-lint-table.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "frontend-lint.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "frontend-tests-first-token.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-tests-first-token.log",
+      "sha256": "faf0dd8846e2f180096d5d2bf4b692452421842c77099c2aae35e71056b76dbb",
+      "bytes": 515
+    },
+    {
+      "name": "frontend-tests-table.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-tests-table.log",
+      "sha256": "b165bbd652fc19bfe7e518c500e09b59c982695c068b76d18623321587a1cfb5",
+      "bytes": 702
+    },
+    {
+      "name": "frontend-tests.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-tests.log",
+      "sha256": "477442676feb3fc71b5c3d60a839fdea66fd263072455127f8e473fc5745414a",
+      "bytes": 2778
+    },
+    {
+      "name": "old-compat.go",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/old-compat.go",
+      "sha256": "9d4e955ffcdd5c57b565ec19f26fd465a4ba87c8f173cf0a181c1087a13eed46",
+      "bytes": 3686
+    },
+    {
+      "name": "old-compat.json",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/old-compat.json",
+      "sha256": "4ec425ee0bda5f4306e124691a4c4fab567dbd88bd5b264f258e766a07a5a51c",
+      "bytes": 240
+    },
+    {
+      "name": "old-compat.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/old-compat.log",
+      "sha256": "ba9a47519c35c9a42eea851880c92d42646fb8e7857800e57ae1233c7b209e1d",
+      "bytes": 311
+    },
+    {
+      "name": "restore.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/restore.log",
+      "sha256": "e26effcc3c6d72ae9a6ea614b9a8f815976accf7ae4533a536c662ce8cb4a38c",
+      "bytes": 190
+    },
+    {
+      "name": "review-positive-audio-before.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/review-positive-audio-before.log",
+      "sha256": "09ea9f104a2c7d0242808c688a4314f901e0a2720c2bded2836524131f918efa",
+      "bytes": 1382
+    },
+    {
+      "name": "review-regressions-after.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/review-regressions-after.log",
+      "sha256": "6b5126b186932ac2096fe649dfb619eeaed11d1cf9bf612e3ca714966b4abf9f",
+      "bytes": 57
+    },
+    {
+      "name": "review-regressions-before.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/review-regressions-before.log",
+      "sha256": "d17f75897981e2cabc546f7374b5ff038eff5e2a2158fcb1fc975d08402f0a29",
+      "bytes": 10574
+    },
+    {
+      "name": "review-shell-before.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/review-shell-before.log",
+      "sha256": "e4d0e37fa91aa126954043a0c40b50274a30770d88f62221006b6b44069fd9e1",
+      "bytes": 977
+    },
+    {
+      "name": "review-ui-after.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/review-ui-after.log",
+      "sha256": "d0f4fe9a5b4a44ceaac3dccc303a9643188fa576b6411043c59b71cc62dd563c",
+      "bytes": 515
+    },
+    {
+      "name": "review-ui-before.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/review-ui-before.log",
+      "sha256": "c3fc298a69c93c87a459c8e3b2322e6c0d8d1d929f7af2b951dd08b3683d153a",
+      "bytes": 2291
+    },
+    {
+      "name": "review-ui-lint.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/review-ui-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "roundtrip.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/roundtrip.log",
+      "sha256": "6f8325cfc2408b4c2e448a827ac416bcfd67d9227d87e059b42639f8b84ee946",
+      "bytes": 499
+    },
+    {
+      "name": "storage-commands.txt",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-commands.txt",
+      "sha256": "8096dd89d22e8cd0c4e421cf5553db1722a1b4afe6706efe1a2bc973f538b40f",
+      "bytes": 1571
+    },
+    {
+      "name": "storage-dto-fixture.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-dto-fixture.log",
+      "sha256": "5c241b42a03587de7767ad9cc0371c7438a8f70de48004881ff4e688db231373",
+      "bytes": 766
+    },
+    {
+      "name": "storage-dto.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-dto.log",
+      "sha256": "0927ebfd75d89a120f0d826f43d5f0ed51c8090a66890c0af53d65cab1ccf33f",
+      "bytes": 4270
+    },
+    {
+      "name": "storage-generate.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-generate.log",
+      "sha256": "12605bcecfe2205a8e06c554c06705062eb857ad5115d10eff5408a27b31b85a",
+      "bytes": 203
+    },
+    {
+      "name": "storage-integration-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-integration-final.log",
+      "sha256": "18ddf55477748e8da1e32db2b07b547eb0a069fa1a5de6bc20cacca3da40def4",
+      "bytes": 2941
+    },
+    {
+      "name": "storage-integration.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-integration.log",
+      "sha256": "aceb6cac4f34c32572c1faa5e48511735846663a19a861d73454f4bda3bfe0e8",
+      "bytes": 5560
+    },
+    {
+      "name": "storage-unit.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-unit.log",
+      "sha256": "6464e8392caaf83e8c13f8a69d26e3ea17cfc17123e0883d61e851602a85c985",
+      "bytes": 13843
+    }
+  ],
+  "browser_results": {
+    "browser": "Chromium",
+    "reason": "Browser plugin not available",
+    "environment": "http://127.0.0.1:4175",
+    "records": 8,
+    "results": [
+      {
+        "name": "admin-zh-light-1440",
+        "url": "http://127.0.0.1:4175/admin/usage",
+        "title": "使用记录 - Sub2API · Local TPS QA",
+        "viewport": {
+          "role": "admin",
+          "locale": "zh",
+          "theme": "light",
+          "width": 1440,
+          "height": 1100
+        },
+        "requests": [
+          "GET /auth/me",
+          "GET /admin/compliance",
+          "GET /subscriptions/active",
+          "GET /announcements",
+          "GET /admin/settings",
+          "GET /admin/payment/config",
+          "GET /admin/system/check-updates",
+          "GET /keys",
+          "GET /admin/groups",
+          "GET /admin/usage",
+          "GET /admin/usage/stats",
+          "GET /admin/dashboard/models",
+          "GET /settings/public",
+          "GET /admin/dashboard/snapshot-v2"
+        ],
+        "warnings": [],
+        "errors": [],
+        "tooltipBox": {
+          "x": 1143.234375,
+          "y": 373.5,
+          "width": 256,
+          "height": 160.5
+        },
+        "strictBox": {
+          "x": 1112,
+          "y": 283.5,
+          "width": 320,
+          "height": 317.5
+        },
+        "download": "usage_2026-10-08_to_2026-10-09.xlsx",
+        "exportRows": 8,
+        "status": "passed"
+      },
+      {
+        "name": "user-en-dark-1440",
+        "url": "http://127.0.0.1:4175/usage",
+        "title": "Usage Records - Sub2API · Local TPS QA",
+        "viewport": {
+          "role": "user",
+          "locale": "en",
+          "theme": "dark",
+          "width": 1440,
+          "height": 1100
+        },
+        "requests": [
+          "GET /auth/me",
+          "GET /subscriptions/active",
+          "GET /announcements",
+          "GET /keys",
+          "GET /groups/available",
+          "GET /usage",
+          "GET /usage/stats",
+          "GET /usage/dashboard/models",
+          "GET /usage/dashboard/snapshot-v2",
+          "GET /settings/public"
+        ],
+        "warnings": [],
+        "errors": [],
+        "tooltipBox": {
+          "x": 896.234375,
+          "y": 295.5,
+          "width": 256,
+          "height": 238.5
+        },
+        "strictBox": {
+          "x": 903.21875,
+          "y": 244.5,
+          "width": 320,
+          "height": 356.5
+        },
+        "download": "usage_2026-10-08_to_2026-10-09.csv",
+        "exportRows": 8,
+        "status": "passed"
+      },
+      {
+        "name": "admin-zh-dark-390",
+        "url": "http://127.0.0.1:4175/admin/usage",
+        "title": "使用记录 - Sub2API · Local TPS QA",
+        "viewport": {
+          "role": "admin",
+          "locale": "zh",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        "requests": [
+          "GET /auth/me",
+          "GET /admin/compliance",
+          "GET /subscriptions/active",
+          "GET /announcements",
+          "GET /admin/settings",
+          "GET /admin/payment/config",
+          "GET /admin/system/check-updates",
+          "GET /keys",
+          "GET /admin/groups",
+          "GET /admin/usage",
+          "GET /admin/usage/stats",
+          "GET /admin/dashboard/models",
+          "GET /settings/public",
+          "GET /admin/dashboard/snapshot-v2"
+        ],
+        "warnings": [],
+        "errors": [],
+        "tooltipBox": {
+          "x": 91.984375,
+          "y": 245.5,
+          "width": 256,
+          "height": 160.5
+        },
+        "strictBox": {
+          "x": 62,
+          "y": 88.5,
+          "width": 320,
+          "height": 317.5
+        },
+        "download": "usage_2026-10-08_to_2026-10-09.xlsx",
+        "exportRows": 8,
+        "status": "passed"
+      },
+      {
+        "name": "user-zh-light-390",
+        "url": "http://127.0.0.1:4175/usage",
+        "title": "使用记录 - Sub2API · Local TPS QA",
+        "viewport": {
+          "role": "user",
+          "locale": "zh",
+          "theme": "light",
+          "width": 390,
+          "height": 844
+        },
+        "requests": [
+          "GET /auth/me",
+          "GET /subscriptions/active",
+          "GET /announcements",
+          "GET /keys",
+          "GET /groups/available",
+          "GET /usage",
+          "GET /usage/stats",
+          "GET /usage/dashboard/models",
+          "GET /usage/dashboard/snapshot-v2",
+          "GET /settings/public"
+        ],
+        "warnings": [],
+        "errors": [],
+        "tooltipBox": {
+          "x": 91.984375,
+          "y": 245.5,
+          "width": 256,
+          "height": 160.5
+        },
+        "strictBox": {
+          "x": 62,
+          "y": 502.5,
+          "width": 320,
+          "height": 317.5
+        },
+        "download": "usage_2026-10-08_to_2026-10-09.csv",
+        "exportRows": 8,
+        "status": "passed"
+      }
+    ]
+  },
+  "visual_artifacts": [
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-dark-390-entry.png",
+      "sha256": "e166a3ff6ad1d8f88495228a94d0776f79af35c5637b7b937c244169ed5be67e",
+      "bytes": 149579
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-dark-390-export.json",
+      "sha256": "ff57458d9aa670d88fe1ca8fffb43619123283765690b5add2c1e6daacb84096",
+      "bytes": 6589
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-dark-390-first-description.png",
+      "sha256": "0670d20b6d6c0ea35d99e95a96602f3080865da861eb032861d359cece8877f4",
+      "bytes": 90059
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-dark-390-strict-description.png",
+      "sha256": "a8910bf444a43d25f63d6e68418ee94fa0bed93297f22baa6b0a5c8e82f2d8c5",
+      "bytes": 87891
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-dark-390-tps-description.png",
+      "sha256": "d362b7b05dc22bbb58940b7731196dbbbd239bbabc37736df7db110db1b85d25",
+      "bytes": 85336
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-dark-390-usage_2026-10-08_to_2026-10-09.xlsx",
+      "sha256": "b960e7d9a36978df7fd7f9baf8b4d722314d718aef5cb6846cbbff1f8f919753",
+      "bytes": 30163
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-light-1440-entry.png",
+      "sha256": "6f1c930d599591c2a312825283a39ae3403765da01689c065e797c816260583e",
+      "bytes": 268674
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-light-1440-export.json",
+      "sha256": "ff57458d9aa670d88fe1ca8fffb43619123283765690b5add2c1e6daacb84096",
+      "bytes": 6589
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-light-1440-first-description.png",
+      "sha256": "2c3e503558f78bc518984b0697f161f43d745ec07008719767e6c2b28fe6711f",
+      "bytes": 315403
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-light-1440-strict-description.png",
+      "sha256": "d6507b7f7f5e710445c2ad82f0f66f84ad9585f22c415fd4983430745312a33a",
+      "bytes": 301307
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-light-1440-tps-description.png",
+      "sha256": "7b9b8ff41674a995e33c5f56a46fd04306022eb66b83cbd8ba0d0036639e3b00",
+      "bytes": 306630
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/admin-zh-light-1440-usage_2026-10-08_to_2026-10-09.xlsx",
+      "sha256": "b960e7d9a36978df7fd7f9baf8b4d722314d718aef5cb6846cbbff1f8f919753",
+      "bytes": 30163
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/failure-dom.txt",
+      "sha256": "bf3a5c39b4d495665cd8a316765fa699959d9016290b6a870461f11440a989b7",
+      "bytes": 4556
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/failure.png",
+      "sha256": "2d109295b177e96a9797b93c012f04a6243aea0e3f4276adf8c50d3e4219dcb0",
+      "bytes": 82694
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/qa-mobile-diagnostic.cjs",
+      "sha256": "b14f804d356c518d0a705a2730358c21dfe9657ef0b32c51453503942bd197fb",
+      "bytes": 17335
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/qa-mobile-final.cjs",
+      "sha256": "c4605ba5ef3d7d0b68a6609f95a16442804f90cca50de1636d0d58ac47ac9135",
+      "bytes": 17267
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/qa-review.cjs",
+      "sha256": "1150da8453aa9d9baa5219795df5ebad157c0f6c2f2aae66e8c782938ce4ab62",
+      "bytes": 15621
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/qa.cjs",
+      "sha256": "a8ec2724414c3c4f2004e02e4f7e3a2bb02df386a6b3f0ed8f2ab37def15d5c0",
+      "bytes": 17421
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/results-final.json",
+      "sha256": "dd669a0b118cb3bcfbd180ab3a2e1ab3f8cdcdb212302707a331246bd535d603",
+      "bytes": 4540
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/results-mobile.json",
+      "sha256": "756cd5a1f634554f2d40ab9c5f5756b900c7b269e7fa1cdb5820e68041032721",
+      "bytes": 2016
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/results.json",
+      "sha256": "8d41393a0e5000aab74788928a0db21a4f4c94058006d5bf05011e3242039341",
+      "bytes": 2036
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-dark-390-entry.png",
+      "sha256": "e166a3ff6ad1d8f88495228a94d0776f79af35c5637b7b937c244169ed5be67e",
+      "bytes": 149579
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-dark-390-first-description.png",
+      "sha256": "fb0e02eff8116cf15959a4b1c4acafcdc98d30f768d3f6ca753686c8b01c7673",
+      "bytes": 89854
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-dark-390-strict-description.png",
+      "sha256": "298915fd8759d8f5907ffdcbe26139392c49c2481ceb806ce5bbd9fbcb5c4751",
+      "bytes": 92811
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-dark-390-tps-description.png",
+      "sha256": "0d85a09f7db0ab4498239236230ecf0a57ed8cfb5b823647442a7627faf443e0",
+      "bytes": 85129
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-light-1440-entry.png",
+      "sha256": "bea30285bdc13ea0f93c4d7ca996566dc99f52e6dc7e442e4ea81b9a4514457a",
+      "bytes": 268611
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-light-1440-first-description.png",
+      "sha256": "2697fee2c7db482783c7ede3d02612babf86bd7c5df9ef7cf4505b5ccf8092fb",
+      "bytes": 315104
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-light-1440-strict-description.png",
+      "sha256": "f1de78d61d1bc18de6512307f016d61d100b2d2091c726c59623a3a7dbce3dfc",
+      "bytes": 310372
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/admin-zh-light-1440-tps-description.png",
+      "sha256": "384bd46db4058e29933634eb44bc6b5e8a900699d429e4d16c7934b55f5d0fef",
+      "bytes": 306349
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/failure-dom.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/failure.png",
+      "sha256": "ed36dee351e76cb48cb77d6efd20bb53acc53d51bf800b02123ef5a09a1413c4",
+      "bytes": 7126
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/results.json",
+      "sha256": "ea83b1b49a6624bfc1aae6a52fa4ae1e6742d7bec84a02503e2f67c22d804725",
+      "bytes": 3900
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-en-dark-1440-entry.png",
+      "sha256": "51c55987dcd66722fb537ea773c4faa8576316c4393e3e2a21df0dcc6eac1507",
+      "bytes": 434341
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-en-dark-1440-first-description.png",
+      "sha256": "2051456e67286f0361c88b0f6aceb3e3eada1516a56b11afe78d097fc1aafea2",
+      "bytes": 371259
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-en-dark-1440-strict-description.png",
+      "sha256": "2e274688ea86bc05547bb0783208722d9dee137ca11d61784b346556f0682bd0",
+      "bytes": 375137
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-en-dark-1440-tps-description.png",
+      "sha256": "cc01051e98389da6b67d0fdd069e1b310e2409f76099c4caf49ff8089e6b97c4",
+      "bytes": 375937
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-zh-light-390-entry.png",
+      "sha256": "01c09c699d48c816cfeb5e0b16c519e4a0161ae7b91343837db07b9923198bfd",
+      "bytes": 89557
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-zh-light-390-first-description.png",
+      "sha256": "29730b5f45bf1eb8ff1aa197e3e78d98a776ace19a88d837bb742ca28679b680",
+      "bytes": 89303
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-zh-light-390-strict-description.png",
+      "sha256": "cf83127ca399002d58347908e761aec4b76d36dbc342f689ed3bfde9e977bf3c",
+      "bytes": 95979
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/review-fix/user-zh-light-390-tps-description.png",
+      "sha256": "8ba8c4a290bbf53bfcfded80e3eb879d3ee363e3a8adaec5bcd7454b084e6868",
+      "bytes": 82625
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-en-dark-1440-entry.png",
+      "sha256": "51c55987dcd66722fb537ea773c4faa8576316c4393e3e2a21df0dcc6eac1507",
+      "bytes": 434341
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-en-dark-1440-export.json",
+      "sha256": "2142ff9d274a9410195ed2b4caa848e671503e309eeecedb8c723b50d2615574",
+      "bytes": 4360
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-en-dark-1440-first-description.png",
+      "sha256": "35ecbdc0b88c3315e7528210918fc5fb1aef856a7a7de5f90cbd2461cc4dc764",
+      "bytes": 371587
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-en-dark-1440-strict-description.png",
+      "sha256": "9c8b5d68ff8b504ede4989cc65fb3cf72187c9117854a8b5c90de9b44f60fec1",
+      "bytes": 371972
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-en-dark-1440-tps-description.png",
+      "sha256": "f51cba36952e4768191867e758dec9f0d56a9b2ea5c2e25f233fc2594eead8b4",
+      "bytes": 376270
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-en-dark-1440-usage_2026-10-08_to_2026-10-09.csv",
+      "sha256": "94dc3f28bcf93030806b07797f56a32fe5fc4945a15633a0b8cf1194cd82ca19",
+      "bytes": 1938
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-zh-light-390-entry.png",
+      "sha256": "01c09c699d48c816cfeb5e0b16c519e4a0161ae7b91343837db07b9923198bfd",
+      "bytes": 89557
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-zh-light-390-export.json",
+      "sha256": "6474b7fd2ca39157fa610aa785d2a9a3c8675d5af5a26378d5f616fc98c66b34",
+      "bytes": 4344
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-zh-light-390-first-description.png",
+      "sha256": "3158f2f82e7e6c7f368696bd9c85e5e96e9e160aafc3ed4d9691df8ae1cf3fa3",
+      "bytes": 89503
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-zh-light-390-strict-description.png",
+      "sha256": "41db1de727ab35dd035116ba3e190bc41b487f1ea581679333fcf3ab9983ea92",
+      "bytes": 89457
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-zh-light-390-tps-description.png",
+      "sha256": "d110ea393f369b0f51a87276a8a27dfdb0faa01a8fd6c1aac124d53aeadd47d3",
+      "bytes": 82827
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a11ff9-9ca0-77c1-82e8-776e0b1bb968/kin-plus-s1/user-zh-light-390-usage_2026-10-08_to_2026-10-09.csv",
+      "sha256": "44ac5b7e5527cb6b9747ca21187fdf965dc8e659f609b5b08636ee69f5d792fb",
+      "bytes": 1922
+    }
+  ],
+  "not_run": [
+    "完整Go回归与远端Personal CI/security/release gates",
+    "真实供应商凭据请求",
+    "生产/真实用户权限隔离",
+    "跨浏览器矩阵",
+    "合并、镜像发布与生产部署"
+  ],
+  "not_run_reason": "本会话只第一批本地实现/验证和交付准备；定向证据直接覆盖变化。远端门禁在后续已授权稳定候选交付时执行，未以本地检查冒充。",
+  "s0_evidence_reuse": "版本更新service/handler/VersionBadge/store仍原内容，复用S0.1有效证据；TPS/UsageTable变化由本期定向检查替换",
+  "audit_id": "20261009T092527Z-kin-plus-usage-s1-c8034a11",
+  "review_status": "4次fresh独立只读复核完成；已确认存储checksum夹具、四类指标问题及usage-only音频事实均关闭；最后20行按最终3f0443757复核",
+  "verified_application_commit": "3f04437572e2819f0313ccc2a3f1a618a2afcdf0",
+  "audit_verification": {
+    "status": "passed",
+    "bundle_status": "closed",
+    "artifact_count": 34,
+    "plan_count": 5,
+    "executed_attempt_count": 7,
+    "accepted_attempt_count": 7,
+    "independent_review_count": 4,
+    "errors": [],
+    "warnings": []
+  },
+  "tooltip_revision_results": [
+    {
+      "name": "admin-zh-light-1440",
+      "url": "http://127.0.0.1:4175/admin/usage",
+      "title": "使用记录 - Sub2API · Local TPS QA",
+      "viewport": {
+        "role": "admin",
+        "locale": "zh",
+        "theme": "light",
+        "width": 1440,
+        "height": 1100
+      },
+      "requests": [
+        "GET /auth/me",
+        "GET /admin/compliance",
+        "GET /subscriptions/active",
+        "GET /announcements",
+        "GET /admin/settings",
+        "GET /admin/payment/config",
+        "GET /admin/system/check-updates",
+        "GET /keys",
+        "GET /admin/groups",
+        "GET /admin/usage",
+        "GET /admin/usage/stats",
+        "GET /admin/dashboard/models",
+        "GET /settings/public",
+        "GET /admin/dashboard/snapshot-v2"
+      ],
+      "warnings": [],
+      "errors": [],
+      "tooltipBox": {
+        "x": 1143.234375,
+        "y": 373.5,
+        "width": 256,
+        "height": 160.5
+      },
+      "strictBox": {
+        "x": 1112,
+        "y": 236.5,
+        "width": 320,
+        "height": 364.5
+      },
+      "scope": "tooltip_boundary_only",
+      "status": "passed"
+    },
+    {
+      "name": "user-en-dark-1440",
+      "url": "http://127.0.0.1:4175/usage",
+      "title": "Usage Records - Sub2API · Local TPS QA",
+      "viewport": {
+        "role": "user",
+        "locale": "en",
+        "theme": "dark",
+        "width": 1440,
+        "height": 1100
+      },
+      "requests": [
+        "GET /auth/me",
+        "GET /subscriptions/active",
+        "GET /announcements",
+        "GET /keys",
+        "GET /groups/available",
+        "GET /usage",
+        "GET /usage/stats",
+        "GET /usage/dashboard/models",
+        "GET /usage/dashboard/snapshot-v2",
+        "GET /settings/public"
+      ],
+      "warnings": [],
+      "errors": [],
+      "tooltipBox": {
+        "x": 896.234375,
+        "y": 295.5,
+        "width": 256,
+        "height": 238.5
+      },
+      "strictBox": {
+        "x": 903.21875,
+        "y": 158.5,
+        "width": 320,
+        "height": 442.5
+      },
+      "scope": "tooltip_boundary_only",
+      "status": "passed"
+    },
+    {
+      "name": "admin-zh-dark-390",
+      "url": "http://127.0.0.1:4175/admin/usage",
+      "title": "使用记录 - Sub2API · Local TPS QA",
+      "viewport": {
+        "role": "admin",
+        "locale": "zh",
+        "theme": "dark",
+        "width": 390,
+        "height": 844
+      },
+      "requests": [
+        "GET /auth/me",
+        "GET /admin/compliance",
+        "GET /subscriptions/active",
+        "GET /announcements",
+        "GET /admin/settings",
+        "GET /admin/payment/config",
+        "GET /admin/system/check-updates",
+        "GET /keys",
+        "GET /admin/groups",
+        "GET /admin/usage",
+        "GET /admin/usage/stats",
+        "GET /admin/dashboard/models",
+        "GET /settings/public",
+        "GET /admin/dashboard/snapshot-v2"
+      ],
+      "warnings": [],
+      "errors": [],
+      "tooltipBox": {
+        "x": 91.984375,
+        "y": 245.5,
+        "width": 256,
+        "height": 160.5
+      },
+      "strictBox": {
+        "x": 62,
+        "y": 41.5,
+        "width": 320,
+        "height": 364.5
+      },
+      "scope": "tooltip_boundary_only",
+      "status": "passed"
+    },
+    {
+      "name": "user-zh-light-390",
+      "url": "http://127.0.0.1:4175/usage",
+      "title": "使用记录 - Sub2API · Local TPS QA",
+      "viewport": {
+        "role": "user",
+        "locale": "zh",
+        "theme": "light",
+        "width": 390,
+        "height": 844
+      },
+      "requests": [
+        "GET /auth/me",
+        "GET /subscriptions/active",
+        "GET /announcements",
+        "GET /keys",
+        "GET /groups/available",
+        "GET /usage",
+        "GET /usage/stats",
+        "GET /usage/dashboard/models",
+        "GET /usage/dashboard/snapshot-v2",
+        "GET /settings/public"
+      ],
+      "warnings": [],
+      "errors": [],
+      "tooltipBox": {
+        "x": 91.984375,
+        "y": 245.5,
+        "width": 256,
+        "height": 160.5
+      },
+      "strictBox": {
+        "x": 62,
+        "y": 455.5,
+        "width": 320,
+        "height": 364.5
+      },
+      "scope": "tooltip_boundary_only",
+      "status": "passed"
+    }
+  ],
+  "tooltip_revision_scope": "仅更新说明后四组弹层/键盘/边界；导出helper和页面公式没有后续改动，32行真实下载解析证据复用",
+  "environment_events": [
+    "最初本机Docker未启动；启动已有Colima，仅本地合成PG/Redis检查；本次创建容器已清理",
+    "用户暂停期间预览进程已结束，继续时第一次补验连接拒绝；核对端口无进程后重新启动4175，四组通过",
+    "前端没有安装/升级依赖，临时使用既有pnpm9.15.9布局；锁文件/go.mod保持原值",
+    "收尾时已清理本次容器；确认无其他运行容器后将Colima恢复到初始stopped，Docker context恢复default；临时依赖symlink仅解除链接，原依赖目录保留"
+  ]
+}
