@@ -565,7 +565,7 @@ class GitAndInputTests(unittest.TestCase):
         # 固定已审定候选的真实 Git 字节；不以算法生成期望的版本/校验内容。
         actual = deploy.GitEvidence(Path(deploy.__file__).resolve().parents[2])
         before = "896de21b4be7f4ec4b4236f4df663b47371665b0"
-        after = "e5acf91d204c6dc56516e88cf2ba906d9fb7c59e"
+        after = "ce682c4901033d09c7e12614b7b73e11bdd17ef4"
         for path in deploy.SECURITY_PATCH_FILES:
             (self.root / path).write_bytes(actual.git("show", before + ":" + path))
         self.old["revision"] = self.commit("old security inputs")
@@ -589,10 +589,13 @@ class GitAndInputTests(unittest.TestCase):
     def test_real_git_security_patch_rejects_extra_content_modes_versions_and_missing_paths(self):
         target = self.security_target()
         accepted_revision = target["revision"]
-        for kind in ("dependency", "checksum", "source", "runtime", "version", "mode", "symlink", "partial", "mixed_direction"):
+        for kind in ("lint", "dependency", "checksum", "source", "runtime", "version", "mode", "symlink", "partial", "mixed_direction"):
             with self.subTest(kind=kind):
                 self.git("reset", "--hard", accepted_revision)
-                if kind == "dependency":
+                if kind == "lint":
+                    file = self.root / "backend/.golangci.yml"
+                    file.write_text(file.read_text().replace("        - all", "        - all\n        - -SA1019"))
+                elif kind == "dependency":
                     with (self.root / "backend/go.mod").open("a") as output:
                         output.write("require example.invalid/module v1.0.0\n")
                 elif kind == "checksum":

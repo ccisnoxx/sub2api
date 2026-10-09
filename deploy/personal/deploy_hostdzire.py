@@ -39,8 +39,12 @@ RECORD_RE = re.compile(r"[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}\Z")
 RUNTIME_PATHS = ["backend", "Dockerfile", "Dockerfile.goreleaser", ".dockerignore", "deploy"]
 RUNTIME_EXCLUDES = ["deploy/personal", "deploy/personal-source.json"]
 # 本轮审定安全补丁的完整文件字节；未来补丁须另行审定，不按路径泛化放行。
-SECURITY_PATCH_ID = "go1.27.2-xnet0.60.0"
+SECURITY_PATCH_ID = "go1.27.2-xnet0.60.0-http2-lint"
 SECURITY_PATCH_FILES = {
+    "backend/.golangci.yml": (
+        "ed037798aa38c9e377aafa2fad35c12dc95b1edb29f18ec61f0a08b4bfbd5599",
+        "0ee503a72db01ad77e24cdab2038b53880835ec42d6aa100028e1138c48964f8",
+    ),
     "backend/go.mod": (
         "105595eed2189a9e501d17a5a046fce5b84e0830b3792c7d13479553665cd12d",
         "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
