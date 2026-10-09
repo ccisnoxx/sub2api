@@ -178,7 +178,9 @@ jobs:
           check-latest: false
           cache: false
       - name: Verify Go version
-        run: go version | grep -q 'go1.27.2'
+        run: |
+          expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: Restore target-specific Go cache
         id: go-cache
         uses: actions/cache/restore@v6
