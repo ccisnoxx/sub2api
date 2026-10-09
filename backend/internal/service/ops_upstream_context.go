@@ -175,10 +175,19 @@ const maxOpsStreamErrorsPerRequest = 64
 
 // BeginOpsStreamTurn scopes first-wins deduplication to one WebSocket turn.
 func BeginOpsStreamTurn(c *gin.Context, turn int) {
+	BeginOpsStreamTurnWithRoutingTurn(c, turn, turn)
+}
+
+// BeginOpsStreamTurnWithRoutingTurn 保留原转发 turn 的日志合同；诊断使用连接逻辑 turn。
+func BeginOpsStreamTurnWithRoutingTurn(c *gin.Context, turn, routingTurn int) {
 	if c == nil || turn <= 0 {
 		return
 	}
 	c.Set(OpsStreamTurnKey, turn)
+	if c.Request != nil {
+		// 建连选号不代表本 turn 重新观察过池；每个逻辑 turn 使用新归属。
+		c.Request = c.Request.WithContext(EnsureRoutingDiagnosticsTurn(c.Request.Context(), routingTurn))
+	}
 	// Rule and attempt state is turn-scoped on a long-lived WS connection.
 	c.Set(OpsSkipPassthroughKey, false)
 	c.Set(OpsUpstreamErrorsKey, []*OpsUpstreamErrorEvent{})

@@ -64,6 +64,7 @@ func (h *OpenAIGatewayHandler) GrokRealtime(c *gin.Context) {
 	// Keep the HTTP response uncommitted while selecting and probing an account.
 	// Realtime is not an HTTP streaming response; using reqStream=true here would
 	// let the wait queue flush an SSE ping before the WebSocket handshake succeeds.
+	c.Request = c.Request.WithContext(service.EnsureRoutingDiagnosticsRequest(c.Request.Context()))
 	failed := map[int64]struct{}{}
 	var selection *service.AccountSelectionResult
 	var release func()
@@ -241,6 +242,7 @@ func (h *OpenAIGatewayHandler) GrokVoice(c *gin.Context, endpoint string) {
 		contentType = "application/json"
 	}
 
+	c.Request = c.Request.WithContext(service.EnsureRoutingDiagnosticsRequest(c.Request.Context()))
 	failed := map[int64]struct{}{}
 	var last *service.UpstreamFailoverError
 	reqLog := requestLogger(c, "handler.openai_gateway.grok_voice", zap.String("endpoint", endpoint))

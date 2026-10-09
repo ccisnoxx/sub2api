@@ -446,8 +446,12 @@ func setOpsRequestContext(c *gin.Context, model string, stream bool) {
 	model = strings.TrimSpace(model)
 	c.Set(opsModelKey, model)
 	c.Set(opsStreamKey, stream)
-	if c.Request != nil && model != "" {
-		ctx := context.WithValue(c.Request.Context(), ctxkey.Model, model)
+	if c.Request != nil {
+		// 入口可能先登记空模型再登记映射结果；复用同一次请求的选择序号。
+		ctx := service.EnsureRoutingDiagnosticsRequest(c.Request.Context())
+		if model != "" {
+			ctx = context.WithValue(ctx, ctxkey.Model, model)
+		}
 		c.Request = c.Request.WithContext(ctx)
 	}
 }
