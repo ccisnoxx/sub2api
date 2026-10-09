@@ -1,0 +1,73 @@
+{
+  "task": "S2.4",
+  "preservation": [
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head_unchanged": true,
+      "preexisting_files_checked": 0,
+      "unexpected_mismatch": [],
+      "journal_body_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head_unchanged": true,
+      "preexisting_files_checked": 45,
+      "unexpected_mismatch": [],
+      "journal_body_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin",
+      "head_unchanged": true,
+      "preexisting_files_checked": 0,
+      "unexpected_mismatch": [],
+      "journal_body_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head_unchanged": true,
+      "preexisting_files_checked": 0,
+      "unexpected_mismatch": [],
+      "journal_body_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head_unchanged": true,
+      "preexisting_files_checked": 0,
+      "unexpected_mismatch": [],
+      "journal_body_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head_unchanged": true,
+      "preexisting_files_checked": 0,
+      "unexpected_mismatch": [],
+      "journal_body_preserved": true
+    }
+  ],
+  "document_roots": [
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-catalog-ui-s24/sub2api-kin",
+      "checkbox_delta": [
+        "S2.4"
+      ],
+      "local_links_missing": [],
+      "diff_check": "passed"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "checkbox_delta": [
+        "S2.4"
+      ],
+      "local_links_missing": [],
+      "diff_check": "passed"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "checkbox_delta": [
+        "S2.4"
+      ],
+      "local_links_missing": [],
+      "diff_check": "passed"
+    }
+  ]
+}

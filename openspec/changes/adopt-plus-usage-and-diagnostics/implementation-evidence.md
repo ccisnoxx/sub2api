@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅 S2.3；[任务清单](tasks.md)和[计划](plan.md)。下方 S0.1、S1、S2.1、S2.2 保留当时记录，本轮目录结果见文末 S2.3。
+- 当前续接范围：仅S2.4；历史记录保留，本轮页面结果见文末S2.4。
 - 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
-- 当前完成 S0.1、S1.1–S1.4 本地部分、S2.1 合同、S2.2 价格服务及 S2.3 目录本地实现与验证；远端 CI、合并、镜像发布、生产部署、S0.2/S0.3、S1.5、S2.4 及后续任务均未执行。
+- 当前完成S0.1、S1.1–S1.4本地部分及S2.1–S2.4；远端CI、合并、镜像发布、生产部署、S1.5、S2.5及后续均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -235,3 +235,38 @@ AGENTS 引用的出站身份约定和 docs/tasks 在可用应用/维护树与本
 本轮未执行真实JWT/后台模式/面板限流运行链、真实数据库/生产报价链、前端构建或浏览器、全量回归、远端CI或上游凭据请求。路由及middleware未改，复杂价格owner输入未变；本轮只实现S2.3，进一步阶段一致性验证与完整页面流程仍由S2.5/S2.6取得实际证据。没有推送、PR、Actions、合并、镜像发布、SSH或生产部署。
 
 **S2.3 已完成本地实现、验证与执行证据。下一项是 S2.4 改造已有可用渠道页面，未自动开始。** S2.5–S2.7及其他阶段保持未执行。
+
+
+## S2.4 可用渠道页面模型与分组报价目录
+
+本轮仅 S2.4，本地应用 **`b8cf49ca25007cbc23338a9443b71df4c0411155`**；[候选校验](evidence/s2.4-candidate.json)、[检查与原始证据](evidence/s2.4-validation.json)。S2.5、S2.6、S2.7 均保持未执行。
+
+### 应用来源与工作位置
+
+先读取原指定计划、任务和日志，再核对全部6个工作树及远端。personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；来源 KlN `.5/c7aacf5d`。S2.3 的 personal 来源候选 `b8db9596977d196f025d79a1f4cf0c3442e5b3d8` 干净且包含 S1/S2.2/S2.3 依赖，从它建立 `/Users/sc/.codex/worktrees/plus-catalog-ui-s24/sub2api-kin` / `codex/plus-catalog-ui-s24`。未用 main 应用源码。
+
+main 来源 `codex/plus-pricing-s22-evidence` 只登记本 change 与日志，并增量同步原指定计划位置。原 S0 17应用文件均匹配；S1、S2.2、S2.3 与聊天维护树的源码、HEAD保持原值。每处原journal全文保留。AGENTS要求的出站约定与docs/tasks仍未找到，沿用前轮缺失记录；本轮不涉及出站身份。
+
+### 用户可见结果与价格边界
+
+- 新客户端 `getCatalog` 显式传单个 `view=catalog`，旧 `getAvailable` 类型、签名和数组调用不变。页面不再并发拼接 `/groups/rates`，仅使用当前目录内嵌倍率。
+- 模型按具体平台与大小写无关名称聚合；检索模型/平台/分组/渠道，保留各组报价和空模型组。原生 details/summary 允许键盘展开，详情切分组、服务档，显示来源、订阅/专属、(min,max]整单上下文、缓存单价、参考时点与单位。
+- 单价仅乘服务端已解析适用Token倍率一次，并转换USD/token为USD/1M token。服务档策略已在单价中，不另乘Fast/Flex；分时与最终effort单独展示规则且明确未进入表内。没有计算“最低路由价”或完整账单。
+- null显示—，明确0显示$0；unsupported_unit/request_dependent/pricing_unavailable展示不同原因。媒体未知单位不猜测；未支持分量明确说明。个人倍率unavailable保留参考默认倍率和刷新提示。
+- 刷新先清目录，失败显式错误与重试；用户ID变化同步取消、清筛选及重载，晚到成功/错误需匹配请求序号与主体。卸载取消并使旧响应失效，不延用旧用户报价。
+
+### 实际验证与独立复核
+
+| 检查 | 实际结果与限制 |
+|---|---|
+| 新合同定向测试 | API/聚合/过滤/一次倍率4通过；组件与页面6通过，共10去重用例。保护零/未知、阶梯/档位、失败重试、晚到成功/错误、用户切换与退出/卸载。首轮4失败为runtime-only测试夹具没有应用JIT define；中间2次模块路径尝试未收集测试；最终只修夹具并重跑受影响2文件 |
+| lint/类型/build | 11文件lint通过，夹具变更后2文件lint与最终vue-tsc -b通过；build包含双语完整性3通过、类型与Vite。Node DEP0190、Browserslist过期、混合导入和chunk警告保留；测试自定义message compiler警告仅在夹具，不宣称零warning |
+| 浏览器 | `/available-channels`，1440×1100/390×844、中英、明暗4组通过；身份/标题、内容、无overlay、检索、分组/服务档、零与未知、参考倍率失败、空目录、错误与重试，Enter/Space、Escape及焦点恢复。另对2组价格表实际ArrowRight横向滚动与截图，整页无水平溢出 |
+| 浏览器证据边界 | Browser plugin not available，复用Playwright 1.62.1/Chromium与合成GET夹具；不称真实JWT/数据库/生产隔离。正常流程零error/warning，每组1次有意HTTP500有独立错误状态与恢复验证。早期原生select键盘提交假设与缺少AppLayout `/keys`夹具的失败保留诊断；最终以selectOption验证报价切换，原生summary键盘另行通过 |
+| 未变证据复用 | S2.2的6文件/12产物、S2.3的5文件/14产物均校验一致；复用原价格owner48组对账和原授权/DTO/旧接口成功边界，不重跑Go。新页面证据由本轮获得；S0/S1不扩大为目录权限证明 |
+| fresh只读复核 | 1次critical_reviewer未确认可行动缺陷；检查实际源码、DTO、合同与原始日志，未独立执行测试。复核输入校验一致，之后无应用修改；浏览器键盘/双语缺口由主代理实际验收补齐 |
+| 最终diff | 仅11前端文件，644新增/100删除；backend/deploy/依赖/锁文件相对S2.3无差异，未改扣费、调度、权限owner或迁移。diff/保留源/文档链接与状态核对见[收尾检查](evidence/s2.4-document-checks.json) |
+
+委派审计 `20261009T164258Z-kin-plus-catalog-ui-s24-61dc32dd` closed、audit-verify passed、无errors/warnings；[确定性执行摘要](evidence/s2.4-subagent-digest.md)。模型/effort是Agent TOML配置证据；验收通过表示复核交付被接受。
+
+**S2.4 已完成本地实现、检查与执行证据。下一项 S2.5 验证权限与报价一致性，未自动开始。** S2.6完整阶段验收仍保持未勾选，本轮页面证据可在输入未变时复用。真实JWT/数据库、全量/浏览器矩阵、远端CI、推送/PR/Actions、合并、镜像发布、SSH和生产部署均未执行。

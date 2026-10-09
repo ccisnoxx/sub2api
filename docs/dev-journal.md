@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S2.4 可用渠道页面完成
+
+- 本轮仅S2.4。只读核对personal仍`9397eb8af`、来源KlN `.5/c7aacf5d`；从干净S2.3 personal来源候选`b8db95969`建立`codex/plus-catalog-ui-s24`，已验证应用`b8cf49ca25007cbc23338a9443b71df4c0411155`。main来源文档树仅登记本change与journal，没有替代应用源码；原S0的17文件及各原候选/聊天树保留。
+- 既有可用渠道入口显式读取catalog，按平台/模型聚合但保留各组报价；增加模型/分组/渠道检索、分组与服务档详情、阶梯/缓存/单位/参考时点和分时/effort规则。服务端适用倍率仅应用一次，零与未知分开，个人倍率失败标参考及重试，不承诺实时健康或最低路由价。刷新/主体切换/卸载取消并拒绝晚到响应，旧数组客户端保持。
+- 新前端合同10去重用例、11文件lint、最终类型与build通过（含双语完整性3用例）；测试i18n夹具失败已诊断修正，只重跑受影响文件。保留测试compiler及既有build警告。Chromium1440/390、中英/明暗4组检索、详情、报价切换、summary Enter/Space、Escape焦点、错误重试/空目录通过；额外2组价格表键盘滚动与截图通过。使用合成GET，无生产JWT/数据库/权限验收；正常流程零error/warning，每组1次有意500单独验证恢复。
+- 1次fresh只读复核未确认可行动缺陷，未独立运行测试；审计`20261009T164258Z-kin-plus-catalog-ui-s24-61dc32dd` closed/verify passed。S2.2的6文件/12产物与S2.3的5文件/14产物一致，原owner/DTO检查按未变边界复用；后端、计费、调度、迁移及依赖未改。
+- [任务状态与执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s24-可用渠道页面模型与分组报价目录)及候选/检查清单已更新。S2.4已勾选，下一项S2.5未开始，S2.6/S2.7保持未执行。本轮不推送、不触发远端CI、不合并、不发布镜像、不部署生产；三处登记增量保留各自旧journal。
+
 ## 2026-10-09：KIN 借鉴 Plus S2.3 模型目录 DTO 与查询分支完成
 
 - 本轮只执行 S2.3。personal 仍为 `9397eb8af`、来源 KlN `.5/c7aacf5d`；从干净 S2.2 候选 `e4083c38f` 建立 `codex/plus-catalog-s23`，已验证应用 `49c209a77059d2927f78bbd31c1dd479b509dc6f`。复用 main 来源文档工作树仅登记文档，没有替代应用源码。

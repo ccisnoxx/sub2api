@@ -1,0 +1,311 @@
+{
+  "task": "S2.4",
+  "candidate_commit": "b8cf49ca25007cbc23338a9443b71df4c0411155",
+  "checks": [
+    {
+      "name": "新增API与工具层合同",
+      "command": "pnpm test:run src/utils/__tests__/modelCatalog.spec.ts src/components/channels/__tests__/ModelCatalogCard.spec.ts src/views/user/__tests__/AvailableChannelsView.spec.ts src/api/__tests__/channels.catalog.spec.ts",
+      "result": "首轮API/工具层4通过，组件/页面4失败、2通过；失败为测试i18n runtime-only缺少应用JIT define",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/tests-initial.log"
+    },
+    {
+      "name": "失败组件/页面夹具修正后",
+      "command": "pnpm test:run src/components/channels/__tests__/ModelCatalogCard.spec.ts src/views/user/__tests__/AvailableChannelsView.spec.ts",
+      "result": "6通过；与未变API/工具层4通过合计10去重用例。两次中间夹具模块解析尝试在收集前失败；最终使用已安装message-compiler，仅测试夹具有experimental警告",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/tests-compiler.log"
+    },
+    {
+      "name": "改动文件lint",
+      "command": "pnpm exec eslint <11个改动/新增源文件>",
+      "result": "初始11文件通过；测试夹具变更后只重跑2文件通过",
+      "logs": [
+        "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/lint-initial.log",
+        "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/lint-tests-final.log"
+      ]
+    },
+    {
+      "name": "前端build",
+      "command": "PATH=<pnpm9 shim> pnpm build",
+      "result": "i18n完整性3通过、vue-tsc -b、Vite成功；保留Node DEP0190/Browserslist过期/动态静态同模块导入/大chunk警告",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/build.log"
+    },
+    {
+      "name": "最终测试夹具类型",
+      "command": "pnpm exec vue-tsc -b",
+      "result": "通过，未再次打包，生产源与先前build完全一致",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/typecheck-final.log"
+    },
+    {
+      "name": "定向Chromium页面",
+      "command": "node <visualization>/qa.cjs",
+      "result": "中文亮桌面/英文暗桌面/中文暗窄屏/英文亮窄屏4组通过；正常流程无error/warning；每组有1次有意500用于错误重试",
+      "results": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/results.json"
+    },
+    {
+      "name": "价格表键盘与截图",
+      "command": "node <visualization>/price-qa.cjs",
+      "result": "中文1440/英文390的表格ArrowRight横向滚动通过，正常场景零error/warning",
+      "results": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/price-results.json"
+    }
+  ],
+  "browser_environment": {
+    "url": "http://127.0.0.1:4184/available-channels",
+    "availability": "Browser plugin not available",
+    "fallback": "已有Playwright 1.62.1与Chromium headless shell；无新增依赖",
+    "data": "合成面板用户与目录API，不含生产身份/JWT/数据库权限验证"
+  },
+  "browser_diagnostics": "首轮select End不提交导致断言失败，增加Enter后无变化并超时；改用selectOption验证报价切换，summary Enter/Space与Escape焦点另行实际验证。随后发现AppLayout /keys夹具缺失导致额外500，补齐其真实空数组封装后四组通过；不把这些失败写成应用缺陷或全通过。",
+  "reuse": {
+    "s0.1-candidate.json": {
+      "files_checked": 17,
+      "mismatch": [],
+      "scope": "原S0工作树保留"
+    },
+    "s2.2-candidate.json": {
+      "files_checked": 6,
+      "mismatch": [],
+      "scope": "后端权威owner及DTO未变化"
+    },
+    "s2.3-candidate.json": {
+      "files_checked": 5,
+      "mismatch": [],
+      "scope": "后端权威owner及DTO未变化"
+    },
+    "s2.2-validation.json": {
+      "artifacts_checked": 12,
+      "invalid": []
+    },
+    "s2.3-validation.json": {
+      "artifacts_checked": 14,
+      "invalid": []
+    },
+    "backend_diff_from_s23": ""
+  },
+  "reuse_scope": "S2.2权威报价owner与48组对账、S2.3授权/DTO/旧HTTP合同源码及依赖未变，原日志校验通过，仅复用原边界；S1新计时旧边界不用于证明目录。",
+  "not_run": [
+    "真实JWT/后台模式/限流及真实数据库授权链",
+    "上游或生产价格请求",
+    "完整回归/浏览器矩阵/远端CI",
+    "S2.5/S2.6/S2.7、合并、镜像发布、生产部署"
+  ],
+  "not_run_reason": "本会话仅S2.4，后端、计费、调度、迁移及依赖未变；阶段验证保留后续，未重复未变owner检查。",
+  "independent_review": {
+    "task": "S2.4",
+    "reviewer": "critical_reviewer",
+    "runtime_ref": "/root/s24_price_and_lifecycle_review",
+    "result": "未确认可行动缺陷",
+    "reviewed": [
+      "真实 DTO 与目录类型",
+      "显式查询与旧数组兼容",
+      "平台/模型聚合保留报价",
+      "零/未知/单位与一次倍率",
+      "分时/effort 规则及个人倍率失败提示",
+      "刷新/主体切换/卸载与晚到成功/错误隔离"
+    ],
+    "review_gap": "浏览器键盘、窄屏与生产JIT由主代理检查；不构成S2.5/S2.6完成",
+    "independently_executed_tests": false,
+    "review_input_files_unchanged": true,
+    "hash_checked_files": 12
+  },
+  "audit_id": "20261009T164258Z-kin-plus-catalog-ui-s24-61dc32dd",
+  "audit_verified": true,
+  "artifacts": [
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/audit-audit-finalize.log",
+      "sha256": "ab236b44fa19830061ff39df0ddfb59dfacf9d6ffb623b3401ac244f187ee9c7",
+      "bytes": 465
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/audit-audit-verify.log",
+      "sha256": "ab236b44fa19830061ff39df0ddfb59dfacf9d6ffb623b3401ac244f187ee9c7",
+      "bytes": 465
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/audit-digest.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/audit-stage.json",
+      "sha256": "690c544178d3f25b2f51d296f98c26f37d2356f6759542e8248707931d68cba8",
+      "bytes": 1168
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/audit-summary.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/baseline.json",
+      "sha256": "fc27642c3a99ed5a30942fd43fd84d2635fc3b469608356a5d412216a4847936",
+      "bytes": 122538
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/browser-complete.log",
+      "sha256": "4495747b3381d87155b945c20aacb3594bc91596728df818561f58ddc07b4287",
+      "bytes": 80
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/browser-final-checked.log",
+      "sha256": "26b5e24babad025a839766e57700cd0ae5daa84919bd5ae267f1d8f53d738893",
+      "bytes": 378
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/browser-final.log",
+      "sha256": "f5628c5f6e014ae0797f6785183702fc2108cc37d6a05871965cca090c737c41",
+      "bytes": 321
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/browser-initial.log",
+      "sha256": "06d940c205bd9534921e11dd524e77a155d6db96819635b6666b20d316e51c0e",
+      "bytes": 336
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/browser-keyboard.log",
+      "sha256": "b1207366d5cdba15fa13ef148ff9d0b1924a38b72534c55102d6bbf4b9792df9",
+      "bytes": 199
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/browser-prices.log",
+      "sha256": "24d2b3f58d49b210dcc8e949cddc16f590924a7f6a0eb8813ae51b438d69be24",
+      "bytes": 93
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/build.log",
+      "sha256": "8d38b59dc9abe7bb157142133f2189edd7dbdf00a2169d89d9c8d5445e52c990",
+      "bytes": 45746
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/lint-initial.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/lint-tests-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/preview.log",
+      "sha256": "0f567a6d9660924bf77a20a7b7726b15d3cedc8ea238b03fd3635423035c437c",
+      "bytes": 199
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/reuse-checks.json",
+      "sha256": "3d3848a4951c9c9fd40ade4dcc3c4e874db560a0843aff34eedabf74ccb1fc8c",
+      "bytes": 554
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/review-before.json",
+      "sha256": "fc0a1a018494bf40f9776f572d5b3138c43b815c2b7d62528dfc22b126d5eb40",
+      "bytes": 1520
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/review-result.json",
+      "sha256": "5473ece987ffae47ac64d5cc25e39683bf42cc30e17b2ae113bbfc67d8a0eb63",
+      "bytes": 650
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/tests-compiler.log",
+      "sha256": "89fc3b5434860b4ec251cf8f10638bd57c000e368dc914b7e069ca8109480228",
+      "bytes": 1498
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/tests-corrected.log",
+      "sha256": "2b3c7f0756bf91ab8d3e8af3ff233f6f0d006ef8b52276ebcc24158b65cfa47b",
+      "bytes": 3224
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/tests-fixed.log",
+      "sha256": "be09fcab84e0e4ed9da4d928a395699d74e539531d0ffe058733e45043598a42",
+      "bytes": 3742
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/tests-initial.log",
+      "sha256": "275eaa789f7cfe207356a42bdecd1dc681155593f7af40316d3dec2e14828490",
+      "bytes": 67331
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s24/typecheck-initial.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "visual_artifacts": [
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/en-dark-1440-detail.png",
+      "sha256": "2ea44b21233422d99261d235d54e6435e8cf94345fd6e3d380a573d066775ff2",
+      "bytes": 313432
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/en-dark-1440-entry.png",
+      "sha256": "8e30673ef907731b971fca14e9bbde1223c526e7966c67b81c5ff643034c9d76",
+      "bytes": 243627
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/en-light-390-detail.png",
+      "sha256": "efa5b8ef19f02f1dc1ed42c6bc7b9900d80b22a465f2d28bad390a7d1be16a8a",
+      "bytes": 92754
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/en-light-390-entry.png",
+      "sha256": "1473f925238a5fbd588a5a655c58b136cc0b28b7dd3dcdea9c9f57b9676a23aa",
+      "bytes": 156882
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/en-light-390-prices.png",
+      "sha256": "d62f711f33561e70043c46f316934cb043c7b46472bca4abb73965b681d05150",
+      "bytes": 99196
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/price-qa.cjs",
+      "sha256": "ca549e76e06d2c71d87f6c37e0e21dd40516680ee25c9dcd7bc19c8dfad13bc6",
+      "bytes": 10411
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/price-results.json",
+      "sha256": "625e53aa940f6426f039dabfc22fc2b5e0a8669771175ce763f2e7ac97a7cf1b",
+      "bytes": 312
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/qa.cjs",
+      "sha256": "d463d2176aa7b6676dcd15383f3416b0a60dbaf16a1f985a82d2bd6f0bf2a068",
+      "bytes": 9855
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/results.json",
+      "sha256": "98dccea99b52d42dad9e92e9415ac6b3859168188299f88105bc20697c2a3049",
+      "bytes": 4630
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/zh-dark-390-detail.png",
+      "sha256": "600de91edfc8aa3a78ded876e7a06e57a7160319bea4409b0b8500aadef89e45",
+      "bytes": 98905
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/zh-dark-390-entry.png",
+      "sha256": "1ee932ba629fc6b945cf03b4e1968b7f53d9f50b3388ef2f1b6b656d7aa8026a",
+      "bytes": 137884
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/zh-light-1440-detail.png",
+      "sha256": "b5644a9d4c65e11a665006166a4bb6650ce02abd4814f81262132bd089993e97",
+      "bytes": 301710
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/zh-light-1440-entry.png",
+      "sha256": "e2deaa498fdd26fb0d2978cd9460ec2a4e923c0d95d2a0ac006435150464bbae",
+      "bytes": 224790
+    },
+    {
+      "path": "/Users/sc/.codex/visualizations/2026/10/09/01a12185-7d48-7bd3-9b5a-688ec6368bae/kin-plus-s24/zh-light-1440-prices.png",
+      "sha256": "bcd1b79e2ac5bfa28c5bf35d15deabee0f1de07c83d8ae0f8e87e86e44acaf7f",
+      "bytes": 294449
+    }
+  ]
+}
