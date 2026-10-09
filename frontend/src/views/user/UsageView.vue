@@ -240,6 +240,7 @@ import { getPersistedPageSize } from '@/composables/usePersistedPageSize'
 import { formatReasoningEffort } from '@/utils/format'
 import { getBillingModeLabel, getDisplayBillingMode as resolveDisplayBillingMode } from '@/utils/billingMode'
 import { resolveUsageRequestType, requestTypeToLegacyStream } from '@/utils/usageRequestType'
+import { usageTimingExportHeaders, usageTimingExportValues } from '@/utils/usageTiming'
 import type {
   ApiKey,
   EndpointStat,
@@ -671,6 +672,7 @@ const exportToCSV = async () => {
       'Original Cost',
       'First Token (ms)',
       'Duration (ms)',
+      ...usageTimingExportHeaders(t),
     ]
     const rows = allLogs.map((log) => [
       log.created_at,
@@ -690,6 +692,7 @@ const exportToCSV = async () => {
       log.total_cost.toFixed(8),
       log.first_token_ms ?? '',
       log.duration_ms ?? '',
+      ...usageTimingExportValues(log, t),
     ].map(escapeCSVValue))
     const csvContent = [
       headers.map(escapeCSVValue).join(','),

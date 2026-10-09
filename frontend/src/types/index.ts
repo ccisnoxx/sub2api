@@ -1747,6 +1747,9 @@ export type UsageRequestType =
   | 'gwpool_degraded'
 export type ImageSizeSource = 'output' | 'input' | 'default' | 'legacy'
 export type ImageSizeBreakdown = Record<string, number>
+export type UsageFirstOutputKind = 'text' | 'reasoning' | 'tool' | 'image' | 'audio' | 'compaction'
+export type UsageCompletionStatus = 'unknown' | 'completed' | 'client_disconnected' | 'upstream_error' | 'interrupted'
+export type UsageSource = 'unknown' | 'upstream_final' | 'upstream_partial'
 
 export interface UsageLog {
   id: number
@@ -1785,7 +1788,18 @@ export interface UsageLog {
   openai_ws_mode?: boolean
   native_compaction_v2: boolean
   duration_ms: number | null
+  // 保留 KIN 原采集口径；不能作为严格首 Token 时点使用。
   first_token_ms: number | null
+  // 可选字段兼容历史 API；0/缺失表示新计时未接入，1 表示已验证采集。
+  timing_version?: number
+  strict_first_token_ms?: number | null
+  last_token_ms?: number | null
+  first_output_ms?: number | null
+  first_output_kind?: UsageFirstOutputKind | null
+  audio_output_tokens?: number | null
+  completion_status?: UsageCompletionStatus
+  is_complete?: boolean | null
+  usage_source?: UsageSource
 
   // 图片生成字段
   image_count: number
