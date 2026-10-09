@@ -400,6 +400,7 @@ export default {
     latency: '延迟',
     latencyFirstToken: '首字',
     latencyDuration: '总耗时',
+    latencyTps: 'TPS',
     averageOutputTps: '平均输出 TPS',
     tpsDescription: '平均输出 TPS = 输出 token × 1000 ÷ 总耗时（ms），包含首 token 等待时间。输出统计可能包含推理 token；该值不能单独证明 Fast 生效，也不代表可见文字的纯生成速度。',
     tpsInvalidOutput: '无有效输出 token 统计。',

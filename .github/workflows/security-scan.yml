@@ -47,7 +47,8 @@ jobs:
           cache-dependency-path: backend/go.sum
       - name: Verify Go version
         run: |
-          go version | grep -q 'go1.27.0'
+          expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: Run govulncheck
         working-directory: backend
         run: |

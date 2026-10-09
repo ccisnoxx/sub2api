@@ -76,6 +76,9 @@ const messages: Record<string, string> = {
   'usage.latencyFirstToken': 'First',
   'usage.latencyDuration': 'Total',
   'usage.averageOutputTps': 'Avg output TPS',
+  'usage.latencyTps': 'TPS',
+  'usage.tpsDescription': 'Average output TPS = output tokens × 1000 ÷ total duration (ms).',
+  'usage.tpsInvalidDuration': 'No valid total duration.',
   'usage.nativeCompactionV2': 'Compaction',
   'admin.usage.billingModeToken': 'Token',
   'admin.usage.billingModePerRequest': 'Per request',
@@ -1065,7 +1068,7 @@ describe('admin UsageTable deleted-user badge', () => {
 
 
 describe('UsageTable 平均输出 TPS 接入', () => {
-  it.each([true, false])('账号计费显示为 %s 时，TPS 与原有耗时及色条共存', (showAccountBilling) => {
+  it.each([true, false])('账号计费显示为 %s 时，TPS 与原有耗时及色条共存', async (showAccountBilling) => {
     const wrapper = mount(UsageTable, {
       props: {
         data: [{
@@ -1088,9 +1091,32 @@ describe('UsageTable 平均输出 TPS 接入', () => {
     expect(cell.text()).toContain('1.50s')
     expect(cell.text()).toContain('Total')
     expect(cell.text()).toContain('24.65s')
-    expect(cell.text()).toContain('Avg output TPS')
-    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('42.19 tok/s')
+    expect(cell.get('[data-testid="usage-tps-label"]').text()).toBe('TPS')
+    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
     expect(cell.get('[aria-hidden="true"]').classes()).toContain('bg-gradient-to-b')
+    const details = cell.get('[data-testid="usage-timing-details"]')
+    expect(details.element.parentElement?.parentElement?.textContent).toContain('First')
+    expect(details.attributes('type')).toBe('button')
+    expect(details.attributes('aria-label')).toContain(messages['usage.tpsDescription'])
+    expect(cell.findAll('button')).toHaveLength(2) // 唯一说明入口及 HelpTooltip 内的关闭按钮。
+    expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-cyan-600')
+    const tooltip = () => cell.get('[role="tooltip"]')
+    expect(tooltip().isVisible()).toBe(false)
+    await details.trigger('click')
+    await nextTick()
+    expect(tooltip().isVisible()).toBe(true)
+    expect(tooltip().text()).toContain(messages['usage.tpsDescription'])
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await nextTick()
+    expect(tooltip().isVisible()).toBe(false)
+    await wrapper.setProps({ data: [{ ...wrapper.props('data')[0], duration_ms: null, first_token_ms: null }] })
+    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('-')
+    expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-gray-400')
+    expect(cell.get('[aria-hidden="true"]').classes()).not.toContain('bg-gradient-to-b')
+    await cell.get('[data-testid="usage-timing-details"]').trigger('click')
+    await nextTick()
+    expect(tooltip().text()).toContain(messages['usage.tpsInvalidDuration'])
+
     wrapper.unmount()
   })
 })
