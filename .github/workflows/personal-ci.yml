@@ -4,6 +4,7 @@ run-name: Personal CI | ${{ inputs.candidate_sha || github.event.pull_request.he
 on:
   pull_request:
     branches: [personal]
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [personal]
   workflow_dispatch:
@@ -22,12 +23,14 @@ on:
         required: false
 
 concurrency:
-  group: personal-ci-${{ github.event.pull_request.number || github.ref }}
+  # 原生 PR 和机器人 dispatch 使用同一分支锁，避免同候选并行全量检查。
+  group: personal-ci-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
   contents: read
   pull-requests: read
+  actions: read
 
 env:
   CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }}
@@ -36,7 +39,8 @@ env:
 
 jobs:
   binding:
-    if: github.repository == 'ccisnoxx/sub2api'
+    # 草稿期间本地定向收敛；显式 dispatch 仍可验收稳定的草稿候选。
+    if: github.repository == 'ccisnoxx/sub2api' && (github.event_name != 'pull_request' || !github.event.pull_request.draft)
     runs-on: ubuntu-latest
     outputs:
       source_sha: ${{ steps.sha.outputs.source_sha }}
@@ -54,20 +58,62 @@ jobs:
           python3 .github/personal-sync/check_binding.py
           printf 'source_sha=%s\n' "$CANDIDATE_SHA" >> "$GITHUB_OUTPUT"
 
-  existing-ci:
+  changes:
     needs: binding
+    runs-on: ubuntu-latest
+    outputs:
+      plan_json: ${{ steps.plan.outputs.plan_json }}
+      frontend_changed: ${{ steps.plan.outputs.frontend_changed }}
+      backend_changed: ${{ steps.plan.outputs.backend_changed }}
+      dependencies_changed: ${{ steps.plan.outputs.dependencies_changed }}
+      deploy_changed: ${{ steps.plan.outputs.deploy_changed }}
+      release_tools_changed: ${{ steps.plan.outputs.release_tools_changed }}
+      wide_merge_changed: ${{ steps.plan.outputs.wide_merge_changed }}
+      run_backend: ${{ steps.plan.outputs.run_backend }}
+      run_frontend: ${{ steps.plan.outputs.run_frontend }}
+      run_shell: ${{ steps.plan.outputs.run_shell }}
+      run_release_helpers: ${{ steps.plan.outputs.run_release_helpers }}
+      run_tps: ${{ steps.plan.outputs.run_tps }}
+      run_sync_contracts: ${{ steps.plan.outputs.run_sync_contracts }}
+      run_backend_security: ${{ steps.plan.outputs.run_backend_security }}
+      run_frontend_security: ${{ steps.plan.outputs.run_frontend_security }}
+      reused: ${{ steps.plan.outputs.reused }}
+      reuse_run_id: ${{ steps.plan.outputs.reuse_run_id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.binding.outputs.source_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select changed contracts or verify candidate evidence
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/personal-sync/ci_policy.py plan
+
+  existing-ci:
+    needs: [binding, changes]
+    if: needs.changes.outputs.run_backend == 'true' || needs.changes.outputs.run_frontend == 'true' || needs.changes.outputs.run_shell == 'true' || needs.changes.outputs.run_release_helpers == 'true'
     uses: ./.github/workflows/backend-ci.yml
     with:
       source_sha: ${{ needs.binding.outputs.source_sha }}
+      run_backend: ${{ needs.changes.outputs.run_backend == 'true' }}
+      run_frontend: ${{ needs.changes.outputs.run_frontend == 'true' }}
+      run_shell: ${{ needs.changes.outputs.run_shell == 'true' }}
+      run_release_helpers: ${{ needs.changes.outputs.run_release_helpers == 'true' }}
 
   existing-security:
-    needs: binding
+    needs: [binding, changes]
+    if: needs.changes.outputs.run_backend_security == 'true' || needs.changes.outputs.run_frontend_security == 'true'
     uses: ./.github/workflows/security-scan.yml
     with:
       source_sha: ${{ needs.binding.outputs.source_sha }}
+      backend_scan: ${{ needs.changes.outputs.run_backend_security == 'true' }}
+      frontend_scan: ${{ needs.changes.outputs.run_frontend_security == 'true' }}
 
   tps:
-    needs: binding
+    needs: [binding, changes]
+    if: needs.changes.outputs.run_tps == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -83,14 +129,13 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm --dir frontend install --frozen-lockfile
-      - name: TPS contracts and frontend build
+      - name: TPS contracts
         run: |
           pnpm --dir frontend exec vitest run src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/__tests__/HelpTooltip.spec.ts
-          pnpm --dir frontend exec eslint src/components/admin/usage/UsageTps.vue src/components/admin/usage/UsageTable.vue src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/HelpTooltip.vue src/components/common/__tests__/HelpTooltip.spec.ts src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts
-          pnpm --dir frontend run build
 
   sync-contracts:
-    needs: binding
+    needs: [binding, changes]
+    if: needs.changes.outputs.run_sync_contracts == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -101,21 +146,10 @@ jobs:
 
   personal-ready:
     name: personal-ready
-    if: always()
-    needs: [binding, existing-ci, existing-security, tps, sync-contracts]
+    if: always() && github.repository == 'ccisnoxx/sub2api' && (github.event_name != 'pull_request' || !github.event.pull_request.draft)
+    needs: [binding, changes, existing-ci, existing-security, tps, sync-contracts]
     runs-on: ubuntu-latest
     steps:
-      - name: Require every selected check
-        env:
-          RESULTS: ${{ toJSON(needs) }}
-        run: |
-          python3 - <<'PY'
-          import json, os
-          results = json.loads(os.environ['RESULTS'])
-          failed = {name: value['result'] for name, value in results.items() if value['result'] != 'success'}
-          if failed:
-              raise SystemExit(f'必要检查未通过：{failed}')
-          PY
       - uses: actions/checkout@v6
         with:
           ref: ${{ env.CANDIDATE_SHA }}
@@ -125,3 +159,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 .github/personal-sync/check_binding.py
+      - name: Verify selected results and bind evidence to this run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULTS: ${{ toJSON(needs) }}
+          PLAN_JSON: ${{ needs.changes.outputs.plan_json }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: python3 .github/personal-sync/ci_policy.py attest
+      - uses: actions/upload-artifact@v7
+        with:
+          name: personal-ci-evidence
+          path: ci-evidence.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 30

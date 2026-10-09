@@ -1,5 +1,15 @@
 # 开发日志
 
+## 2026-10-08：Personal CI 按变更选择及合并证据复用，本地候选
+
+- 在本地 `codex/ci-validation-scope` 实现唯一候选入口：移除 backend CI 和安全扫描的分支 push/PR 双入口，保留周度维护扫描；草稿 PR 先收敛，稳定候选通过 ready-for-review 或显式 dispatch 验收。原生 PR 与 dispatch 按同仓库分支共用并发组。
+- 集中选择完整 base→candidate 差异，区分前端、后端、依赖、部署、发布控制及上游来源变化；纯 UI 不主动追加后端或安全扫描，上游同步选择完整检查。后端单元、集成及 recording/race jobs 并行；前端只构建一次，govulncheck 固定 v1.8.0。
+- 候选 artifact 绑定 tree、base、检查输入和实际 run/attempt/jobs；同树普通 merge 满足可信来源与输入核对才复用。最终 personal SHA 仍需自己的成功门禁，发布工具再次核对实际保护及证据链；缺少或过期候选证据按所选检查回退，API 错误明确失败。
+- 三条全局验证规则已写入 `/Users/sc/.codex/AGENTS.md`：明确门禁不豁免去重与停止规则，远端 CI 触发也计入验证成本，普通修改不主动扫描且历史漏洞修复需相应范围授权。
+- 本地定向验证：24 项选择/复用合同、21 项既有同步合同、12 项个人发布合同和 11 项既有 release matrix 检查通过；变更 workflow 的 actionlint 及 `git diff --check` 通过。没有运行应用全量测试或安全扫描。
+- 一次 fresh 独立只读复核确认了失败 job 定向重跑会沿用此前成功扫描的真实 Actions 行为；原时间下界误拒绝该证据，已改为原始 run 创建时间，保留当前 attempt 证据与实际扫描 24 小时时效。新增回归先失败、修复后通过，直接相关的四项时效、最终发布链与旧 artifact 检查通过。复核还只读确认现有官方 artifact ZIP 的大小及 digest 接口；新工作流上传和完整平台链尚未执行。
+- 当前为本机候选，尚未推送、远端执行或改变生产。控制定义需审查后仅同步控制补丁到 main/personal，不合入 main 的旧应用树；平台执行与实际等待时间改善仍待远端验收。选择、复用边界和维护步骤见 `.github/release-tools/README.md`。
+
 ## 2026-10-08：KlN .5、TPS 展示对齐及安全补丁统一上线完成
 
 - 按维护者“先整合 .5，再统一发布上线”的授权完成，未发布此前 .3展示候选。普通合并c00保留个人与固定官方c7双方历史，120历史冲突按实际净改动归属处理并逐一核对blob/mode；官方164路径与个人34路径无重叠。[PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 按strict personal-ready/App15368、merge-only保护合入personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，无管理员绕过/强推/main应用树混入。

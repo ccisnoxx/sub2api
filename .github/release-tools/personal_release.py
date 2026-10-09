@@ -14,6 +14,7 @@ from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "personal-sync"))
 from sync import REPOSITORY, SHA, SyncError, UPSTREAM, assert_base, git, source_at
+import ci_policy
 
 PERSONAL_TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-klno\.(0|[1-9][0-9]*)-tps\.([1-9][0-9]*)")
 IMAGE = "ghcr.io/ccisnoxx/sub2api"
@@ -102,6 +103,10 @@ def gate(sha, run_id=""):
             matching = [c for c in matching if c["check_suite"]["id"] == run["check_suite_id"]]
         if not matching:
             raise SyncError(f"最终 SHA 的实际必要检查未通过：{rule['context']}")
+    # 新策略的存在由提交 tree 判定，缺少证据不能退回旧版门禁。
+    paths = {row.split("\t", 1)[1] for row in git("ls-tree", "-r", "-z", sha).split("\0") if row}
+    if ".github/personal-sync/ci_policy.py" in paths:
+        ci_policy.verify_release_evidence(sha, run, workflow["id"])
     return source, run
 
 

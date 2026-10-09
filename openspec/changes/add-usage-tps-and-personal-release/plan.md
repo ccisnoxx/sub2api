@@ -146,9 +146,9 @@ flowchart LR
 
 以 `GITHUB_TOKEN` 推送的分支不能作为后续 push CI 自动启动的可靠依据。创建候选后显式 dispatch 定向 CI，传入并核对候选完整 SHA，结果挂在该提交上；不要把“PR 已创建”当成“检查已运行”。当前 GitHub 还可能让机器人创建的 PR 检查进入待批准状态，实施时验证仓库实际行为。[GitHub 的工作流触发规则](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow)
 
-保留所选 KlN 基线的已有 CI。显式 dispatch 的定向检查不能代替仓库实际要求的其他检查；若已有 CI 待批准，完成批准，或为其增加等价的显式入口。首次设置时读取实际分支保护和 Rulesets，确定必要检查名称及 merge 提交验证方式，不假定当前已经配置了保护规则。最终门禁绑定最终候选提交，personal 基础分支前进后刷新合并结果。
+保留所选 KlN 基线的检查能力，按实际变化选择所需 jobs；上游来源改变时执行完整候选门禁。Personal CI 是唯一候选入口，显式 dispatch 与原生 PR 共享分支并发组。首次设置时读取实际分支保护和 Rulesets，确定必要检查名称及 merge 提交验证方式，不假定当前已经配置了保护规则。最终门禁绑定最终提交，personal 基础分支前进后刷新合并结果。
 
-实际 Personal CI 通过同提交的 reusable workflows 保留上述完整检查，`personal-ready` 开始/结束核对候选、来源及最新 personal。远端 personal 已配置 strict 的 `personal-ready`（GitHub Actions App 15368），管理员也受约束，禁止强推/删除；仓库只允许 merge commit。阶段任务、执行证据与开发日志以默认 main 的最新记录为准，personal 保存固定源码的阶段记录，结果登记不反复改变已验收的 personal SHA。
+Personal CI 通过同提交的 reusable workflows 运行选择的检查，`personal-ready` 开始/结束核对候选、来源及最新 personal，并保存绑定输入的成功证据；同树普通 merge 满足可信复用条件时，最终提交只执行轻量绑定和证据校验。远端 personal 已配置 strict 的 `personal-ready`（GitHub Actions App 15368），管理员也受约束，禁止强推/删除；仓库只允许 merge commit。阶段任务、执行证据与开发日志以默认 main 的最新记录为准，personal 保存固定源码的阶段记录，结果登记不反复改变已验收的 personal SHA。
 
 ## 5. 自有镜像与发布合同
 
@@ -271,7 +271,7 @@ pnpm --dir frontend run build
 | 部署脚本误改数据库/卷 | 对 SSH/Docker 的替身演练拉取失败、应用不健康、成功、显式回滚、迁移禁止自动回滚；核对命令仅更新应用服务 |
 | 实际服务不可用 | 首次授权部署后核对容器、健康、版本、历史 TPS 与最小网关烟测 |
 
-继承的 CI 在远端保留其实际要求的后端单元、集成和 lint 等检查，上游同步可能涉及后端变更，不能用 TPS 组件测试替代。仅 TPS 的本地开发验证不额外跑全部后端或全平台构建；新增同步差异按其实际影响补充检查。
+继承的 CI 保留后端单元、集成、recording/race 和 lint 等检查能力。纯 TPS 前端变化在本地与远端都选择前端检查；后端及依赖变化选择对应检查，真实上游来源变化执行完整候选门禁。后端测试 jobs 并行执行，合并后满足输入与来源合同的候选证据可复用；失败、取消、缺失或失效证据不能视为通过。
 
 同步和发布修改触及历史保留、权限及发布行为，部署脚本触及生产状态与回滚。取得候选实现后，应安排独立只读复核，具体检查强推是否移除、最终 SHA 的门禁、凭据边界、镜像一致性及迁移后的回滚限制；此要求在实施阶段执行，本次计划编制没有完成独立代码审查。
 

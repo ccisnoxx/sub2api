@@ -57,6 +57,8 @@ class PersonalReleaseTest(unittest.TestCase):
         checks = [{"name": "personal-ready", "status": "completed", "conclusion": "success",
                    "app": {"id": 15368}, "check_suite": {"id": check_suite}}]
         def git(*args):
+            if args[0] == "ls-tree":
+                return "100644 blob " + SHA + "\tREADME.md\0"
             return SHA if args[0] == "rev-parse" else "b" * 40 + "\trefs/tags/" + BASE
         return api, checks, git
 
@@ -83,6 +85,32 @@ class PersonalReleaseTest(unittest.TestCase):
             with self.assertRaisesRegex(release.SyncError, "基础变化"):
                 release.gate(SHA)
             api.assert_not_called()
+
+    def test_new_policy_requires_evidence_after_actual_protected_check(self):
+        api, checks, legacy_git = self.gate_fixture()
+        def git(*args):
+            if args[0] == "ls-tree":
+                return "100644 blob " + SHA + "\t.github/personal-sync/ci_policy.py\0"
+            return legacy_git(*args)
+        with patch.object(release, "api", side_effect=api), patch.object(release, "pages", return_value=checks), \
+             patch.object(release, "git", side_effect=git), patch.object(release, "assert_base"), \
+             patch.object(release, "source_at", return_value=SOURCE), \
+             patch.object(release.ci_policy, "verify_release_evidence") as evidence:
+            self.assertEqual(release.gate(SHA, "123"), (SOURCE, RUN))
+            evidence.assert_called_once_with(SHA, RUN, 42)
+            evidence.side_effect = release.SyncError("新策略证据缺失")
+            with self.assertRaisesRegex(release.SyncError, "证据缺失"):
+                release.gate(SHA, "123")
+
+    def test_failed_actual_protection_never_accepts_new_evidence(self):
+        api, checks, git = self.gate_fixture(8)
+        with patch.object(release, "api", side_effect=api), patch.object(release, "pages", return_value=checks), \
+             patch.object(release, "git", side_effect=git), patch.object(release, "assert_base"), \
+             patch.object(release, "source_at", return_value=SOURCE), \
+             patch.object(release.ci_policy, "verify_release_evidence") as evidence:
+            with self.assertRaisesRegex(release.SyncError, "必要检查未通过"):
+                release.gate(SHA, "123")
+            evidence.assert_not_called()
 
     def test_new_tag_then_retry_reuses_tag_and_completed_publication(self):
         existing = {}

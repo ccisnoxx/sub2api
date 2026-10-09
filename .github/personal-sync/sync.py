@@ -180,7 +180,7 @@ def create_pr(candidate):
 - 迁移文件：{candidate['migrations'] or '无'}
 - 检查：[候选 SHA 的 Actions](https://github.com/{REPOSITORY}/actions?query=branch%3A{branch})；创建 PR 不代表检查成功。
 
-显式 dispatch Personal CI，包含 TPS 检查及现有 CI/Security Scan。只接受候选 SHA 和最新 personal 基础对应的成功结果；基础变化后重新准备候选。
+显式 dispatch Personal CI，按实际变更选择检查并记录可信证据。草稿 PR 不额外触发自动门禁；只接受候选 SHA 和最新 personal 基础对应的成功结果，基础变化后重新准备候选。
 升级 PR 必须使用 **merge commit**，保留 TPS 与上游祖先关系，不使用 squash/rebase。首次 TPS 发布仍使用原上游基线；本 PR 不触发发布或部署。
 """
     with tempfile.TemporaryDirectory() as directory:
