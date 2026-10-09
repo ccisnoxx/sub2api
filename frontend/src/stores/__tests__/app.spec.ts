@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAppStore } from '@/stores/app'
 import { getPublicSettings } from '@/api/auth'
+import { checkUpdates, type VersionInfo } from '@/api/admin/system'
 import type { PublicSettings } from '@/types'
 
 function createDeferred<T>() {
@@ -81,6 +82,7 @@ describe('useAppStore', () => {
     vi.useFakeTimers()
     localStorage.clear()
     vi.mocked(getPublicSettings).mockReset()
+    vi.mocked(checkUpdates).mockReset()
     // 清除 window.__APP_CONFIG__
     delete (window as any).__APP_CONFIG__
   })
@@ -321,6 +323,48 @@ describe('useAppStore', () => {
       expect(store.sidebarCollapsed).toBe(false)
       expect(store.loading).toBe(false)
       expect(store.toasts).toHaveLength(0)
+    })
+  })
+
+  describe('版本来源与检查状态', () => {
+    const personalVersion: VersionInfo = {
+      current_version: '0.2.14-klno.5-tps.1',
+      latest_version: '0.2.14-klno.5-tps.2',
+      has_update: true,
+      build_type: 'release',
+      update_mode: 'container',
+      release_repository: 'ccisnoxx/sub2api',
+      cached: false
+    }
+
+    it('API 与本地缓存都保留个人镜像安装方式、来源和失败状态', async () => {
+      const data = { ...personalVersion, warning: 'Using cached data: GitHub unavailable' }
+      vi.mocked(checkUpdates).mockResolvedValueOnce(data)
+      const store = useAppStore()
+      await store.fetchVersion()
+
+      expect(store.updateMode).toBe('container')
+      expect(store.releaseRepository).toBe('ccisnoxx/sub2api')
+      expect(store.versionWarning).toBe(data.warning)
+      await expect(store.fetchVersion()).resolves.toMatchObject({
+        update_mode: 'container', release_repository: 'ccisnoxx/sub2api', warning: data.warning, cached: true
+      })
+      expect(checkUpdates).toHaveBeenCalledTimes(1)
+    })
+
+    it('请求失败不会标记检查完成，后续成功刷新清除警告', async () => {
+      vi.mocked(checkUpdates).mockRejectedValueOnce(new Error('network unavailable'))
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      const store = useAppStore()
+      await expect(store.fetchVersion()).resolves.toBeNull()
+      expect(store.versionLoaded).toBe(false)
+      expect(store.versionWarning).toBe('VERSION_CHECK_FAILED')
+
+      vi.mocked(checkUpdates).mockResolvedValueOnce(personalVersion)
+      await store.fetchVersion(true)
+      expect(store.versionLoaded).toBe(true)
+      expect(store.versionWarning).toBe('')
+      consoleError.mockRestore()
     })
   })
 

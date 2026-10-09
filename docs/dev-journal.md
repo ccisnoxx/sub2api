@@ -1,5 +1,35 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S0.1 最终候选核对完成
+
+- 本次仅执行 S0.1。远端 personal、本地 personal 与 `codex/fix-version-usage-help` HEAD 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，应用仍从该 personal 工作树核对；来源保持 KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。没有使用 main 应用源码替代候选。
+- 原有 17 个应用文件与计划编制时 SHA-256 清单全部一致；最终 diff 确认个人 release 通道/缓存、镜像与源码更新能力、版本检查状态、TPS/首字独立点击说明及旧首字文案。应用候选仍未提交，以应用树 `27d96087e53a97386fd86935afa4ccc3dcd991e3`、基线 SHA 与补丁/文件校验值固定内容；该树不是可用于发布的提交 SHA。
+- 复用原始 Go 两包、UsageTps/UsageTable/HelpTooltip 97 用例、最终 VersionBadge 10 用例、i18n/类型/Vite build、合成 API 浏览器交互及真实匿名 GitHub 查询证据。历史独立复核审计包的 20 个产物校验通过；本次没有新委派。补充版本 store 28 用例及 13 个改动前端文件 ESLint，通过。
+- 补充检查先被默认 pnpm 11 与现有 pnpm 9 依赖布局不匹配阻止，实际测试未启动；改用已有 pnpm 9.15.9 后两项检查通过，没有安装依赖或改动锁文件。浏览器首轮遗留版本文案 warning、最终版本三状态零 error/warning，以及历史 build 警告分别登记，不混称零 warning。
+- 按维护职责从最新 origin/main `b43a472f4b1bde5983b3bdfa1447cd3622a77540` 创建 `codex/plus-s01-evidence` 文档工作树，登记[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md)，同步原计划位置的任务状态和证据；两处原有日志均保留，原聊天 CI 维护 checkout 未修改。
+- S0.1 已勾选；下一项为 S0.2 的实际候选提交 SHA、必要 CI 与交付条件准备，未自动开始。应用与本次文档均未提交/推送，合并、镜像发布、生产部署和后续阶段均未执行；旧 `.5-tps.1` 发布/生产结果不能代表本修复，固定后端运行树兼容证明仍需针对真实候选审定。
+
+## 2026-10-09：KIN 借鉴 Plus 功能计划与任务清单
+
+- 按用户要求仅编写计划文档和任务清单，保存于 `openspec/changes/adopt-plus-usage-and-diagnostics/`，未实施新增应用功能。
+- 固定当前 KIN `.5` 来源和 Plus `90da415c` 参考；主线为现有修复交付、用量计时/完成状态、模型价格、错误诊断，服务状态与用户协助按实际规模另行排期。
+- 计划保留现有指纹、调度、gwpool、计费与旧首字配置；建议新增严格首字字段，避免替换旧字段而影响现有统计。新增迁移、请求/WS 快照、权限与报价一致性均写入对应验收任务。
+- 文档完成不代表代码、发布或线上验收完成。现有版本/说明修复候选保留；本轮不推送、不发布、不连接生产。
+- 文档检查覆盖本地链接、唯一任务编号、勾选状态和 diff 空白；既有 17 个应用改动文件的内容校验值保持一致。本轮未运行应用测试或构建。
+
+## 2026-10-08：个人版本提示、TPS 与首字说明修复
+
+- 当前聊天 checkout 为 CI 维护分支，未将该树的应用源码用于修复。复用已部署应用来源 `personal` / `9397eb8af`，在 managed worktree 的 `codex/fix-version-usage-help` 准备候选，保留 KlN `.5` 与个人 TPS 补丁。
+- 版本 owner 识别个人 `X.Y.Z-klno.N-tps.N` 通道，按基础版本、KlN 序号、TPS 序号比较；个人发布查询 `ccisnoxx/sub2api`，`Wei-Shaw/sub2api` 继续只读监测。缓存绑定仓库，旧 KlN/原版缓存不混用。API 报告真实构建类型、发布仓库和更新能力；带个人标签的源码构建保持手动更新；个人镜像与源码构建在 service 提前拒绝二进制更新及回滚，个人 HTTP 路由返回 `409 / IN_PLACE_UPDATE_NOT_SUPPORTED`。
+- 个人徽标保留完整后缀，固定 digest 更新说明遵守现有部署流程与回滚数据兼容/部署记录合同；检查失败及尚未检查不宣称“最新”。普通 KlN release 升级路径保留。
+- TPS 移除标签和数值的原生悬停说明，使用独立圆圈点击入口；首字点击入口仅说明首次响应事件/输出耗时，明确平台与设置可能记录响应元数据、推理或工具调用，未采集显示 `-`。两个说明可独立关闭，点击另一个入口会关闭此前弹层，Enter/Space/Escape 交互保留。
+- 已读取 LuckyKuang/sub2api-plus 的当前 `UsageTable.vue` 和 `usageTiming.ts`：兼容的平均速率公式、颜色、数字格式沿用；完整首字详情依赖当前 KlN 接口不存在的 `timing_version`、`first_output_kind`、`first_output_ms`、`last_token_ms` 等字段，本轮未扩展后端用量合同或伪造该数据。
+- 验证：UsageTps/UsageTable/HelpTooltip 97 个用例通过；版本 service/handler 的定向 Go 测试两包通过；VersionBadge/app/locale completeness 共 41 个用例通过（最终 VersionBadge 10 个，其余检查沿用未变代码的成功证据）；改动前端文件 ESLint 与 diff 检查通过；前端 build（i18n、Vue 类型检查、Vite）通过。浏览器在 `http://127.0.0.1:4173` 验证管理员/用户、1440/390、中文/英文、明暗主题的说明交互及三种个人版本状态。使用合成 API，无生产认证或数据。
+- Browser 插件未列出，使用已有 Playwright/Chromium；版本稳定候选的三个状态无控制台错误或警告。首轮 TPS 浏览器验收遇到实现中的版本文案尚未添加，后续版本验收确认已补齐。未运行全套回归或发布 gate，未推送、创建 PR、发布镜像、SSH 或部署。
+- 真实 GitHub 元数据补充：个人两个已发布版本均 `draft=false / prerelease=true`，`releases/latest` 实际返回 404。已将个人查询改为读取最近 100 条发布，过滤草稿和非法标签、保留预发布，按五段版本数字选最新项；普通 KlN latest 查询与回滚筛选保留。新增回归在修正前分别复现预发布查询失败及源码误判为容器，修正后通过。
+- 真实网络闭环：使用最终 `UpdateService` 和仓库 GitHub 客户端匿名查询个人发布，`.5-tps.1` 正确识别自身为最新、无 warning，release 模式为 container；同通道缓存用于 source 构建时模式为 manual。无生产接口或更新操作。
+- 两次独立只读复核完成：首轮发现预发布 latest 查询及个人源码构建误判，两项已修正；最终复核未确认新增可操作问题。子代理审计 Bundle 已校验并归档（`20261009T061925Z-fix-version-tps-tooltips-06d9f2b5`）。未把源码修复或本地验证记录成线上已生效。部署工具的固定运行树兼容证明需要针对本候选重新审定，不能沿用 `.5` 上线时的旧证明。
+
 ## 2026-10-08：个人镜像发布，P3 实现候选
 
 - 从已验收 personal 029cd8fb 创建 codex/personal-release；读取默认 main 最新阶段记录，未合并 main 应用源码。来源仍为 v0.2.14-klno.3/de08df02，TPS 保留，未处理 .5 历史升级或连接生产。

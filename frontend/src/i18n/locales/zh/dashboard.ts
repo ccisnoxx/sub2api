@@ -399,6 +399,7 @@ export default {
     duration: '耗时',
     latency: '延迟',
     latencyFirstToken: '首字',
+    firstTokenDescription: '首字表示本次转发开始到记录的首个响应事件或输出之间的等待时间。采集口径因平台和设置而异，可能包含响应元数据、推理或工具调用，不一定是最终可见正文的第一个字。未采集该耗时的记录显示 -。',
     latencyDuration: '总耗时',
     latencyTps: 'TPS',
     averageOutputTps: '平均输出 TPS',

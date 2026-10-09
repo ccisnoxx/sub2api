@@ -83,7 +83,7 @@ type systemUpdateErrorEnvelope struct {
 	Message string `json:"message"`
 }
 
-func newSystemHandlerTestRouter(t *testing.T, updateSvc *systemHandlerUpdateServiceStub, repo *memoryIdempotencyRepoStub) *gin.Engine {
+func newSystemHandlerTestRouter(t *testing.T, updateSvc systemUpdateService, repo *memoryIdempotencyRepoStub) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	service.SetDefaultIdempotencyCoordinator(nil)
@@ -321,4 +321,31 @@ func TestSystemHandlerGetRollbackVersionsError(t *testing.T) {
 	router.ServeHTTP(rec, req)
 
 	require.Equal(t, http.StatusInternalServerError, rec.Code)
+}
+
+func TestSystemHandlerPersonalBinaryOperationsReturnConflict(t *testing.T) {
+	for _, tc := range []struct {
+		name, method, path, body string
+	}{
+		{"update", http.MethodPost, "/api/v1/admin/system/update", ""},
+		{"backup rollback", http.MethodPost, "/api/v1/admin/system/rollback", ""},
+		{"release rollback", http.MethodPost, "/api/v1/admin/system/rollback", `{"version":"0.2.13-klno.5"}`},
+		{"rollback list", http.MethodGet, "/api/v1/admin/system/rollback-versions", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			// 真实 service 必须在依赖查询或文件操作前拒绝个人镜像二进制操作。
+			svc := service.NewUpdateService(nil, nil, "0.2.14-klno.5-tps.1", "release")
+			router := newSystemHandlerTestRouter(t, svc, newMemoryIdempotencyRepoStub())
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
+			router.ServeHTTP(rec, req)
+			require.Equal(t, http.StatusConflict, rec.Code)
+			var body struct {
+				Reason string `json:"reason"`
+			}
+			require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &body))
+			require.Equal(t, "IN_PLACE_UPDATE_NOT_SUPPORTED", body.Reason)
+		})
+	}
 }

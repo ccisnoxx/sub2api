@@ -74,6 +74,7 @@ const messages: Record<string, string> = {
   'usage.stream': 'Stream',
   'usage.sync': 'Sync',
   'usage.latencyFirstToken': 'First',
+  'usage.firstTokenDescription': 'Wait from forwarding start to the first recorded output; reasoning or tool calls may precede visible text.',
   'usage.latencyDuration': 'Total',
   'usage.averageOutputTps': 'Avg output TPS',
   'usage.latencyTps': 'TPS',
@@ -1070,6 +1071,7 @@ describe('admin UsageTable deleted-user badge', () => {
 describe('UsageTable 平均输出 TPS 接入', () => {
   it.each([true, false])('账号计费显示为 %s 时，TPS 与原有耗时及色条共存', async (showAccountBilling) => {
     const wrapper = mount(UsageTable, {
+      attachTo: document.body,
       props: {
         data: [{
           ...baseImageRow,
@@ -1097,15 +1099,23 @@ describe('UsageTable 平均输出 TPS 接入', () => {
     const details = cell.get('[data-testid="usage-timing-details"]')
     expect(details.element.parentElement?.parentElement?.textContent).toContain('First')
     expect(details.attributes('type')).toBe('button')
-    expect(details.attributes('aria-label')).toContain(messages['usage.tpsDescription'])
-    expect(cell.findAll('button')).toHaveLength(2) // 唯一说明入口及 HelpTooltip 内的关闭按钮。
+    expect(details.attributes('aria-label')).toBe(messages['usage.latencyFirstToken'])
+    const tpsDetails = cell.get('[data-testid="usage-tps-details"]')
+    expect(tpsDetails.element.parentElement?.parentElement?.textContent).toContain('TPS')
     expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-cyan-600')
-    const tooltip = () => cell.get('[role="tooltip"]')
+    const tooltip = () => cell.findAll('[role="tooltip"]').find(node => node.text().includes(messages['usage.firstTokenDescription']))!
+    const tpsTooltip = () => cell.findAll('[role="tooltip"]').find(node => node.text().includes(messages['usage.tpsDescription']))!
     expect(tooltip().isVisible()).toBe(false)
     await details.trigger('click')
     await nextTick()
     expect(tooltip().isVisible()).toBe(true)
-    expect(tooltip().text()).toContain(messages['usage.tpsDescription'])
+    expect(tooltip().text()).toContain(messages['usage.firstTokenDescription'])
+    expect(tooltip().text()).not.toContain(messages['usage.tpsDescription'])
+    expect(tpsTooltip().isVisible()).toBe(false)
+    await tpsDetails.trigger('click')
+    await nextTick()
+    expect(tooltip().isVisible()).toBe(false)
+    expect(tpsTooltip().isVisible()).toBe(true)
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     await nextTick()
     expect(tooltip().isVisible()).toBe(false)
@@ -1113,9 +1123,9 @@ describe('UsageTable 平均输出 TPS 接入', () => {
     expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('-')
     expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-gray-400')
     expect(cell.get('[aria-hidden="true"]').classes()).not.toContain('bg-gradient-to-b')
-    await cell.get('[data-testid="usage-timing-details"]').trigger('click')
+    await cell.get('[data-testid="usage-tps-details"]').trigger('click')
     await nextTick()
-    expect(tooltip().text()).toContain(messages['usage.tpsInvalidDuration'])
+    expect(tpsTooltip().text()).toContain(messages['usage.tpsInvalidDuration'])
 
     wrapper.unmount()
   })
