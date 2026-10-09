@@ -273,13 +273,30 @@
               aria-hidden="true"
             ></span>
             <div class="grid grid-cols-[max-content_max-content] items-baseline gap-x-2 gap-y-0.5 text-xs">
-              <span class="text-gray-400 dark:text-gray-500">{{ t('usage.latencyFirstToken') }}</span>
-              <span v-if="row.first_token_ms != null" class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[firstTokenSeverity(row.first_token_ms)]">{{ formatDuration(row.first_token_ms) }}</span>
-              <span v-else class="text-gray-400 dark:text-gray-500">-</span>
-              <span class="text-gray-400 dark:text-gray-500">{{ t('usage.latencyDuration') }}</span>
-              <span class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[durationSeverity(row.duration_ms ?? 0)]">{{ formatDuration(row.duration_ms) }}</span>
-              <span class="text-gray-400 dark:text-gray-500">{{ t('usage.averageOutputTps') }}</span>
-              <UsageTps :row="row" />
+              <UsageTps :row="row">
+                <template #timing="{ explanation }">
+                  <span class="inline-flex items-center text-gray-400 dark:text-gray-500">
+                    {{ t('usage.latencyFirstToken') }}
+                    <HelpTooltip trigger="click">
+                      <template #trigger>
+                        <button
+                          data-testid="usage-timing-details"
+                          type="button"
+                          class="rounded text-gray-400 hover:text-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 dark:text-gray-500 dark:hover:text-primary-400"
+                          :aria-label="`${t('usage.averageOutputTps')}: ${explanation}`"
+                        >
+                          <Icon name="infoCircle" size="xs" aria-hidden="true" />
+                        </button>
+                      </template>
+                      <span class="block pr-5">{{ explanation }}</span>
+                    </HelpTooltip>
+                  </span>
+                  <span v-if="row.first_token_ms != null" class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[firstTokenSeverity(row.first_token_ms)]">{{ formatDuration(row.first_token_ms) }}</span>
+                  <span v-else class="text-gray-400 dark:text-gray-500">-</span>
+                  <span class="text-gray-400 dark:text-gray-500">{{ t('usage.latencyDuration') }}</span>
+                  <span class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[durationSeverity(row.duration_ms ?? 0)]">{{ formatDuration(row.duration_ms) }}</span>
+                </template>
+              </UsageTps>
             </div>
           </div>
         </template>
@@ -696,6 +713,7 @@ function accountBilled(row: { total_cost?: number | null; account_stats_cost?: n
 
 import DataTable from '@/components/common/DataTable.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import IpGeoCell from '@/components/common/IpGeoCell.vue'
 import Icon from '@/components/icons/Icon.vue'
 import UsageTps from './UsageTps.vue'

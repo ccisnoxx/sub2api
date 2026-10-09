@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { enableAutoUnmount, mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
 import { createI18n } from 'vue-i18n'
 import en from '@/i18n/locales/en/dashboard'
 import zh from '@/i18n/locales/zh/dashboard'
@@ -11,7 +10,7 @@ enableAutoUnmount(afterEach)
 // Vitest 使用无编译器的 i18n 运行时；这些文案没有插值，注册真实文案的消息函数。
 const tpsMessages = (messages: typeof en.usage) => ({
   usage: {
-    averageOutputTps: () => messages.averageOutputTps,
+    latencyTps: () => messages.latencyTps,
     tpsDescription: () => messages.tpsDescription,
     tpsInvalidOutput: () => messages.tpsInvalidOutput,
     tpsInvalidDuration: () => messages.tpsInvalidDuration,
@@ -42,27 +41,27 @@ const renderTps = (row = {}, locale: 'en' | 'zh' = 'en') => mount(UsageTps, {
 describe('UsageTps', () => {
   it.each(['sync', 'stream', 'ws_v2'] as const)('按总耗时计算 %s 文本输出速率', (request_type) => {
     const wrapper = renderTps({ request_type })
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.19 tok/s')
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
   })
 
   it('历史记录及首字耗时变化都不影响 TPS', async () => {
     const row = { ...textRow, billing_mode: undefined, request_type: undefined, first_token_ms: undefined }
     const wrapper = renderTps(row)
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.19 tok/s')
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
     await wrapper.setProps({ row: { ...row, first_token_ms: 24000 } })
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.19 tok/s')
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
   })
 
   it.each([undefined, null, 0, -1, NaN, Infinity, -Infinity])('输出 %s 不可用并说明原因', (output_tokens) => {
     const wrapper = renderTps({ output_tokens })
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('—')
-    expect(wrapper.get('button').attributes('aria-label')).toContain(en.usage.tpsInvalidOutput)
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('-')
+    expect(wrapper.get('[data-testid="usage-tps-value"]').attributes('title')).toContain(en.usage.tpsInvalidOutput)
   })
 
   it.each([undefined, null, 0, -1, NaN, Infinity, -Infinity])('总耗时 %s 不可用并说明原因', (duration_ms) => {
     const wrapper = renderTps({ duration_ms })
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('—')
-    expect(wrapper.get('button').attributes('aria-label')).toContain(en.usage.tpsInvalidDuration)
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('-')
+    expect(wrapper.get('[data-testid="usage-tps-value"]').attributes('title')).toContain(en.usage.tpsInvalidDuration)
   })
 
   it.each([
@@ -82,37 +81,55 @@ describe('UsageTps', () => {
     { request_type: 'gwpool_degraded' },
   ])('媒体或非普通生成记录 %j 不显示文本 TPS', (row) => {
     const wrapper = renderTps(row)
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('—')
-    expect(wrapper.get('button').attributes('aria-label')).toContain(en.usage.tpsNotApplicable)
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('-')
+    expect(wrapper.get('[data-testid="usage-tps-value"]').attributes('title')).toContain(en.usage.tpsNotApplicable)
   })
 
   it('只有图片输入、仍输出文本时可以计算', () => {
     const wrapper = renderTps({ image_input_tokens: 500 })
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.19 tok/s')
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
   })
 
   it.each([
-    [1, 200000, '<0.01 tok/s'],
+    [1, 200000, '0.005 tok/s'],
+    [1, 123456, '0.0081 tok/s'],
+    [1, 1000000000, '0.000001 tok/s'],
+    [99, 1000000, '0.099 tok/s'],
+    [1, 10000, '0.1 tok/s'],
+    [7, 1000, '7 tok/s'],
+    [4219, 100000, '42.2 tok/s'],
+    [9999, 100000, '100 tok/s'],
+    [100, 1000, '100 tok/s'],
+    [15045, 100000, '150 tok/s'],
+    [1505, 10000, '151 tok/s'],
     [1, 100000, '0.01 tok/s'],
   ])('保留低速正值的含义：%s token / %s ms', (output_tokens, duration_ms, expected) => {
     const wrapper = renderTps({ output_tokens, duration_ms })
     expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe(expected)
   })
 
-  it.each(['en', 'zh'] as const)('%s 提示可通过原生按钮打开，并解释统计口径与不可用原因', async (locale) => {
+  it.each(['en', 'zh'] as const)('%s 标签与数值均提供口径及不可用原因提示，数值旁无常驻按钮', (locale) => {
     const wrapper = renderTps({ duration_ms: null }, locale)
     const messages = locale === 'zh' ? zh : en
-    const button = wrapper.get('button')
-    expect(button.attributes('type')).toBe('button')
-    expect(button.attributes('aria-label')).toContain(messages.usage.tpsDescription)
-    expect(wrapper.get('[role="tooltip"]').isVisible()).toBe(false)
-    await button.trigger('click')
-    await nextTick()
-    const tooltip = wrapper.get('[role="tooltip"]')
-    expect(tooltip.isVisible()).toBe(true)
-    expect(tooltip.text()).toContain(messages.usage.tpsInvalidDuration)
-    expect(tooltip.text()).toContain(messages.usage.tpsDescription)
-    await tooltip.get('button').trigger('click')
-    expect(wrapper.get('[role="tooltip"]').isVisible()).toBe(false)
+    const label = wrapper.get('[data-testid="usage-tps-label"]')
+    const value = wrapper.get('[data-testid="usage-tps-value"]')
+    expect(label.text()).toBe('TPS')
+    for (const target of [label, value]) {
+      expect(target.attributes('title')).toContain(messages.usage.tpsDescription)
+      expect(target.attributes('title')).toContain(messages.usage.tpsInvalidDuration)
+    }
+    expect(wrapper.find('button').exists()).toBe(false)
+  })
+
+  it.each([0.005, 7, 150.45])('有效 TPS %s 统一使用青色，不按速度分档', (output_tokens) => {
+    const wrapper = renderTps({ output_tokens, duration_ms: 1000 })
+    expect(wrapper.get('[data-testid="usage-tps-value"]').classes()).toEqual(expect.arrayContaining(['text-cyan-600', 'dark:text-cyan-400']))
+  })
+
+  it('不可用 TPS 使用灰色', () => {
+    const wrapper = renderTps({ output_tokens: 0 })
+    const value = wrapper.get('[data-testid="usage-tps-value"]')
+    expect(value.classes()).toEqual(expect.arrayContaining(['text-gray-400', 'dark:text-gray-500']))
+    expect(value.classes()).not.toContain('text-cyan-600')
   })
 })

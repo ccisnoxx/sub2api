@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import HelpTooltip from '@/components/common/HelpTooltip.vue'
-import Icon from '@/components/icons/Icon.vue'
 import { BILLING_MODE_TOKEN, getDisplayBillingMode } from '@/utils/billingMode'
 import { hasImageOutputTokens } from '@/utils/imageUsage'
 import { isUsageRequestType, resolveUsageRequestType } from '@/utils/usageRequestType'
@@ -38,10 +36,15 @@ const unavailableReason = computed(() => {
 })
 
 const displayValue = computed(() => {
-  if (unavailableReason.value) return '—'
+  if (unavailableReason.value) return '-'
   // 分母沿用整条请求的总耗时，包含首 token 等待；历史记录不需要首字耗时。
   const rate = props.row.output_tokens * 1000 / props.row.duration_ms!
-  return rate < 0.01 ? '<0.01 tok/s' : `${rate.toFixed(2)} tok/s`
+  const number = rate < 0.1
+    ? Number(rate.toPrecision(2)).toString()
+    : rate >= 100
+      ? String(Math.round(rate))
+      : (Math.round(rate * 10) / 10).toFixed(1).replace(/\.0$/, '')
+  return `${number} tok/s`
 })
 
 const explanation = computed(() =>
@@ -50,18 +53,15 @@ const explanation = computed(() =>
 </script>
 
 <template>
-  <span class="inline-flex items-center whitespace-nowrap font-medium tabular-nums text-gray-700 dark:text-gray-300">
-    <span data-testid="usage-tps-value">{{ displayValue }}</span>
-    <HelpTooltip :content="explanation" trigger="click">
-      <template #trigger>
-        <button
-          type="button"
-          class="rounded text-gray-400 hover:text-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 dark:text-gray-500 dark:hover:text-primary-400"
-          :aria-label="`${t('usage.averageOutputTps')}: ${explanation}`"
-        >
-          <Icon name="infoCircle" size="xs" aria-hidden="true" />
-        </button>
-      </template>
-    </HelpTooltip>
+  <!-- 首字与总耗时由表格保留原布局，说明入口复用此处的口径和不可用原因。 -->
+  <slot name="timing" :explanation="explanation" />
+  <span data-testid="usage-tps-label" class="cursor-help text-gray-400 dark:text-gray-500" :title="explanation">
+    {{ t('usage.latencyTps') }}
   </span>
+  <span
+    data-testid="usage-tps-value"
+    class="cursor-help whitespace-nowrap font-medium tabular-nums"
+    :class="unavailableReason ? 'text-gray-400 dark:text-gray-500' : 'text-cyan-600 dark:text-cyan-400'"
+    :title="explanation"
+  >{{ displayValue }}</span>
 </template>
