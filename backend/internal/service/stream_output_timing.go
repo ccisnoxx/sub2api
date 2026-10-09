@@ -314,6 +314,9 @@ func (o *responsesOutputTiming) observeAcceptedUsage(payload []byte, eventType s
 	if v := raw.Get("output_tokens_details.audio_tokens"); v.Type == gjson.Number && v.Int() >= 0 && v.Float() == float64(v.Int()) {
 		n := int(v.Int())
 		o.timing.AudioOutputTokens = &n
+		if n > 0 {
+			o.audioSeen = true
+		}
 	}
 }
 

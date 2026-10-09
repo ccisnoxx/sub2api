@@ -219,6 +219,23 @@ func TestResponsesOutputTiming_FinalUsageReplacesAudioBreakdown(t *testing.T) {
 	}
 }
 
+func TestResponsesOutputTiming_PositivePartialAudioPreventsGuessedZero(t *testing.T) {
+	for _, output := range []string{`[]`, `[{"type":"message","content":[{"type":"output_text","text":"answer"}]}]`} {
+		t.Run(output, func(t *testing.T) {
+			start := time.Unix(100, 0)
+			o := newResponsesOutputTiming(context.Background(), start, &Account{Platform: PlatformOpenAI})
+			defer o.stop()
+			o.observeUsage([]byte(`{"type":"response.in_progress","response":{"usage":{"input_tokens":2,"output_tokens":3,"output_tokens_details":{"audio_tokens":1}}}}`), "response.in_progress", OpenAIUsage{})
+			final := []byte(`{"type":"response.completed","response":{"status":"completed","output":` + output + `,"usage":{"input_tokens":2,"output_tokens":10}}}`)
+			o.observeUsage(final, "response.completed", OpenAIUsage{InputTokens: 2, OutputTokens: 3})
+			require.Nil(t, o.snapshot(false).AudioOutputTokens, "已知有音频，最终缺失拆分不能猜零")
+			// 权威用量明确报告零音频时，零仍是可信值，不被历史事实覆盖。
+			o.observeUsage([]byte(`{"type":"response.completed","response":{"status":"completed","output":[],"usage":{"input_tokens":2,"output_tokens":10,"output_tokens_details":{"audio_tokens":0}}}}`), "response.completed", OpenAIUsage{InputTokens: 2, OutputTokens: 10})
+			require.Equal(t, 0, *o.snapshot(false).AudioOutputTokens)
+		})
+	}
+}
+
 func TestResponsesOutputTiming_JSONUsageNeedsFinalEvidence(t *testing.T) {
 	for _, tc := range []struct {
 		status, object, want string
