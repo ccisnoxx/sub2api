@@ -28,6 +28,14 @@ func newResponsesOutputTiming(ctx context.Context, start time.Time, account *Acc
 	if start.IsZero() || account == nil || account.Platform != PlatformOpenAI {
 		return nil
 	}
+	return newOutputTiming(ctx, start)
+}
+
+// 协议观察器共用取消排序和快照 owner；原生 Responses 的平台边界仍由其构造函数保持。
+func newOutputTiming(ctx context.Context, start time.Time) *responsesOutputTiming {
+	if start.IsZero() {
+		return nil
+	}
 	o := &responsesOutputTiming{start: start, ctx: ctx, timing: UsageTiming{TimingVersion: 1, CompletionStatus: CompletionStatusUnknown, UsageSource: UsageSourceUnknown}}
 	o.source = serviceStatusOwner(ctx)
 	if o.source != nil {

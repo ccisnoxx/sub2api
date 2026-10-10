@@ -156,8 +156,10 @@ func (s *OpenAIGatewayService) bufferChatCompletionsAsResponses(
 	serviceTier *string,
 	startTime time.Time,
 ) (*OpenAIForwardResult, error) {
+	timing := newChatOutputTiming(c.Request.Context(), startTime, 1)
+	defer timing.stop()
 	requestID := resp.Header.Get("x-request-id")
-	ccResp, usage, err := s.readCCUpstreamJSONResponse(c, resp, writeOpenAIResponsesFallbackError)
+	ccResp, usage, err := s.readCCUpstreamJSONResponse(c, resp, writeOpenAIResponsesFallbackError, timing)
 	if err != nil {
 		return nil, err
 	}
@@ -181,6 +183,7 @@ func (s *OpenAIGatewayService) bufferChatCompletionsAsResponses(
 		ServiceTier:                 resolvedOpenAIUpstreamServiceTier(c, serviceTier),
 		Stream:                      false,
 		Duration:                    time.Since(startTime),
+		UsageTiming:                 timing.snapshot(false),
 	}, nil
 }
 
@@ -198,6 +201,8 @@ func (s *OpenAIGatewayService) streamChatCompletionsAsResponses(
 	serviceTier *string,
 	startTime time.Time,
 ) (*OpenAIForwardResult, error) {
+	timing := newChatOutputTiming(c.Request.Context(), startTime, 1)
+	defer timing.stop()
 	requestID := resp.Header.Get("x-request-id")
 	writeStreamHeaders := s.newStreamHeaderWriter(c, resp.Header)
 
@@ -224,6 +229,7 @@ func (s *OpenAIGatewayService) streamChatCompletionsAsResponses(
 			}
 			if _, err := fmt.Fprint(c.Writer, sse); err != nil {
 				clientDisconnected = true
+				timing.clientDisconnected()
 				logger.L().Debug("openai responses chat fallback: client disconnected, continuing to drain upstream for billing",
 					zap.Error(err),
 					zap.String("request_id", requestID),
@@ -238,7 +244,7 @@ func (s *OpenAIGatewayService) streamChatCompletionsAsResponses(
 		events := apicompat.ChatCompletionsChunkToResponsesEvents(chunk, state)
 		s.cacheReasoningItemsFromEvents(events)
 		writeEvents(events)
-	})
+	}, timing)
 
 	if scan.Err != nil {
 		return &OpenAIForwardResult{
@@ -254,6 +260,7 @@ func (s *OpenAIGatewayService) streamChatCompletionsAsResponses(
 			Stream:                      true,
 			Duration:                    time.Since(startTime),
 			FirstTokenMs:                scan.FirstTokenMs,
+			UsageTiming:                 timing.snapshot(clientDisconnected),
 		}, fmt.Errorf("stream usage incomplete: %w", scan.Err)
 	}
 	if err := state.ValidateToolCallArguments(); err != nil {
@@ -270,6 +277,7 @@ func (s *OpenAIGatewayService) streamChatCompletionsAsResponses(
 			Stream:                      true,
 			Duration:                    time.Since(startTime),
 			FirstTokenMs:                scan.FirstTokenMs,
+			UsageTiming:                 timing.snapshot(clientDisconnected),
 		}, fmt.Errorf("invalid tool call arguments from upstream: %w", err)
 	}
 
@@ -280,6 +288,7 @@ func (s *OpenAIGatewayService) streamChatCompletionsAsResponses(
 		writeStreamHeaders()
 		if _, err := fmt.Fprint(c.Writer, "data: [DONE]\n\n"); err != nil {
 			clientDisconnected = true
+			timing.clientDisconnected()
 		}
 		if !clientDisconnected {
 			c.Writer.Flush()
@@ -302,6 +311,7 @@ func (s *OpenAIGatewayService) streamChatCompletionsAsResponses(
 		Stream:                      true,
 		Duration:                    time.Since(startTime),
 		FirstTokenMs:                scan.FirstTokenMs,
+		UsageTiming:                 timing.snapshot(clientDisconnected),
 	}, nil
 }
 

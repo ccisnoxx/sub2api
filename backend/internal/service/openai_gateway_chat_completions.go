@@ -575,9 +575,11 @@ func (s *OpenAIGatewayService) handleChatBufferedStreamingResponse(
 	upstreamModel string,
 	startTime time.Time,
 ) (*OpenAIForwardResult, error) {
+	timing := newOutputTiming(c.Request.Context(), startTime)
+	defer timing.stop()
 	requestID := resp.Header.Get("x-request-id")
 
-	finalResponse, usage, acc, err := s.readOpenAICompatBufferedTerminal(resp, c, "openai chat_completions buffered", requestID)
+	finalResponse, usage, acc, err := s.readOpenAICompatBufferedTerminal(resp, c, "openai chat_completions buffered", requestID, timing)
 	if err != nil {
 		if failure := s.gatewayPoolStreamReadFailure(c, account, false, false, requestID, resp.Header, err); failure != nil {
 			return nil, failure
@@ -650,6 +652,9 @@ func (s *OpenAIGatewayService) handleChatBufferedStreamingResponse(
 	// When the terminal event has an empty output array, reconstruct from
 	// accumulated delta events so the client receives the full content.
 	acc.SupplementResponseOutput(finalResponse)
+	if payload, marshalErr := json.Marshal(finalResponse); marshalErr == nil {
+		timing.observeJSON(payload, time.Now())
+	}
 
 	chatResp := apicompat.ResponsesToChatCompletions(finalResponse, originalModel)
 
@@ -675,6 +680,7 @@ func (s *OpenAIGatewayService) handleChatBufferedStreamingResponse(
 		UpstreamResponseServiceTier:   observedUpstreamResponseServiceTier(c),
 		Stream:                        false,
 		Duration:                      time.Since(startTime),
+		UsageTiming:                   timing.snapshot(false),
 	}
 	// Grok chat bridge: bill native search tools found in the terminal Responses body.
 	if account != nil && account.IsGrok() && finalResponse != nil {
@@ -740,6 +746,8 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 	startTime time.Time,
 	requestBodyLen int,
 ) (*OpenAIForwardResult, error) {
+	timing := newOutputTiming(c.Request.Context(), startTime)
+	defer timing.stop()
 	requestID := resp.Header.Get("x-request-id")
 	writeStreamHeaders := s.newStreamHeaderWriter(c, resp.Header)
 
@@ -798,6 +806,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 			Stream:                        true,
 			Duration:                      time.Since(startTime),
 			FirstTokenMs:                  firstTokenMs,
+			UsageTiming:                   timing.snapshot(clientDisconnected),
 		}
 		if searchCount > 0 {
 			out.SearchCount = searchCount
@@ -825,6 +834,8 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 			return false
 		}
 		observer.ObserveOpenAI([]byte(payload), event.Type)
+		timing.observeEvent([]byte(payload), event.Type, time.Now())
+		usageBefore := usage
 		refusalDetector.ObservePayload([]byte(payload))
 		s.parseSSEUsageBytesWithType([]byte(payload), event.Type, &usage)
 
@@ -838,6 +849,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 				usage = copyOpenAIUsageFromResponsesUsage(event.Response.Usage)
 			}
 		}
+		observeChatResponsesUsage(timing, []byte(payload), &event, usageBefore)
 		if strings.TrimSpace(event.Type) == "response.failed" || strings.TrimSpace(event.Type) == "error" {
 			payloadBytes := []byte(payload)
 			message := extractOpenAISSEErrorMessage(payloadBytes)
@@ -869,6 +881,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 					// 无条件置位：成功路径防 finalizeStream 重复 [DONE]；写失败意味着连接已不可写，
 					// finalizeStream 的 [DONE] 同样发不出去，统一抑制。
 					clientDisconnected = true
+					timing.clientDisconnected()
 				}
 				return true
 			}
@@ -905,6 +918,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 			} else if c != nil && c.Writer != nil && !clientDisconnected {
 				if _, err := fmt.Fprintf(c.Writer, "data: %s\n\n", errorPayload); err != nil {
 					clientDisconnected = true
+					timing.clientDisconnected()
 					logger.L().Info("openai chat_completions stream: client disconnected while writing upstream error",
 						zap.String("request_id", requestID),
 					)
@@ -939,6 +953,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 					for _, pending := range pendingSSE {
 						if _, err := fmt.Fprint(c.Writer, pending); err != nil {
 							clientDisconnected = true
+							timing.clientDisconnected()
 							logger.L().Info("openai chat_completions stream: client disconnected while flushing pending chunks",
 								zap.String("request_id", requestID),
 							)
@@ -953,6 +968,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 				}
 				if _, err := fmt.Fprint(c.Writer, sse); err != nil {
 					clientDisconnected = true
+					timing.clientDisconnected()
 					logger.L().Info("openai chat_completions stream: client disconnected, continuing to drain upstream for billing",
 						zap.String("request_id", requestID),
 					)
@@ -992,6 +1008,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 					for _, pending := range pendingSSE {
 						if _, err := fmt.Fprint(c.Writer, pending); err != nil {
 							clientDisconnected = true
+							timing.clientDisconnected()
 							logger.L().Info("openai chat_completions stream: client disconnected during pending final flush",
 								zap.String("request_id", requestID),
 							)
@@ -1006,6 +1023,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 				}
 				if _, err := fmt.Fprint(c.Writer, sse); err != nil {
 					clientDisconnected = true
+					timing.clientDisconnected()
 					logger.L().Info("openai chat_completions stream: client disconnected during final flush",
 						zap.String("request_id", requestID),
 					)
@@ -1022,6 +1040,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 				for _, pending := range pendingSSE {
 					if _, err := fmt.Fprint(c.Writer, pending); err != nil {
 						clientDisconnected = true
+						timing.clientDisconnected()
 						logger.L().Info("openai chat_completions stream: client disconnected during final pending flush",
 							zap.String("request_id", requestID),
 						)
@@ -1037,6 +1056,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 			writeStreamHeaders()
 			if _, err := fmt.Fprint(c.Writer, "data: [DONE]\n\n"); err != nil {
 				clientDisconnected = true
+				timing.clientDisconnected()
 				logger.L().Info("openai chat_completions stream: client disconnected during done flush",
 					zap.String("request_id", requestID),
 				)
@@ -1233,6 +1253,7 @@ func (s *OpenAIGatewayService) handleChatStreamingResponse(
 					zap.String("request_id", requestID),
 				)
 				clientDisconnected = true
+				timing.clientDisconnected()
 				continue
 			}
 			c.Writer.Flush()
