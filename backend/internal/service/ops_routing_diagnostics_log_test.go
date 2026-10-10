@@ -78,8 +78,10 @@ func TestOpsRoutingDiagnosticsAttemptBindingAndTurnSnapshots(t *testing.T) {
 	_, _, _ = finishRoutingDiagnosticsSelection(next, nil, "", ErrNoAvailableAccounts)
 	// 失败事件属于已绑定的发送，不借后来重选的未知池。
 	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{UpstreamStatusCode: 502, Message: "final provider owner"})
-	events, _ := c.Get(OpsUpstreamErrorsKey)
-	for _, event := range events.([]*OpsUpstreamErrorEvent) {
+	rawEvents, _ := c.Get(OpsUpstreamErrorsKey)
+	events, ok := rawEvents.([]*OpsUpstreamErrorEvent)
+	require.True(t, ok)
+	for _, event := range events {
 		require.Equal(t, first, event.RoutingDiagnostics)
 	}
 	MarkOpsStreamFailure(c, "upstream_error", "upstream_error", "failure", 502)
@@ -177,6 +179,8 @@ func TestOpsRoutingDiagnosticsTurnOwnerCannotReuseConnectionBinding(t *testing.T
 	c.Request = c.Request.WithContext(EnsureRoutingDiagnosticsTurn(c.Request.Context(), 1))
 	BeginOpsStreamTurnWithRoutingTurn(c, 1, 1)
 	appendOpsUpstreamError(c, OpsUpstreamErrorEvent{UpstreamStatusCode: 502, Message: "reused connection"})
-	events, _ := c.Get(OpsUpstreamErrorsKey)
-	require.Nil(t, events.([]*OpsUpstreamErrorEvent)[0].RoutingDiagnostics)
+	rawEvents, _ := c.Get(OpsUpstreamErrorsKey)
+	events, ok := rawEvents.([]*OpsUpstreamErrorEvent)
+	require.True(t, ok)
+	require.Nil(t, events[0].RoutingDiagnostics)
 }

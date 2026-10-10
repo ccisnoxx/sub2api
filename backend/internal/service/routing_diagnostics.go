@@ -147,7 +147,7 @@ type routingDiagnosticsBuilder struct {
 
 func beginRoutingDiagnosticsSelection(ctx context.Context) (context.Context, *routingDiagnosticsBuilder) {
 	ctx = EnsureRoutingDiagnosticsRequest(ctx)
-	owner := ctx.Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
+	owner, _ := ctx.Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
 	owner.mu.Lock()
 	owner.attempt++
 	owner.current = nil

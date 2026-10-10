@@ -20,7 +20,7 @@ import (
 const nativeResumeRateLimitEvent = `{"type":"error","status":429,"error":{"code":"rate_limit_exceeded","type":"rate_limit_error","message":"current turn limited"}}`
 
 // 真实下游 socket 观察本轮 wrapper；上游使用既有连接夹具，避免另造转发实现。
-func runOpenAIWSNativeResume(t *testing.T, requests []string, completedEvents []string, lastEvents []string, oauthAccount ...bool) (error, [][]byte, *openAIWSCaptureConn, []int, []int, []int) {
+func runOpenAIWSNativeResume(t *testing.T, requests []string, completedEvents []string, lastEvents []string, oauthAccount ...bool) ([][]byte, *openAIWSCaptureConn, []int, []int, []int, error) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	cfg := &config.Config{}
@@ -76,7 +76,7 @@ func runOpenAIWSNativeResume(t *testing.T, requests []string, completedEvents []
 			proxyErrCh <- err
 			return
 		}
-		defer conn.CloseNow()
+		defer func() { _ = conn.CloseNow() }()
 		ginCtx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ginCtx.Request = r.Clone(r.Context())
 		readCtx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
@@ -93,7 +93,7 @@ func runOpenAIWSNativeResume(t *testing.T, requests []string, completedEvents []
 	defer cancel()
 	client, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(wsServer.URL, "http"), nil)
 	require.NoError(t, err)
-	defer client.CloseNow()
+	defer func() { _ = client.CloseNow() }()
 	var messages [][]byte
 	for index, request := range requests {
 		require.NoError(t, client.Write(ctx, websocket.MessageText, []byte(request)))
@@ -113,7 +113,7 @@ func runOpenAIWSNativeResume(t *testing.T, requests []string, completedEvents []
 	}
 	select {
 	case proxyErr := <-proxyErrCh:
-		return proxyErr, messages, upstream, beforeRequests, beforeTurns, afterTurns
+		return messages, upstream, beforeRequests, beforeTurns, afterTurns, proxyErr
 	case <-ctx.Done():
 		t.Fatal("等待 native 当前轮次结果超时")
 		return nil, nil, nil, nil, nil, nil
@@ -128,7 +128,7 @@ func TestOpenAIWSNativeLaterTurnFailoverReplaysCompleteCurrentContext(t *testing
 		`{"type":"response.completed","response":{"id":"resp_first","output":[{"id":"msg_1","type":"message","role":"assistant","content":[{"type":"output_text","text":"first-answer"}]},{"id":"fc_1","type":"function_call","call_id":"call_1","name":"inspect","arguments":"{}"}]}}`,
 		`{"type":"response.completed","response":{"id":"resp_second","output":[{"id":"msg_2","type":"message","role":"assistant","content":[{"type":"output_text","text":"second-answer"}]}]}}`,
 	}
-	proxyErr, messages, upstream, beforeRequests, beforeTurns, afterTurns := runOpenAIWSNativeResume(t, []string{first, second, third}, completed, []string{nativeResumeRateLimitEvent})
+	messages, upstream, beforeRequests, beforeTurns, afterTurns, proxyErr := runOpenAIWSNativeResume(t, []string{first, second, third}, completed, []string{nativeResumeRateLimitEvent})
 	var failoverErr *UpstreamFailoverError
 	require.ErrorAs(t, proxyErr, &failoverErr)
 	require.Equal(t, http.StatusTooManyRequests, failoverErr.StatusCode)
@@ -174,7 +174,7 @@ func TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext(t *testing.T) {
 		{"done_with_incomplete_status", root, `{"type":"response.done","response":{"id":"resp_first","status":"incomplete","output":[]}}`, `{"type":"response.create","previous_response_id":"resp_first","input":[{"role":"user","content":"second"}]}`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			proxyErr, messages, _, _, _, _ := runOpenAIWSNativeResume(t, []string{tc.first, tc.current}, []string{tc.completed}, []string{nativeResumeRateLimitEvent})
+			messages, _, _, _, _, proxyErr := runOpenAIWSNativeResume(t, []string{tc.first, tc.current}, []string{tc.completed}, []string{nativeResumeRateLimitEvent})
 			var failoverErr *UpstreamFailoverError
 			require.ErrorAs(t, proxyErr, &failoverErr)
 			require.Equal(t, http.StatusTooManyRequests, failoverErr.StatusCode)
@@ -187,7 +187,7 @@ func TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext(t *testing.T) {
 }
 
 func TestOpenAIWSNativeLaterTurnFailoverIndependentInputStartsNewRoot(t *testing.T) {
-	proxyErr, _, _, _, _, _ := runOpenAIWSNativeResume(t, []string{
+	_, _, _, _, _, proxyErr := runOpenAIWSNativeResume(t, []string{
 		`{"type":"response.create","model":"public-model","input":[{"role":"user","content":"old"}]}`,
 		`{"type":"response.create","input":[{"role":"user","content":"current-independent"}]}`,
 	}, []string{`{"type":"response.completed","response":{"id":"resp_first"}}`}, []string{nativeResumeRateLimitEvent})
@@ -201,7 +201,7 @@ func TestOpenAIWSNativeLaterTurnFailoverIndependentInputStartsNewRoot(t *testing
 }
 
 func TestOpenAIWSNativeLaterTurnRateLimitAfterOutputDoesNotFailOver(t *testing.T) {
-	proxyErr, messages, _, _, _, _ := runOpenAIWSNativeResume(t, []string{
+	messages, _, _, _, _, proxyErr := runOpenAIWSNativeResume(t, []string{
 		`{"type":"response.create","model":"public-model","input":[]}`,
 		`{"type":"response.create","input":[{"role":"user","content":"current"}]}`,
 	}, []string{`{"type":"response.completed","response":{"id":"resp_first","output":[]}}`}, []string{
@@ -232,7 +232,7 @@ func TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases(t *testing.T) 
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			proxyErr, messages, upstream, _, _, _ := runOpenAIWSNativeResume(t, []string{tc.first, tc.current}, []string{tc.completed}, []string{nativeResumeRateLimitEvent}, true)
+			messages, upstream, _, _, _, proxyErr := runOpenAIWSNativeResume(t, []string{tc.first, tc.current}, []string{tc.completed}, []string{nativeResumeRateLimitEvent}, true)
 			var failoverErr *UpstreamFailoverError
 			require.ErrorAs(t, proxyErr, &failoverErr)
 			require.Equal(t, http.StatusTooManyRequests, failoverErr.StatusCode)
@@ -264,7 +264,7 @@ func TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput(t *testing.T) {
 				fmt.Sprintf(`{"type":"response.create","model":"public-model","client_metadata":{"thread_id":"current-string"},"input":%s}`, tc.inputJSON),
 			}
 			completed := `{"type":"response.completed","response":{"id":"resp_first","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"old-answer"}]}]}}`
-			proxyErr, messages, upstream, _, _, _ := runOpenAIWSNativeResume(t, requests, []string{completed}, []string{nativeResumeRateLimitEvent})
+			messages, upstream, _, _, _, proxyErr := runOpenAIWSNativeResume(t, requests, []string{completed}, []string{nativeResumeRateLimitEvent})
 			var failoverErr *UpstreamFailoverError
 			require.ErrorAs(t, proxyErr, &failoverErr)
 			require.Equal(t, http.StatusTooManyRequests, failoverErr.StatusCode)
@@ -308,7 +308,7 @@ func TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation(t *testing.T) {
 				`{"type":"response.create","previous_response_id":"resp_first","input":[{"role":"user","content":"continuation-current"}]}`,
 			}
 			completed := `{"type":"response.completed","response":{"id":"resp_first","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"完整回答\n\"assistant\""}]}]}}`
-			proxyErr, messages, upstream, _, _, _ := runOpenAIWSNativeResume(t, requests, []string{completed}, []string{nativeResumeRateLimitEvent})
+			messages, upstream, _, _, _, proxyErr := runOpenAIWSNativeResume(t, requests, []string{completed}, []string{nativeResumeRateLimitEvent})
 			var failoverErr *UpstreamFailoverError
 			require.ErrorAs(t, proxyErr, &failoverErr)
 			require.Equal(t, http.StatusTooManyRequests, failoverErr.StatusCode)
