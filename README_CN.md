@@ -2,9 +2,9 @@
 
 <img src="assets/logo.svg" alt="Sub2API Logo" width="128" />
 
-# Sub2API
+# Sub2API — ccisnoxx 个人维护发行版
 
-[![Go](https://img.shields.io/badge/Go-1.27.0-00ADD8.svg)](https://golang.org/)
+[![Go](https://img.shields.io/badge/Go-1.27.2-00ADD8.svg)](https://golang.org/)
 [![Vue](https://img.shields.io/badge/Vue-3.4+-4FC08D.svg)](https://vuejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7+-DC382D.svg)](https://redis.io/)
@@ -17,6 +17,34 @@
 [English](README.md) | 中文 | [日本語](README_JA.md)
 
 </div>
+
+## 本 fork、分支与安装入口
+
+本仓库 **[ccisnoxx/sub2api](https://github.com/ccisnoxx/sub2api)** 是 [KlN-4096/sub2api](https://github.com/KlN-4096/sub2api) 的个人维护发行版，原始上游为 [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api)。部分功能参考 [LuckyKuang/sub2api-plus](https://github.com/LuckyKuang/sub2api-plus)，并针对 KIN 架构做了适配。上述来源关系不代表任何上游维护者认可、支持或背书。
+
+| 用途 | 分支或产物 |
+| --- | --- |
+| 实际应用代码与个人功能 | `personal`；可复现安装使用已发布的 `vX.Y.Z-klno.N-tps.N` 标签 |
+| 同步、发布和部署控制工具 | `main`；其中保留的上游应用目录不是个人应用基线 |
+| 默认推荐安装方式 | Linux x86_64（`linux/amd64`）上使用 Docker Compose 和本 fork 的 GHCR 镜像，见下方[部署方式](#部署方式) |
+| 镜像仓库 | `ghcr.io/ccisnoxx/sub2api` |
+
+**2026-10-10** 核实的已发布示例：[v0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)，镜像 `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.5-tps.2`，源码提交 `3d5e1fde82707900a21f2b5538b112c7bab3c04a`。该 Release 在 GitHub 标记为**预发行**，不宣称为稳定版。当前个人发布入口只发布 Linux amd64 容器镜像，没有可下载的二进制安装包或 ARM64 镜像。下方示例固定镜像 digest；后续版本从[本 fork 的 Release](https://github.com/ccisnoxx/sub2api/releases)选择。
+
+### 与上游差异
+
+- 用量计时和完成状态展示；当前采集重点覆盖原生 OpenAI Responses HTTP/SSE 与 WebSocket 路径。
+- 按用户授权组展示模型和价格目录。
+- 管理员错误详情中的结构化路由诊断。
+- 管理员可见的真实请求服务状态，默认关闭；仅代表本部署已观察请求，无请求或样本不足时保持未知。
+- 本 fork 自行维护的同步、发布和部署控制，将源码 SHA、成功 Personal CI 和镜像 digest 绑定。
+
+当前 KIN 应用基线为 `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`，来源记录位于 [personal 分支](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)。Plus 参考的版本背景为 `v0.2.14+custom.002`，该标签实际指向 `a7749f5826ec0a5c6493c47fde9474dc31525f14`；适配时固定阅读提交为 `90da415c62b94c9417d9ce2b72b1507ed22f0303`。两者仅来源文档不同；完整来源见[来源矩阵](UPSTREAM.md)和 [NOTICE](NOTICE)，适配范围见[方案](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)和[交付记录](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)。这是选择性适配，不承诺同步上游的全部功能。
+
+### 文档与支持范围
+
+下方安装入口、[发布工具](.github/release-tools/README.md)和[个人部署工具](deploy/personal/README.md)描述本 fork 维护的路径。其他功能与配置指南、赞助和生态资料继承自上游，其安装目标和支持声明不自动适用于本 fork。个人部署脚本绑定维护者现有主机，不是通用安装器。本 fork 由自身维护者尽力支持，上游维护者不承担支持责任。
+
 
 
 ## ⚠️ 重要提醒
@@ -202,7 +230,7 @@ Sub2API 是一个 AI API 网关平台，用于分发和管理 AI 产品订阅的
 
 | 组件 | 技术 |
 |------|------|
-| 后端 | Go 1.27.0, Gin, Ent |
+| 后端 | Go 1.27.2, Gin, Ent |
 | 前端 | Vue 3.4+, Vite 5+, TailwindCSS |
 | 数据库 | PostgreSQL 15+ |
 | 缓存/队列 | Redis 7+ |
@@ -247,278 +275,49 @@ fast_mode = true
 
 ## 部署方式
 
-### 方式一：脚本安装（推荐）
+### Docker Compose：Linux amd64 新安装（推荐）
 
-一键安装脚本，自动从 GitHub Releases 下载预编译的二进制文件。
-
-#### 前置条件
-
-- Linux 服务器（amd64 或 arm64）
-- PostgreSQL 15+（已安装并运行）
-- Redis 7+（已安装并运行）
-- Root 权限
-
-#### 安装步骤
+适用 Linux x86_64、Docker Engine 和 `docker compose` 插件。以下示例使用已发布的应用源码标签及其固定镜像 digest，用于新安装；已有部署升级需要另行核对备份、迁移兼容性和目标版本说明。
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash
-```
-
-脚本会自动：
-1. 检测系统架构
-2. 下载最新版本
-3. 安装二进制文件到 `/opt/sub2api`
-4. 创建 systemd 服务
-5. 配置系统用户和权限
-
-#### 安装后配置
-
-```bash
-# 1. 启动服务
-sudo systemctl start sub2api
-
-# 2. 设置开机自启
-sudo systemctl enable sub2api
-
-# 3. 在浏览器中打开设置向导
-# http://你的服务器IP:8080
-```
-
-设置向导将引导你完成：
-- 数据库配置
-- Redis 配置
-- 管理员账号创建
-
-#### 升级
-
-可以直接在 **管理后台** 左上角点击 **检测更新** 按钮进行在线升级。
-
-网页升级功能支持：
-- 自动检测新版本
-- 一键下载并应用更新
-- 支持回滚
-
-#### 常用命令
-
-```bash
-# 查看状态
-sudo systemctl status sub2api
-
-# 查看日志
-sudo journalctl -u sub2api -f
-
-# 重启服务
-sudo systemctl restart sub2api
-
-# 卸载
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash -s -- uninstall -y
-```
-
----
-
-### 方式二：Docker Compose（推荐）
-
-使用 Docker Compose 部署，包含 PostgreSQL 和 Redis 容器。
-
-#### 前置条件
-
-- Docker 20.10+
-- Docker Compose v2+
-
-#### 快速开始（一键部署）
-
-使用自动化部署脚本快速搭建：
-
-```bash
-# 创建部署目录
-mkdir -p sub2api-deploy && cd sub2api-deploy
-
-# 下载并运行部署准备脚本
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/docker-deploy.sh | bash
-
-# 启动服务
-docker compose up -d
-
-# 查看日志
-docker compose logs -f sub2api
-```
-
-**脚本功能：**
-- 下载 `docker-compose.local.yml`（本地保存为 `docker-compose.yml`）和 `.env.example`
-- 自动生成安全凭证（JWT_SECRET、TOTP_ENCRYPTION_KEY、POSTGRES_PASSWORD）
-- 创建 `.env` 文件并填充自动生成的密钥
-- 创建数据目录（使用本地目录，便于备份和迁移）
-- 显示生成的凭证供你记录
-
-#### 手动部署
-
-如果你希望手动配置：
-
-```bash
-# 1. 克隆仓库
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
-
-# 2. 复制环境配置文件
 cp .env.example .env
 chmod 600 .env
-
-# 3. 编辑配置（生成安全密码）
 nano .env
 ```
 
-**`.env` 必须配置项：**
+启动前，将模板 PostgreSQL 密码及 `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` 分别设置为通过 `openssl rand -hex 32` 生成的不同随机值。私下设置管理员账号，将 `BIND_HOST` 设为 `127.0.0.1`；除非部署明确需要这些端点，将 `SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP` 和 `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS` 设为 `false`。限制 `.env` 访问权限。远程访问应使用已配置的 HTTPS 反向代理。
+
+继承的 Compose 模板仍写有上游镜像。以下覆盖文件选择本 fork 的已发布镜像；**每次 Compose 操作都必须保留两个 `-f` 参数**。启动前，`config --images` 应显示下方 `ghcr.io/ccisnoxx/sub2api@sha256:...` 镜像以及 PostgreSQL、Redis。
 
 ```bash
-# PostgreSQL 密码（必需）
-POSTGRES_PASSWORD=your_secure_password_here
-
-# JWT 密钥（推荐 - 重启后保持用户登录状态）
-JWT_SECRET=your_jwt_secret_here
-
-# TOTP 加密密钥（推荐 - 重启后保留双因素认证）
-TOTP_ENCRYPTION_KEY=your_totp_key_here
-
-# 可选：管理员账号
-# 留空则首次启动时自动生成随机邮箱（登录用户名）和密码，并输出到日志。
-# 请勿使用 admin@example.com 这类可被猜中的值，它们是暴力破解的目标。
-ADMIN_EMAIL=
-ADMIN_PASSWORD=
-
-# 可选：自定义端口
-SERVER_PORT=8080
-```
-
-**生成安全密钥：**
-```bash
-# 生成 JWT_SECRET
-openssl rand -hex 32
-
-# 生成 TOTP_ENCRYPTION_KEY
-openssl rand -hex 32
-
-# 生成 POSTGRES_PASSWORD
-openssl rand -hex 32
-```
-
-```bash
-# 4. 创建数据目录（本地版）
+cat > compose.personal.yml <<'YAML'
+services:
+  sub2api:
+    image: ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530
+    platform: linux/amd64
+YAML
 mkdir -p data postgres_data redis_data
-
-# 5. 启动所有服务
-# 选项 A：本地目录版（推荐 - 易于迁移）
-docker compose -f docker-compose.local.yml up -d
-
-# 选项 B：命名卷版（简单设置）
-docker compose up -d
-
-# 6. 查看状态
-docker compose -f docker-compose.local.yml ps
-
-# 7. 查看日志
-docker compose -f docker-compose.local.yml logs -f sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml config --images
+docker compose -f docker-compose.local.yml -f compose.personal.yml pull
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d
+docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 ```
 
-#### 部署版本对比
+本机访问 `http://127.0.0.1:8080`，或使用已配置的 HTTPS 地址。应用、PostgreSQL 和 Redis 数据分别保存在上面创建的三个本地目录。保护管理员凭据和备份，不提交 `.env` 或数据库内容。
 
-| 版本 | 数据存储 | 迁移便利性 | 适用场景 |
-|------|---------|-----------|---------|
-| **docker-compose.local.yml** | 本地目录 | ✅ 简单（打包整个目录） | 生产环境、频繁备份 |
-| **docker-compose.yml** | 命名卷 | ⚠️ 需要 docker 命令 | 简单设置 |
+升级时，选择新 fork Release 对应的源码与镜像 digest，核对兼容性及备份要求后更新镜像覆盖文件；重复拉取同一 digest 不会升级。当前发布路径不提供原上游的一键二进制安装或后台二进制更新，已发布镜像也不提供原生 ARM64/macOS 容器安装。
 
-**推荐：** 使用 `docker-compose.local.yml`（脚本部署）以便更轻松地管理数据。
+### 开发用源码编译
 
-#### 启用“数据管理”功能（datamanagementd）
-
-如需启用管理后台“数据管理”，需要额外部署宿主机数据管理进程 `datamanagementd`。
-
-关键点：
-
-- 主进程固定探测：`/tmp/sub2api-datamanagement.sock`
-- 只有该 Socket 可连通时，数据管理功能才会开启
-- Docker 场景需将宿主机 Socket 挂载到容器同路径
-
-详细部署步骤见：`deploy/DATAMANAGEMENTD_CN.md`
-
-#### 访问
-
-在浏览器中打开 `http://你的服务器IP:8080`
-
-如果管理员邮箱（登录用户名）或密码是自动生成的，在日志中查找：
-```bash
-docker compose -f docker-compose.local.yml logs sub2api | grep "Generated admin"
-```
-
-#### 升级
-
-```bash
-# 拉取最新镜像并重建容器
-docker compose -f docker-compose.local.yml pull
-docker compose -f docker-compose.local.yml up -d
-```
-
-#### 轻松迁移（本地目录版）
-
-使用 `docker-compose.local.yml` 时，可以轻松迁移到新服务器：
-
-```bash
-# 源服务器
-docker compose -f docker-compose.local.yml down
-cd ..
-tar czf sub2api-complete.tar.gz sub2api-deploy/
-
-# 传输到新服务器
-scp sub2api-complete.tar.gz user@new-server:/path/
-
-# 新服务器
-tar xzf sub2api-complete.tar.gz
-cd sub2api-deploy/
-docker compose -f docker-compose.local.yml up -d
-```
-
-#### 常用命令
-
-```bash
-# 停止所有服务
-docker compose -f docker-compose.local.yml down
-
-# 重启
-docker compose -f docker-compose.local.yml restart
-
-# 查看所有日志
-docker compose -f docker-compose.local.yml logs -f
-
-# 删除所有数据（谨慎！）
-docker compose -f docker-compose.local.yml down
-rm -rf data/ postgres_data/ redis_data/
-```
-
----
-
-### 方式三：Apple container（macOS）
-
-Apple 芯片 Mac 在 macOS 26 上可使用 Apple `container` 1.1.0 或更高版本运行完整的 Sub2API、PostgreSQL 和 Redis：
-
-```bash
-git clone https://github.com/Wei-Shaw/sub2api.git
-cd sub2api/deploy
-./apple-container.sh init
-./apple-container.sh up
-./apple-container.sh status
-```
-
-该方式面向本地开发和人工运维，不提供持续重启监管；生产部署仍推荐 Docker Compose。生命周期命令、持久化、升级和运行时限制见 [deploy/APPLE_CONTAINER.md](deploy/APPLE_CONTAINER.md)。
-
----
-
-### 方式四：源码编译
 
 从源码编译安装，适合开发或定制需求。
 
 #### 前置条件
 
-- Go 1.21+
-- Node.js 18+
+- 下方固定标签使用 Go 1.27.2；其他版本以 `backend/go.mod` 为准
+- Node.js 20 和 pnpm 9.15.9
 - PostgreSQL 15+
 - Redis 7+
 
@@ -526,15 +325,15 @@ cd sub2api/deploy
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api
 
 # 2. 安装 pnpm（如果还没有安装）
-npm install -g pnpm
+npm install -g pnpm@9.15.9
 
 # 3. 编译前端
 cd frontend
-pnpm install
+pnpm install --frozen-lockfile
 pnpm run build
 # 构建产物输出到 ../backend/internal/web/dist/
 
@@ -543,11 +342,8 @@ cd ../backend
 VERSION="$(./scripts/resolve-version.sh)"
 go build -tags embed -ldflags="-X main.Version=${VERSION}" -o sub2api ./cmd/server
 
-# 5. 创建配置文件
-cp ../deploy/config.example.yaml ./config.yaml
-
-# 6. 编辑配置
-nano config.yaml
+# 5. 首次安装由 setup 向导生成 config.yaml。
+# 阅读下方配置说明后运行应用。
 ```
 
 > **注意：** `-tags embed` 参数会将前端嵌入到二进制文件中。不使用此参数编译的程序将不包含前端界面。
@@ -657,11 +453,11 @@ Invalid base URL: invalid url scheme: http
 
 初始管理员账号**只能通过 setup 向导创建**（首次启动时访问 `http://<host>:8080`）。`config.yaml` 中的 `default.admin_email` / `default.admin_password` 字段**不会被用来创建管理员**——它们只是出于历史原因保留在模板里。
 
-由于上面第 5 步预先创建了 `config.yaml`，**setup 向导在首次启动时会被跳过**：服务检测到 config 已存在，会直接进入正常模式，此时 `users` 表为空，首次登录会返回 `invalid email or password`。
+若为空数据库预先创建 `config.yaml`，**setup 向导在首次启动时会被跳过**：服务检测到 config 已存在，会直接进入正常模式，此时 `users` 表为空，首次登录会返回 `invalid email or password`。
 
 **创建管理员的两种方式：**
 
-1. **推荐——让向导自动生成 `config.yaml`：** 跳过上面的第 5 步（不要执行 `cp`）。直接运行 `./sub2api`，访问 `http://localhost:8080`，向导会引导你完成数据库、Redis 和管理员账号配置，并自动写出 `config.yaml`。
+1. **推荐——让向导自动生成 `config.yaml`：** 首次运行前保持 `config.yaml` 不存在。直接运行 `./sub2api`，访问 `http://localhost:8080`，向导会引导你完成数据库、Redis 和管理员账号配置，并自动写出 `config.yaml`。
 
 2. **如果你已经创建了 `config.yaml`：** 首次启动前先把它临时移走以触发向导，完成后再恢复：
    ```bash
