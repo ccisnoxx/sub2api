@@ -940,7 +940,21 @@ export interface OpsErrorLog {
 
 }
 
+// 管理员单记录详情的选择快照；NULL保持未知，不从其他错误指标推导。
+export interface OpsRoutingDiagnostics {
+  schema_version: number
+  turn: number | null
+  selection_attempt: number
+  selection_layer: string | null
+  selection_reason: string | null
+  candidate_pool: number | null
+  filtered_candidates: number | null
+  filter_reasons: Record<string, number> | null
+  filter_coverage: 'complete' | 'partial' | 'unobserved'
+}
+
 export interface OpsErrorDetail extends OpsErrorLog {
+  routing_diagnostics?: OpsRoutingDiagnostics | null
   error_body: string
 
   // Upstream context (optional; enriched by gateway services)
