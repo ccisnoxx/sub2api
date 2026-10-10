@@ -2,9 +2,9 @@
 
 <img src="assets/logo.svg" alt="Sub2API Logo" width="128" />
 
-# Sub2API
+# Sub2API — ccisnoxx Personal Fork
 
-[![Go](https://img.shields.io/badge/Go-1.27.0-00ADD8.svg)](https://golang.org/)
+[![Go](https://img.shields.io/badge/Go-1.27.2-00ADD8.svg)](https://golang.org/)
 [![Vue](https://img.shields.io/badge/Vue-3.4+-4FC08D.svg)](https://vuejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7+-DC382D.svg)](https://redis.io/)
@@ -17,6 +17,34 @@
 English | [中文](README_CN.md) | [日本語](README_JA.md)
 
 </div>
+
+## This Fork, Branches, and Installation
+
+This repository, **[ccisnoxx/sub2api](https://github.com/ccisnoxx/sub2api)**, is a personally maintained edition of [KlN-4096/sub2api](https://github.com/KlN-4096/sub2api), whose original upstream is [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api). Selected features reference [LuckyKuang/sub2api-plus](https://github.com/LuckyKuang/sub2api-plus) and have been adapted to KIN's architecture. These relationships do not imply endorsement or support from any upstream maintainer.
+
+| Purpose | Branch or artifact |
+| --- | --- |
+| Application code and personal features | `personal`; use a published `vX.Y.Z-klno.N-tps.N` tag for a reproducible installation |
+| Synchronization, release, and deployment control tools | `main`; its inherited application tree is not the personal application baseline |
+| Recommended installation | Docker Compose with this fork's GHCR image on Linux x86_64 (`linux/amd64`); see [Deployment](#deployment) below |
+| Image repository | `ghcr.io/ccisnoxx/sub2api` |
+
+Verified published example on **2026-10-10**: [v0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2), image `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.5-tps.2`, source commit `3d5e1fde82707900a21f2b5538b112c7bab3c04a`. This release is marked **pre-release** on GitHub; it is not advertised as a stable release. The current personal release path publishes the Linux amd64 container image, with no downloadable binary archive or ARM64 image. Install the fixed image below; select future versions from [this fork's releases](https://github.com/ccisnoxx/sub2api/releases).
+
+### Differences from Upstream
+
+- Usage timing and completion-state display, with collection currently focused on native OpenAI Responses HTTP/SSE and WebSocket paths.
+- A model and price catalog filtered by the user's authorized groups.
+- Structured routing diagnostics in administrator error details.
+- Request-based service status for administrators, disabled by default. It describes requests observed by this deployment; missing or insufficient samples remain unknown.
+- Fork-owned synchronization, publication, and deployment controls that bind source SHA, successful Personal CI, and image digest.
+
+The current KIN application baseline is `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`; its record is on [personal](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json). Plus references are fixed to `v0.2.14+custom.002` / `90da415c62b94c9417d9ce2b72b1507ed22f0303`; see the [adaptation plan](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md) and [delivery record](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md). This is selective adaptation, not a promise to synchronize every upstream feature.
+
+### Documentation and Support
+
+The fork-specific installation section below, [release tools](.github/release-tools/README.md), and [personal deployment tools](deploy/personal/README.md) describe this fork's maintained paths. Other feature/configuration guides and the sponsor/ecosystem material are inherited upstream documentation; their installation targets and support claims do not automatically apply here. The personal deployment script is tied to the maintainer's existing host and is not a general installer. Support for this fork is best effort by its own maintainer, without an upstream support commitment.
+
 
 ## ⚠️ Important Notice
 
@@ -200,7 +228,7 @@ Community projects that extend or integrate with Sub2API:
 
 | Component | Technology |
 |-----------|------------|
-| Backend | Go 1.27.0, Gin, Ent |
+| Backend | Go 1.27.2, Gin, Ent |
 | Frontend | Vue 3.4+, Vite 5+, TailwindCSS |
 | Database | PostgreSQL 15+ |
 | Cache/Queue | Redis 7+ |
@@ -221,266 +249,49 @@ Nginx drops headers containing underscores by default (e.g. `session_id`), which
 
 ## Deployment
 
-### Method 1: Script Installation (Recommended)
+### Docker Compose: New Linux amd64 Installation (Recommended)
 
-One-click installation script that downloads pre-built binaries from GitHub Releases.
-
-#### Prerequisites
-
-- Linux server (amd64 or arm64)
-- PostgreSQL 15+ (installed and running)
-- Redis 7+ (installed and running)
-- Root privileges
-
-#### Installation Steps
+Use Docker Engine with the `docker compose` plugin on Linux x86_64. The following example pairs the published application source tag with its fixed image digest. It prepares a new installation; review backups, migration compatibility, and the target release notes separately for an existing deployment.
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash
-```
-
-The script will:
-1. Detect your system architecture
-2. Download the latest release
-3. Install binary to `/opt/sub2api`
-4. Create systemd service
-5. Configure system user and permissions
-
-#### Post-Installation
-
-```bash
-# 1. Start the service
-sudo systemctl start sub2api
-
-# 2. Enable auto-start on boot
-sudo systemctl enable sub2api
-
-# 3. Open Setup Wizard in browser
-# http://YOUR_SERVER_IP:8080
-```
-
-The Setup Wizard will guide you through:
-- Database configuration
-- Redis configuration
-- Admin account creation
-
-#### Upgrade
-
-You can upgrade directly from the **Admin Dashboard** by clicking the **Check for Updates** button in the top-left corner.
-
-The web interface will:
-- Check for new versions automatically
-- Download and apply updates with one click
-- Support rollback if needed
-
-#### Useful Commands
-
-```bash
-# Check status
-sudo systemctl status sub2api
-
-# View logs
-sudo journalctl -u sub2api -f
-
-# Restart service
-sudo systemctl restart sub2api
-
-# Uninstall
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash -s -- uninstall -y
-```
-
----
-
-### Method 2: Docker Compose (Recommended)
-
-Deploy with Docker Compose, including PostgreSQL and Redis containers.
-
-#### Prerequisites
-
-- Docker 20.10+
-- Docker Compose v2+
-
-#### Quick Start (One-Click Deployment)
-
-Use the automated deployment script for easy setup:
-
-```bash
-# Create deployment directory
-mkdir -p sub2api-deploy && cd sub2api-deploy
-
-# Download and run deployment preparation script
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/docker-deploy.sh | bash
-
-# Start services
-docker compose up -d
-
-# View logs
-docker compose logs -f sub2api
-```
-
-**What the script does:**
-- Downloads `docker-compose.local.yml` (saved as `docker-compose.yml`) and `.env.example`
-- Generates secure credentials (JWT_SECRET, TOTP_ENCRYPTION_KEY, POSTGRES_PASSWORD)
-- Creates `.env` file with auto-generated secrets
-- Creates data directories (uses local directories for easy backup/migration)
-- Displays generated credentials for your reference
-
-#### Manual Deployment
-
-If you prefer manual setup:
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
-
-# 2. Copy environment configuration
 cp .env.example .env
 chmod 600 .env
-
-# 3. Edit configuration (generate secure passwords)
 nano .env
 ```
 
-**Required configuration in `.env`:**
+Before starting, replace the template PostgreSQL password and set `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` to separate random values generated with `openssl rand -hex 32`. Configure your administrator account privately, set `BIND_HOST=127.0.0.1`, and set `SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP=false` and `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS=false` unless your deployment explicitly needs those endpoints. Keep `.env` private. Expose the service through a configured HTTPS reverse proxy for remote access.
+
+The inherited Compose template still names an upstream image. The following override selects this fork's published image; **include both `-f` arguments in every Compose operation**. The `config --images` output must contain the `ghcr.io/ccisnoxx/sub2api@sha256:...` reference below, plus PostgreSQL and Redis, before starting.
 
 ```bash
-# PostgreSQL password (REQUIRED)
-POSTGRES_PASSWORD=your_secure_password_here
-
-# JWT Secret (RECOMMENDED - keeps users logged in after restart)
-JWT_SECRET=your_jwt_secret_here
-
-# TOTP Encryption Key (RECOMMENDED - preserves 2FA after restart)
-TOTP_ENCRYPTION_KEY=your_totp_key_here
-
-# Optional: Admin account
-# Leave empty to auto-generate a random email (login username) and password, shown in logs on first startup.
-# Avoid guessable values such as admin@example.com: they are brute-force targets.
-ADMIN_EMAIL=
-ADMIN_PASSWORD=
-
-# Optional: Custom port
-SERVER_PORT=8080
-```
-
-**Generate secure secrets:**
-```bash
-# Generate JWT_SECRET
-openssl rand -hex 32
-
-# Generate TOTP_ENCRYPTION_KEY
-openssl rand -hex 32
-
-# Generate POSTGRES_PASSWORD
-openssl rand -hex 32
-```
-
-```bash
-# 4. Create data directories (for local version)
+cat > compose.personal.yml <<'YAML'
+services:
+  sub2api:
+    image: ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530
+    platform: linux/amd64
+YAML
 mkdir -p data postgres_data redis_data
-
-# 5. Start all services
-# Option A: Local directory version (recommended - easy migration)
-docker compose -f docker-compose.local.yml up -d
-
-# Option B: Named volumes version (simple setup)
-docker compose up -d
-
-# 6. Check status
-docker compose -f docker-compose.local.yml ps
-
-# 7. View logs
-docker compose -f docker-compose.local.yml logs -f sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml config --images
+docker compose -f docker-compose.local.yml -f compose.personal.yml pull
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d
+docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 ```
 
-#### Deployment Versions
+Open `http://127.0.0.1:8080` locally, or use your configured HTTPS endpoint. Application data, PostgreSQL data, and Redis data use the three local directories created above. Protect administrator credentials and backups; never commit `.env` or database contents.
 
-| Version | Data Storage | Migration | Best For |
-|---------|-------------|-----------|----------|
-| **docker-compose.local.yml** | Local directories | ✅ Easy (tar entire directory) | Production, frequent backups |
-| **docker-compose.yml** | Named volumes | ⚠️ Requires docker commands | Simple setup |
+For upgrades, select the new fork release's matching source and image digest, review compatibility and backup requirements, and update the image override. Pulling the same digest does not upgrade the application. This fork's current release path does not provide upstream one-click binary installation or dashboard binary updates, and its published image does not provide a native ARM64/macOS container installation.
 
-**Recommendation:** Use `docker-compose.local.yml` (deployed by script) for easier data management.
+### Build from Source for Development
 
-#### Access
-
-Open `http://YOUR_SERVER_IP:8080` in your browser.
-
-If the admin email (login username) or password was auto-generated, find them in logs:
-```bash
-docker compose -f docker-compose.local.yml logs sub2api | grep "Generated admin"
-```
-
-#### Upgrade
-
-```bash
-# Pull latest image and recreate container
-docker compose -f docker-compose.local.yml pull
-docker compose -f docker-compose.local.yml up -d
-```
-
-#### Easy Migration (Local Directory Version)
-
-When using `docker-compose.local.yml`, migrate to a new server easily:
-
-```bash
-# On source server
-docker compose -f docker-compose.local.yml down
-cd ..
-tar czf sub2api-complete.tar.gz sub2api-deploy/
-
-# Transfer to new server
-scp sub2api-complete.tar.gz user@new-server:/path/
-
-# On new server
-tar xzf sub2api-complete.tar.gz
-cd sub2api-deploy/
-docker compose -f docker-compose.local.yml up -d
-```
-
-#### Useful Commands
-
-```bash
-# Stop all services
-docker compose -f docker-compose.local.yml down
-
-# Restart
-docker compose -f docker-compose.local.yml restart
-
-# View all logs
-docker compose -f docker-compose.local.yml logs -f
-
-# Remove all data (caution!)
-docker compose -f docker-compose.local.yml down
-rm -rf data/ postgres_data/ redis_data/
-```
-
----
-
-### Method 3: Apple container (macOS)
-
-Apple-silicon Macs running macOS 26 can run the full Sub2API, PostgreSQL, and Redis stack with Apple `container` 1.1.0 or newer:
-
-```bash
-git clone https://github.com/Wei-Shaw/sub2api.git
-cd sub2api/deploy
-./apple-container.sh init
-./apple-container.sh up
-./apple-container.sh status
-```
-
-This is an operator-managed local workflow; Docker Compose remains the recommended production path. See [deploy/APPLE_CONTAINER.md](deploy/APPLE_CONTAINER.md) for lifecycle commands, persistence, upgrades, and runtime limitations.
-
----
-
-### Method 4: Build from Source
 
 Build and run from source code for development or customization.
 
 #### Prerequisites
 
-- Go 1.21+
-- Node.js 18+
+- Go 1.27.2 for the fixed tag below; use `backend/go.mod` for other versions
+- Node.js 20 and pnpm 9.15.9
 - PostgreSQL 15+
 - Redis 7+
 
@@ -488,15 +299,15 @@ Build and run from source code for development or customization.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api
 
 # 2. Install pnpm (if not already installed)
-npm install -g pnpm
+npm install -g pnpm@9.15.9
 
 # 3. Build frontend
 cd frontend
-pnpm install
+pnpm install --frozen-lockfile
 pnpm run build
 # Output will be in ../backend/internal/web/dist/
 
@@ -505,11 +316,8 @@ cd ../backend
 VERSION="$(./scripts/resolve-version.sh)"
 go build -tags embed -ldflags="-X main.Version=${VERSION}" -o sub2api ./cmd/server
 
-# 5. Create configuration file
-cp ../deploy/config.example.yaml ./config.yaml
-
-# 6. Edit configuration
-nano config.yaml
+# 5. First installation: let the setup wizard create config.yaml.
+# Run the application after reviewing the configuration notes below.
 ```
 
 > **Note:** The `-tags embed` flag embeds the frontend into the binary. Without this flag, the binary will not serve the frontend UI.
@@ -678,11 +486,11 @@ container, so it is read again after an image update or container recreation.
 
 The initial admin account is **only created via the setup wizard** (served at `http://<host>:8080` on first run). The `default.admin_email` / `default.admin_password` fields in `config.yaml` are **not used** to create it — they exist in the template for historical reasons.
 
-Because step 5 above pre-creates `config.yaml`, the setup wizard will be **skipped on first run**: the server detects an existing config and boots straight into normal mode with an empty `users` table, so the first login attempt fails with `invalid email or password`.
+If you pre-create `config.yaml` for a fresh database, the setup wizard will be **skipped on first run**: the server detects an existing config and boots straight into normal mode with an empty `users` table, so the first login attempt fails with `invalid email or password`.
 
 **Two ways to create the admin account:**
 
-1. **Recommended — let the wizard generate `config.yaml`:** Skip step 5 (do not run the `cp`). Start `./sub2api` directly; the setup wizard at `http://localhost:8080` walks you through database, Redis, and admin account setup, then writes `config.yaml` for you.
+1. **Recommended — let the wizard generate `config.yaml`:** Keep `config.yaml` absent on the first run. Start `./sub2api` directly; the setup wizard at `http://localhost:8080` walks you through database, Redis, and admin account setup, then writes `config.yaml` for you.
 
 2. **If you already created `config.yaml`:** Temporarily move it aside so the wizard can trigger on first run, then restore it afterwards:
    ```bash
