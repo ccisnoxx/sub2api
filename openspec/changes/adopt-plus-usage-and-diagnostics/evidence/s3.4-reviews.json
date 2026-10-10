@@ -1,0 +1,32 @@
+{
+  "task": "S3.4",
+  "application_sha": "d23474171035320eda06a35d76d455d7f8d7aae4",
+  "reviewer": "/root/routing_details_review",
+  "role": "critical_reviewer",
+  "read_only_hash_check": {
+    "files": 8,
+    "matched": true
+  },
+  "decision": "accepted",
+  "confirmed_findings": [],
+  "coverage": [
+    "v1 NULL/0/partial",
+    "35 filtering codes and bilingual labels",
+    "generation guarded detail/correlation success/error/finally and unmount",
+    "actual phase/owner/source",
+    "admin single-detail vs list/user visibility",
+    "58+20 original test results and successful production build"
+  ],
+  "limits": [
+    "Review did not rerun tests or independently observe empty-log command exits",
+    "Browser QA was not part of independent review",
+    "Dynamic tests do not directly cover same-ID/type switch with old pending request, unmount late rejection, or old finally finishing before current request; source guards reviewed",
+    "Complete JWT server and native/passthrough multi-turn log E2E remain outside this task"
+  ],
+  "audit": {
+    "id": "20261010T000955Z-kin-plus-routing-details-s34-5191490f",
+    "status": "closed",
+    "verify": "passed",
+    "digest_sha256": "4e1b7b8c85c813ab0df20152fa2030dff6cf5773d911ad7c2c1e1c68e9d4e96f"
+  }
+}

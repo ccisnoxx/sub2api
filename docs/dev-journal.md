@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S3.4 现有错误详情扩展完成
+
+- 本轮仅S3.4。核对personal9397eb8af、KlN `.5/c7aacf5d`及未合并草稿PR #5旧候选88156f09；复用干净S3.3 personal应用树032db7982，新建`codex/plus-routing-details-s34`，应用`d23474171035320eda06a35d76d455d7f8d7aae4`。原S3.3分支固定，main仅登记文档，原S0的17项源码改动、其他工作树和各自旧journal保留。
+- Usage/Ops共用管理员错误详情展示入口池/已知过滤及35双语原因、完整/部分/未知、选择层/原因、评估序号/已知WS轮次；0与NULL/缺失分开，partial解释已知下界，未知版本不伪造数量。保留阶段、来源、责任方、根因及载荷，不新增敏感字段或用户/列表可见性。show/errorId/errorType generation隔离详情和关联响应，关闭/切换/卸载不串记录。
+- 最终78项定向测试、8文件lint、类型及生产构建通过；旧响应覆盖反例先红后绿。中文亮1440/英文暗390两组实际前端＋合成GET API：四种状态、Escape、pending关闭后新记录/旧响应晚到、Ops详情返回通过，无console error/warning；首屏/面板截图已目视检查。既有Ops深链接首次列表无GET的问题登记为范围外，普通卡片入口通过，未扩展修改。夹具引导层/接口/动画问题及PNPM/i18n测试环境诊断保留。
+- S3.3的17后端输入一致，发送/队列预算/SQL/PG16/固定旧源码兼容/用户白名单/race按原边界复用；旧S2.7 CI不能证明新候选。fresh只读critical_reviewer无确认阻断，未独立执行测试或浏览器；动态生命周期组合及完整JWT/native-passthrough多turn日志/综合调度扣费边界未伪称完成。
+- [执行证据S3.4](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s34-扩展现有错误详情)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.4-validation.json)、[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.4-reviews.json)和closed/verify通过的[委派摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.4-subagent-digest.md)同步三处；仅S3.4勾选，下一项S3.5「验证归属与行为保持」，未自动开始。无push/PR更新/合并、镜像发布或生产部署。
+
 ## 2026-10-09：KIN 借鉴 Plus S3.3 错误存储与 DTO 贯通完成
 
 - 本轮仅S3.3。personal仍9397eb8af，草稿PR #5仍旧S2.7候选88156f09且未合并；从干净personal来源S3.2完整候选d9b06f4建立独立`codex/plus-routing-storage-s33`，应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`。main维护树只登记文档，没有替代personal应用源码。

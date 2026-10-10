@@ -189,3 +189,12 @@ S3.1 已做来源/工作树/PR 核对、实际 owner 源码与既有测试边界
 新字段只在管理员`/api/v1/admin/ops/errors/:id`及`/api/v1/admin/ops/request-errors/:id`单记录详情出现；普通列表和`upstream-errors?include_detail=1`裁剪顶层及事件内诊断，用户DTO白名单/直接user_id归属及admin认证接线保持。PG16和固定旧源码d9b06f4的migration runner/Ops repository往返通过，非完整服务器或生产兼容证明。
 
 定向14顶层/36 PASS、既有归因/队列/用户、真实PG及受影响race通过；fresh只读复核首turn继承建连诊断问题已关闭。其他平台、独立旧入口、TokenCount、无新选择的连接复用仍未知，Realtime帧没有新turn producer。页面留S3.4，综合行为验收与阶段交付留S3.5/S3.6；未取得完整JWT服务器、native/passthrough完整多turn日志E2E、新CI或生产证据。见[执行证据](implementation-evidence.md#s33-贯通错误存储与-dto)、[验证](evidence/s3.3-validation.json)及[复核](evidence/s3.3-reviews.json)。
+
+
+## 10. S3.4 管理员错误详情实际展示
+
+应用`d23474171035320eda06a35d76d455d7f8d7aae4`在personal来源S3.3完整032db7982之上扩展Usage/Ops共用管理员单错误详情；第1–9节按原时点完整保留。v1快照真实0、NULL/缺失、完整/部分/未观察及原因map空/未知分别展示，partial为已知下界；选择层/原因/35个过滤码使用双语白名单，不推导可用池或回显未知原始码/额外属性。WS逻辑turn只在已知时展示，选择评估不是发送或切换次数。原phase/owner/source取当前详情，根因与载荷保持；没有增加敏感字段、用户/列表可见性、迁移或实际调度行为。
+
+详情与关联列表按show/errorId/errorType生成请求generation，关闭/切换/卸载后旧成功、错误与finally不得修改当前状态。78项定向、lint/类型/build及两组实际前端浏览器流程通过，fresh只读源码复核无确认阻断。浏览器使用合成GET API，并不证明完整JWT后端；Ops上游单记录别名仍走既有管理员GetErrorLogByID owner，关联列表仍裁剪诊断。
+
+既有Ops深链接首次列表不加载已登记，正常页面入口通过，未扩展修复；其他平台和未接入入口、综合行为及完整多turn日志验收仍依第8/9节边界。见[执行证据](implementation-evidence.md#s34-扩展现有错误详情)与[验证](evidence/s3.4-validation.json)。下一项S3.5未开始，S3.6交付及发布/生产仍未执行。

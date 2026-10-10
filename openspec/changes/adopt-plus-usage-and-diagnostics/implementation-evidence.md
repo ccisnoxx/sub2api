@@ -1,9 +1,9 @@
 # KIN 借鉴 Plus 功能执行证据
 
 - 记录日期：2026-10-09（America/Los_Angeles）。
-- 当前续接范围：仅S3.3；历史记录保留，本轮本地存储/DTO、验证与复核见文末S3.3。
+- 当前续接范围：仅S3.4；历史记录保留，本轮本地页面、归属修复与验证/复核见文末S3.4。
 - 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
-- 当前完成S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.3；S2旧累计候选真实Personal CI通过，合并、镜像发布、生产部署、S1.5及S3.4以后均未执行。
+- 当前完成S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.4；S2旧累计候选真实Personal CI通过，合并、镜像发布、生产部署、S1.5及S3.5以后均未执行。
 
 ## S0.1 现有修复最终候选核对
 
@@ -490,3 +490,26 @@ S3.2原13项输入及5份最终产物逐项校验；未变producer/scheduler/bui
 没有完整Go/CI门禁、浏览器/页面或付费上游/生产请求；没有push/PR更新/workflow dispatch、更新personal、合并、镜像发布或生产部署。HTTP管理员检查为真实handler与存根repository，数据库/SQL链另有真实PG证据；未宣称真实JWT完整服务器或native/passthrough重试后第三turn的新增日志E2E。其他平台、独立旧选择入口、TokenCount及无新选择的连接复用仍保持原未知边界；S3.5/S3.6综合验收与交付未提前勾选。
 
 **S3.3已完成；下一项S3.4「扩展现有错误详情」。本轮停止，未进入页面及下一阶段。**
+
+
+## S3.4 扩展现有错误详情
+
+本轮仅S3.4。先读取指定plan/tasks/journal，再核对8个现存树的HEAD/分支/未提交文件及来源、远端personal/main、草稿PR #5。personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，KlN `.5/c7aacf5d`，PR仍旧S2.7 `88156f09`、OPEN/draft/未合并。复用已附加且干净的S3.3 personal工作树，从完整`032db7982970847179f77ec68d33b2f1ea964521`新建`codex/plus-routing-details-s34`；原S3.3分支固定不动，未采用main维护应用源码。应用候选`d23474171035320eda06a35d76d455d7f8d7aae4`，8个前端/测试文件；文档固定后本地HEAD另记。原S0的17项应用改动、其他树既有未提交内容和各自journal保留。
+
+共享`OpsErrorDetailModal`接入`OpsRoutingDiagnosticsPanel`，只读取当前管理员单详情的可选v1快照：真实0保留，NULL/缺失为未知，partial明确已知下界；空原因map与未观察不同，未知schema说明不支持。6个选择层、11个原因、35个过滤码使用双语白名单标签，不回显额外属性或未知原始码；不推导剩余可用池。展示选择评估序号及已知WS逻辑turn，明确不等于发送/切换次数。保留当前详情phase/error_owner/error_source、原根因与诊断载荷；未新增敏感请求或认证字段、普通用户/列表字段、后端迁移或权限分支。Ops上游单详情别名沿用同一个管理员GetErrorLogByID owner，并非关联列表include_detail可见性扩展。
+
+旧详情/关联请求晚到可串记录的反例在改前明确失败；实现按show/errorId/errorType的generation隔离详情及关联列表成功、错误和finally，关闭/切换/卸载使旧结果失效。最终8文件hash固定，候选实现经过fresh只读`critical_reviewer`复核，无确认阻断；复核未重跑测试或验收浏览器。动态测试没有直接断言同ID切类型且旧请求pending、卸载后晚到rejection、旧finally先结束三种组合，源码归属保护已核对，未确认缺陷；不伪称全部生命周期E2E完成。
+
+| 检查 | 实际结果与边界 |
+|---|---|
+| 定向前端/国际化 | 详情6、面板12、列表6、图表3、管理员Usage15、Ops keys28、全部locale编译5/完整性3，共78项通过；旧响应反例先红后绿 |
+| 静态/构建 | 8文件lint、vue-tsc及Vite生产构建退出0；构建产物在仓库外，依赖/lock和受管静态资源未改；既有Node/Browserslist/import/chunk警告登记 |
+| 实际页面 | 本地127.0.0.1:4194生产前端；中文亮色1440×1100、英文暗色390×844，各自Usage错误列表四种诊断、Escape关闭、关闭pending后新详情与旧响应晚到、Ops上游详情返回列表通过；身份/非空/无overlay/console健康、首屏及面板截图检查通过 |
+| 后端证据复用 | S3.3的17后端输入逐项一致，只按原范围复用发送/终态、队列预算、SQL/PG16/固定旧应用往返、用户白名单及race；旧CI不证明本次前端 |
+| 保留和复核 | 三个登记位置各自旧journal/evidence/冻结合同正文保留，最终源hash/工作树与文档差异核对见机器清单；审计closed/verify passed |
+
+浏览器插件本会话未提供，使用已有Playwright 1.62.1/Chromium，无新依赖。浏览器是实际前端配合合成管理员/GET API，不能作为完整JWT服务器或生产权限证明。初始PNPM symlink安全拒绝、runtime-only i18n测试编译器、遗漏后台API与引导层键、返回离场过渡和截图入场动画均按诊断修正验证环境后重跑受影响部分，日志保留；未为此改生产源码。额外观察到既有`/admin/ops?open_error_details=1&error_type=upstream`首次打开列表未发GET；两个owner文件相对S3.3未改，正常卡片入口可加载并完成返回。此范围外问题已登记，未扩展修改或宣称深链接通过。
+
+[候选清单](evidence/s3.4-candidate.json)、[验证与原日志索引](evidence/s3.4-validation.json)、[复核及限制](evidence/s3.4-reviews.json)、[保留/文档检查](evidence/s3.4-document-checks.json)及[委派摘要](evidence/s3.4-subagent-digest.md)。外部原证据目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s34`；应用、维护文档树及用户原指定位置同步登记，main只改文档。
+
+S3.4勾选，下一项**S3.5「验证归属与行为保持」**未开始。S3.5综合账号选择/冷却/切换/扣费及S3.6阶段交付未提前完成；完整JWT后端浏览器E2E、native/passthrough多turn日志E2E、新远端门禁继续未覆盖。本轮无push/PR更新/合并、镜像发布或生产部署。

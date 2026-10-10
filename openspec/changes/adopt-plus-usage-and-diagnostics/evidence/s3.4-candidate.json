@@ -1,0 +1,45 @@
+{
+  "task": "S3.4",
+  "worktree": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+  "branch": "codex/plus-routing-details-s34",
+  "baseline_sha": "032db7982970847179f77ec68d33b2f1ea964521",
+  "application_sha": "d23474171035320eda06a35d76d455d7f8d7aae4",
+  "files": {
+    "frontend/src/api/admin/ops.ts": "953ed057bce1e0af7fd14f06ce8d85dad46617528b6e6610709ccbadbe6552f6",
+    "frontend/src/i18n/__tests__/opsLocaleKeys.spec.ts": "e15dd76818eaa024979fcf30579231023f3dfec30d7b1cbc35818a3de4513848",
+    "frontend/src/i18n/locales/en/admin/ops.ts": "09753f5307c30465012c4e312e617d6d081d70391d0b0850cae7e9395e9b9a33",
+    "frontend/src/i18n/locales/zh/admin/ops.ts": "4ddfaaa66c16127544b726d26b2645095f65ce9785f379883bf0a215f62e6536",
+    "frontend/src/views/admin/ops/components/OpsErrorDetailModal.vue": "a9583ac5cf87fc2103f644b26f702d27726422f913227382a3e4571cc9273852",
+    "frontend/src/views/admin/ops/components/OpsRoutingDiagnosticsPanel.vue": "d307c13c092d8b9e9a654597fcca7b6dbc83538b1cbeb565a2da34b9d3c4bcae",
+    "frontend/src/views/admin/ops/components/__tests__/OpsErrorDetailModal.spec.ts": "8b97210cb071d07a5f1d1ef4cf150a0197183c4f93831e2010e410fb5c3cdaf2",
+    "frontend/src/views/admin/ops/components/__tests__/OpsRoutingDiagnosticsPanel.spec.ts": "cc4d7cd7c72f5d5fef05981e8017fd5d64aa2470a1e8a3cffa7edb95c7700b5a"
+  },
+  "status": "local_application_committed",
+  "personal_sha": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "main_sha": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+  "kin_source": {
+    "tag": "v0.2.14-klno.5",
+    "sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "prior_application_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+  "prior_branch_preserved": {
+    "branch": "codex/plus-routing-storage-s33",
+    "sha": "032db7982970847179f77ec68d33b2f1ea964521"
+  },
+  "draft_pr": {
+    "number": 5,
+    "state": "OPEN",
+    "draft": true,
+    "base": "personal",
+    "head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "merged": false
+  },
+  "dependency_lock_sha256": "1d8e54cc8e1f1bd3e7593805f607d9314ff81dab98ab5a9a6396475e148b26ce",
+  "work_location_decision": "复用干净且已附加的S3.3 personal应用树，新建S3.4分支；保留原S3.3分支与所有旧候选。main维护树只登记文档。",
+  "source_diff": {
+    "files": 8,
+    "insertions": 446,
+    "deletions": 23
+  },
+  "external_evidence_root": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34"
+}
