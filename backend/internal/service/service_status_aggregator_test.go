@@ -34,8 +34,8 @@ func TestServiceStatusAggregatorCancellationAndBudget(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("聚合未启动")
 	}
-	a.Stop()
-	a.Stop()
+	require.NoError(t, a.Stop())
+	require.NoError(t, a.Stop())
 	require.True(t, r.stopped.Load())
 	a.Start()
 	require.Empty(t, r.called)

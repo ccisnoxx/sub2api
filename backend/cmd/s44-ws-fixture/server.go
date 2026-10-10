@@ -169,9 +169,10 @@ func response(m marker, model, behavior string, completed bool) map[string]any {
 		return r
 	}
 	code, status, kind := "server_error", 500, "server_error"
-	if behavior == "provider_auth" {
+	switch behavior {
+	case "provider_auth":
 		code, status, kind = "invalid_api_key", 401, "authentication_error"
-	} else if behavior == "provider_quota" {
+	case "provider_quota":
 		code, status, kind = "insufficient_quota", 402, "usage_limit_reached"
 	}
 	r["status"] = "failed"
@@ -254,7 +255,7 @@ func (f *fixture) websocket(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 	conn.SetReadLimit(1 << 20)
 	f.mu.Lock()
 	f.session++

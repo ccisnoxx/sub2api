@@ -151,7 +151,11 @@ func validEndpoint(raw string, schemes ...string) bool {
 }
 
 func driverHTTPClient(ca string) (*http.Client, error) {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
+	base, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return nil, fail("unexpected_http_transport")
+	}
+	transport := base.Clone()
 	// 隔离驱动不受进程继承的 HTTP_PROXY 影响，避免发送 fake 凭据到外部代理。
 	transport.Proxy = nil
 	if ca != "" {
@@ -200,7 +204,7 @@ func driveWS(ctx context.Context, client *http.Client, o driveOptions, turns []t
 		_ = emit(map[string]any{"kind": "dial_failed", "run": o.Run, "status": status})
 		return fail("websocket_dial_failed")
 	}
-	defer conn.CloseNow()
+	defer func() { _ = conn.CloseNow() }()
 	conn.SetReadLimit(1 << 20)
 	for index, spec := range turns {
 		m := marker{o.Run, spec.Case, strconv.Itoa(index + 1)}

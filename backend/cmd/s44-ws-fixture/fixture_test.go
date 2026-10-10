@@ -174,7 +174,7 @@ func TestCancelBeforeUpstreamDrainCompletion(t *testing.T) {
 			drained <- false
 			return
 		}
-		defer down.CloseNow()
+		defer func() { _ = down.CloseNow() }()
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		up, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(upstream.URL, "http"), nil)
@@ -182,7 +182,7 @@ func TestCancelBeforeUpstreamDrainCompletion(t *testing.T) {
 			drained <- false
 			return
 		}
-		defer up.CloseNow()
+		defer func() { _ = up.CloseNow() }()
 		_, raw, err := down.Read(ctx)
 		if err != nil || up.Write(ctx, websocket.MessageText, raw) != nil {
 			drained <- false

@@ -30,7 +30,7 @@ func (s *serviceStatusSourceReporterStore) RecordSourceError(ctx context.Context
 func TestServiceStatusSourceReporterDoesNotBlockOrLoseNewerGap(t *testing.T) {
 	store := &serviceStatusSourceReporterStore{writes: make(chan time.Time, 2), release: make(chan struct{})}
 	reporter := newServiceStatusSourceReporter(store)
-	defer reporter.stop()
+	defer func() { require.NoError(t, reporter.stop()) }()
 	first := time.Now().UTC()
 	reporter.report(first)
 	select {
@@ -60,14 +60,14 @@ func TestServiceStatusSourceReporterDoesNotBlockOrLoseNewerGap(t *testing.T) {
 func TestServiceStatusSourceReporterStopFlushesLatestPending(t *testing.T) {
 	store := &serviceStatusSourceReporterStore{writes: make(chan time.Time, 2), release: make(chan struct{})}
 	reporter := newServiceStatusSourceReporter(store)
-	defer reporter.stop()
+	defer func() { require.NoError(t, reporter.stop()) }()
 	first := time.Now().UTC()
 	reporter.report(first)
 	require.Equal(t, first, <-store.writes)
 	newer := first.Add(time.Second)
 	reporter.report(newer)
-	stopped := make(chan struct{})
-	go func() { reporter.stop(); close(stopped) }()
+	stopped := make(chan error, 1)
+	go func() { stopped <- reporter.stop() }()
 	select {
 	case at := <-store.writes:
 		require.Equal(t, newer, at, "停止必须用独立上下文提交最新源缺口")
@@ -77,7 +77,7 @@ func TestServiceStatusSourceReporterStopFlushesLatestPending(t *testing.T) {
 	case <-time.After(3 * time.Second):
 		t.Fatal("停止未尝试持久化最新源缺口")
 	}
-	<-stopped
+	require.NoError(t, <-stopped)
 }
 
 func TestServiceStatusSourceReporterStopReportsUnfinishedWrite(t *testing.T) {
