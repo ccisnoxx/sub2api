@@ -94,7 +94,8 @@ func TestRoutingDiagnosticsConcurrentSequenceAndPublish(t *testing.T) {
 	seen := make(map[int]bool)
 	for b := range builders {
 		seen[b.diagnostics.SelectionAttempt] = true
-		finishRoutingDiagnosticsSelection(b, nil, "load_balance", ErrNoAvailableAccounts)
+		_, _, err := finishRoutingDiagnosticsSelection(b, nil, "load_balance", ErrNoAvailableAccounts)
+		require.ErrorIs(t, err, ErrNoAvailableAccounts)
 	}
 	require.Len(t, seen, count)
 	require.Equal(t, count, GetRoutingDiagnostics(ctx).SelectionAttempt)
