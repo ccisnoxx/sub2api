@@ -48,6 +48,8 @@ const (
 	OpsStreamErrorKey  = "ops_stream_error"
 	OpsStreamErrorsKey = "ops_stream_errors"
 	OpsStreamTurnKey   = "ops_stream_turn"
+	// 转发器重启后的局部编号会重复；失败去重保留连接逻辑轮次的 owner。
+	opsStreamErrorRoutingOwnerKey = "ops_stream_error_routing_owner"
 
 	// Client-side configuration denials should remain visible in ops_error_logs,
 	// but should be excluded from SLA/error-rate calculations.
@@ -289,8 +291,19 @@ func markOpsStreamError(c *gin.Context, streamErr OpsStreamError) {
 		if value, ok := c.Get(OpsStreamErrorsKey); ok {
 			errorsForRequest, _ = value.([]OpsStreamError)
 		}
-		if len(errorsForRequest) > 0 && errorsForRequest[len(errorsForRequest)-1].Turn == streamErr.Turn {
-			return
+		var routingOwner *routingDiagnosticsRequest
+		if c.Request != nil {
+			routingOwner, _ = c.Request.Context().Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
+		}
+		if len(errorsForRequest) > 0 {
+			sameTurn := errorsForRequest[len(errorsForRequest)-1].Turn == streamErr.Turn
+			if routingOwner != nil {
+				previousOwner, _ := c.Get(opsStreamErrorRoutingOwnerKey)
+				sameTurn = previousOwner == routingOwner
+			}
+			if sameTurn {
+				return
+			}
 		}
 		errorsForRequest = append(errorsForRequest, streamErr)
 		if len(errorsForRequest) > maxOpsStreamErrorsPerRequest {
@@ -298,6 +311,7 @@ func markOpsStreamError(c *gin.Context, streamErr OpsStreamError) {
 		}
 		c.Set(OpsStreamErrorsKey, errorsForRequest)
 		c.Set(OpsStreamErrorKey, streamErr)
+		c.Set(opsStreamErrorRoutingOwnerKey, routingOwner)
 		return
 	}
 	if _, exists := c.Get(OpsStreamErrorKey); exists {

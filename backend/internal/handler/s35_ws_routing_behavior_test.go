@@ -29,14 +29,19 @@ import (
 func TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs(t *testing.T) {
 	for _, mode := range []string{service.OpenAIWSIngressModeDedicated, service.OpenAIWSIngressModePassthrough} {
 		t.Run(mode, func(t *testing.T) {
-			runS35WSRoutingBehavior(t, mode, false)
+			runS35WSRoutingBehavior(t, mode, false, false)
 		})
 	}
 }
 
 // native 的发送前断连恢复会重建同账号 socket，但不重新选号；它与 handler 换号是不同边界。
 func TestS35WSNativeSameAccountRetryKeepsRoutingSelection(t *testing.T) {
-	runS35WSRoutingBehavior(t, service.OpenAIWSIngressModeDedicated, true)
+	runS35WSRoutingBehavior(t, service.OpenAIWSIngressModeDedicated, true, false)
+}
+
+// 第1轮已完成后才换号：第2轮的失败、重放、用量与诊断必须继续属于第2轮。
+func TestS35WSNativeLaterTurnFailoverReplaysCurrentTurn(t *testing.T) {
+	runS35WSRoutingBehavior(t, service.OpenAIWSIngressModeDedicated, false, true)
 }
 
 type s35WSHit struct {
@@ -49,7 +54,7 @@ type s35WSSessionSnapshot struct {
 	current *service.RoutingDiagnostics
 }
 
-func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
+func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry, laterTurnFailover bool) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	setupOpsErrorLogTestQueue(t, 8)
@@ -87,6 +92,7 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 				return
 			}
 			input := gjson.GetBytes(payload, "input.0.content").String()
+			t.Logf("实际发送 account_id=%d input=%s", accountID, input)
 			hitsMu.Lock()
 			hits = append(hits, s35WSHit{accountID: accountID, input: input})
 			firstSend := len(hits) == 1
@@ -98,6 +104,9 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 			var event []byte
 			if accountID == firstAccountID {
 				event = []byte(`{"type":"error","error":{"code":"rate_limit_exceeded","type":"usage_limit_reached","message":"The usage limit has been reached"}}`)
+				if laterTurnFailover && input == "session-1-turn-1" {
+					event = []byte(fmt.Sprintf(`{"type":"response.completed","response":{"id":"resp_%s","model":"gpt-5.1","status":"completed","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"completed-first-turn"}]}],"usage":{"input_tokens":11,"output_tokens":2}}}`, input))
+				}
 			} else {
 				terminal := "response.failed"
 				response := map[string]any{
@@ -108,7 +117,7 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 						"message": "s35-visible-" + input, "status_code": http.StatusBadRequest,
 					},
 				}
-				if strings.HasSuffix(input, "turn-2") {
+				if strings.HasSuffix(input, "turn-2") && !(laterTurnFailover && input == "session-1-turn-2") {
 					terminal = "response.completed"
 					response["status"] = "completed"
 					delete(response, "error")
@@ -126,7 +135,7 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 				upstreamErrors <- err
 				return
 			}
-			if accountID == firstAccountID {
+			if accountID == firstAccountID && !(laterTurnFailover && input == "session-1-turn-1") {
 				return
 			}
 		}
@@ -205,6 +214,8 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 
 	var snapshots []s35WSSessionSnapshot
 	var firstTurnListCalls []int
+	var lastTurnListCalls []int
+	var laterRetryListCalls int
 	for session := 1; session <= 2; session++ {
 		client := dialRoutingDiagnosticsWS(t, router)
 		for turn := 1; turn <= 3; turn++ {
@@ -219,7 +230,10 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 				firstTurnListCalls = append(firstTurnListCalls, repo.selectorCalls())
 			}
 			require.Equal(t, "resp_"+input, gjson.GetBytes(event, "response.id").String(), "重试或换号只能重放所属请求")
-			if turn == 2 {
+			if laterTurnFailover && session == 1 && turn == 2 {
+				laterRetryListCalls = repo.selectorCalls()
+			}
+			if (turn == 2 && !(laterTurnFailover && session == 1)) || (laterTurnFailover && session == 1 && turn == 1) {
 				require.Equal(t, "response.completed", gjson.GetBytes(event, "type").String())
 			} else {
 				require.Equal(t, "response.failed", gjson.GetBytes(event, "type").String())
@@ -234,27 +248,43 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 			t.Fatal("等待真实 WS handler 与 Ops 中间件退出超时")
 		}
 		require.Equal(t, int64(session*2), OpsErrorLogQueueLength(), "每条连接只记录两次客户端可见失败，成功 turn 不产生失败行")
-		require.Equal(t, firstTurnListCalls[session-1], repo.selectorCalls(), "后续 turn 不能因诊断追加账号查询或重新选号")
+		lastTurnListCalls = append(lastTurnListCalls, repo.selectorCalls())
+		if laterTurnFailover && session == 1 {
+			require.Equal(t, laterRetryListCalls, repo.selectorCalls(), "第3轮连接复用不能再次选号")
+		} else {
+			require.Equal(t, firstTurnListCalls[session-1], repo.selectorCalls(), "后续 turn 不能因诊断追加账号查询或重新选号")
+		}
 	}
 	for session, snapshot := range snapshots {
 		require.Nil(t, snapshot.current, "第3 turn 未重新选号，不得借用建连或重试的选择快照")
 		require.Len(t, snapshot.errors, 2)
 		first, last := snapshot.errors[0], snapshot.errors[1]
-		require.Equal(t, "s35-visible-"+fmt.Sprintf("session-%d-turn-1", session+1), first.Message)
+		firstFailureTurn := 1
+		if laterTurnFailover && session == 0 {
+			firstFailureTurn = 2
+		}
+		if laterTurnFailover && session == 0 {
+			require.Equal(t, 2, first.Turn, "失败日志保留转发层原局部轮次")
+		}
+		require.Equal(t, "s35-visible-"+fmt.Sprintf("session-%d-turn-%d", session+1, firstFailureTurn), first.Message)
 		require.Equal(t, healthyAccountID, first.AccountID)
 		require.Equal(t, "gpt-5.1", first.UpstreamModel)
 		require.True(t, first.CountTowardsSLA)
 		if session == 0 && !transportRetry {
 			// 初始选择属于握手；入场后真正换号才产生逻辑 turn 1 的第1次评估。
 			require.NotNil(t, first.RoutingDiagnostics)
-			require.EqualValues(t, 1, *first.RoutingDiagnostics.Turn)
+			require.EqualValues(t, firstFailureTurn, *first.RoutingDiagnostics.Turn)
 			require.Equal(t, 1, first.RoutingDiagnostics.SelectionAttempt)
 			require.EqualValues(t, 1, *first.RoutingDiagnostics.CandidatePool)
 		} else {
 			require.Nil(t, first.RoutingDiagnostics, "连接复用或同账号重建不能把握手选择伪装成 turn 选择")
 		}
 		require.Nil(t, last.RoutingDiagnostics, "后续真实失败必须保持本 turn 的未知诊断")
-		require.Equal(t, 3, last.Turn)
+		lastLocalTurn := 3
+		if laterTurnFailover && session == 0 {
+			lastLocalTurn = 2
+		}
+		require.Equal(t, lastLocalTurn, last.Turn)
 		require.Equal(t, "s35-visible-"+fmt.Sprintf("session-%d-turn-3", session+1), last.Message)
 		for _, streamErr := range snapshot.errors {
 			job := <-opsErrorLogQueue
@@ -283,7 +313,11 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 	for i := 0; i < 6; i++ {
 		select {
 		case usage := <-usageRepo.created:
-			require.Equal(t, healthyAccountID, usage.AccountID)
+			expectedAccountID := healthyAccountID
+			if laterTurnFailover && i == 0 {
+				expectedAccountID = firstAccountID
+			}
+			require.Equal(t, expectedAccountID, usage.AccountID)
 			require.Equal(t, 11, usage.InputTokens)
 			require.Equal(t, 2, usage.OutputTokens)
 			usageIDs = append(usageIDs, usage.RequestID)
@@ -295,11 +329,16 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 	if transportRetry {
 		expectedHits[0].accountID = healthyAccountID
 	}
+	if laterTurnFailover {
+		expectedHits = []s35WSHit{{accountID: firstAccountID, input: "session-1-turn-1"}, {accountID: firstAccountID, input: "session-1-turn-2"}}
+	}
 	var expectedUsageIDs []string
 	for session := 1; session <= 2; session++ {
 		for turn := 1; turn <= 3; turn++ {
 			input := fmt.Sprintf("session-%d-turn-%d", session, turn)
-			expectedHits = append(expectedHits, s35WSHit{accountID: healthyAccountID, input: input})
+			if !(laterTurnFailover && session == 1 && turn == 1) {
+				expectedHits = append(expectedHits, s35WSHit{accountID: healthyAccountID, input: input})
+			}
 			expectedUsageIDs = append(expectedUsageIDs, "resp_"+input)
 		}
 	}
@@ -309,8 +348,11 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry bool) {
 	require.Equal(t, expectedHits, actualHits, "真实认证账号与发送顺序必须符合一次恢复或切换，不能重放旧 turn")
 	require.Equal(t, expectedUsageIDs, usageIDs, "隐藏重试不得新增用量行或换掉所属响应 ID")
 	// gwpool 偏好预检查与最终 legacy 选择均会读账号列表，比较正常连接与恢复连接的真实次数。
-	normalConnectionListCalls := firstTurnListCalls[1] - firstTurnListCalls[0]
-	if transportRetry {
+	normalConnectionListCalls := firstTurnListCalls[1] - lastTurnListCalls[0]
+	if laterTurnFailover {
+		require.Equal(t, normalConnectionListCalls, firstTurnListCalls[0], "第1轮仅执行正常建连选择")
+		require.Equal(t, 2*normalConnectionListCalls, laterRetryListCalls, "第2轮失败后恰好多一次完整选择评估")
+	} else if transportRetry {
 		require.Equal(t, normalConnectionListCalls, firstTurnListCalls[0], "同账号 socket 重建没有额外选择评估")
 	} else {
 		require.Equal(t, 2*normalConnectionListCalls, firstTurnListCalls[0], "一次真实换号恰好多一次完整选择评估")
