@@ -395,7 +395,7 @@ func TestServiceStatusRepositoryFrozenIncidentHasNullRates(t *testing.T) {
 		}
 	}
 	require.True(t, foundFrozen)
-	require.NoError(t, r.Aggregate(ctx, now))
+	require.NoError(t, r.Aggregate(ctx, snapshotMinute))
 	snap, err := r.Snapshot(ctx, "24h", "openai")
 	require.NoError(t, err)
 	require.Contains(t, snap.Gaps, "scope_unavailable", "旧源的全站缺口不得被事件冻结掩盖")
