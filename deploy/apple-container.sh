@@ -416,6 +416,9 @@ prepare_environment() {
 
     APP_IMAGE="$(read_env_value APPLE_CONTAINER_SUB2API_IMAGE)"
     [[ -n "${APP_IMAGE}" ]] || die "Set APPLE_CONTAINER_SUB2API_IMAGE to a locally built fork ARM64 image; current fork releases only provide linux/amd64."
+    # 旧模板自动写入的原上游镜像必须重新选择，不能把继承值当成显式选择。
+    [[ "${APP_IMAGE}" != "weishaw/sub2api:latest" ]] || \
+        die "Replace the old upstream default in APPLE_CONTAINER_SUB2API_IMAGE with a locally built fork ARM64 image."
     POSTGRES_IMAGE="$(read_env_value APPLE_CONTAINER_POSTGRES_IMAGE postgres:18-alpine)"
     REDIS_IMAGE="$(read_env_value APPLE_CONTAINER_REDIS_IMAGE redis:8-alpine)"
     BIND_HOST="$(read_env_value BIND_HOST 0.0.0.0)"

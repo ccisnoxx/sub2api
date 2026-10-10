@@ -48,6 +48,17 @@ if missing_image_output="$("${SCRIPT}" up 2>&1)"; then
 fi
 [[ "${missing_image_output}" == *"Set APPLE_CONTAINER_SUB2API_IMAGE"* ]] || \
     fail "up did not explain the missing fork ARM64 image"
+printf '\nAPPLE_CONTAINER_SUB2API_IMAGE=weishaw/sub2api:latest\n' >>"${ENV_FILE}"
+for command in up pull; do
+    if old_image_output="$("${SCRIPT}" "${command}" 2>&1)"; then
+        fail "${command} accepted the old upstream image from an existing env file"
+    fi
+    [[ "${old_image_output}" == *"Replace the old upstream default"* ]] || \
+        fail "${command} did not explain the inherited upstream image"
+    grep -q '^APPLE_CONTAINER_SUB2API_IMAGE=weishaw/sub2api:latest$' "${ENV_FILE}" || \
+        fail "${command} modified the existing env file on rejection"
+    assert_missing "${STATE_DIR}/containers/sub2api-apple"
+done
 printf '\nAPPLE_CONTAINER_SUB2API_IMAGE=ghcr.io/ccisnoxx/sub2api:local-arm64\n' >>"${ENV_FILE}"
 
 "${SCRIPT}" up
