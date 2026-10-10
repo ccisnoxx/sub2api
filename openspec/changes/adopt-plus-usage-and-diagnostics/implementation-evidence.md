@@ -543,3 +543,33 @@ passthrough后续turn换号、后续turn同账号重建、新完整JWT服务器/
 **S3.5保持未勾选。下一步先修复既有native后续turn换号payload错误并复验S3.5，再进入S3.6；本轮停止，不自动开始生产修复或下一阶段。**
 
 收尾发现开工时的五个历史工作树已移出磁盘和Git worktree列表；本轮没有删除/归档调用，移除来源未由本轮确认。相关分支仍在，按Codex snapshot对照原文件哈希，五树共22527个文件全部一致，包含原维护树未提交文档；未重建目录或改写snapshot。原维护文档位置已不存在，本轮只同步现存应用树和用户原指定目录。
+
+## S3.5 native 当前轮次安全重放修复与复验
+
+本节为上节“部分完成，既有P1阻断”的后续闭环，保留原时点结论。用户本轮授权先修复native当前轮次安全重放，再复验S3.5；未授权进入S3.6或合并/发布/部署。
+
+### 候选与保留范围
+
+核对personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`、未合并草稿PR #5旧head `88156f09fcf980a771a8aab570f0dbaec5de25fb`及现有未提交改动后，复用personal应用树`/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin`；本轮分支`codex/plus-native-turn-replay-s35`，基线`0129d38696b1467768687aef9d8233092d4c1d7c`，最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`。native/Ops修复先固定于`9c2c5fba1d71b2e7e3b6f518ef61938d2cb57cae`，随后关闭跨模型P1。main维护应用树、原指定目录17项应用改动及两个目录各自旧journal正文保留，未创建/删除/归档工作树。
+
+### 完成内容与行为边界
+
+- native owner构造当前轮次的可移植上下文，完整成功的历史输出、工具调用及返回按实际顺序保留；独立input开启新上下文。账号换号不依赖原账号previous_response_id，并保持当前原始模型、请求字段和错误链。
+- 只有已证明完整、最近一次成功完成且response ID匹配的历史链可跨账号重放。缺失/失败/不完整终态、未知锚点、无input、孤立工具输出、item_reference及账号工具别名上下文停止重放，不回退建连首包。输出后429保持原停止行为；同账号重试、deadline和原预算未扩展。
+- Ops去重改为逻辑turn owner身份：同一逻辑turn跨代理重启first-wins，后续逻辑turn即使局部编号重复仍有独立错误行。公开旧Ops Turn保持原局部表示，未改SSE路径或64项上限。
+- 首次独立复核确认A→B后429换号仍按A选号/请求价的P1；最终handler在现有owner维护当前请求模型、渠道映射及重试输入，成功结果与fallback按当前请求归属。真实不同模型/候选/价格反例验证选择B能力账号、上游映射及B请求价，原首轮准入、复合分组和时间/并发语义保留。
+- 后续复核确认合法顶层字符串input被共享序列helper收集成数组内字符串；native历史owner将其无损转换为role=user消息项，只改变换号历史，不改原上游首发或shared helper。独立当前字符串与字符串历史续接均以先红后绿反例验证合法对象项；真实handler换号上游也检查对象项数组。[Responses输入合同](https://developers.openai.com/api/reference/resources/responses/methods/create)及[WebSocket示例](https://developers.openai.com/api/docs/guides/websocket-mode)支持合法顶层字符串语义。
+
+### 实际验证与复用
+
+native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。native完整上下文、原首包误重放、Ops同turn重复和跨模型选择/价格反例均保存先红后绿证据；首次handler集成失败分辨为旧Turn断言错误和实际Ops去重缺口后分别修正，原失败与修复记录保留。命令、exit、实际PASS项、输入哈希、日志哈希及证据边界见[验证清单](evidence/s3.5-native-fix-validation.json)。
+
+旧S3.5 HTTP真实402/429恢复及固定旧/新16同oracle各25 PASS，未变调度/费用owner、S3.2 producer、S3.3 SQL/迁移/DTO/权限与真实PG16兼容、S3.4前端按原有效边界复用；Ops owner有变化，旧Ops runtime证据由本轮日志/去重/race替换。没有重复前端build/浏览器、全量Go或远端CI。复用的日志与输入校验见[复用证据](evidence/s3.5-native-fix-reused-evidence.json)。
+
+新增native后续轮次换号、独立输入/完整工具上下文及跨模型映射和实际费用计算验证；WS使用simple模式的真实RecordUsage和仓库夹具，不证明实际余额扣款。标准扣费/幂等与调度对照按未变owner复用。完整JWT服务器、付费上游、生产、passthrough后续轮次换号及后续轮次同账号重建未新增运行时覆盖；隐藏WS 429未增加恢复telemetry producer，历史未知入口仍未知。
+
+### 复核与下一项
+
+三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终实际diff及日志复核无确认阻断。最终复核未独立运行测试，执行证据由主代理和写入代理提供；这仅是修复所需复核，不代表S3.6全阶段交付。详情见[复核记录](evidence/s3.5-native-fix-reviews.json)与[多代理摘要](evidence/s3.5-native-fix-subagent-digest.md)，审计`20261010T014850Z-kin-plus-native-turn-replay-s35-8306a592`通过验证并闭合。
+
+S3.5在上述实际覆盖与限制下完成并勾选。下一项为S3.6“完成独立复核与交付”，本轮未开始；push、PR更新、远端CI、合并、镜像发布和生产部署均未执行。

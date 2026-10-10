@@ -1,9 +1,9 @@
 # S3.1 结构化路由诊断合同
 
-- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1–S3.4完成，S3.5部分验证完成但受既有native后续turn换号P1阻断，S3.6未开始。第1–7节保留冻结来源，第8–10节保留历史，第11节登记S3.5验证与开放风险；v1语义未改。
+- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1–S3.5本地完成，S3.6未开始。第1–7节保留冻结来源，第8–11节保留历史，第12节登记native安全重放修复与S3.5复验；v1语义未改。
 - 应用来源：personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；只读累计候选 `88156f09fcf980a771a8aab570f0dbaec5de25fb`，工作树 `/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin`。
 - KIN 来源：`v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`；[草稿 PR #5](https://github.com/ccisnoxx/sub2api/pull/5) 未合并。
-- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s35-验证归属与行为保持部分完成既有-p1-阻断)。第1–7节的“当前候选/未来”均指S3.1冻结候选；最新验证及开放风险以第11节为准。
+- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)。第1–7节的“当前候选/未来”均指S3.1冻结候选；最新验证及覆盖限制以第12节为准。
 
 ## 1. 已核实的事实与 owner
 
@@ -204,3 +204,13 @@ S3.1 已做来源/工作树/PR 核对、实际 owner 源码与既有测试边界
 测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`仅新增HTTP/WS测试。真实402/429恢复、native/passthrough首turn换号后多turn、native同账号首turn重建、后续未选号NULL及延后日志队列验证通过；旧/新16同oracle各25 PASS，标准费用/去重与调度/冷却/限次在选定范围一致。原S3.2/S3.3未变输入和原日志按范围复用；新覆盖和边界见[S3.5执行证据](implementation-evidence.md#s35-验证归属与行为保持部分完成既有-p1-阻断)。
 
 额外native后续turn换号探针自然失败：第2turn的429换号误重放建连第1turn，业务载荷/响应ID错配，日志仍属逻辑turn2。pre-S3整个forwarder及三个关键分支相同，按源码对照归类既有P1；旧WS动态复现未执行。生产源码未改，完整后续换号验收未通过，S3.5保持未勾选，先另行修复当前turn安全重放再复验，S3.6未开始。simple模式WS用量不替代标准扣费；帧内隐藏429没有恢复event入口，完整JWT/付费上游/生产及passthrough后续换号未伪称完成。
+
+## 12. S3.5 native 安全重放修复与行为复验
+
+第1–7节v1冻结语义及第8–11节各自历史时点记录完整保留。本轮最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`关闭第11节既有native后续turn误重放首包：只有已证明完整的当前上下文可跨账号重放，删除原账号锚点并保留当前请求模型；无法证明安全时明确停止，不使用首包兜底。输出后不换号、原同账号重试预算保持。
+
+Ops按逻辑turn owner去重，同turn代理重启不重复，下一turn局部编号重复不漏记；原Ops Turn局部编号及routing逻辑turn表示保持。跨模型A→B后换号选号、渠道映射和请求价跟随当前B，当前尝试的诊断与费用owner一致。
+
+native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。旧HTTP恢复/调度/标准费用对照、未变存储/权限/前端证据按原边界复用，三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断。新增native后续轮次换号、独立输入/完整工具上下文及跨模型映射和实际费用计算验证；WS使用simple模式的真实RecordUsage和仓库夹具，不证明实际余额扣款。标准扣费/幂等与调度对照按未变owner复用。完整JWT服务器、付费上游、生产、passthrough后续轮次换号及后续轮次同账号重建未新增运行时覆盖；隐藏WS 429未增加恢复telemetry producer，历史未知入口仍未知。
+
+S3.5本地完成；[执行证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)、[验证](evidence/s3.5-native-fix-validation.json)、[复核](evidence/s3.5-native-fix-reviews.json)。S3.6未开始，发布/生产未执行。

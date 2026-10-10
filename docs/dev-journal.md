@@ -1,5 +1,14 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus native 当前轮次安全重放修复与 S3.5 复验完成
+
+- 本轮执行用户授权的native安全重放修复及S3.5复验；从personal应用来源`0129d38696b1467768687aef9d8233092d4c1d7c`续接于`codex/plus-native-turn-replay-s35`，修复应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`。personal核对仍为9397eb8af，草稿PR #5仍旧88156f09且未合并；main应用源码未替代personal，原17项应用改动保留。
+- native后续轮次跨账号重试使用当前原始模型和已证明完整的上下文，移除原账号response锚点；缺失终态输出、未知锚点、孤立工具输出/引用或账号工具别名上下文明确停止重放。顶层字符串只在换号历史内无损转换为user消息对象，原发送保持。输出后错误、原同账号重试预算及错误链保持。
+- Ops失败去重使用逻辑turn owner；同turn代理重启不重复记录，下一逻辑turn不被重复局部编号吞掉，原Ops Turn局部表示不改。复核发现的A→B后429换号按A选号/请求价风险已修复，重试选号、渠道映射及费用归属跟随当前B请求。
+- native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。新增反例先红后绿；固定旧/新16同oracle各25 PASS及未变producer/存储/权限/前端证据按原边界复用，不重复全量门禁。三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断。审计`20261010T014850Z-kin-plus-native-turn-replay-s35-8306a592`已验证闭合。
+- 新增native后续轮次换号、独立输入/完整工具上下文及跨模型映射和实际费用计算验证；WS使用simple模式的真实RecordUsage和仓库夹具，不证明实际余额扣款。标准扣费/幂等与调度对照按未变owner复用。完整JWT服务器、付费上游、生产、passthrough后续轮次换号及后续轮次同账号重建未新增运行时覆盖；隐藏WS 429未增加恢复telemetry producer，历史未知入口仍未知。
+- [执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-native-fix-validation.json)、[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-native-fix-reviews.json)及[审计摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-native-fix-subagent-digest.md)同步两个既有目录；保留此前部分完成/P1阻断记录。S3.5已勾选，下一项S3.6未开始。本轮无push、PR更新、远端CI、合并、镜像发布或生产部署。
+
 ## 2026-10-09：KIN 借鉴 Plus S3.5 验证执行，既有 native WS P1 阻断完整验收
 
 - 本轮仅S3.5，复用干净personal来源S3.4完整e3140a68应用树，固定原分支后建立`codex/plus-routing-behavior-s35`；测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`只新增HTTP/WS两份测试，生产源码不改。personal仍9397eb8af、草稿PR #5仍旧88156f09未合并；未使用main应用源码，原S0的17项改动及其他树旧正文/源码保留。

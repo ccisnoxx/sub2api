@@ -1,0 +1,120 @@
+{
+  "application_sha": "da581c6846d1bf89926ca9730abf2290ea8b65ea",
+  "initial_review": {
+    "candidate": "9c2c5fba1d71b2e7e3b6f518ef61938d2cb57cae",
+    "task_review_accepted": true,
+    "candidate_accepted": false,
+    "findings": [
+      {
+        "severity": "P1",
+        "trigger": "turn1 A completed，turn2 B 429后换号",
+        "file": "backend/internal/handler/openai_gateway_handler.go",
+        "lines": [
+          2815,
+          3123,
+          3266
+        ],
+        "impact": "按A选号但发B；局部turn1 usage/Requested计费按A",
+        "status": "已确认，handler闭环修复中"
+      }
+    ],
+    "additional_confirmed_findings": [],
+    "test_execution_by_reviewer": false,
+    "readonly": true,
+    "limits": [
+      "真实身份/密文跨账号组合未跑",
+      "64上限源码检查",
+      "S3.6未开始"
+    ]
+  },
+  "second_review": {
+    "candidate": "62c08468569c1852d07edfb8f746157022804225",
+    "task_review_accepted": true,
+    "candidate_accepted": false,
+    "original_model_P1_closed": true,
+    "findings": [
+      {
+        "priority": "P2",
+        "file": "backend/internal/service/openai_ws_forwarder_ingress.go",
+        "line": 1716,
+        "trigger": "已完成turn1，合法顶层字符串input的独立turn2或字符串root续接遇到输出前429",
+        "actual": "共享extractor返回scalar，完整历史认为安全；setInputSequence写成非法字符串成员数组",
+        "impact": "合法当前请求重放为上游400无效请求，阻断安全重放验收",
+        "fix": "native历史owner把顶层字符串无损转role=user message item，保留空字符串，首发/shared helper保持",
+        "sources": [
+          "https://developers.openai.com/api/reference/resources/responses/methods/create",
+          "https://developers.openai.com/api/docs/guides/websocket-mode"
+        ]
+      }
+    ],
+    "additional_confirmed_findings": [],
+    "readonly": true,
+    "test_execution_by_reviewer": false,
+    "source_hashes_checked": true,
+    "limits": [
+      "simple计算/usage仓库，不证明余额扣款",
+      "result.Model缺失源码fallback，无强制runtime",
+      "passthrough后续换号/后续sameaccount重建/完整JWT/付费上游/生产未新runtime",
+      "隐藏WS429 recovery telemetry仍未知"
+    ]
+  },
+  "final_string_review": {
+    "candidate": "da581c6846d1bf89926ca9730abf2290ea8b65ea",
+    "task_review_accepted": true,
+    "candidate_accepted": true,
+    "reviewed_diff": "62c08468569c1852d07edfb8f746157022804225..da581c6846d1bf89926ca9730abf2290ea8b65ea",
+    "closed_findings": [
+      "native字符串input变非法scalar数组P2"
+    ],
+    "open_findings": [],
+    "readonly": true,
+    "test_execution_by_reviewer": false,
+    "source_and_log_hashes_checked": true,
+    "reviewed_manifest_sha256": {
+      "final-candidate.json": "b2f7a2415ebbb9390d41362a339a69155e8a69a990a67fc25419051a5514f25d",
+      "final-validation.json": "b19efae8ac29e71d28f87fc2a8bc73a46202267b2c65edfcda249fcda502134d"
+    },
+    "reviewed_string_logs_sha256": {
+      "red-string-02": "389dde7e4fb667ab9bbb05426699e00946041cdce08f29e920d2065f93aabf97",
+      "green-string-02": "d84c4afbdeb4eabf8f43ad35c52085bb6f4d5a709f8aaffe1266bf2416d41d09"
+    },
+    "official_contract": "https://developers.openai.com/api/reference/resources/responses/methods/create",
+    "accepted_boundary": "局部native字符串形态修复及相邻消费路径；模型P1按未变生产owner保留前次关闭记录",
+    "limits": [
+      "simple计算/usage仓库，不证明余额扣款",
+      "result.Model缺失源码fallback，无强制runtime",
+      "passthrough后续换号/后续sameaccount重建/完整JWT/付费上游/生产未新runtime",
+      "隐藏WS429 recovery telemetry仍未知"
+    ],
+    "S3.6_started": false
+  },
+  "closed_findings": [
+    {
+      "finding": "pre-S3 native后续turn换号误重放建连首包",
+      "fixed_in": "9c2c5fba1d71b2e7e3b6f518ef61938d2cb57cae",
+      "proof": "red-handler-02/green handler-04 + native-safety-01"
+    },
+    {
+      "finding": "跨proxy逻辑turn同turn重复/新turn局部编号重复漏Ops错误",
+      "fixed_in": "9c2c5fba1d71b2e7e3b6f518ef61938d2cb57cae",
+      "proof": "red-ops-turn + ops/ops-race + handler-04队列"
+    },
+    {
+      "finding": "A→B后429换号仍按A选号及Requested价格P1",
+      "fixed_in": "62c08468569c1852d07edfb8f746157022804225",
+      "proof": "red-model-04/green-model-02，最终handler-04/race-03"
+    },
+    {
+      "finding": "字符串input非法scalar数组P2",
+      "fixed_in": "da581c6846d1bf89926ca9730abf2290ea8b65ea",
+      "proof": "red-string-02/green-string-02 + 真实handler red + handler-04/race-03"
+    }
+  ],
+  "open_findings": [],
+  "independent_review_count": 3,
+  "all_reviews_readonly": true,
+  "reviewers_ran_tests": false,
+  "S3.6_started": false,
+  "audit_id": "20261010T014850Z-kin-plus-native-turn-replay-s35-8306a592",
+  "audit_status": "closed and verified"
+}
