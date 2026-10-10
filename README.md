@@ -46,6 +46,10 @@ The current KIN application baseline is `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c7
 The fork-specific installation section below, [release tools](.github/release-tools/README.md), and [personal deployment tools](deploy/personal/README.md) describe this fork's maintained paths. Other feature/configuration guides and the sponsor/ecosystem material are inherited upstream documentation; their installation targets and support claims do not automatically apply here. The personal deployment script is tied to the maintainer's existing host and is not a general installer. Support for this fork is best effort by its own maintainer, without an upstream support commitment.
 
 
+## Security Reports
+
+Report vulnerabilities affecting **`ccisnoxx/sub2api`** through [GitHub Private Vulnerability Reporting](https://github.com/ccisnoxx/sub2api/security/advisories/new). Please keep vulnerability details out of public issues, pull requests, and discussions. See this fork's [security policy](.github/SECURITY.md) for supported versions, scope, and the disclosure process.
+
 ## ⚠️ Important Notice
 
 Please read the following carefully before using this project:
