@@ -1,0 +1,26 @@
+本仓库 ccisnoxx/sub2api 是 KlN-4096/sub2api 的个人维护 fork。
+原始上游为 Wei-Shaw/sub2api，部分个人功能选择性参考
+LuckyKuang/sub2api-plus，并按 KIN 的接口、权限和数据合同适配。
+
+原始上游： https://github.com/Wei-Shaw/sub2api
+直接上游： https://github.com/KlN-4096/sub2api
+应用基线标签： v0.2.14-klno.5
+应用基线提交： c7aacf5d3ae383d0d5c75f471f66e61690a5701d
+
+Plus 参考仓库： https://github.com/LuckyKuang/sub2api-plus
+Plus 发行标签： v0.2.14+custom.002
+Plus 发行标签实际提交： a7749f5826ec0a5c6493c47fde9474dc31525f14
+Plus 固定阅读与适配参考提交： 90da415c62b94c9417d9ce2b72b1507ed22f0303
+参考范围：用量计时、模型与价格目录、结构化路由诊断、真实请求服务状态。
+
+固定阅读提交是发行标签提交之后的来源文档合并提交；两者仅
+UPSTREAM.md 不同，引用的功能源码与文档相同。这里分别记录标签
+提交和阅读提交，不将两个 SHA 混称为标签解析结果。
+
+当前来源矩阵、改动方式、维护 owner、重放文件与测试入口见 UPSTREAM.md。
+本声明记录已核实来源，不替代原有 LICENSE、版权头或完整第三方许可
+材料；不因使用相同许可证而抹去归属，也不据此宣称全部代码自主原创。
+后续逐文件版权和发行材料审核由 LEGAL-001/LEGAL-002 独立处理。
+
+本 fork 由自身维护者协调维护。上述来源关系不代表任何上游维护者对
+本 fork 提供认可、支持或背书。
