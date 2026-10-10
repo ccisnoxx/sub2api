@@ -39,7 +39,7 @@
 - 管理员可见的真实请求服务状态，默认关闭；仅代表本部署已观察请求，无请求或样本不足时保持未知。
 - 本 fork 自行维护的同步、发布和部署控制，将源码 SHA、成功 Personal CI 和镜像 digest 绑定。
 
-当前 KIN 应用基线为 `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`，来源记录位于 [personal 分支](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)。Plus 参考固定为 `v0.2.14+custom.002` / `90da415c62b94c9417d9ce2b72b1507ed22f0303`；适配范围见[方案](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)和[交付记录](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)。这是选择性适配，不承诺同步上游的全部功能。
+当前 KIN 应用基线为 `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`，来源记录位于 [personal 分支](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)。Plus 参考的版本背景为 `v0.2.14+custom.002`，该标签实际指向 `a7749f5826ec0a5c6493c47fde9474dc31525f14`；适配时固定阅读提交为 `90da415c62b94c9417d9ce2b72b1507ed22f0303`。两者仅来源文档不同；完整来源见[来源矩阵](UPSTREAM.md)和 [NOTICE](NOTICE)，适配范围见[方案](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)和[交付记录](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)。这是选择性适配，不承诺同步上游的全部功能。
 
 ### 文档与支持范围
 
