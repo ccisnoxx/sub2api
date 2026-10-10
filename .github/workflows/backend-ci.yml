@@ -74,7 +74,15 @@ jobs:
         run: make test-integration
       - name: OpenAI recording concurrency checks
         working-directory: backend
-        run: go test -race -tags=unit -timeout=60s -run '^Test(Recorder|OpenAIRecording)' ./internal/pkg/upstreamrecord ./internal/service
+        env:
+          RECORDING_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          # Personal CI 的固定候选必须执行；普通 PR 只检查实际包含的功能。
+          if [ -n "$RECORDING_SOURCE_SHA" ] || [ -d internal/pkg/upstreamrecord ]; then
+            go test -race -tags=unit -timeout=60s -run '^Test(Recorder|OpenAIRecording)' ./internal/pkg/upstreamrecord ./internal/service
+          else
+            echo '当前源码未包含 OpenAI recording 模块，此定向检查不适用。'
+          fi
 
   frontend:
     runs-on: ubuntu-latest
