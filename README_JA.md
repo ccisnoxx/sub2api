@@ -39,7 +39,7 @@
 - 管理者向けの実リクエストに基づくサービス状態。既定で無効、この環境で観測したリクエストのみを表し、無リクエストやサンプル不足は不明。
 - ソース SHA、成功した Personal CI、イメージ digest を結び付ける、この fork の同期・公開・デプロイ制御。
 
-現在の KIN 基準は `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d` で、[personal の出所記録](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)に記載されています。Plus の参考版は `v0.2.14+custom.002` / `90da415c62b94c9417d9ce2b72b1507ed22f0303`。[適応計画](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)と[交付記録](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)を参照してください。上流の全機能を同期する約束ではありません。
+現在の KIN 基準は `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d` で、[personal の出所記録](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)に記載されています。Plus の版は `v0.2.14+custom.002`、タグのコミットは `a7749f5826ec0a5c6493c47fde9474dc31525f14`、適応時の固定参照コミットは `90da415c62b94c9417d9ce2b72b1507ed22f0303` です。差分は出所文書のみです。[出所一覧](UPSTREAM.md)と [NOTICE](NOTICE)、[適応計画](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)と[交付記録](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)を参照してください。上流の全機能を同期する約束ではありません。
 
 ### 文書とサポートの範囲
 
