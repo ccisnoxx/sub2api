@@ -10,9 +10,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -331,60 +333,6 @@ func TestFrontendServer_ServeIndexHTML(t *testing.T) {
 		assert.Contains(t, w2.Body.String(), `nonce="nonce2"`)
 	})
 
-	t.Run("sets_etag_header", func(t *testing.T) {
-		provider := &mockSettingsProvider{
-			settings: map[string]string{"test": "value"},
-		}
-
-		server, err := NewFrontendServer(provider)
-		require.NoError(t, err)
-
-		w := httptest.NewRecorder()
-		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest(http.MethodGet, "/", nil)
-		c.Set(middleware.CSPNonceKey, "nonce123")
-
-		server.serveIndexHTML(c)
-
-		etag := w.Header().Get("ETag")
-		assert.NotEmpty(t, etag)
-		assert.True(t, strings.HasPrefix(etag, `"`))
-		assert.True(t, strings.HasSuffix(etag, `"`))
-	})
-
-	t.Run("returns_304_for_matching_etag", func(t *testing.T) {
-		provider := &mockSettingsProvider{
-			settings: map[string]string{"test": "value"},
-		}
-
-		server, err := NewFrontendServer(provider)
-		require.NoError(t, err)
-
-		// Use a real router for proper 304 handling
-		router := gin.New()
-		router.Use(func(c *gin.Context) {
-			c.Set(middleware.CSPNonceKey, "test-nonce")
-			c.Next()
-		})
-		router.Use(server.Middleware())
-
-		// First request to populate cache and get ETag
-		w1 := httptest.NewRecorder()
-		req1 := httptest.NewRequest(http.MethodGet, "/", nil)
-		router.ServeHTTP(w1, req1)
-		etag := w1.Header().Get("ETag")
-		require.NotEmpty(t, etag)
-
-		// Second request with If-None-Match
-		w2 := httptest.NewRecorder()
-		req2 := httptest.NewRequest(http.MethodGet, "/", nil)
-		req2.Header.Set("If-None-Match", etag)
-		router.ServeHTTP(w2, req2)
-
-		assert.Equal(t, http.StatusNotModified, w2.Code)
-		assert.Empty(t, w2.Body.String())
-	})
-
 	t.Run("sets_cache_control_header", func(t *testing.T) {
 		provider := &mockSettingsProvider{
 			settings: map[string]string{"test": "value"},
@@ -400,7 +348,7 @@ func TestFrontendServer_ServeIndexHTML(t *testing.T) {
 
 		server.serveIndexHTML(c)
 
-		assert.Equal(t, "no-cache", w.Header().Get("Cache-Control"))
+		assert.Equal(t, "no-store", w.Header().Get("Cache-Control"))
 	})
 
 	t.Run("fallback_on_settings_error", func(t *testing.T) {
@@ -424,6 +372,8 @@ func TestFrontendServer_ServeIndexHTML(t *testing.T) {
 		// Should still return 200 with base HTML
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Header().Get("Content-Type"), "text/html")
+		assert.Equal(t, "no-store", w.Header().Get("Cache-Control"))
+		assert.Empty(t, w.Header().Get("ETag"))
 	})
 }
 
@@ -476,6 +426,51 @@ func TestFrontendServer_InvalidateCache(t *testing.T) {
 			server.InvalidateCache()
 		})
 	})
+}
+
+func TestFrontendServer_ConditionalReloadKeepsCSPNonceMatched(t *testing.T) {
+	for _, path := range []string{"/", "/index.html", "/dashboard"} {
+		t.Run(path, func(t *testing.T) {
+			provider := &mockSettingsProvider{
+				settings: map[string]string{"test": "value"},
+			}
+			server, err := NewFrontendServer(provider)
+			require.NoError(t, err)
+
+			router := gin.New()
+			router.Use(middleware.SecurityHeaders(config.CSPConfig{Enabled: true}, nil))
+			router.Use(server.Middleware())
+			noncePattern := regexp.MustCompile(`'nonce-([^']+)'`)
+
+			first := httptest.NewRecorder()
+			router.ServeHTTP(first, httptest.NewRequest(http.MethodGet, path, nil))
+			require.Equal(t, http.StatusOK, first.Code)
+			firstNonce := noncePattern.FindStringSubmatch(first.Header().Get("Content-Security-Policy"))
+			require.Len(t, firstNonce, 2)
+			assert.Contains(t, first.Body.String(), `<script nonce="`+firstNonce[1]+`">window.__APP_CONFIG__=`)
+
+			// 模拟升级前已缓存模板 ETag 的浏览器重新验证。
+			cached := server.cache.Get()
+			require.NotNil(t, cached)
+			request := httptest.NewRequest(http.MethodGet, path, nil)
+			request.Header.Set("If-None-Match", cached.ETag)
+			reloaded := httptest.NewRecorder()
+			router.ServeHTTP(reloaded, request)
+
+			assert.Equal(t, http.StatusOK, reloaded.Code, "带新 CSP nonce 的响应必须携带匹配的 HTML")
+			reloadNonce := noncePattern.FindStringSubmatch(reloaded.Header().Get("Content-Security-Policy"))
+			require.Len(t, reloadNonce, 2)
+			assert.NotEqual(t, firstNonce[1], reloadNonce[1])
+			assert.Contains(t, reloaded.Body.String(), `<script nonce="`+reloadNonce[1]+`">window.__APP_CONFIG__=`)
+			assert.NotContains(t, reloaded.Body.String(), `nonce="`+firstNonce[1]+`"`)
+			assert.NotContains(t, reloaded.Body.String(), NonceHTMLPlaceholder)
+			for _, response := range []*httptest.ResponseRecorder{first, reloaded} {
+				assert.Equal(t, "no-store", response.Header().Get("Cache-Control"))
+				assert.Empty(t, response.Header().Get("ETag"))
+			}
+			assert.Equal(t, 1, provider.called, "请求 nonce 更新时仍复用内部模板缓存")
+		})
+	}
 }
 
 func TestOverrideFilesNeverReceiveImmutableCacheHeaders(t *testing.T) {
@@ -650,11 +645,11 @@ func TestFrontendServer_Middleware(t *testing.T) {
 
 		// Request for existing static file
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/logo.png", nil)
+		req := httptest.NewRequest(http.MethodGet, "/logo.svg", nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
+		assert.Contains(t, w.Header().Get("Content-Type"), "image/svg+xml")
 		assert.Empty(t, w.Header().Get("Cache-Control"))
 
 		entries, err := fs.ReadDir(server.distFS, "assets")
@@ -735,11 +730,11 @@ func TestServeEmbeddedFrontend(t *testing.T) {
 		router.Use(middleware)
 
 		w := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, "/logo.png", nil)
+		req := httptest.NewRequest(http.MethodGet, "/logo.svg", nil)
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Header().Get("Content-Type"), "image/png")
+		assert.Contains(t, w.Header().Get("Content-Type"), "image/svg+xml")
 	})
 
 	t.Run("serves_index_html_for_root", func(t *testing.T) {
