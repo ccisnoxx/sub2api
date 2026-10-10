@@ -177,7 +177,7 @@ func TestServiceStatusSourceRawCapacityTerminalCodes(t *testing.T) {
 }
 
 func TestServiceStatusSourceExplicitRawTerminalStatus(t *testing.T) {
-	for _, eventType := range []string{"response.failed", "error"} {
+	for _, eventType := range []string{"response.failed", "error", "json"} {
 		for _, tc := range []struct {
 			name, field string
 			status      any
@@ -203,10 +203,17 @@ func TestServiceStatusSourceExplicitRawTerminalStatus(t *testing.T) {
 					frame["response"] = map[string]any{"status": "failed", "error": errorFields}
 				} else {
 					frame["error"] = errorFields
+					if eventType == "json" {
+						frame["status"] = "failed"
+					}
 				}
 				payload, err := json.Marshal(frame)
 				require.NoError(t, err)
-				observer.observeEvent(payload, "", start.Add(time.Millisecond))
+				if eventType == "json" {
+					observer.observeJSON(payload, start.Add(time.Millisecond))
+				} else {
+					observer.observeEvent(payload, "", start.Add(time.Millisecond))
+				}
 				fact := observer.snapshot(false).ServiceStatusObservation
 				require.NotNil(t, fact)
 				require.Equal(t, CompletionStatusUpstreamError, *fact.TerminalKind)
@@ -219,6 +226,19 @@ func TestServiceStatusSourceExplicitRawTerminalStatus(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestServiceStatusSourceCancelledJSONCannotReplaceTerminal(t *testing.T) {
+	ctx, cancel := context.WithCancel(WithServiceStatusRequest(context.Background(), 1))
+	start := time.Now().UTC()
+	observer := newResponsesOutputTiming(ctx, start, &Account{Platform: PlatformOpenAI})
+	defer observer.stop()
+	cancel()
+	observer.observeJSON([]byte(`{"status":"failed","error":{"code":"server_error","status_code":500}}`), start.Add(time.Millisecond))
+	fact := observer.snapshot(false).ServiceStatusObservation
+	require.NotNil(t, fact)
+	require.Equal(t, CompletionStatusClientDisconnected, *fact.TerminalKind)
+	require.Nil(t, fact.ReasonCode, "已冻结的完成/取消终态只按 kind 分类")
 }
 
 func TestServiceStatusSourceFinalOwnerPreservesS1AndDoesNotGuessOpsStatus(t *testing.T) {

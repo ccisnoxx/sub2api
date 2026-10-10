@@ -175,23 +175,28 @@ func (o *responsesOutputTiming) observeEvent(payload []byte, eventType string, a
 	if status != "" {
 		reason := ""
 		if status == CompletionStatusUpstreamError || status == CompletionStatusInterrupted {
-			code := gjson.GetBytes(payload, "response.error.code").String()
-			if code == "" {
-				code = gjson.GetBytes(payload, "error.code").String()
+			upstreamError := gjson.GetBytes(payload, "response.error")
+			if !upstreamError.IsObject() {
+				upstreamError = gjson.GetBytes(payload, "error")
 			}
-			// 只采纳直接上游原帧中明确的数字 HTTP 状态，不猜测错误文本或客户端合成状态。
-			providerStatus := 0
-			for _, path := range []string{"response.error.status_code", "response.error.status", "error.status_code", "error.status"} {
-				value := gjson.GetBytes(payload, path)
-				if value.Type == gjson.Number && value.Num >= 100 && value.Num <= 599 && value.Num == float64(int(value.Num)) {
-					providerStatus = int(value.Num)
-					break
-				}
-			}
-			reason = ServiceStatusProviderReason(providerStatus, code)
+			reason = responsesTimingProviderReason(upstreamError)
 		}
 		o.finishStatusAt(status, at, reason)
 	}
+}
+
+// 两种 Responses 传输都只采纳原始 error 对象中的数字 HTTP 状态。
+// 未知码、字符串或小数状态不能通过客户端状态/错误文本补造归因。
+func responsesTimingProviderReason(upstreamError gjson.Result) string {
+	status := 0
+	for _, field := range []string{"status_code", "status"} {
+		value := upstreamError.Get(field)
+		if value.Type == gjson.Number && value.Num >= 100 && value.Num <= 599 && value.Num == float64(int(value.Num)) {
+			status = int(value.Num)
+			break
+		}
+	}
+	return ServiceStatusProviderReason(status, upstreamError.Get("code").String())
 }
 
 func responsesTimingStatus(eventType, status string) string {
@@ -378,7 +383,7 @@ func (o *responsesOutputTiming) observeJSON(payload []byte, at time.Time) {
 	case "completed":
 		o.finishStatusAt(CompletionStatusCompleted, at, "")
 	case "failed":
-		o.finishStatusAt(CompletionStatusUpstreamError, at, ServiceStatusProviderReason(0, gjson.GetBytes(payload, "error.code").String()))
+		o.finishStatusAt(CompletionStatusUpstreamError, at, responsesTimingProviderReason(gjson.GetBytes(payload, "error")))
 	case "incomplete", "cancelled", "canceled":
 		o.finishStatusAt(CompletionStatusInterrupted, at, "unclassified")
 	}
