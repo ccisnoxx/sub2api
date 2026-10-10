@@ -236,9 +236,9 @@ FORWARD_CHANGED_PATHS = (
 CUMULATIVE_UPGRADE_ID = "klno.5-tps.1-to-s0-s4"
 CUMULATIVE_OLD_REVISION = "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92"
 CUMULATIVE_OLD_VERSION = "0.2.14-klno.5-tps.1"
-CUMULATIVE_NEW_REVISION = "7bd38c3e5c671e325a8a1236327ba137c20fe46f"
+CUMULATIVE_NEW_REVISION = "8c580bb972bf1f54e3ddc8683efbd61127ddf4cb"
 CUMULATIVE_OLD_RUNTIME = "928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d"
-CUMULATIVE_NEW_RUNTIME = "b37da537d70f419fe12922ae9b593f8b3cdb75e1f63a6c621e9da95e103ddf77"
+CUMULATIVE_NEW_RUNTIME = "eb1b133f652084bd6657c59f62f886195f9da43684cdd495eeb5e7f532c603cb"
 CUMULATIVE_CHANGED_PATHS = (
     "backend/cmd/s44-ws-fixture/driver.go",
     "backend/cmd/s44-ws-fixture/fixture_test.go",
@@ -246,6 +246,7 @@ CUMULATIVE_CHANGED_PATHS = (
     "backend/cmd/s44-ws-fixture/server.go",
     "backend/cmd/server/wire.go",
     "backend/cmd/server/wire_gen.go",
+    "backend/cmd/server/wire_gen_test.go",
     "backend/ent/migrate/schema.go",
     "backend/ent/mutation.go",
     "backend/ent/runtime/runtime.go",
