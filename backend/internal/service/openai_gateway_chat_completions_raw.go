@@ -258,12 +258,17 @@ func (s *OpenAIGatewayService) forwardAsRawChatCompletions(
 	var result *OpenAIForwardResult
 	var forwardErr error
 	if clientStream {
-		result, forwardErr = s.streamRawChatCompletions(c, resp, account, originalModel, billingModel, upstreamModel, reasoningEffort, serviceTier, startTime, len(body))
+		result, forwardErr = s.streamRawChatCompletions(c, resp, account, originalModel, billingModel, upstreamModel, reasoningEffort, serviceTier, startTime, len(body), max(int(gjson.GetBytes(upstreamBody, "n").Int()), 1))
 	} else {
-		result, forwardErr = s.bufferRawChatCompletions(c, resp, account, originalModel, billingModel, upstreamModel, reasoningEffort, serviceTier, startTime)
+		result, forwardErr = s.bufferRawChatCompletions(c, resp, account, originalModel, billingModel, upstreamModel, reasoningEffort, serviceTier, startTime, max(int(gjson.GetBytes(upstreamBody, "n").Int()), 1))
 	}
 	if result != nil {
 		addOpenAIUsage(&result.Usage, bridgeUsage)
+		if openAIUsageHasTokens(&bridgeUsage) {
+			// 图片描述 bridge 和最终 CC 属于不同上游调用，聚合用量不能冒充单一 final 来源。
+			result.UsageTiming.UsageSource = UsageSourceUnknown
+			result.UsageTiming.AudioOutputTokens = nil
+		}
 		result.UpstreamEndpoint = grokChatRawEndpoint
 	}
 	return result, forwardErr
@@ -298,7 +303,10 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 	serviceTier *string,
 	startTime time.Time,
 	requestBodyLen int,
+	expectedChoices ...int,
 ) (*OpenAIForwardResult, error) {
+	timing := newChatOutputTiming(c.Request.Context(), startTime, chatTimingExpectedChoices(expectedChoices))
+	defer timing.stop()
 	observer := upstreamResponseModelObserverFromContext(c)
 	if observer == nil {
 		observer = beginUpstreamResponseModelObservation(c)
@@ -328,6 +336,7 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 			for _, pending := range pendingLines {
 				if _, werr := c.Writer.WriteString(pending + "\n"); werr != nil {
 					clientDisconnected = true
+					timing.clientDisconnected()
 					logger.L().Debug("openai chat_completions raw: client disconnected, continuing to drain upstream for billing",
 						zap.Error(werr),
 						zap.String("request_id", requestID),
@@ -340,6 +349,7 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 		}
 		if _, werr := c.Writer.WriteString(line + "\n"); werr != nil {
 			clientDisconnected = true
+			timing.clientDisconnected()
 			logger.L().Debug("openai chat_completions raw: client disconnected, continuing to drain upstream for billing",
 				zap.Error(werr),
 				zap.String("request_id", requestID),
@@ -353,11 +363,13 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 		if payload, ok := extractOpenAISSEDataLine(line); ok {
 			trimmedPayload := strings.TrimSpace(payload)
 			terminal.ObserveDataLine(trimmedPayload)
+			timing.observePayload([]byte(payload), false, time.Now())
 			if trimmedPayload != "[DONE]" {
 				observer.ObserveOpenAI([]byte(payload), strings.TrimSpace(gjson.Get(payload, "type").String()))
 				usageOnlyChunk := isOpenAIChatUsageOnlyStreamChunk(payload)
 				if u := extractCCStreamUsage(payload); u != nil {
 					usage = *u
+					timing.observeAcceptedCCUsage(gjson.Get(payload, "usage"))
 				}
 				if firstTokenMs == nil && !usageOnlyChunk {
 					elapsed := int(time.Since(startTime).Milliseconds())
@@ -397,10 +409,14 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 			Stream:                        true,
 			Duration:                      time.Since(startTime),
 			FirstTokenMs:                  firstTokenMs,
+			UsageTiming:                   timing.snapshot(clientDisconnected),
 		}
 	}
 
 	scanErr := scanner.Err()
+	if errors.Is(scanErr, context.Canceled) {
+		timing.clientDisconnected()
+	}
 	if scanErr != nil && !errors.Is(scanErr, context.Canceled) && !errors.Is(scanErr, context.DeadlineExceeded) {
 		logger.L().Warn("openai chat_completions raw: stream read error",
 			zap.Error(scanErr),
@@ -449,6 +465,7 @@ func (s *OpenAIGatewayService) streamRawChatCompletions(
 			for _, pending := range pendingLines {
 				if _, werr := c.Writer.WriteString(pending + "\n"); werr != nil {
 					clientDisconnected = true
+					timing.clientDisconnected()
 					logger.L().Debug("openai chat_completions raw: client disconnected during final flush",
 						zap.Error(werr),
 						zap.String("request_id", requestID),
@@ -513,7 +530,10 @@ func (s *OpenAIGatewayService) bufferRawChatCompletions(
 	reasoningEffort *string,
 	serviceTier *string,
 	startTime time.Time,
+	expectedChoices ...int,
 ) (*OpenAIForwardResult, error) {
+	timing := newChatOutputTiming(c.Request.Context(), startTime, chatTimingExpectedChoices(expectedChoices))
+	defer timing.stop()
 	requestID := resp.Header.Get("x-request-id")
 
 	respBody, err := ReadUpstreamResponseBody(resp.Body, s.cfg, c, openAITooLargeError)
@@ -523,6 +543,7 @@ func (s *OpenAIGatewayService) bufferRawChatCompletions(
 		}
 		return nil, fmt.Errorf("read upstream body: %w", err)
 	}
+	timing.observeJSON(respBody, time.Now())
 	observer := upstreamResponseModelObserverFromContext(c)
 	if observer == nil {
 		observer = beginUpstreamResponseModelObservation(c)
@@ -566,6 +587,7 @@ func (s *OpenAIGatewayService) bufferRawChatCompletions(
 		ServiceTier:                   resolvedOpenAIUpstreamServiceTier(c, serviceTier),
 		Stream:                        false,
 		Duration:                      time.Since(startTime),
+		UsageTiming:                   timing.snapshot(false),
 	}, nil
 }
 

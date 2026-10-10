@@ -108,7 +108,10 @@ func TestForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle(t *
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
-	require.Zero(t, result.UsageTiming.TimingVersion, "转换入口本期保持旧口径")
+	require.EqualValues(t, 1, result.UsageTiming.TimingVersion)
+	require.Equal(t, "tool", *result.UsageTiming.FirstOutputKind)
+	require.Equal(t, CompletionStatusCompleted, result.UsageTiming.CompletionStatus)
+	require.Equal(t, UsageSourceUpstreamFinal, result.UsageTiming.UsageSource)
 	const wantArgs = `{"cmd":"echo hi"}`
 	events := collectSSEDataPayloads(t, rec.Body.String())
 	require.Equal(t, wantArgs, accumulateFunctionArgumentDeltas(events, "chatcmpl-tool-a"))

@@ -16,6 +16,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 	"github.com/Wei-Shaw/sub2api/internal/util/responseheaders"
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
 
@@ -276,8 +277,13 @@ func (s *OpenAIGatewayService) scanCCStream(
 	requestID string,
 	startTime time.Time,
 	emit func(*apicompat.ChatCompletionsChunk),
+	timings ...*chatOutputTiming,
 ) ccStreamScanState {
 	var st ccStreamScanState
+	var timing *chatOutputTiming
+	if len(timings) > 0 {
+		timing = timings[0]
+	}
 
 	scanner := s.newUpstreamSSEScanner(resp.Body)
 	for scanner.Scan() {
@@ -290,6 +296,7 @@ func (s *OpenAIGatewayService) scanCCStream(
 		if payload == "" {
 			continue
 		}
+		timing.observePayload([]byte(payload), false, time.Now())
 		if payload == "[DONE]" {
 			st.SawDone = true
 			break
@@ -303,6 +310,7 @@ func (s *OpenAIGatewayService) scanCCStream(
 
 		if u := extractCCStreamUsage(payload); u != nil {
 			st.Usage = *u
+			timing.observeAcceptedCCUsage(gjson.Get(payload, "usage"))
 		}
 
 		var chunk apicompat.ChatCompletionsChunk
@@ -328,6 +336,9 @@ func (s *OpenAIGatewayService) scanCCStream(
 			)
 		}
 		st.Err = err
+		if errors.Is(err, context.Canceled) {
+			timing.clientDisconnected()
+		}
 	}
 	return st
 }
@@ -345,6 +356,7 @@ func (s *OpenAIGatewayService) readCCUpstreamJSONResponse(
 	c *gin.Context,
 	resp *http.Response,
 	writeError compatErrorWriter,
+	timings ...*chatOutputTiming,
 ) (*apicompat.ChatCompletionsResponse, OpenAIUsage, error) {
 	respBody, err := ReadUpstreamResponseBody(resp.Body, s.cfg, c, openAITooLargeError)
 	if err != nil {
@@ -368,6 +380,9 @@ func (s *OpenAIGatewayService) readCCUpstreamJSONResponse(
 	usage := OpenAIUsage{}
 	if parsed, ok := extractOpenAIUsageFromJSONBytes(respBody); ok {
 		usage = parsed
+	}
+	if len(timings) > 0 {
+		timings[0].observeJSON(respBody, time.Now())
 	}
 	return &ccResp, usage, nil
 }

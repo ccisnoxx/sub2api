@@ -814,7 +814,12 @@ func (s *OpenAIGatewayService) readOpenAICompatBufferedTerminal(
 	c *gin.Context,
 	logPrefix string,
 	requestID string,
+	timings ...*responsesOutputTiming,
 ) (*apicompat.ResponsesResponse, OpenAIUsage, *apicompat.BufferedResponseAccumulator, error) {
+	var timing *responsesOutputTiming
+	if len(timings) > 0 {
+		timing = timings[0]
+	}
 	acc := apicompat.NewBufferedResponseAccumulator()
 	var usage OpenAIUsage
 	if resp == nil || resp.Body == nil {
@@ -894,6 +899,8 @@ func (s *OpenAIGatewayService) readOpenAICompatBufferedTerminal(
 					payload = string(restoreCodexToolNamesFromContext(c, []byte(payload)))
 					var event apicompat.ResponsesStreamEvent
 					if err := json.Unmarshal([]byte(payload), &event); err == nil {
+						observeChatBufferedResponsesEvent(timing, []byte(payload), event.Type, time.Now())
+						usageBefore := usage
 						s.parseSSEUsageBytesWithType([]byte(payload), event.Type, &usage)
 						acc.ProcessEvent(&event)
 						if response := openAICompatTerminalResponse(&event, []byte(payload)); isOpenAICompatResponsesTerminalEvent(event.Type) && response != nil {
@@ -906,8 +913,10 @@ func (s *OpenAIGatewayService) readOpenAICompatBufferedTerminal(
 							if response.Usage != nil {
 								usage = copyOpenAIUsageFromResponsesUsage(response.Usage)
 							}
+							observeChatResponsesUsage(timing, []byte(payload), &event, usageBefore)
 							return response, usage, acc, nil
 						}
+						observeChatResponsesUsage(timing, []byte(payload), &event, usageBefore)
 					}
 				}
 				return nil, usage, acc, nil
@@ -941,6 +950,8 @@ func (s *OpenAIGatewayService) readOpenAICompatBufferedTerminal(
 				)
 				continue
 			}
+			observeChatBufferedResponsesEvent(timing, []byte(payload), event.Type, time.Now())
+			usageBefore := usage
 			s.parseSSEUsageBytesWithType([]byte(payload), event.Type, &usage)
 
 			acc.ProcessEvent(&event)
@@ -955,8 +966,10 @@ func (s *OpenAIGatewayService) readOpenAICompatBufferedTerminal(
 				if response.Usage != nil {
 					usage = copyOpenAIUsageFromResponsesUsage(response.Usage)
 				}
+				observeChatResponsesUsage(timing, []byte(payload), &event, usageBefore)
 				return response, usage, acc, nil
 			}
+			observeChatResponsesUsage(timing, []byte(payload), &event, usageBefore)
 
 		case <-timeoutCh:
 			_ = resp.Body.Close()
