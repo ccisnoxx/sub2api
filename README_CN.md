@@ -281,6 +281,8 @@ fast_mode = true
 
 ### Docker Compose：Linux amd64 新安装（推荐）
 
+最后验证：**2026-10-10**（已发布镜像元数据与 Compose 配置；本任务未执行全新安装）。镜像更新及模板检查见[部署说明](deploy/README.md)。
+
 适用 Linux x86_64、Docker Engine 和 `docker compose` 插件。以下示例使用已发布的应用源码标签及其固定镜像 digest，用于新安装；已有部署升级需要另行核对备份、迁移兼容性和目标版本说明。
 
 ```bash
@@ -293,7 +295,7 @@ nano .env
 
 启动前，将模板 PostgreSQL 密码及 `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` 分别设置为通过 `openssl rand -hex 32` 生成的不同随机值。私下设置管理员账号，将 `BIND_HOST` 设为 `127.0.0.1`；除非部署明确需要这些端点，将 `SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP` 和 `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS` 设为 `false`。限制 `.env` 访问权限。远程访问应使用已配置的 HTTPS 反向代理。
 
-继承的 Compose 模板仍写有上游镜像。以下覆盖文件选择本 fork 的已发布镜像；**每次 Compose 操作都必须保留两个 `-f` 参数**。启动前，`config --images` 应显示下方 `ghcr.io/ccisnoxx/sub2api@sha256:...` 镜像以及 PostgreSQL、Redis。
+固定历史标签中的 Compose 模板仍写有上游镜像；当前 main 控制模板已选择本 fork。以下覆盖文件选择本 fork 的已发布镜像；**每次 Compose 操作都必须保留两个 `-f` 参数**。启动前，`config --images` 应显示下方 `ghcr.io/ccisnoxx/sub2api@sha256:...` 镜像以及 PostgreSQL、Redis。
 
 ```bash
 cat > compose.personal.yml <<'YAML'
@@ -314,6 +316,8 @@ docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 升级时，选择新 fork Release 对应的源码与镜像 digest，核对兼容性及备份要求后更新镜像覆盖文件；重复拉取同一 digest 不会升级。当前发布路径不提供原上游的一键二进制安装或后台二进制更新，已发布镜像也不提供原生 ARM64/macOS 容器安装。
 
 ### 开发用源码编译
+
+最后验证：**2026-10-10**，依据下方固定源码标签的已发布镜像及其绑定的 [Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)。这是开发构建路径，不是额外的二进制发行渠道。
 
 
 从源码编译安装，适合开发或定制需求。
@@ -621,10 +625,10 @@ sub2api/
     ├── docker-compose.yml    # Docker Compose 配置
     ├── .env.example          # Docker Compose 环境变量
     ├── config.example.yaml   # 二进制部署完整配置文件
-    └── install.sh            # 一键安装脚本
+    └── install.sh            # 保留安装器源码；当前没有二进制发行附件
 ```
 
-## Star History
+## 原始上游 Star History
 
 <a href="https://star-history.dera.page/#Wei-Shaw/sub2api&Date">
  <picture>

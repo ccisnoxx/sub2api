@@ -414,7 +414,8 @@ validate_env_file_security() {
 prepare_environment() {
     validate_env_file_security
 
-    APP_IMAGE="$(read_env_value APPLE_CONTAINER_SUB2API_IMAGE weishaw/sub2api:latest)"
+    APP_IMAGE="$(read_env_value APPLE_CONTAINER_SUB2API_IMAGE)"
+    [[ -n "${APP_IMAGE}" ]] || die "Set APPLE_CONTAINER_SUB2API_IMAGE to a locally built fork ARM64 image; current fork releases only provide linux/amd64."
     POSTGRES_IMAGE="$(read_env_value APPLE_CONTAINER_POSTGRES_IMAGE postgres:18-alpine)"
     REDIS_IMAGE="$(read_env_value APPLE_CONTAINER_REDIS_IMAGE redis:8-alpine)"
     BIND_HOST="$(read_env_value BIND_HOST 0.0.0.0)"

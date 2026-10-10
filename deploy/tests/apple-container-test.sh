@@ -43,6 +43,13 @@ if "${SCRIPT}" up >/dev/null 2>&1; then
 fi
 chmod 600 "${ENV_FILE}"
 
+if missing_image_output="$("${SCRIPT}" up 2>&1)"; then
+    fail "up accepted an unspecified fork ARM64 image"
+fi
+[[ "${missing_image_output}" == *"Set APPLE_CONTAINER_SUB2API_IMAGE"* ]] || \
+    fail "up did not explain the missing fork ARM64 image"
+printf '\nAPPLE_CONTAINER_SUB2API_IMAGE=ghcr.io/ccisnoxx/sub2api:local-arm64\n' >>"${ENV_FILE}"
+
 "${SCRIPT}" up
 assert_exists "${STATE_DIR}/containers/sub2api-apple"
 assert_exists "${STATE_DIR}/containers/sub2api-apple-postgres"
