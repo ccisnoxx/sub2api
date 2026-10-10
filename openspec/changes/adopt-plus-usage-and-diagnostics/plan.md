@@ -1,7 +1,9 @@
 # KIN 借鉴 Plus 功能的实施计划
 
-- 本轮状态（2026-10-10，S1.5.1）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
-- 本轮工作位置：应用 `codex/plus-chat-timing-s151`，仅使用personal应用源码；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`。旧快照及原未提交应用改动保留；既往S4.4完成状态以本轮main证据树的记录为准。
+- 本轮状态（2026-10-10，S1.5.4）：第二批所选入口的差异验证与独立复核完成，沿用应用 `1ae266791d0ab324cd13a63ab344019c79102176`，没有新增应用源码改动。S1.5.2（Anthropic）、S1.5.3（Gemini/Antigravity及独立媒体入口）按用户决定登记为不适用；已核验复用所选CC/转换/Grok桥和未变下游的有效证据。下一项S1.5.5保持待执行，不自动进入；本轮未push/新CI/合并/镜像发布/生产部署。详见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)。
+- 本轮工作位置：续用personal应用候选 `codex/plus-chat-timing-s151`；main证据分支 `codex/plus-chat-timing-s151-evidence` 从S1.5.1证据提交 `a6454d3c079882aab58c320ac8d87df427637355` 增量登记。已核对远端personal/main及相关工作树，保留全部已有应用和文档改动。
+- 历史状态（2026-10-10，S1.5.1完成时）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
+- S1.5.1工作位置：应用 `codex/plus-chat-timing-s151`，仅使用personal应用源码；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`。旧快照及原未提交应用改动保留；既往S4.4完成状态以本轮main证据树的记录为准。
 - 编制日期：2026-10-09（America/Los_Angeles）。
 - 历史状态（上一轮快照）：S0.1–S0.3、S1.1–S1.4、S2.1–S2.7、S3.1–S3.6及S4.1–S4.4完成。PR #7累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`已合入personal，最终SHA`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的[必要CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)全部11项成功；正式[版本0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)与固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`已发布。生产原生部署记录`20261010T120908Z-b497b80ee8a6`成功，仅替换应用并追加251–254迁移，PG/Redis身份保持；S4先关闭核对真实终态，再以默认阈值开启v2。12:19–12:24UTC实际窗口成功10/失败0/排除0/未知0，水位12:24UTC无错误；有请求分组显示已观察样本正常，无近期请求分组及全站摘要保持未知。独立复核确认问题已关闭，先前中断worker的审计终态缺口明确保留。S1.5和S5未开始；下一项S1.5.1不自动执行。
 - 执行入口：[任务清单](tasks.md)；当前结果见[执行证据](implementation-evidence.md)。
@@ -89,7 +91,7 @@ KIN 的旧 `first_token_ms` 已有设置和统计消费者。推荐保留旧字�
 
 ### 4.3 接入批次与可见行为
 
-第一批覆盖 OpenAI Responses HTTP/SSE 和 WebSocket turn，这是当前 Codex 使用链路的实施起点。第二批按实际生产入口接入 Chat Completions、Anthropic、Gemini/Antigravity 及转换链路；逐条登记已覆盖路径，未接入路径保持旧口径。
+第一批覆盖 OpenAI Responses HTTP/SSE 和 WebSocket turn，这是当前 Codex 使用链路的实施起点。第二批当前所选范围为 Chat Completions、CC ↔ Responses转换及复用同一owner的Grok桥。2026-10-10用户明确不需要Anthropic、Gemini/Antigravity和独立媒体入口，S1.5.2、S1.5.3登记为不适用；逐条登记所选入口，未接入路径保持旧口径，不把不适用记作实现完成。
 
 新增字段部署后，前端按记录选择展示：有 `timing_version=1` 的记录显示“首 Token”及首次输出详情；旧记录继续展示“首字（旧口径）”，使用已有说明，严格首 Token 详情显示未采集。新旧记录可以同时出现在同一表格。
 

@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-10：S1.5.4 第二批差异验证与不适用范围登记
+
+- 按用户决定，Anthropic（S1.5.2）、Gemini/Antigravity及独立媒体入口（S1.5.3）为不适用，不当作实现完成；本轮只执行S1.5.4，S1.5.5待执行。
+- 核对远端personal/main、候选及8个工作树未提交改动，续用personal应用 `1ae266791d0ab324cd13a63ab344019c79102176`，main仅保存证据；无新增应用源码修改，原改动和旧日志正文保留。
+- 最终12文件、7证据/11原日志指纹与Go结果解析一致。音频修正后race9顶层/69含子例证据有效，较早124/271、20/115、3/9仅复用未受影响边界；未变SQL/DTO/页面/导出/结算证据按原合同复用，没有新跑测试或完整CI。
+- fresh独立只读复核完成，未确认新增可操作问题或所选范围阻断项；任务状态/链接/JSON/diff及原改动保留检查通过。见[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s154-第二批差异验证与独立复核)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-validation.json)和[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-reviews.json)。
+- 下一项S1.5.5不自动进入；未push/PR更新/新CI/SSH/合并/镜像发布/生产部署，不冒用旧personal CI或线上 `.5-tps.2` 记录。
+
 ## 2026-10-10：S1.5.1 Chat Completions 及转换链路本地完成
 
 - 先核对指定旧计划、最新personal/main、相关候选与未提交改动；personal基线`3d5e1fde82707900a21f2b5538b112c7bab3c04a`，KlN来源`.5/c7aacf5`。应用在独立`plus-chat-timing-s151`工作树、分支`codex/plus-chat-timing-s151`实现，本地提交`1ae266791d0ab324cd13a63ab344019c79102176`；main仅在`plus-chat-timing-s151-evidence`分支登记证据，未用main维护源码代替personal应用。

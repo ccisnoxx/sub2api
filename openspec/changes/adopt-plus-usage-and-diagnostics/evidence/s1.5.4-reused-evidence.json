@@ -1,0 +1,469 @@
+{
+  "task": "S1.5.4",
+  "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "application_files": {
+    "backend/internal/service/openai_gateway_cc_pipeline.go": "e319290fdc0e7ca60c502213d660519bbf3e4d240a6cc43bdb452feba804f53f",
+    "backend/internal/service/openai_gateway_chat_completions.go": "56f14abf89f9a9eec73d6b47ed2cdeefc156f5ceb2abd34d1b5fbbf1c3d32f7a",
+    "backend/internal/service/openai_gateway_chat_completions_raw.go": "a2120da74ba8ae24571e5b5ff317641ff4107a647ae778851ba06baa93e29f54",
+    "backend/internal/service/openai_gateway_grok_chat_bridge_test.go": "871754285bdbcc64ebf0f25862aa5b549d7a55bbebb2e1f549753025d9d5cbd5",
+    "backend/internal/service/openai_gateway_grok_test.go": "800fbf229f31ed837d36df2061f8aec7ff92c66dc19e9a68c6bbff88e42aa667",
+    "backend/internal/service/openai_gateway_messages.go": "8dc0ad6b64048989a6e79ba50f8f06a8d8dc677b75f14f71fb56ef4ed919aeea",
+    "backend/internal/service/openai_gateway_passthrough_function_args_test.go": "9b9de35a144a73c2a3dbb43ae133ec9069282e7cd2ee91f945ace58f10215cf0",
+    "backend/internal/service/openai_gateway_responses_chat_fallback.go": "5c7c6cf2304f39f611468d0c4c369931a11a980ee0e72fa6424e302d02cefe7c",
+    "backend/internal/service/stream_output_timing.go": "b4b2881c60cdfacd498b0164a7491addd3a668f9e23c40ca46d562d9a6d936b2",
+    "backend/internal/service/chat_output_timing.go": "a07a400f40ff12f6aa2e04be98344aa58a31cac7ecfa7b21a6257812662800dc",
+    "backend/internal/service/chat_output_timing_test.go": "1526ffaf13c8365a932b464a0b97337df1cd6c5e0e55fc66e8edbdd0b1addaa5",
+    "backend/internal/service/chat_usage_timing_test.go": "044bf1dc3ba197959bb3a48d35a6d9997b920d15b23749f27d86b6be34f15939"
+  },
+  "S1.5.1_evidence_files": [
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-candidate.json",
+      "sha256": "16c22287c6c6cdad9f580c7db3c93ae42b3b83bd5e90922582a0eb648d7c3689",
+      "bytes": 2857
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-document-checks.json",
+      "sha256": "afd01d00e703e5a422524aa439ded71eb6bc5304d8e08382e41c10d3e5a6a7ed",
+      "bytes": 7286
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-reused-evidence.json",
+      "sha256": "c987aad67541ff8dd5612eda821281d017b4fd95b62a6ea6a57db3f5b4a6444a",
+      "bytes": 11185
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-reviews.json",
+      "sha256": "da70ab07fb2a843dc8bfc199c4e9a7ec3a9be6544a2aa113ee40c1932681aeac",
+      "bytes": 2724
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-subagent-digest.json",
+      "sha256": "5025ce1aae614d694edbacbcc0146fd1e2ce44e808fe56c6703b91010d638a93",
+      "bytes": 2426
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-subagent-digest.md",
+      "sha256": "45846f55d769a65a3415bc12082126f7c81788c461d4194902d9429ad2493f74",
+      "bytes": 924
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-validation.json",
+      "sha256": "200f47e7de4bb2c87e9a9c0c30e67dfeeca44307878482d2deebf3e7025371be",
+      "bytes": 15378
+    }
+  ],
+  "raw_log_checks": [
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-before-corrected.log",
+      "sha256": "a0a79b13acd45fe7a15bb421b2fdfe2c7d5f5b2ee4b0531f4d9bd06ac3ff384e",
+      "classification": "旧源码六项预期红；TimingVersion=0违反新增observable合同",
+      "commands": [
+        "go test -tags=unit -overlay /var/folders/m5/j06tv2sn1hn93d6f33j559jm0000gn/T/s151-before-o8p5n20q/overlay.json ./internal/service -run ^TestChatUsageTiming_ForwardOwners$ -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 1"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-before.log",
+      "sha256": "2dde9a57c8e3f8fa8c3b38bb66eff789cfc0dd2017c076b7af8b35bf9392a3f8",
+      "classification": "测试夹具路径/header/Extra配置错误，非有效产品红证据",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^TestChatUsageTiming_ForwardOwners$ -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 1"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-extra-boundaries.log",
+      "sha256": "64b9d6756320b113c3508c5befc9c64a68d6b3166e6c22d7710903048ad117d4",
+      "classification": "追加usage-only/attempt隔离/非法audio race通过",
+      "commands": [
+        "go test -json -race -tags=unit ./internal/service -run ^TestChatUsageTiming_(UsageOnlyDoesNotInventOutput|ForwardAttemptsStayIsolated|InvalidAliasAudioRemainsUnknown)$ -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 3,
+      "pass_including_subtests": 9,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-final-diff.log",
+      "sha256": "9343b549e42bd776bf7274fec16472cc941dae80f581caab662f0d18d19c56ab",
+      "classification": "初版应用diff检查通过",
+      "commands": [
+        "git diff --check"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-forward.log",
+      "sha256": "a45fe05389e62005bf86e69a6273bc480c98f284802a842e1dcc257b1a82844d",
+      "classification": "新源码六种Forward协议组合通过",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^TestChatUsageTiming_ForwardOwners$ -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-race.log",
+      "sha256": "229c033e8eb62f7608dc946ec987975512736364ae1cf369b43bbfcfb922c869",
+      "classification": "最终定向race通过",
+      "commands": [
+        "go test -json -race -tags=unit ./internal/service -run ^Test(ChatOutputTiming_|ChatUsageTiming_|ResponsesOutputTiming_) -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 20,
+      "pass_including_subtests": 115,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-regression.log",
+      "sha256": "a0104d0a86eff34c5f236bbff573eb0b5b069d1d453fff7b032621f587987958",
+      "classification": "最终定向回归通过",
+      "commands": [
+        "go test -json -tags=unit ./internal/service -run ^Test(ChatOutputTiming_|ChatUsageTiming_|ForwardAsRawChatCompletions_|ForwardAsChatCompletions_|HandleChatStreamingResponse_|ForwardResponses_|ForwardAsAnthropic_ForceChatCompletions|ChatCompletionsBufferedResponses|AnthropicBufferedResponsesReadErrorKeepsExistingBehavior|ForwardGrokChat|ForwardAsChatCompletionsForGrokComposerBridgesImageInput|ForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle|ResponsesOutputTiming_|ResponsesUsageTiming_HTTP) -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 124,
+      "pass_including_subtests": 271,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-targeted-corrected.log",
+      "sha256": "6588b0ab3e4b1b8ae7f62955b61006a2b54fc24c283cdc392d06e6ec793bf2d3",
+      "classification": "修正后的定向检查通过",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^(TestChatOutputTiming_|TestChatUsageTiming_|TestForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle) -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-targeted.log",
+      "sha256": "19dc1e5077cc89c53ab69ed9a0852d55f6e1870d9edbe7de16de687b742427b5",
+      "classification": "测试误认旧owner EOF/read_error返回error，修正断言以保留原合同",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^(TestChatOutputTiming_|TestChatUsageTiming_|TestForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle) -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 1"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/review-audio-alias-red.log",
+      "sha256": "8cd3fb9e87f993d963c1de2bdbef728d834fd2d58dcb91476491ef0879f3b47f",
+      "classification": "首轮P2四组合预期红，NULL断言失败",
+      "commands": [
+        "go test -json -tags=unit ./internal/service -run ^TestChatUsageTiming_PartialAudioAliasSurvivesFinalMissingSplit$ -count=1"
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 1,
+      "fail_including_subtests": 5,
+      "exit_lines": [
+        "exit_code: 1"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/review-audio-alias-green.log",
+      "sha256": "f4307805af6340e36cd990a5b5d05383243c17b82a02f11ee28ae486a3c23a7c",
+      "classification": "P2修正后受影响范围race9顶层/69含子例通过",
+      "commands": [
+        "go test -json -race -tags=unit ./internal/service -run ^TestChatUsageTiming_(PartialAudioAliasSurvivesFinalMissingSplit|ResponsesAcceptedUsage|InvalidAliasAudioRemainsUnknown|ProtocolOwnersFailuresAndDrain|UncollectedMessagesStayLegacy|ForwardOwners|ProtocolOwnersContent|UsageOnlyDoesNotInventOutput|ForwardAttemptsStayIsolated)$ -count=1"
+      ],
+      "candidate_inputs": "implementation-final-inputs.json",
+      "pass_top_level": 9,
+      "pass_including_subtests": 69,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ]
+    }
+  ],
+  "frontend_dto_inputs": {
+    "backend/internal/handler/dto/mappers.go": {
+      "expected": "1cab891fae768f5f62043f2400f2f70059a55380e1b413f7fe9de2acf8e2b920",
+      "actual": "1cab891fae768f5f62043f2400f2f70059a55380e1b413f7fe9de2acf8e2b920",
+      "match": true
+    },
+    "backend/internal/handler/dto/mappers_usage_test.go": {
+      "expected": "30b2857fb9b6dc741496c6314b719c05916ef7f01674c795fda6df0c7f72b7fe",
+      "actual": "30b2857fb9b6dc741496c6314b719c05916ef7f01674c795fda6df0c7f72b7fe",
+      "match": true
+    },
+    "backend/internal/handler/dto/types.go": {
+      "expected": "77f98b7c2f8782c2836dafdc2c7d3176b78789b3e75f18af559c645e21948dc3",
+      "actual": "77f98b7c2f8782c2836dafdc2c7d3176b78789b3e75f18af559c645e21948dc3",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/UsageFirstToken.vue": {
+      "expected": "944931abd5503165669e6896d2e6b4b72d37562aa4e6387da446e22b27e07c38",
+      "actual": "944931abd5503165669e6896d2e6b4b72d37562aa4e6387da446e22b27e07c38",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/UsageTable.vue": {
+      "expected": "b74bcdf62d58edbe281d7223da1743e62193c7fc9c6d72dea5253bb44f1c6ad2",
+      "actual": "b74bcdf62d58edbe281d7223da1743e62193c7fc9c6d72dea5253bb44f1c6ad2",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/UsageTps.vue": {
+      "expected": "bb1cbed32bbbc37a0f3f001b701d92741b53609ca77e60a09be8c7c225983599",
+      "actual": "bb1cbed32bbbc37a0f3f001b701d92741b53609ca77e60a09be8c7c225983599",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/__tests__/UsageFirstToken.spec.ts": {
+      "expected": "8e6ced300a7989dfe149f87e98dec5409eabf070c31037f0383381c34de8f849",
+      "actual": "8e6ced300a7989dfe149f87e98dec5409eabf070c31037f0383381c34de8f849",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts": {
+      "expected": "58d603adcedcb65bd6c7d494db4daccf42f0268e4ae147d0cc4faa197508f21e",
+      "actual": "58d603adcedcb65bd6c7d494db4daccf42f0268e4ae147d0cc4faa197508f21e",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts": {
+      "expected": "48ffb9fa1b6fb11ed1cc692a10304319b7eea522530a3dd11af2f2fac5800e46",
+      "actual": "48ffb9fa1b6fb11ed1cc692a10304319b7eea522530a3dd11af2f2fac5800e46",
+      "match": true
+    },
+    "frontend/src/i18n/locales/en/dashboard.ts": {
+      "expected": "99456466ddef1a7c63a9475891852265f531a905d11bd768c303facc62d47628",
+      "actual": "c7ce3c403577905d2f74b254397d6309ae942a4401d65f4e0006f4589d99420e",
+      "match": false
+    },
+    "frontend/src/i18n/locales/zh/dashboard.ts": {
+      "expected": "bb39e41d8361268675801d84dd71194985ae49bf2b446d8d21bcf95a54da2bd5",
+      "actual": "5bf1dc843743d188b4e50b85d8da3b65e967cfd98a7f1e46a00c9cd7e4942165",
+      "match": false
+    },
+    "frontend/src/types/index.ts": {
+      "expected": "aee17cb611bfbf8624215b506ac0687f0ffa06d879dcbf775a02a6a455013a8f",
+      "actual": "aee17cb611bfbf8624215b506ac0687f0ffa06d879dcbf775a02a6a455013a8f",
+      "match": true
+    },
+    "frontend/src/utils/__tests__/usageTiming.spec.ts": {
+      "expected": "407c1e81ebfeea2f820357dbfbcc85d2fc633587b134ccd42014210ffbcca8fb",
+      "actual": "407c1e81ebfeea2f820357dbfbcc85d2fc633587b134ccd42014210ffbcca8fb",
+      "match": true
+    },
+    "frontend/src/utils/usageTiming.ts": {
+      "expected": "18a7484afa23bf7a92d502c1402e344d6e1774c1fd8c67988860147ff1fccf25",
+      "actual": "18a7484afa23bf7a92d502c1402e344d6e1774c1fd8c67988860147ff1fccf25",
+      "match": true
+    },
+    "frontend/src/views/admin/UsageView.vue": {
+      "expected": "c8bd2c5d2f8554abf9d1a0793ebaee114cc95ff05095fdf0ed5cb233307ef3a0",
+      "actual": "c8bd2c5d2f8554abf9d1a0793ebaee114cc95ff05095fdf0ed5cb233307ef3a0",
+      "match": true
+    },
+    "frontend/src/views/admin/__tests__/UsageView.spec.ts": {
+      "expected": "5bfa7426089d93290bded99f4d9d264c1007de7480e1926d8d97a0e786caa323",
+      "actual": "5bfa7426089d93290bded99f4d9d264c1007de7480e1926d8d97a0e786caa323",
+      "match": true
+    },
+    "frontend/src/views/user/UsageView.vue": {
+      "expected": "ce78fcda1117beff3310c3434a45a3ef991feed9a46724a8d7a682be4b6923ef",
+      "actual": "ce78fcda1117beff3310c3434a45a3ef991feed9a46724a8d7a682be4b6923ef",
+      "match": true
+    },
+    "frontend/src/views/user/__tests__/UsageView.spec.ts": {
+      "expected": "0a2a0614a99ca5910b9de1f1e912cfb357afe3727d80e710025d9be6c6b2b6e2",
+      "actual": "0a2a0614a99ca5910b9de1f1e912cfb357afe3727d80e710025d9be6c6b2b6e2",
+      "match": true
+    }
+  },
+  "downstream_inputs": [
+    {
+      "path": "backend/internal/handler/openai_chat_completions.go",
+      "sha256": "ffb9b37776cbf8eaf01512f4a1ff94ddaa2a995e72b748eda913132c449e6c4b",
+      "base_blob": "7d9664d5a05e6603fcf7695192a0bd8ac616558e"
+    },
+    {
+      "path": "backend/internal/handler/openai_gateway_handler.go",
+      "sha256": "8cac1b809e848c92178845c877ff6c097319f5c2dd76b7d732a383486aba5e36",
+      "base_blob": "c933092007d135d435db6c002e19d6206c1e878e"
+    },
+    {
+      "path": "backend/internal/service/usage_timing.go",
+      "sha256": "d64c3cb3f403cf405b517683a37cd665ae584d182c51043d8639a53a191759b5",
+      "base_blob": "337e62a6a8129efa2a7aa70893ae525571ee0724"
+    },
+    {
+      "path": "backend/internal/service/openai_gateway_usage.go",
+      "sha256": "9cd03ab3efdb00b7e132e7b1f83ad63bb0486bb012f0644c64c94ee1e85759e1",
+      "base_blob": "72a7213ea1d4e9ce10afb9e94ed338a66dfb817c"
+    },
+    {
+      "path": "backend/internal/service/gateway_usage_billing.go",
+      "sha256": "70847eca1cdf0fd98b64722114e6775524668441f605bf6da3f6ca996be7bd26",
+      "base_blob": "0bf293a14350ec9de183a349661bc73b3cc1b836"
+    },
+    {
+      "path": "backend/internal/service/openai_usage_timing_billing_test.go",
+      "sha256": "46c4e6e389110fcf128d4d355b4b668d14bdb2e043d47d6139cff22c8141b192",
+      "base_blob": "a6e03f86d49bdffb5f844f48c89c5e77ac7798d2"
+    },
+    {
+      "path": "backend/internal/repository/usage_log_repo_insert.go",
+      "sha256": "a46eb617cc3dd0f36d4ca47c0f781a02cf9407570e21a3b4460ac83c48133e18",
+      "base_blob": "75679a436e22fdd1838d74c1c872de22da4e77cb"
+    },
+    {
+      "path": "backend/internal/repository/usage_log_repo_query.go",
+      "sha256": "fbf59d76d12490db9dff370556b32add5de88f239c1d81823460bc29424ead88",
+      "base_blob": "90fdac2432c69464d2fb2ee663d560705a68c70b"
+    },
+    {
+      "path": "backend/internal/repository/usage_log_timing_integration_test.go",
+      "sha256": "187b2bd6172839c99cd90674340e4fc1db122287c11c5ca35cd495c657710d9d",
+      "base_blob": "d53daab41ac141386bcc21c635de7c2a00eeabf9"
+    },
+    {
+      "path": "backend/migrations/251_add_usage_log_timing.sql",
+      "sha256": "abce11c5a8cf8fa993d9a0fb25190af3130722fcc419f1f94b5a5397ff60003b",
+      "base_blob": "35cd6f7c0ef38dbf3650568d2f87b11be5c4fb2e"
+    },
+    {
+      "path": "backend/go.mod",
+      "sha256": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+      "base_blob": "1690d136cc7e5032689aac28e69dd516665cc823"
+    },
+    {
+      "path": "backend/go.sum",
+      "sha256": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+      "base_blob": "845fdc249d6c127aa6ed2d2a38838c00090aa9d7"
+    }
+  ],
+  "S1_artifacts": [
+    {
+      "name": "browser-mobile-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/browser-mobile-final.log",
+      "sha256": "6d19d427522e2f2ae48a04b3b5c1e5c199a114b14489ccbd29fcd3a04dc3b87a",
+      "bytes": 52,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "final-browser-tooltip-corrected.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-browser-tooltip-corrected.log",
+      "sha256": "503993b0edff4e4fa327baeb1590f40e174e855e68340ccc4c7b62e988b5fcb7",
+      "bytes": 106,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "final-build.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-build.log",
+      "sha256": "105e4da666269fc3486f55e1407ed70e0ba5518c59278937b7ee2badb3e4d7ca",
+      "bytes": 45073,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "frontend-commands.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-commands.log",
+      "sha256": "9ba8a2b769f9db8f595567a9ab33671a3f60ef7b3921079865e8b30e9b43e125",
+      "bytes": 3183,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "frontend-tests.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-tests.log",
+      "sha256": "477442676feb3fc71b5c3d60a839fdea66fd263072455127f8e473fc5745414a",
+      "bytes": 2778,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "storage-dto.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-dto.log",
+      "sha256": "0927ebfd75d89a120f0d826f43d5f0ed51c8090a66890c0af53d65cab1ccf33f",
+      "bytes": 4270,
+      "present": true,
+      "match": true
+    }
+  ],
+  "i18n_boundary": {
+    "paths": [
+      "frontend/src/i18n/locales/en/dashboard.ts",
+      "frontend/src/i18n/locales/zh/dashboard.ts"
+    ],
+    "actual_diff": "仅S2模型目录availableChannels新增/搜索文案，S1用量字段/弹层文案不变；当前personal TPS/build CI重新覆盖整文件加载。",
+    "reviewed_against": "3f04437572e2819f0313ccc2a3f1a618a2afcdf0"
+  },
+  "reuse_rule": "修复前124/271、20/115、3/9只复用未受P2两文件修正影响的owner；最终受影响链复用修复后9/69，不能声称最终完整重跑",
+  "same_final_source_as_S1.5.1_reviews": true,
+  "application_diff_sha256": "97d22ea14f477abb26e86b2724ec1dd2cd85316787fdbe4a90144f036b682d32",
+  "application_diff_check_exit_code": 0,
+  "not_new_CI": "当前personal旧CI及PG18只证明未变下游，不证明本候选CI/发布/生产",
+  "missing_named_references": [
+    "docs/conventions/codex-outbound-identity.md",
+    "docs/tasks/"
+  ],
+  "verified_for_task": "S1.5.4",
+  "new_tests_executed": false,
+  "raw_logs_count": 11,
+  "S1.5.1_evidence_files_count": 7,
+  "raw_log_json_results_reparsed": true,
+  "S1.5.1_audit_reverification": {
+    "audit_id": "20261010T124536Z-kin-plus-chat-timing-s151-8eafe6a1",
+    "status": "closed",
+    "verify": "passed",
+    "reuse": "前一任务审计仅为旧结果真实性核验，不计本轮派工或复核次数"
+  },
+  "not_applicable": {
+    "S1.5.2": "用户明确不需要Anthropic，包括对应直连/透传/转换适配",
+    "S1.5.3": "用户明确不需要Gemini/Antigravity与独立媒体入口"
+  }
+}

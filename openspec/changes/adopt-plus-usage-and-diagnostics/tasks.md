@@ -1,11 +1,13 @@
 # KIN 借鉴 Plus 功能任务清单
 
-- 本轮状态（2026-10-10，S1.5.1）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
-- 本轮工作位置：应用 `codex/plus-chat-timing-s151`，仅使用personal应用源码；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`。旧快照及原未提交应用改动保留；既往S4.4完成状态以本轮main证据树的记录为准。
+- 本轮状态（2026-10-10，S1.5.4）：第二批所选入口的差异验证与独立复核完成，沿用应用 `1ae266791d0ab324cd13a63ab344019c79102176`，没有新增应用源码改动。S1.5.2（Anthropic）、S1.5.3（Gemini/Antigravity及独立媒体入口）按用户决定登记为不适用；已核验复用所选CC/转换/Grok桥和未变下游的有效证据。下一项S1.5.5保持待执行，不自动进入；本轮未push/新CI/合并/镜像发布/生产部署。详见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)。
+- 本轮工作位置：续用personal应用候选 `codex/plus-chat-timing-s151`；main证据分支 `codex/plus-chat-timing-s151-evidence` 从S1.5.1证据提交 `a6454d3c079882aab58c320ac8d87df427637355` 增量登记。已核对远端personal/main及相关工作树，保留全部已有应用和文档改动。
+- 历史状态（2026-10-10，S1.5.1完成时）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
+- S1.5.1工作位置：应用 `codex/plus-chat-timing-s151`，仅使用personal应用源码；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`。旧快照及原未提交应用改动保留；既往S4.4完成状态以本轮main证据树的记录为准。
 - 对应方案：[plan.md](plan.md)。
 - 编制日期：2026-10-09（America/Los_Angeles）。
 - 历史状态（上一轮快照）：S0.1–S0.3、S1.1–S1.4、S2.1–S2.7、S3.1–S3.6及S4.1–S4.4完成。PR #7累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`已合入personal，最终SHA`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的[必要CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)全部11项成功；正式[版本0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)与固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`已发布。生产原生部署记录`20261010T120908Z-b497b80ee8a6`成功，仅替换应用并追加251–254迁移，PG/Redis身份保持；S4先关闭核对真实终态，再以默认阈值开启v2。12:19–12:24UTC实际窗口成功10/失败0/排除0/未知0，水位12:24UTC无错误；有请求分组显示已观察样本正常，无近期请求分组及全站摘要保持未知。独立复核确认问题已关闭，先前中断worker的审计终态缺口明确保留。S1.5和S5未开始；下一项S1.5.1不自动执行。
-- `[x]` 表示本任务的交付与验证已经完成；`[ ]` 表示待执行。已具备的旧候选不等于本计划的新功能完成。
+- `[x]` 表示本任务的交付与验证已经完成；`[ ]` 表示待执行；**不适用**表示用户明确排除的范围，不使用完成勾选，也不算待实施欠项。已具备的旧候选不等于本计划的新功能完成。
 - 每项勾选时记录最终候选 SHA、验证结果、覆盖入口及限制；涉及线上动作时另记真实版本和 digest。
 
 ## D：本轮文档交付
@@ -65,10 +67,10 @@
 
 ### S1.5 第二批采集与交付
 
-- [x] **S1.5.1 接入 Chat Completions 及转换链路。**按覆盖表实现，确认 Token、reasoning/tool 输出与最终用量归属。应用 `1ae266791d0ab324cd13a63ab344019c79102176`；raw CC JSON/SSE、CC ↔ Responses 双向转换及复用Grok桥，严格内容/终态/usage/audio及attempt隔离验证完成；初版124顶层/271含子用例、race20/115和追加3/9通过；音频P2修正后受影响范围race9/69通过，fresh只读复核完成。旧DTO/SQL/计费/页面/导出证据按未变边界复用；未接入Anthropic及Gemini/媒体保留后续任务。见[覆盖](coverage.md#s151-chat-completions-与转换链路)、[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)及[验证](evidence/s1.5.1-validation.json)。未push/新CI/合并/发布/部署。
-- [ ] **S1.5.2 接入 Anthropic。**覆盖实际启用的直连/透传/转换入口；确认协议开始事件与有效内容的区别。
-- [ ] **S1.5.3 接入 Gemini/Antigravity 及实际启用的媒体入口。**区分文本和媒体输出，音频统计未知不填零；未支持入口明确登记。
-- [ ] **S1.5.4 验证并复核第二批差异。**执行对应协议/用量测试，独立复核新增入口的采集、结算与异步归属；未变化的第一批证据可复用。
+- [x] **S1.5.1 接入 Chat Completions 及转换链路。**按覆盖表实现，确认 Token、reasoning/tool 输出与最终用量归属。应用 `1ae266791d0ab324cd13a63ab344019c79102176`；raw CC JSON/SSE、CC ↔ Responses 双向转换及复用Grok桥，严格内容/终态/usage/audio及attempt隔离验证完成；初版124顶层/271含子用例、race20/115和追加3/9通过；音频P2修正后受影响范围race9/69通过，fresh只读复核完成。旧DTO/SQL/计费/页面/导出证据按未变边界复用；未接入Anthropic及Gemini/独立媒体入口；当前按用户决定登记为不适用，见S1.5.2、S1.5.3。见[覆盖](coverage.md#s151-chat-completions-与转换链路)、[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)及[验证](evidence/s1.5.1-validation.json)。未push/新CI/合并/发布/部署。
+- **S1.5.2 接入 Anthropic。** **不适用**（2026-10-10）：用户明确不需要Anthropic及其直连/透传/转换适配；现有入口沿用旧计时或未知，不表示新采集已实现。
+- **S1.5.3 接入 Gemini/Antigravity 及实际启用的媒体入口。** **不适用**（2026-10-10）：用户明确不需要Gemini/Antigravity和独立媒体入口；所选CC协议内媒体输出/audio拆分仍按S1.5.1合同验证，未支持入口不填零。
+- [x] **S1.5.4 验证并复核第二批差异。**应用 `1ae266791d0ab324cd13a63ab344019c79102176` 的raw CC JSON/SSE、CC ↔ Responses及复用Grok桥验证完成；原日志/最终源码/未变下游核验后复用，音频修正后race9/69覆盖受影响链，较早124/271、20/115、3/9仅复用未受影响边界。fresh独立只读复核核对最终组合、异步快照和结算归属；无新增源码或新测试执行，不冒用旧CI。见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)、[验证](evidence/s1.5.4-validation.json)和[复核](evidence/s1.5.4-reviews.json)。下一项S1.5.5仍待执行，不自动进入。
 - [ ] **S1.5.5 完成第二批交付记录。**更新实际入口覆盖表、候选门禁与回退说明，记录未支持和不适用项；发布/部署状态分别登记。
 
 完成条件：所声明入口的采集、持久化、接口、页面和导出贯通；历史口径与未知状态准确；计费和调度行为保持原样。第一批可独立交付，不等待第二批全部平台。
@@ -130,6 +132,8 @@
 | D.1–D.3 | 文档完成 | 编制时基线见 plan.md | 文档链接、任务编号和保留改动核对 | 不等于代码独立复核 | 本轮未执行 |
 | S0.1 | 本地核对完成 | personal `9397eb8af`；未提交应用树 `27d96087e53a97386fd86935afa4ccc3dcd991e3` | 17 文件校验值一致；复用 Go/组件/构建/浏览器，补充 store 28 用例和 13 文件 lint 通过 | 复用历史最终独立复核；无新代码改动；详情见执行证据 | 合并/发布/部署均未执行 |
 | S1.1–S1.4 | 第一批本地实现、验证与交付准备完成 | personal `9397eb8af`；应用 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`；仅原生 Responses HTTP/SSE/WS | 真实 PG/迁移/旧应用往返，定向采集/计费/race；前端162去重用例、lint/build；4组浏览器及32行导出 | 4次fresh只读复核；确认问题均关闭；转换/其他平台未接入；远端 CI未运行 | 未执行 |
+| S1.5.2–S1.5.3 | 不适用 | 用户不需要Anthropic、Gemini/Antigravity及独立媒体入口 | 范围决定已登记，无实现/通过声明 | 沿用旧口径或未知 | 本轮未执行 |
+| S1.5.4 | 所选入口本地验证与独立复核完成 | 应用 `1ae266791d0ab324cd13a63ab344019c79102176`；raw CC/双向转换/复用Grok桥 | 原日志与最终输入核验，复用协议/race/未变下游证据 | fresh只读复核；新CI/付费供应商/新整体E2E未执行；[证据](evidence/s1.5.4-validation.json) | 未执行；S1.5.5待执行 |
 | S2.1 | 合同完成 | personal 来源 S1 `e3edb5666` | 权限/接口源合同与文档核对，未运行新目录 | [冻结合同](catalog-contract.md)；API/DTO 未实现 | 未执行 |
 | S2.2 | 价格服务本地实现与验证完成 | 应用 `e82287300d1b7cc625295c5307ebaa83c707c019` | 新增15顶层/22 PASS项、48组 Token owner 对账；既有98顶层/158 PASS项；4项反例先红后绿 | 2次fresh只读复核；媒体未知、API/权限聚合与页面留后续；[证据](evidence/s2.2-validation.json) | 未执行 |
 | S2.3 | DTO/查询分支本地实现与验证完成 | 应用 `49c209a77059d2927f78bbd31c1dd479b509dc6f`；personal 来源 S2.2 `e4083c38f` | 定向 HTTP/DTO/授权 owner 与旧接口检查、服务端构造编译通过；S2.2 同输入价格 owner 证据复用 | 独立只读复核完成；页面与真实 JWT/数据库路径留后续；[证据](evidence/s2.3-validation.json) | 未执行 |

@@ -810,3 +810,36 @@ S1.5.1 本地实现与定向验证完成，仅勾选此项；S1.5.4 的第二批
 本轮没有 push、PR 更新、新CI、SSH、合并、镜像发布或生产部署。没有新增迁移，无数据库或部署环境变更。真实供应商付费请求、当前候选完整CI、数据库/JWT/页面整体新贯通均未执行；既有有效证据仅在输入及合同不变的边界复用。后续交付必须绑定届时最终候选，不能拿 personal 基线的旧CI或 `.5-tps.2` 生产记录替代本候选门禁。
 
 [子代理执行摘要](evidence/s1.5.1-subagent-digest.md)由本轮审计工具生成，audit_id `20261010T124536Z-kin-plus-chat-timing-s151-8eafe6a1`。最终保留、任务勾选和链接检查见[文档检查](evidence/s1.5.1-document-checks.json)。
+
+## S1.5.4 第二批差异验证与独立复核
+
+### 范围与基线
+
+用户明确不需要 Anthropic、Gemini/Antigravity 和独立媒体入口，S1.5.2、S1.5.3为**不适用**，不勾选为已实现。本轮仅执行S1.5.4，验证S1.5.1的raw CC JSON/SSE、CC ↔ Responses双向转换及复用同一owner的Grok桥；CC协议内部媒体输出/audio拆分仍按既有合同判断。
+
+先核对指定旧目录、相关8个工作树HEAD/未提交文件指纹及远端refs。personal仍为 `3d5e1fde82707900a21f2b5538b112c7bab3c04a`，main仍为 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`；续用 `/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin` 的应用 `1ae266791d0ab324cd13a63ab344019c79102176`，main不提供应用源码。证据分支从S1.5.1文档提交 `a6454d3c079882aab58c320ac8d87df427637355` 增量更新；指定旧目录和当前应用只同步本任务五份文档及新证据。原源码/旧证据不变，旧日志正文保留。
+
+### 本轮实际检查与复用
+
+| 检查 | 结果 | 证明范围与限制 |
+|---|---|---|
+| 最终diff及12源码输入 | 与S1.5.1最终候选指纹一致；base→HEAD git diff --check通过 | S1.5.4无新增源码、依赖、迁移或生成物修改 |
+| S1.5.1证据及原日志 | 7份证据/11份原日志SHA-256匹配；Go JSON结果重解析与原登记一致 | 有效协议/用量测试复用；原失败日志保留分类，不计通过 |
+| 音频修正后受影响范围 | 复用最终race9顶层/69含子例PASS、exit0 | 四组合红绿关闭positive别名→最终缺拆分保持NULL问题；实际Forward及共享caller已覆盖 |
+| 音频修正前有效回归 | 124顶层/271含子例、race20/115、追加race3/9按原边界复用 | 只用于未受两文件修正影响的owner；没有最终完整重跑，重叠计数不相加 |
+| DTO、页面、导出 | 18输入按边界核验，16与第一批一致，2locale只新增S2目录文案；6原日志匹配 | 用量计算/字段/文案不变；原SQL/浏览器证据不等于新增入口新整体E2E |
+| 异步/结算/SQL与依赖 | 12个当前personal下游输入及依赖不变；核对两次Clone、旧Token/费用/幂等和行创建条件 | 既有personal CI/PG18只证明未变下游，不代替本候选的新CI/发布验收 |
+| fresh独立只读复核 | fresh独立只读复核完成，未确认新增可操作问题或所选范围阻断项 | 最终组合、证据对应、新快照进入既有异步用量/结算及必要终态消费者的合同 |
+| 保留与文档 | 8个工作树和原dirty文件指纹、任务状态/链接/JSON/diff检查通过 | 只更新本任务文档及新证据，其他任务状态和源码保持 |
+
+本轮没有新运行Go/frontend测试、新数据库/JWT/浏览器或完整CI：最终源码不变，相关测试原日志、输入与合同匹配，定向证据直接覆盖所选协议和音频修正。新执行的是基线/diff/指纹核验、原Go日志解析、证据对应、fresh独立只读复核及文档保留检查；不把校验值本身当作行为测试。缺失的 `docs/conventions/codex-outbound-identity.md` 与 `docs/tasks/` 仍按之前搜索结果如实登记，没有修改出站身份。
+
+独立复核保留的覆盖限制：没有新增CC→异步worker→SQL→页面整体执行；无typed usage的零终态、data包装主要依赖源码/合同检查。当前本地结论由既有协议测试、未变下游证据及跨owner复核支持，不推广为完整远端或真实供应商验收。
+
+原始核验、快照及备份位于 `/Users/sc/.codex/validation/sub2api-kin/20261010-s154`。[候选清单](evidence/s1.5.4-candidate.json)、[复用清单](evidence/s1.5.4-reused-evidence.json)、[验证](evidence/s1.5.4-validation.json)、[复核](evidence/s1.5.4-reviews.json)及[文档保留检查](evidence/s1.5.4-document-checks.json)绑定同一应用HEAD。
+
+### 状态与下一项
+
+S1.5.4所选入口本地差异验证与独立复核完成；S1.5.2、S1.5.3为不适用。下一项 **S1.5.5 完成第二批交付记录** 仍待执行，本会话不自动进入。候选门禁、回退及阶段交付说明留给该项；本轮无push、PR更新、新CI、SSH、合并、镜像发布或生产部署。当前应用不是线上已发布候选，旧personal CI或 `.5-tps.2` 生产记录不证明此候选已交付。
+
+[子代理摘要](evidence/s1.5.4-subagent-digest.md)由本轮审计工具生成，audit_id `20261010T152219Z-kin-plus-s154-difference-review-b76b5c7e`；S1.5.1旧审计/复核保留独立记录，不累计为本轮派工。

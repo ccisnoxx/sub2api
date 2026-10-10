@@ -53,3 +53,18 @@
 - 未接入：原生 Anthropic（S1.5.2）、Gemini/Antigravity 与实际媒体入口（S1.5.3）、Cyber 独立入账、probe/gwpool/Live 及不复用本轮 owner 的独立 Grok 媒体/Responses 路径。原版本或未知值保持。
 
 本轮验证是协议/服务 owner 与 HTTP upstream fixture，未执行真实供应商付费请求、新数据库/JWT/浏览器矩阵、完整回归或新远端 CI。未变下游证据按原边界复用，不能据此宣称所有平台或第二批交付完成。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)、[验证清单](evidence/s1.5.1-validation.json)及[复核](evidence/s1.5.1-reviews.json)。
+
+## S1.5.4 第二批差异验证与不适用范围
+
+2026-10-10 用户明确不需要 Anthropic、Gemini/Antigravity 和独立媒体入口。S1.5.2、S1.5.3为**不适用**，不表示实现或验证通过；此前S1.5.1的“留待后续”为历史状态，现由本次范围决定取代。本轮只验证应用 `1ae266791d0ab324cd13a63ab344019c79102176`，没有新增源码或扩大入口。
+
+| 范围 | 本轮状态与证据 | 边界 |
+|---|---|---|
+| raw CC JSON/SSE、Responses→CC→Responses、CC→Responses→CC | S1.5.4验证完成；最终源码/原日志核验，复用协议/终态/usage/audio/attempt测试 | 真实协议事件及实际接受的usage决定新快照；合成结束或HTTP成功不代替真实终态 |
+| 复用上述owner的Grok桥 | S1.5.4验证完成；复用实际Forward及桥测试 | 独立Grok Responses/媒体producer未接入；Composer聚合来源unknown、音频NULL |
+| handler→异步用量→RecordUsage→SQL/DTO→页面/导出 | owner不变；独立核对新快照与既有链路衔接，复用未变边界证据 | 旧Token/费用/幂等键/用量行创建条件保持；旧SQL/页面证据只证明未变下游 |
+| Anthropic直连/透传/转换适配（S1.5.2） | **不适用：用户不需要** | 沿用旧计时或未知；共享reader兼容测试不代表新采集已接入 |
+| Gemini/Antigravity及独立媒体入口（S1.5.3） | **不适用：用户不需要** | 沿用旧口径；所选CC协议内可识别的媒体输出/audio拆分仍按S1.5.1合同判断 |
+| Cyber独立入账、probe/gwpool/Live及不复用本轮owner的其他入口 | 本轮未支持，保留原覆盖限制 | 不登记为新采集完成；本次范围决定不删除已有功能 |
+
+修正后受影响链复用最终race9顶层/69含子例通过证据；较早124/271、20/115、3/9仅用于未受音频修正影响的边界，计数不相加。本轮没有新跑测试、供应商付费请求、新数据库/JWT/浏览器或完整CI。S1.5.5尚未执行，不宣称第二批交付完成。见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)、[复用清单](evidence/s1.5.4-reused-evidence.json)、[验证](evidence/s1.5.4-validation.json)和[复核](evidence/s1.5.4-reviews.json)。
