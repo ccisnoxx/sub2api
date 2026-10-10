@@ -2,9 +2,9 @@
 
 <img src="assets/logo.svg" alt="Sub2API Logo" width="128" />
 
-# Sub2API
+# Sub2API — ccisnoxx 個人保守版
 
-[![Go](https://img.shields.io/badge/Go-1.27.0-00ADD8.svg)](https://golang.org/)
+[![Go](https://img.shields.io/badge/Go-1.27.2-00ADD8.svg)](https://golang.org/)
 [![Vue](https://img.shields.io/badge/Vue-3.4+-4FC08D.svg)](https://vuejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7+-DC382D.svg)](https://redis.io/)
@@ -17,6 +17,34 @@
 [English](README.md) | [中文](README_CN.md) | 日本語
 
 </div>
+
+## この fork、ブランチ、インストール先
+
+**[ccisnoxx/sub2api](https://github.com/ccisnoxx/sub2api)** は [KlN-4096/sub2api](https://github.com/KlN-4096/sub2api) の個人保守版です。元の上流は [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api) です。一部の機能は [LuckyKuang/sub2api-plus](https://github.com/LuckyKuang/sub2api-plus) を参考に KIN の構成へ適応しています。上流の保守者による承認、支援、推奨を意味しません。
+
+| 用途 | ブランチまたは成果物 |
+| --- | --- |
+| アプリケーションと個人追加機能 | `personal`。再現可能なインストールには公開済みの `vX.Y.Z-klno.N-tps.N` タグを使用 |
+| 同期、リリース、デプロイ制御ツール | `main`。残っている上流のアプリケーションツリーは個人版の基準ではありません |
+| 推奨するインストール | Linux x86_64（`linux/amd64`）で Docker Compose とこの fork の GHCR イメージを使用。[デプロイ](#デプロイ)を参照 |
+| イメージリポジトリ | `ghcr.io/ccisnoxx/sub2api` |
+
+**2026-10-10** に確認した公開版は [v0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)、イメージは `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.5-tps.2`、ソースは `3d5e1fde82707900a21f2b5538b112c7bab3c04a` です。GitHub 上では**プレリリース**として公開され、安定版とは表記しません。現在の個人版リリースは Linux amd64 コンテナイメージのみで、ダウンロード可能なバイナリアーカイブや ARM64 イメージはありません。以下では digest を固定します。今後のバージョンは[この fork のリリース](https://github.com/ccisnoxx/sub2api/releases)から選択してください。
+
+### 上流との差分
+
+- 使用量の計時と完了状態。現在の収集範囲は主にネイティブ OpenAI Responses HTTP/SSE と WebSocket。
+- ユーザーに許可されたグループのモデルと価格カタログ。
+- 管理者のエラー詳細に表示する構造化ルーティング診断。
+- 管理者向けの実リクエストに基づくサービス状態。既定で無効、この環境で観測したリクエストのみを表し、無リクエストやサンプル不足は不明。
+- ソース SHA、成功した Personal CI、イメージ digest を結び付ける、この fork の同期・公開・デプロイ制御。
+
+現在の KIN 基準は `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d` で、[personal の出所記録](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)に記載されています。Plus の参考版は `v0.2.14+custom.002` / `90da415c62b94c9417d9ce2b72b1507ed22f0303`。[適応計画](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)と[交付記録](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)を参照してください。上流の全機能を同期する約束ではありません。
+
+### 文書とサポートの範囲
+
+以下のインストール、[リリースツール](.github/release-tools/README.md)、[個人デプロイツール](deploy/personal/README.md)がこの fork の保守対象です。他の機能・設定ガイド、スポンサー・関連プロジェクト情報は上流から継承した資料であり、インストール先や支援の表記がそのままこの fork に適用されるわけではありません。個人デプロイスクリプトは保守者の既存ホスト専用で、汎用インストーラーではありません。この fork のサポートは自身の保守者によるベストエフォートです。
+
 
 ## セキュリティ脆弱性の報告
 
@@ -205,7 +233,7 @@ Sub2API を拡張・統合するコミュニティプロジェクト:
 
 | コンポーネント | 技術 |
 |-----------|------------|
-| バックエンド | Go 1.27.0, Gin, Ent |
+| バックエンド | Go 1.27.2, Gin, Ent |
 | フロントエンド | Vue 3.4+, Vite 5+, TailwindCSS |
 | データベース | PostgreSQL 15+ |
 | キャッシュ/キュー | Redis 7+ |
@@ -226,266 +254,49 @@ Nginx はデフォルトでアンダースコアを含むヘッダー（例: `se
 
 ## デプロイ
 
-### 方法1: スクリプトによるインストール（推奨）
+### Docker Compose: Linux amd64 への新規インストール（推奨）
 
-GitHub Releases からビルド済みバイナリをダウンロードするワンクリックインストールスクリプトです。
-
-#### 前提条件
-
-- Linux サーバー（amd64 または arm64）
-- PostgreSQL 15+（インストール済みかつ稼働中）
-- Redis 7+（インストール済みかつ稼働中）
-- root 権限
-
-#### インストール手順
+Linux x86_64、Docker Engine、`docker compose` プラグインを使用します。公開済みのソースタグと固定イメージ digest を組み合わせる新規インストール例です。既存環境の更新では、バックアップ、移行互換性、対象リリースの説明を別途確認してください。
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash
-```
-
-スクリプトは以下を実行します:
-1. システムアーキテクチャの検出
-2. 最新リリースのダウンロード
-3. バイナリを `/opt/sub2api` にインストール
-4. systemd サービスの作成
-5. システムユーザーと権限の設定
-
-#### インストール後の作業
-
-```bash
-# 1. サービスを起動
-sudo systemctl start sub2api
-
-# 2. 起動時の自動起動を有効化
-sudo systemctl enable sub2api
-
-# 3. ブラウザでセットアップウィザードを開く
-# http://YOUR_SERVER_IP:8080
-```
-
-セットアップウィザードでは以下の設定を行います:
-- データベース設定
-- Redis 設定
-- 管理者アカウントの作成
-
-#### アップグレード
-
-**管理ダッシュボード**の左上にある**アップデートを確認**ボタンをクリックすることで、ダッシュボードから直接アップグレードできます。
-
-Web インターフェースでは以下が可能です:
-- 新しいバージョンの自動確認
-- ワンクリックでのアップデートのダウンロードと適用
-- 必要に応じたロールバック
-
-#### よく使うコマンド
-
-```bash
-# ステータスを確認
-sudo systemctl status sub2api
-
-# ログを表示
-sudo journalctl -u sub2api -f
-
-# サービスを再起動
-sudo systemctl restart sub2api
-
-# アンインストール
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash -s -- uninstall -y
-```
-
----
-
-### 方法2: Docker Compose（推奨）
-
-PostgreSQL と Redis のコンテナを含む Docker Compose でデプロイします。
-
-#### 前提条件
-
-- Docker 20.10+
-- Docker Compose v2+
-
-#### クイックスタート（ワンクリックデプロイ）
-
-自動デプロイスクリプトを使用して簡単にセットアップできます:
-
-```bash
-# デプロイ用ディレクトリを作成
-mkdir -p sub2api-deploy && cd sub2api-deploy
-
-# デプロイ準備スクリプトをダウンロードして実行
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/docker-deploy.sh | bash
-
-# サービスを起動
-docker compose up -d
-
-# ログを表示
-docker compose logs -f sub2api
-```
-
-**スクリプトの動作内容:**
-- `docker-compose.local.yml`（`docker-compose.yml` として保存）と `.env.example` をダウンロード
-- セキュアな認証情報（JWT_SECRET、TOTP_ENCRYPTION_KEY、POSTGRES_PASSWORD）を自動生成
-- 自動生成されたシークレットで `.env` ファイルを作成
-- データディレクトリを作成（バックアップ・移行が容易なローカルディレクトリを使用）
-- 生成された認証情報を参照用に表示
-
-#### 手動デプロイ
-
-手動でセットアップする場合:
-
-```bash
-# 1. リポジトリをクローン
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
-
-# 2. 環境設定ファイルをコピー
 cp .env.example .env
 chmod 600 .env
-
-# 3. 設定を編集（セキュアなパスワードを生成）
 nano .env
 ```
 
-**`.env` の必須設定:**
+起動前にテンプレートの PostgreSQL パスワードを変更し、`POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` にそれぞれ `openssl rand -hex 32` で生成した異なる値を設定してください。管理者アカウントを非公開で設定し、`BIND_HOST=127.0.0.1` としてください。明示的に必要な場合を除き、`SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP=false` と `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS=false` を設定します。`.env` のアクセスを制限し、外部アクセスには設定済みの HTTPS リバースプロキシを使用してください。
+
+継承した Compose テンプレートには上流のイメージが残っています。以下の上書きファイルでこの fork のイメージを選択します。**すべての Compose 操作で両方の `-f` を指定してください。** 起動前に `config --images` に以下の `ghcr.io/ccisnoxx/sub2api@sha256:...` と PostgreSQL、Redis が表示されることを確認します。
 
 ```bash
-# PostgreSQL パスワード（必須）
-POSTGRES_PASSWORD=your_secure_password_here
-
-# JWT シークレット（推奨 - 再起動後もユーザーのログイン状態を保持）
-JWT_SECRET=your_jwt_secret_here
-
-# TOTP 暗号化キー（推奨 - 再起動後も二要素認証を維持）
-TOTP_ENCRYPTION_KEY=your_totp_key_here
-
-# オプション: 管理者アカウント
-# 空欄の場合、初回起動時にランダムなメールアドレス（ログインユーザー名）とパスワードが自動生成され、ログに出力されます。
-# admin@example.com のような推測されやすい値は総当たり攻撃の標的になるため避けてください。
-ADMIN_EMAIL=
-ADMIN_PASSWORD=
-
-# オプション: カスタムポート
-SERVER_PORT=8080
-```
-
-**セキュアなシークレットの生成方法:**
-```bash
-# JWT_SECRET を生成
-openssl rand -hex 32
-
-# TOTP_ENCRYPTION_KEY を生成
-openssl rand -hex 32
-
-# POSTGRES_PASSWORD を生成
-openssl rand -hex 32
-```
-
-```bash
-# 4. データディレクトリを作成（ローカルバージョンの場合）
+cat > compose.personal.yml <<'YAML'
+services:
+  sub2api:
+    image: ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530
+    platform: linux/amd64
+YAML
 mkdir -p data postgres_data redis_data
-
-# 5. すべてのサービスを起動
-# オプション A: ローカルディレクトリバージョン（推奨 - 移行が容易）
-docker compose -f docker-compose.local.yml up -d
-
-# オプション B: 名前付きボリュームバージョン（シンプルなセットアップ）
-docker compose up -d
-
-# 6. ステータスを確認
-docker compose -f docker-compose.local.yml ps
-
-# 7. ログを表示
-docker compose -f docker-compose.local.yml logs -f sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml config --images
+docker compose -f docker-compose.local.yml -f compose.personal.yml pull
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d
+docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 ```
 
-#### デプロイバージョン
+ローカルでは `http://127.0.0.1:8080`、外部からは設定済みの HTTPS アドレスでアクセスします。アプリケーション、PostgreSQL、Redis のデータは上記の三つのディレクトリに保存されます。管理者の認証情報やバックアップを保護し、`.env` やデータベース内容をコミットしないでください。
 
-| バージョン | データストレージ | 移行 | 推奨用途 |
-|---------|-------------|-----------|----------|
-| **docker-compose.local.yml** | ローカルディレクトリ | ✅ 容易（ディレクトリ全体を tar） | 本番環境、頻繁なバックアップ |
-| **docker-compose.yml** | 名前付きボリューム | ⚠️ docker コマンドが必要 | シンプルなセットアップ |
+更新時は新しい fork リリースのソースと digest を選び、互換性とバックアップ要件を確認して上書きファイルを更新します。同じ digest の再取得では更新されません。現在のリリースには上流のバイナリ用ワンクリックインストールや管理画面からのバイナリ更新はなく、公開イメージによるネイティブ ARM64/macOS コンテナインストールもありません。
 
-**推奨:** データ管理が容易な `docker-compose.local.yml`（スクリプトによるデプロイ）を使用してください。
+### 開発用のソースビルド
 
-#### アクセス
-
-ブラウザで `http://YOUR_SERVER_IP:8080` を開いてください。
-
-管理者メールアドレス（ログインユーザー名）またはパスワードが自動生成された場合は、ログで確認できます:
-```bash
-docker compose -f docker-compose.local.yml logs sub2api | grep "Generated admin"
-```
-
-#### アップグレード
-
-```bash
-# 最新イメージをプルしてコンテナを再作成
-docker compose -f docker-compose.local.yml pull
-docker compose -f docker-compose.local.yml up -d
-```
-
-#### 簡単な移行（ローカルディレクトリバージョン）
-
-`docker-compose.local.yml` を使用している場合、新しいサーバーへの移行が簡単です:
-
-```bash
-# 移行元サーバーにて
-docker compose -f docker-compose.local.yml down
-cd ..
-tar czf sub2api-complete.tar.gz sub2api-deploy/
-
-# 新しいサーバーに転送
-scp sub2api-complete.tar.gz user@new-server:/path/
-
-# 移行先サーバーにて
-tar xzf sub2api-complete.tar.gz
-cd sub2api-deploy/
-docker compose -f docker-compose.local.yml up -d
-```
-
-#### よく使うコマンド
-
-```bash
-# すべてのサービスを停止
-docker compose -f docker-compose.local.yml down
-
-# 再起動
-docker compose -f docker-compose.local.yml restart
-
-# すべてのログを表示
-docker compose -f docker-compose.local.yml logs -f
-
-# すべてのデータを削除（注意！）
-docker compose -f docker-compose.local.yml down
-rm -rf data/ postgres_data/ redis_data/
-```
-
----
-
-### 方法3: Apple container（macOS）
-
-Apple シリコン搭載 Mac と macOS 26 では、Apple `container` 1.1.0 以降を使用して Sub2API、PostgreSQL、Redis の完全なスタックを実行できます:
-
-```bash
-git clone https://github.com/Wei-Shaw/sub2api.git
-cd sub2api/deploy
-./apple-container.sh init
-./apple-container.sh up
-./apple-container.sh status
-```
-
-これはローカル開発および手動運用向けです。本番環境では引き続き Docker Compose を推奨します。ライフサイクル、永続化、アップグレード、制限については [deploy/APPLE_CONTAINER.md](deploy/APPLE_CONTAINER.md) を参照してください。
-
----
-
-### 方法4: ソースからビルド
 
 開発やカスタマイズのためにソースコードからビルドして実行します。
 
 #### 前提条件
 
-- Go 1.21+
-- Node.js 18+
+- 以下の固定タグは Go 1.27.2。他の版は `backend/go.mod` を参照
+- Node.js 20 と pnpm 9.15.9
 - PostgreSQL 15+
 - Redis 7+
 
@@ -493,15 +304,15 @@ cd sub2api/deploy
 
 ```bash
 # 1. リポジトリをクローン
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api
 
 # 2. pnpm をインストール（未インストールの場合）
-npm install -g pnpm
+npm install -g pnpm@9.15.9
 
 # 3. フロントエンドをビルド
 cd frontend
-pnpm install
+pnpm install --frozen-lockfile
 pnpm run build
 # 出力先: ../backend/internal/web/dist/
 
@@ -510,11 +321,8 @@ cd ../backend
 VERSION="$(./scripts/resolve-version.sh)"
 go build -tags embed -ldflags="-X main.Version=${VERSION}" -o sub2api ./cmd/server
 
-# 5. 設定ファイルを作成
-cp ../deploy/config.example.yaml ./config.yaml
-
-# 6. 設定を編集
-nano config.yaml
+# 5. 初回はセットアップウィザードが config.yaml を生成します。
+# 以下の設定説明を確認してから起動してください。
 ```
 
 > **注意:** `-tags embed` フラグはフロントエンドをバイナリに組み込みます。このフラグがない場合、バイナリはフロントエンド UI を提供しません。
