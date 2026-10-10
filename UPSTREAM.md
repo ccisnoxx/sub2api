@@ -85,5 +85,5 @@ K 与 [A 的来源记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707
 - 已核对 P 的四份功能文档、计时 helper/schema、本地合同与引入提交，以及 A 的实际文件/测试入口。计时 helper 不是原文件直接搬运：P 使用同名 `first_token_ms`，A 保留旧字段并读取 `strict_first_token_ms`，返回类型、适用范围、空值与导出接口均有本地适配；不能宣称 Plus 的全平台采集已在本 fork 实现。
 - K 中已有的 `backend/internal/pkg/upstreamrecord/recorder.go`、`frontend/src/utils/codexCatalogConfig.ts` 和 `backend/scripts/resolve-version.sh` 与 A 字节相同；它们不属于个人新增核心模块。公开原始上游关系保留，逐文件的更早作者归属不作猜测。
 - 本文没有发现足以把 S1–S4 整模块标为“直接复制”的记录；结构/概念参考明确保留 Plus 归属，不据文件不同或相同许可证宣称全部自主原创。局部代码版权头、许可证副本与发布产物材料留给 LEGAL-001/LEGAL-002 审核，不在此给出完成结论。
-- PREP-001 的数据库迁移账本、schema 冻结和非生产恢复演练尚未完成。本文的 Git 来源核对不能替代恢复基线；PREP-003 任务状态保持未勾选。
+- PREP-001 已保存当前 307 条迁移身份/执行时间、schema、固定源码/镜像及私有备份，并完成非生产完整恢复与读写回滚；见[已验证基线](BASELINE.md)。本文的来源核对与恢复基线分别提供代码来源和恢复证据，不将它们当作新 KIN 已完成验证。
 - 重放到新 KIN 时逐模块核对上述 owner、接口、权限和迁移身份。应用测试需在实际新候选中按测试文件/名称定向执行；本文仅核对入口存在，不声称已重放、已编译或已通过这些测试。
