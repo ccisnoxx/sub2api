@@ -71,7 +71,7 @@ func drive(ctx context.Context, args []string, out io.Writer) error {
 	} else if !validEndpoint(o.URL, "ws", "wss") {
 		return fail("invalid_ws_url")
 	}
-	if o.Scenario == "ws-cancel" && !validEndpoint(o.Control, "http", "https") {
+	if (o.Scenario == "ws-cancel" || o.Scenario == "ws-cancel-probe") && !validEndpoint(o.Control, "http", "https") {
 		return fail("cancel_requires_control")
 	}
 	client, err := driverHTTPClient(o.CA)
@@ -115,6 +115,8 @@ func scenarioTurns(scenario string, count int) ([]turnSpec, error) {
 		return []turnSpec{{Case: "retry_429", Terminal: "response.completed"}}, nil
 	case "ws-cancel":
 		return []turnSpec{{Case: "cancel_drain", Cancel: true}}, nil
+	case "ws-cancel-probe":
+		return []turnSpec{{Case: "cancel_probe_drain", Cancel: true}}, nil
 	case "http-retry-zero":
 		return []turnSpec{{Case: "retry_429", Terminal: "response.completed"}}, nil
 	case "ws-failure", "http-failure":
@@ -255,6 +257,17 @@ func driveWS(ctx context.Context, client *http.Client, o driveOptions, turns []t
 				if err := waitPace(ctx, o.CancelDelay); err != nil {
 					return err
 				}
+				if o.Scenario == "ws-cancel-probe" {
+					if err := controlGate(ctx, client, o, m, "probe"); err != nil {
+						return err
+					}
+					if err := emit(map[string]any{"kind": "nonterminal_probe_released", "run": o.Run, "at": time.Now().UTC().Format(time.RFC3339Nano)}); err != nil {
+						return err
+					}
+					if err := waitPace(ctx, o.CancelDelay); err != nil {
+						return err
+					}
+				}
 				if err := releaseGate(ctx, client, o, m); err != nil {
 					return err
 				}
@@ -350,9 +363,13 @@ func driveHTTP(ctx context.Context, client *http.Client, o driveOptions, turns [
 }
 
 func releaseGate(ctx context.Context, client *http.Client, o driveOptions, m marker) error {
+	return controlGate(ctx, client, o, m, "release")
+}
+
+func controlGate(ctx context.Context, client *http.Client, o driveOptions, m marker, action string) error {
 	releaseCtx, cancel := context.WithTimeout(ctx, o.Timeout)
 	defer cancel()
-	req, err := http.NewRequestWithContext(releaseCtx, http.MethodPost, strings.TrimRight(o.Control, "/")+"/control/release", bytes.NewReader(encodeJSON(m)))
+	req, err := http.NewRequestWithContext(releaseCtx, http.MethodPost, strings.TrimRight(o.Control, "/")+"/control/"+action, bytes.NewReader(encodeJSON(m)))
 	if err != nil {
 		return fail("control_request_failed")
 	}

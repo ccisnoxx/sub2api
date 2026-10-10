@@ -6,7 +6,7 @@
 
 - 应用的请求/准入逻辑 turn owner 创建 `service_status_observation.observation_key`。fixture 不注入、不生成、不返回此字段，也不向 ctx 或数据库预填监控事实。输入 `s44:<run>:<case>:<index>` 和响应 ID 只供真实源日志对照。
 - fixture 的单一 mutex state owner 按输入 marker 保存 attempt，跨上游连接重建不重置。上游 `session/local_turn` 是真实 socket 局部计数，不能代替应用 `logical_turn`。
-- client 在收到本轮 `response.created` 后先断开实际下游，再等待 `--cancel-delay`，最后放行上游完成。只有实际 DB `client_disconnected` 终态与 fixture 的完成写出证据共同证明取消后 drain。
+- client 在收到本轮 `response.created` 后先断开实际下游，再等待 `--cancel-delay`。`ws-cancel-probe` 先单独放行非终态 delta，再等待相同间隔，最后独立放行完成；用实际 DB `client_disconnected` 且 observed_at 早于 completed 写出证明后端先检测取消再 drain。原 `ws-cancel` 只直接放行完成，可能让 ctx_pool 先观察到 completed；客户端关闭时间本身不能替代后端检测事实。
 - fixture 计划在 run/case 第一次请求前冻结；已开始后修改返回 409。证据上限显式拒绝新请求，若并发写出达到上限，控制证据返回 507 和 `evidence_complete=false`。
 - 上游与控制分别监听；两者都按实际 socket 对端允许 loopback/显式私网 CIDR，不信任 `X-Forwarded-For`。公网 CIDR 配置直接失败。控制无需密码，只能部署在 internal 隔离 Docker 网络，主机不发布端口。
 - 只接受空认证（直接本地 smoke）或以下固定 fake 上游凭据：`sk-s44-fixture-first`、`sk-s44-fixture-second`、`s44-fixture-oauth`。不会将认证头、原始正文、原始网络错误或任意响应正文写入证据。
@@ -94,6 +94,7 @@ tools/s44-ws-runtime/bin/s44-ws-fixture drive --url http://127.0.0.1:实际端�
 | `ws-multiturn` | turn1 的 attempt1 在任何输出前断连；同 marker attempt2 返回500 `response.failed`；同下游连接 turn2 返回零Token完成 | SS06：fixture session/local_turn 重置与应用 logical_turn 区分；turn1 与 turn2 两独立 observation key；同 turn 重建保持键，turn2 不覆盖失败 |
 | `ws-retry` / `ws-retry-429` | 首次断连/429，第二次同 marker 完成 | 同轮 transport retry/账号切换对照；429 至少两账号，ctx_pool 有 retry，passthrough 是否允许隐藏 retry 以实际合同为准 |
 | `ws-cancel --control http://fixture:8081` | 收到created后客户端中断，等待750ms，控制放行completed | SS02：终态应 client_disconnected/excluded；fixture 最后 completed written=true 证明上游 drain 真发生；client run_complete 本身不证明 drain |
+| `ws-cancel-probe --control http://fixture:8081` | 客户端中断后单独放行非终态 delta；再等待750ms后独立放行completed | SS02：先检测取消再drain；DB client_disconnected 的 observed_at 必须早于 completed 写出。ctx_pool 未先检测到断连时保持先观察完成的既有S1规则 |
 | `ws-success --count 5` | 同连接5次独立 completed 后1000正常关闭 | SS02 completed→close 保持success；SS13 每个恢复周期使用新 run，形成新 observed_at |
 | `ws-failure --count 5` | 同连接5个500 provider终态 | SS03：5个 key/生命周期；正常关闭不新增失败；同批重扫不推进事件 |
 | `ws-auth` / `ws-quota` | 401/402 provider终态 | 供应商原因反例；用户同状态拒绝由父代理走本部署鉴权/额度入口 |
@@ -109,6 +110,7 @@ SS12 必须由父代理等待旧失败退出5分钟窗口/调整隔离配置，�
 
 - `POST /control/plan {"run":"example","case":"provider_failure","behavior":"success_zero"}`：请求开始前更改该 run/case；支持所有表中行为。不能更改已经开始的 run/case，409是明确失败。
 - `POST /control/release {"run":"example","case":"cancel_drain","index":"1"}`：放行取消 gate；客户端驱动自动调用，先看到created再关闭。未创建 gate 返回404。
+- `POST /control/probe {"run":"example","case":"cancel_probe_drain","index":"1"}`：只放行非终态 delta，完成仍需对同 marker 调用 `/control/release`。未配置 probe 返回409。
 - `GET /control/evidence?run=example`：返回带 UTC 时间、attempt、socket session/local_turn、写出结果的结构化证据。控制与上游端口分开，不能请求上游8080来访问控制。
 
 客户端 stdout 为 JSON Lines；保存时使用本目录忽略的 `evidence/`。源记录在 HTTP/SSE/WS终态尚未入库前可能异步写入，DB owner 须等待实际队列处理后核对。控制 `frame_written=true` 仅说明 socket 写出成功，是否被 gateway 解析并冻结终态仍须 DB/日志证明。

@@ -52,6 +52,7 @@ type plan struct {
 }
 
 type gate struct {
+	probe   chan struct{}
 	release chan struct{}
 	done    bool
 }
@@ -103,8 +104,11 @@ func (f *fixture) next(m marker, model, transport string, session int64, turn in
 		behavior = override
 	}
 	var g *gate
-	if behavior == "cancel_drain" {
+	if behavior == "cancel_drain" || behavior == "cancel_probe_drain" {
 		g = &gate{release: make(chan struct{})}
+		if behavior == "cancel_probe_drain" {
+			g.probe = make(chan struct{})
+		}
 		f.gates[m.key()] = g
 	}
 	e := fixtureEvent{Transport: transport, Session: session, LocalTurn: turn, Attempt: f.attempts[m.key()], Run: m.Run, Case: m.Case, Index: m.Index, Model: model}
@@ -113,7 +117,7 @@ func (f *fixture) next(m marker, model, transport string, session int64, turn in
 
 func validBehavior(b string) bool {
 	switch b {
-	case "success", "success_zero", "provider_failure", "provider_auth", "provider_quota", "retry_close", "retry_close_failure", "retry_429", "cancel_drain", "missing_terminal":
+	case "success", "success_zero", "provider_failure", "provider_auth", "provider_quota", "retry_close", "retry_close_failure", "retry_429", "cancel_drain", "cancel_probe_drain", "missing_terminal":
 		return true
 	}
 	return false
@@ -289,6 +293,21 @@ func (f *fixture) websocket(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if g != nil {
+			if g.probe != nil {
+				select {
+				case <-g.probe:
+				case <-time.After(30 * time.Second):
+					e.Kind = "probe_timeout"
+					f.record(e)
+					return
+				case <-r.Context().Done():
+					return
+				}
+				// 非终态帧使真实 gateway 有机会先观察下游断连；完成仍由独立 gate 控制。
+				if !f.writeWS(conn, r.Context(), e, "response.output_text.delta", map[string]any{"type": "response.output_text.delta", "response_id": m.responseID(), "item_id": "msg_s44", "output_index": 0, "content_index": 0, "delta": "s44"}) {
+					return
+				}
+			}
 			select {
 			case <-g.release:
 			case <-time.After(30 * time.Second):
@@ -380,7 +399,7 @@ func (f *fixture) control(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		jsonReply(w, 200, map[string]string{"code": "plan_ready"})
-	case "/control/release":
+	case "/control/release", "/control/probe":
 		var m marker
 		if decoder.Decode(&m) != nil || !markerPattern.MatchString(m.key()) {
 			jsonReply(w, 400, map[string]string{"code": "invalid_marker"})
@@ -388,12 +407,22 @@ func (f *fixture) control(w http.ResponseWriter, r *http.Request) {
 		}
 		f.mu.Lock()
 		g := f.gates[m.key()]
+		probe := r.URL.Path == "/control/probe"
+		if probe && g != nil && g.probe == nil {
+			f.mu.Unlock()
+			jsonReply(w, 409, map[string]string{"code": "probe_not_configured"})
+			return
+		}
 		if g != nil && !g.done {
+			channel, kind := g.release, "gate_released"
+			if probe {
+				channel, kind = g.probe, "probe_released"
+			}
 			select {
-			case <-g.release:
+			case <-channel:
 			default:
-				f.recordLocked(fixtureEvent{Kind: "gate_released", Run: m.Run, Case: m.Case, Index: m.Index})
-				close(g.release)
+				f.recordLocked(fixtureEvent{Kind: kind, Run: m.Run, Case: m.Case, Index: m.Index})
+				close(channel)
 			}
 		}
 		f.mu.Unlock()

@@ -265,3 +265,34 @@ func TestControlSocketBoundaryAndEvidenceLimit(t *testing.T) {
 		t.Fatal("证据缺口必须显式报告")
 	}
 }
+
+func TestNonterminalProbeAndCompletionHaveIndependentGates(t *testing.T) {
+	f, upstream, control := fixtureServer(t)
+	c := dialFixture(t, upstream.URL)
+	m := marker{"independentgates", "cancel_probe_drain", "1"}
+	writeFixture(t, c, m)
+	if got := readFixture(t, c); got != "response.created" {
+		t.Fatal(got)
+	}
+	o := driveOptions{Control: control.URL, Timeout: 3 * time.Second}
+	if err := controlGate(context.Background(), http.DefaultClient, o, m, "probe"); err != nil {
+		t.Fatal(err)
+	}
+	if got := readFixture(t, c); got != "response.output_text.delta" {
+		t.Fatal(got)
+	}
+	f.mu.Lock()
+	for _, e := range f.events {
+		if e.EventType == "response.completed" {
+			f.mu.Unlock()
+			t.Fatal("probe 不能放行完成帧")
+		}
+	}
+	f.mu.Unlock()
+	if err := releaseGate(context.Background(), http.DefaultClient, o, m); err != nil {
+		t.Fatal(err)
+	}
+	if got := readFixture(t, c); got != "response.completed" {
+		t.Fatal(got)
+	}
+}
