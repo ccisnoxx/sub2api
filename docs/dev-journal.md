@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-10：S1.5 候选远端门禁通过
+
+- 沿用personal应用 `1ae266791d0ab324cd13a63ab344019c79102176`，基础 `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；核对8个工作树、12最终输入、既有证据与workflow/依赖，保留原改动，未替换main应用源码。
+- 相同SHA非强制推送到 `codex/verify-personal-ci-plus-chat-s155`，创建 [草稿PR #8](https://github.com/ccisnoxx/sub2api/pull/8)；原生 [Personal CI 38065981816](https://github.com/ccisnoxx/sub2api/actions/runs/38065981816) attempt 1全部11项success，开始/结束binding及可信App15368 personal-ready核对通过，personal/main未前进。没有dispatch、重试或重复push全套检查。
+- 复用S1.5.1/S1.5.4有效本地协议/音频race/未变下游及独立复核；本轮未新增源码或复跑本地成功测试。S1.5.2/S1.5.3不适用，S1.5.5补齐当前候选远端记录。
+- PR保持open草稿，未合并、镜像发布、生产部署或进入下一项；新运行树部署/回退兼容仍未审定，旧生产tps.2记录不用于本候选。维护文档另行本地提交不改变PR源码SHA，可选S5.1未排期。
+- [执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s15-候选远端门禁)、[远端门禁](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-remote-gates.json)。
+
 ## 2026-10-10：S1.5.5 第二批本地交付记录完成
 
 - 沿用personal应用 `1ae266791d0ab324cd13a63ab344019c79102176` / 基础3d5e1fde，main从a64ecfb6e只增量登记；核对8工作树/未提交改动并保留旧源码、证据和日志。

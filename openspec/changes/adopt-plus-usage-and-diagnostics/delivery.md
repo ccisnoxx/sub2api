@@ -142,3 +142,17 @@ S4.4、S0.2/S0.3完成；S1.5.1为下一项，未自动开始。PR #5/#6保持�
 14份S1.5.1/S1.5.4证据、12最终源输入、11原日志、6第一批产物及未变下游/DTO/前端输入核验后复用。没有新跑行为测试、构建、fresh复核或完整CI；相同候选既有复核有效，本轮文档不修改门禁/部署工具行为。真实供应商付费、新增CC→worker→SQL→页面整体执行、无typed usage零终态/data包装的行为覆盖及生产回滚/数据库恢复限制仍如原证据登记。
 
 [候选](evidence/s1.5.5-candidate.json)、[门禁与回退](evidence/s1.5.5-gates-and-rollback.json)、[复用清单](evidence/s1.5.5-reused-evidence.json)、[验证](evidence/s1.5.5-validation.json)、[执行证据](implementation-evidence.md#s155-第二批交付记录)。S1.5.5勾选表示**本地交付记录完成**；合并/发布/部署独立未执行。可选下一项S5.1用户支持需求确认仍未排期，本会话到此停止，不自动进入。
+
+## S1.5 候选远端门禁
+
+按本轮明确授权，将相同完整候选 `1ae266791d0ab324cd13a63ab344019c79102176` 非强制推送到 `codex/verify-personal-ci-plus-chat-s155`，创建并保持 [草稿PR #8](https://github.com/ccisnoxx/sub2api/pull/8)（open，base=personal）。该分支名是现行backend/security workflow排除重复push检查的预留范围；没有改workflow或使用cwd未合入的CI选择优化。应用本地分支/HEAD与脏文档保持，维护证据另行本地提交，不推进PR源码SHA。
+
+| 门禁/交付项 | 本轮结果 | 适用边界 |
+|---|---|---|
+| PR候选、来源与最新personal基础 | 开始/结束binding成功；head `1ae266791d0ab324cd13a63ab344019c79102176`，base `3d5e1fde82707900a21f2b5538b112c7bab3c04a`，同仓库open草稿PR | 基础或候选变化必须重新绑定 |
+| 必要Personal CI | [38065981816](https://github.com/ccisnoxx/sub2api/actions/runs/38065981816) 原生pull_request事件，run attempt 1，全部11项success；App15368 personal-ready成功 | 含现行backend、frontend、security、TPS、sync及脚本/辅助工具合同；无dispatch/重试/重复push全套CI |
+| 合并后personal SHA门禁 | 未执行 | PR检查不能替代未来merge SHA自身的门禁 |
+| 合并、版本/镜像发布及生产更新 | 未执行 | 无新版本、digest或部署/rollback记录 |
+| 新运行树部署/回退兼容 | 未审定 | S1.5.5既有E_COMPATIBILITY证据与数据保留条件继续适用；CI成功不等于部署owner放行 |
+
+当前remote personal和main均未前进；候选未改变schema/迁移、依赖、镜像或部署配置，继承251–254。原数据/账本、PG/Redis、备份/恢复与撤回12路径的说明保持；历史tps.2及旧rollback ID不用于本候选。门禁证据见[远端结果](evidence/s1.5.5-remote-gates.json)，复用边界见[复用清单](evidence/s1.5.5-remote-reused-evidence.json)。到此停止，可选S5.1未排期，不自动进入。

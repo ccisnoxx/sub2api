@@ -1,7 +1,10 @@
 # KIN 借鉴 Plus 功能的实施计划
 
-- 本轮状态（2026-10-10，S1.5.5）：第二批所选入口的本地交付记录完成，应用仍为 `1ae266791d0ab324cd13a63ab344019c79102176`。S1.5.1/S1.5.4有效证据复用；S1.5.2、S1.5.3保持不适用。实际覆盖、当前Personal CI门禁与回退边界已登记；当前候选无远端PR/CI，新运行树不受现有部署兼容证明覆盖。勾选S1.5.5只表示本地交付记录完成，不表示合并/镜像发布/生产部署。可选S5.1未排期，不自动继续。详见[执行证据](implementation-evidence.md#s155-第二批交付记录)。
-- 本轮工作位置：续用personal应用 `codex/plus-chat-timing-s151`，应用HEAD不变；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于文档提交 `a64ecfb6e279c01eef317cfc9321d32694652ddc` 增量记录。相关工作树及原未提交源码/文档改动保留。
+- 本轮状态（2026-10-10，S1.5候选远端门禁）：相同应用 `1ae266791d0ab324cd13a63ab344019c79102176` 已推送到 `codex/verify-personal-ci-plus-chat-s155`；[草稿PR #8](https://github.com/ccisnoxx/sub2api/pull/8) 目标为personal，[Personal CI 38065981816](https://github.com/ccisnoxx/sub2api/actions/runs/38065981816)全部11项成功，可信App15368的personal-ready通过，开始/结束绑定与最新基础 `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 一致。沿用既有本地验证/独立复核，未修改应用或workflow。S1.5.2/S1.5.3不适用；未合并、镜像发布、生产部署或进入下一项，新运行树部署/回退兼容仍未审定。详见[执行证据](implementation-evidence.md#s15-候选远端门禁)、[远端门禁](evidence/s1.5.5-remote-gates.json)。
+- 本轮工作位置：应用仍在 `codex/plus-chat-timing-s151`，HEAD不变；main证据分支从 `87bfcdf791d0ec4b659c3b2325764dab7e2a932c` 增量登记。相关工作树和原未提交改动保留；文档提交不进入应用PR，不改变已检查候选SHA。
+
+- 历史状态（2026-10-10，S1.5.5本地记录完成时）：第二批所选入口的本地交付记录完成，应用仍为 `1ae266791d0ab324cd13a63ab344019c79102176`。S1.5.1/S1.5.4有效证据复用；S1.5.2、S1.5.3保持不适用。实际覆盖、当前Personal CI门禁与回退边界已登记；当前候选无远端PR/CI，新运行树不受现有部署兼容证明覆盖。勾选S1.5.5只表示本地交付记录完成，不表示合并/镜像发布/生产部署。可选S5.1未排期，不自动继续。详见[执行证据](implementation-evidence.md#s155-第二批交付记录)。
+- S1.5.5工作位置：续用personal应用 `codex/plus-chat-timing-s151`，应用HEAD不变；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于文档提交 `a64ecfb6e279c01eef317cfc9321d32694652ddc` 增量记录。相关工作树及原未提交源码/文档改动保留。
 - 历史状态（2026-10-10，S1.5.4完成时）：第二批所选入口的差异验证与独立复核完成，沿用应用 `1ae266791d0ab324cd13a63ab344019c79102176`，没有新增应用源码改动。S1.5.2（Anthropic）、S1.5.3（Gemini/Antigravity及独立媒体入口）按用户决定登记为不适用；已核验复用所选CC/转换/Grok桥和未变下游的有效证据。下一项S1.5.5保持待执行，不自动进入；本轮未push/新CI/合并/镜像发布/生产部署。详见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)。
 - S1.5.4工作位置：续用personal应用候选 `codex/plus-chat-timing-s151`；main证据分支 `codex/plus-chat-timing-s151-evidence` 从S1.5.1证据提交 `a6454d3c079882aab58c320ac8d87df427637355` 增量登记。已核对远端personal/main及相关工作树，保留全部已有应用和文档改动。
 - 历史状态（2026-10-10，S1.5.1完成时）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
@@ -191,7 +194,7 @@ S1 的持久化与异步快照、S2 的权限与报价、S3 的诊断归属，�
 
 迁移采用加字段方式，历史未知不回填。先在临时数据库验证旧版本是否能够在扩展后的 schema 上运行，并检查原始 SQL、生成代码及实际部署工具的兼容性；只有验证成功才声明可仅回退应用镜像。回退不删除新列，不修改 migration ledger。S4 独立表和 S5 新路由也需要各自的回退说明。
 
-合并、镜像发布与生产更新沿用既有 Personal CI、来源 SHA 和固定 digest 合同；实际操作以当前授权为准。本轮不触发外部写入或生产动作。包含迁移的阶段需在部署前准备数据库备份与恢复方法，不能沿用无迁移的 S0 兼容证明。
+合并、镜像发布与生产更新沿用既有 Personal CI、来源 SHA 和固定 digest 合同；实际操作以当前授权为准。本轮仅执行已授权的候选推送、草稿PR与必要CI，不合并、镜像发布或生产部署。包含迁移的阶段需在部署前准备数据库备份与恢复方法，不能沿用无迁移的 S0 兼容证明。
 
 每项完成记录任务编号、最终 SHA、实际检查与结果、覆盖平台/入口、未执行检查、独立复核结果及发布/部署状态。只有实际获得证据才能勾选实现或线上验收任务；计划编制、代码完成、检查通过、发布、线上生效分别登记。
 

@@ -87,3 +87,9 @@
 | Cyber独立入账、probe/gwpool/Live、不复用本轮owner的其他producer | 本轮未支持，原覆盖限制保持 | 不升级为v1声明，不混入所选文本TPS/真实完成状态的覆盖结论 |
 
 S1.5所选入口本地实现/验证/交付记录完成；远端候选门禁、镜像与生产状态仍独立待取得。新候选没有新增迁移，但现有部署工具对12个新运行路径正反向均按合同拒绝，不能沿用S4.4证明或旧rollback ID。详见[交付与回退](delivery.md#s155-第二批本地交付记录)、[门禁与回退检查](evidence/s1.5.5-gates-and-rollback.json)、[验证](evidence/s1.5.5-validation.json)。
+
+## S1.5 候选远端门禁补充
+
+当前应用仍为 `1ae266791d0ab324cd13a63ab344019c79102176`；[草稿PR #8](https://github.com/ccisnoxx/sub2api/pull/8) 与 [Personal CI 38065981816](https://github.com/ccisnoxx/sub2api/actions/runs/38065981816) 对同一候选、基础 `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 全部11项通过。上方S1.5.5表格中的“未取得新远端CI”是本地记录完成时快照，本节更新其远端状态：raw CC、双向转换及复用Grok桥已取得现行必要候选CI，不扩大已有协议/owner覆盖。原本地fixture、最终音频race、未变下游及S1.5.4独立复核继续有效；没有新增付费供应商、CC→worker→SQL→页面整体E2E或生产验收。
+
+Anthropic、Gemini/Antigravity及独立媒体仍不适用；本PR未合入、未发布、未部署。新运行树的部署/回退审定和既有覆盖限制保持。见[远端门禁证据](evidence/s1.5.5-remote-gates.json)与[复用清单](evidence/s1.5.5-remote-reused-evidence.json)。

@@ -872,3 +872,22 @@ S1.5.4所选入口本地差异验证与独立复核完成；S1.5.2、S1.5.3为�
 ### 状态与下一项
 
 S1.5.1/S1.5.4及S1.5.5所选入口本地实现、验证与交付记录完成；S1.5.2/S1.5.3不适用。当前候选PR/必要CI/personal-ready及新运行树部署/回退证明仍待后续对应授权与实际证据，合并/镜像发布/生产部署未执行。本轮没有push、PR创建/更新、CI触发、SSH或生产操作。可选下一项S5.1确认用户支持需求仍未排期，本会话不自动进入。
+
+## S1.5 候选远端门禁
+
+本轮仅按用户明确授权推送当前personal候选、创建草稿PR并完成必要Personal CI。先核对三处文档和8个工作树状态，保存HEAD/branch/dirty文件哈希及6文档备份；应用 `1ae266791d0ab324cd13a63ab344019c79102176`、personal基础 `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 和main `f5c4c3304106040a01a32c5e6d4ff18f3ec49930` 与上一轮一致。12个最终源码/测试输入、workflow/依赖及既有证据哈希再次核验，git diff --check通过，无应用源码、CI配置或依赖修改，原未提交改动保留。
+
+### 实际远端操作与结果
+
+- 非强制推送相同SHA到 `codex/verify-personal-ci-plus-chat-s155`，远端回读一致；现行workflow预留分支范围避免重复push检查，没有改变门禁。
+- 创建并关联 [草稿PR #8](https://github.com/ccisnoxx/sub2api/pull/8)，同仓库open、base=personal、head/base完整SHA匹配；结束时仍draft且未合并。
+- PR原生pull_request事件触发 [Personal CI 38065981816](https://github.com/ccisnoxx/sub2api/actions/runs/38065981816)，attempt 1；未额外workflow_dispatch或重试。全部11项success：binding、sync-contracts、tps、existing-ci的test/frontend/shell/golangci-lint/release-helpers、existing-security的backend-security/frontend-security及personal-ready。后端unit/integration/recording race、前端typecheck/关键vitest、TPS/lint/build、现行安全和辅助工具合同均按workflow实际执行。release-helpers仅工具测试，不是镜像发布。
+- 开始binding与结束personal-ready日志均确认精确候选/最新基础/PR/来源；候选上的可信App15368 personal-ready check成功，最终remote personal仍为基础SHA。只有本候选PR门禁完成，未来合并SHA仍需自身必要检查。
+
+### 复用、保留与限制
+
+有效本地证据/独立复核按未变输入复用：最终音频修正后受影响范围race9顶层/69含子例；较早124/271、20/115、3/9仅未受影响边界，未叠加计数或当作最终完整重跑。本轮新增验证是必要远端CI及绑定/状态回读，没有重复跑本地成功测试或新派复核。旧证据JSON/原始日志原值保留，main只登记维护文档，原应用和其他工作树不被覆盖。
+
+S1.5.2/S1.5.3保持不适用。CI不补足付费供应商、新CC→worker→SQL→页面整体E2E、生产覆盖或回滚恢复证明；未新增迁移，现有完整运行树兼容owner对本批12路径正反向拒绝E_COMPATIBILITY的限制保持，未放行部署工具。未合并、镜像发布、生产部署、SSH或数据库恢复；无新版本/digest/rollback ID。S1.5.5本地记录状态保持完成并补齐当前候选远端门禁，可选S5.1未排期、不自动进入。
+
+原始远端JSON、job日志、推送结果与工作树/文档快照位于 `/Users/sc/.codex/validation/sub2api-kin/20261010-s15-remote-gates`。可审查[远端门禁](evidence/s1.5.5-remote-gates.json)、[复用输入](evidence/s1.5.5-remote-reused-evidence.json)、[文档及保留检查](evidence/s1.5.5-remote-document-checks.json)、[当前覆盖](coverage.md#s15-候选远端门禁补充)及[交付边界](delivery.md#s15-候选远端门禁)。

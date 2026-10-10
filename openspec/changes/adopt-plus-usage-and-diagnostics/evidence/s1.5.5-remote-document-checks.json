@@ -1,0 +1,139 @@
+{
+  "task": "S1.5.5",
+  "scope": "候选远端门禁",
+  "status": "passed",
+  "application_sha": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "checks": {
+    "main": {
+      "document_hashes": {
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": "c0e4c33325f1c6ad4ae93a5e0b362d0b0de447ded793dcaf157320519932d105",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": "3407463ff1f9de334bc8e92a22d09ca3e768a02b4526fd4719bd70a13abda41d",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md": "128ad29138e0eb40a59e9123c9131f9af83084383be277221fb18d58f1915a97",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": "cd842e026ccbdd3095e4274d67b30f48cd390332dc50b34249d236cfd6416ea0",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": "06ad65d8709d8c9259997967189093980e29d87eb856a28815b0948da0282463",
+        "docs/dev-journal.md": "766b481869f747d33e22e775be56bd38773e5582611af3e851b8b7f3b8e398f1"
+      },
+      "task_checkboxes_unchanged": true,
+      "not_applicable_preserved": true,
+      "S5_pending": true,
+      "prior_coverage_delivery_implementation_and_journal_preserved": true,
+      "added_local_links_and_anchors_valid": true,
+      "diff_check_exit_code": 0,
+      "new_evidence_matches_authoritative_copy": true
+    },
+    "application": {
+      "document_hashes": {
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": "e47faee83bcf378101edbb17a21f5c04c09b6cc1a6adcd7cf3f358c7f15f151a",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": "ef00d87fc431cc92ee5151faad7ff51b9aa0b8dd0e6ca9fd4ccac98a6a395eb2",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md": "128ad29138e0eb40a59e9123c9131f9af83084383be277221fb18d58f1915a97",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": "2243ebbbc9e97b60551c9b1d96a3833d857f8f0c8a2c9b51f7f830ee27a98913",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": "33a8b10ac0fe24f0e8d3180f2bc79590ebe12cffa0251cd6cfeb0dbefff80951",
+        "docs/dev-journal.md": "79297169f5d4d580c1a186aaaae9d24da9976d7c5691a38b6e2eb466af812480"
+      },
+      "task_checkboxes_unchanged": true,
+      "not_applicable_preserved": true,
+      "S5_pending": true,
+      "prior_coverage_delivery_implementation_and_journal_preserved": true,
+      "added_local_links_and_anchors_valid": true,
+      "diff_check_exit_code": 0,
+      "new_evidence_matches_authoritative_copy": true
+    },
+    "original": {
+      "document_hashes": {
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": "45c370089d447e3cb0410c4003b04047b08bf0ea9f348d12a002202b82345d38",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": "3300123900206981d1817d7971be1f791a74993c47d70b8448352ddf2f63e7ac",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md": "128ad29138e0eb40a59e9123c9131f9af83084383be277221fb18d58f1915a97",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": "2243ebbbc9e97b60551c9b1d96a3833d857f8f0c8a2c9b51f7f830ee27a98913",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": "8e237d07cec13e06f75e87363ea8e2a5a8b7b5d2994e464190b92d899f27ba2b",
+        "docs/dev-journal.md": "4b30dbc4f076b7dae2967f2c6449d66f3bb3de30f96066fa1e31c816a9727baf"
+      },
+      "task_checkboxes_unchanged": true,
+      "not_applicable_preserved": true,
+      "S5_pending": true,
+      "prior_coverage_delivery_implementation_and_journal_preserved": true,
+      "added_local_links_and_anchors_valid": true,
+      "diff_check_exit_code": 0,
+      "new_evidence_matches_authoritative_copy": true
+    }
+  },
+  "worktree_preservation": [
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "branch": "codex/ci-validation-scope",
+      "previous_dirty_entries": 0,
+      "current_dirty_entries": 0,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "branch": "codex/fix-version-usage-help",
+      "previous_dirty_entries": 136,
+      "current_dirty_entries": 139,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/kin-s44-release-control/sub2api-kin",
+      "head": "f5c4c3304106040a01a32c5e6d4ff18f3ec49930",
+      "branch": "codex/kin-s44-production-delivery",
+      "previous_dirty_entries": 0,
+      "current_dirty_entries": 0,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin",
+      "head": "87bfcdf791d0ec4b659c3b2325764dab7e2a932c",
+      "branch": "codex/plus-chat-timing-s151-evidence",
+      "previous_dirty_entries": 0,
+      "current_dirty_entries": 9,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin",
+      "head": "1ae266791d0ab324cd13a63ab344019c79102176",
+      "branch": "codex/plus-chat-timing-s151",
+      "previous_dirty_entries": 25,
+      "current_dirty_entries": 28,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "head": "dbb46705b7dd9e933355ff186df7214c4a9b7723",
+      "branch": "codex/plus-status-demand-s41",
+      "previous_dirty_entries": 23,
+      "current_dirty_entries": 23,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "head": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+      "branch": "codex/plus-routing-delivery-s36",
+      "previous_dirty_entries": 20,
+      "current_dirty_entries": 20,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "head": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+      "branch": "codex/plus-service-status-s43",
+      "previous_dirty_entries": 13,
+      "current_dirty_entries": 13,
+      "unrelated_dirty_files_preserved": true,
+      "authorized_document_updates_only": true
+    }
+  ],
+  "old_source_and_evidence_unchanged": true,
+  "no_new_application_commit": true,
+  "no_merge_image_release_production_deploy_or_next_task": true,
+  "pre_document_commit_snapshot": true,
+  "diff_inspection": "已检查6文件实际diff及3份新证据的实际内容；无越界改动、源码覆盖、凭据暴露或无关格式改变",
+  "validation_note": "首次链接检查因自引检查产物尚未生成而失败；明确调整生成/回读顺序后通过，未修改应用源码或重跑CI。"
+}
