@@ -179,7 +179,16 @@ func (o *responsesOutputTiming) observeEvent(payload []byte, eventType string, a
 			if code == "" {
 				code = gjson.GetBytes(payload, "error.code").String()
 			}
-			reason = ServiceStatusProviderReason(0, code)
+			// 只采纳直接上游原帧中明确的数字 HTTP 状态，不猜测错误文本或客户端合成状态。
+			providerStatus := 0
+			for _, path := range []string{"response.error.status_code", "response.error.status", "error.status_code", "error.status"} {
+				value := gjson.GetBytes(payload, path)
+				if value.Type == gjson.Number && value.Num >= 100 && value.Num <= 599 && value.Num == float64(int(value.Num)) {
+					providerStatus = int(value.Num)
+					break
+				}
+			}
+			reason = ServiceStatusProviderReason(providerStatus, code)
 		}
 		o.finishStatusAt(status, at, reason)
 	}

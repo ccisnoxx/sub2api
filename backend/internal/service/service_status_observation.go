@@ -313,7 +313,7 @@ func ServiceStatusProviderReason(status int, code string) string {
 		return "provider_quota"
 	case "invalid_api_key", "authentication_error":
 		return "provider_authentication"
-	case "rate_limit_exceeded", "server_overloaded", "overloaded_error":
+	case "rate_limit_exceeded", "server_overloaded", "overloaded_error", "server_is_overloaded", "slow_down":
 		return "provider_capacity"
 	case "context_length_exceeded":
 		return "user_context_limit"

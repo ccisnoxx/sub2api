@@ -144,6 +144,83 @@ func TestServiceStatusSourceReasonRequiresActualOwner(t *testing.T) {
 	require.Empty(t, ServiceStatusLocalErrorReason("some quota text"))
 }
 
+func TestServiceStatusSourceRawCapacityTerminalCodes(t *testing.T) {
+	for _, code := range []string{"server_is_overloaded", "slow_down"} {
+		for _, eventType := range []string{"response.failed", "error"} {
+			t.Run(eventType+"/"+code, func(t *testing.T) {
+				ctx := WithServiceStatusRequest(context.Background(), 1)
+				start := time.Now().UTC()
+				observer := newResponsesOutputTiming(ctx, start, &Account{Platform: PlatformOpenAI})
+				defer observer.stop()
+				errorFields := map[string]any{"code": code}
+				frame := map[string]any{"type": eventType}
+				if eventType == "response.failed" {
+					frame["response"] = map[string]any{"status": "failed", "error": errorFields}
+				} else {
+					frame["error"] = errorFields
+				}
+				payload, err := json.Marshal(frame)
+				require.NoError(t, err)
+				observer.observeEvent(payload, "", start.Add(time.Millisecond))
+				fact := observer.snapshot(false).ServiceStatusObservation
+				require.NotNil(t, fact)
+				require.Equal(t, CompletionStatusUpstreamError, *fact.TerminalKind)
+				require.Equal(t, "provider_capacity", *fact.ReasonCode, "按原始上游稳定码归因，不依赖客户端改写或HTTP状态")
+				stored := MarshalServiceStatusObservation(fact)
+				require.NotNil(t, stored)
+				decoded, err := DecodeServiceStatusObservation([]byte(*stored))
+				require.NoError(t, err)
+				require.Equal(t, fact, decoded)
+			})
+		}
+	}
+}
+
+func TestServiceStatusSourceExplicitRawTerminalStatus(t *testing.T) {
+	for _, eventType := range []string{"response.failed", "error"} {
+		for _, tc := range []struct {
+			name, field string
+			status      any
+			want        string
+		}{
+			{"status_code_500", "status_code", 500, "provider_5xx"},
+			{"status_503", "status", 503, "provider_5xx"},
+			{"missing", "", nil, "unclassified"},
+			{"string_is_not_status", "status_code", "500", "unclassified"},
+			{"fraction_is_not_status", "status", 500.5, "unclassified"},
+		} {
+			t.Run(eventType+"/"+tc.name, func(t *testing.T) {
+				ctx := WithServiceStatusRequest(context.Background(), 1)
+				start := time.Now().UTC()
+				observer := newResponsesOutputTiming(ctx, start, &Account{Platform: PlatformOpenAI})
+				defer observer.stop()
+				errorFields := map[string]any{"code": "server_error"}
+				if tc.field != "" {
+					errorFields[tc.field] = tc.status
+				}
+				frame := map[string]any{"type": eventType}
+				if eventType == "response.failed" {
+					frame["response"] = map[string]any{"status": "failed", "error": errorFields}
+				} else {
+					frame["error"] = errorFields
+				}
+				payload, err := json.Marshal(frame)
+				require.NoError(t, err)
+				observer.observeEvent(payload, "", start.Add(time.Millisecond))
+				fact := observer.snapshot(false).ServiceStatusObservation
+				require.NotNil(t, fact)
+				require.Equal(t, CompletionStatusUpstreamError, *fact.TerminalKind)
+				require.Equal(t, tc.want, *fact.ReasonCode)
+				stored := MarshalServiceStatusObservation(fact)
+				require.NotNil(t, stored)
+				decoded, err := DecodeServiceStatusObservation([]byte(*stored))
+				require.NoError(t, err)
+				require.Equal(t, fact, decoded)
+			})
+		}
+	}
+}
+
 func TestServiceStatusSourceFinalOwnerPreservesS1AndDoesNotGuessOpsStatus(t *testing.T) {
 	ctx := WithServiceStatusRequest(context.Background(), 0)
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
