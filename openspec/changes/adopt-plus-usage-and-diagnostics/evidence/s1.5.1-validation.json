@@ -1,0 +1,294 @@
+{
+  "task": "S1.5.1",
+  "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "validation_root": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151",
+  "final_inputs": {
+    "backend/internal/service/openai_gateway_cc_pipeline.go": "e319290fdc0e7ca60c502213d660519bbf3e4d240a6cc43bdb452feba804f53f",
+    "backend/internal/service/openai_gateway_chat_completions.go": "56f14abf89f9a9eec73d6b47ed2cdeefc156f5ceb2abd34d1b5fbbf1c3d32f7a",
+    "backend/internal/service/openai_gateway_chat_completions_raw.go": "a2120da74ba8ae24571e5b5ff317641ff4107a647ae778851ba06baa93e29f54",
+    "backend/internal/service/openai_gateway_grok_chat_bridge_test.go": "871754285bdbcc64ebf0f25862aa5b549d7a55bbebb2e1f549753025d9d5cbd5",
+    "backend/internal/service/openai_gateway_grok_test.go": "800fbf229f31ed837d36df2061f8aec7ff92c66dc19e9a68c6bbff88e42aa667",
+    "backend/internal/service/openai_gateway_messages.go": "8dc0ad6b64048989a6e79ba50f8f06a8d8dc677b75f14f71fb56ef4ed919aeea",
+    "backend/internal/service/openai_gateway_passthrough_function_args_test.go": "9b9de35a144a73c2a3dbb43ae133ec9069282e7cd2ee91f945ace58f10215cf0",
+    "backend/internal/service/openai_gateway_responses_chat_fallback.go": "5c7c6cf2304f39f611468d0c4c369931a11a980ee0e72fa6424e302d02cefe7c",
+    "backend/internal/service/stream_output_timing.go": "b4b2881c60cdfacd498b0164a7491addd3a668f9e23c40ca46d562d9a6d936b2",
+    "backend/internal/service/chat_output_timing.go": "a07a400f40ff12f6aa2e04be98344aa58a31cac7ecfa7b21a6257812662800dc",
+    "backend/internal/service/chat_output_timing_test.go": "1526ffaf13c8365a932b464a0b97337df1cd6c5e0e55fc66e8edbdd0b1addaa5",
+    "backend/internal/service/chat_usage_timing_test.go": "044bf1dc3ba197959bb3a48d35a6d9997b920d15b23749f27d86b6be34f15939"
+  },
+  "checks": [
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-before-corrected.log",
+      "sha256": "a0a79b13acd45fe7a15bb421b2fdfe2c7d5f5b2ee4b0531f4d9bd06ac3ff384e",
+      "commands": [
+        "go test -tags=unit -overlay /var/folders/m5/j06tv2sn1hn93d6f33j559jm0000gn/T/s151-before-o8p5n20q/overlay.json ./internal/service -run ^TestChatUsageTiming_ForwardOwners$ -count=1"
+      ],
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 1"
+      ],
+      "package_results": [],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "旧源码六项预期红；TimingVersion=0违反新增observable合同",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-before.log",
+      "sha256": "2dde9a57c8e3f8fa8c3b38bb66eff789cfc0dd2017c076b7af8b35bf9392a3f8",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^TestChatUsageTiming_ForwardOwners$ -count=1"
+      ],
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 1"
+      ],
+      "package_results": [],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "测试夹具路径/header/Extra配置错误，非有效产品红证据",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-extra-boundaries.log",
+      "sha256": "64b9d6756320b113c3508c5befc9c64a68d6b3166e6c22d7710903048ad117d4",
+      "commands": [
+        "go test -json -race -tags=unit ./internal/service -run ^TestChatUsageTiming_(UsageOnlyDoesNotInventOutput|ForwardAttemptsStayIsolated|InvalidAliasAudioRemainsUnknown)$ -count=1"
+      ],
+      "pass_top_level": 3,
+      "pass_including_subtests": 9,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ],
+      "package_results": [
+        {
+          "action": "pass",
+          "package": "github.com/Wei-Shaw/sub2api/internal/service"
+        }
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "追加usage-only/attempt隔离/非法audio race通过",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-final-diff.log",
+      "sha256": "9343b549e42bd776bf7274fec16472cc941dae80f581caab662f0d18d19c56ab",
+      "commands": [
+        "git diff --check"
+      ],
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ],
+      "package_results": [],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "初版应用diff检查通过",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-forward.log",
+      "sha256": "a45fe05389e62005bf86e69a6273bc480c98f284802a842e1dcc257b1a82844d",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^TestChatUsageTiming_ForwardOwners$ -count=1"
+      ],
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ],
+      "package_results": [],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "新源码六种Forward协议组合通过",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-race.log",
+      "sha256": "229c033e8eb62f7608dc946ec987975512736364ae1cf369b43bbfcfb922c869",
+      "commands": [
+        "go test -json -race -tags=unit ./internal/service -run ^Test(ChatOutputTiming_|ChatUsageTiming_|ResponsesOutputTiming_) -count=1"
+      ],
+      "pass_top_level": 20,
+      "pass_including_subtests": 115,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ],
+      "package_results": [
+        {
+          "action": "pass",
+          "package": "github.com/Wei-Shaw/sub2api/internal/service"
+        }
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "最终定向race通过",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-regression.log",
+      "sha256": "a0104d0a86eff34c5f236bbff573eb0b5b069d1d453fff7b032621f587987958",
+      "commands": [
+        "go test -json -tags=unit ./internal/service -run ^Test(ChatOutputTiming_|ChatUsageTiming_|ForwardAsRawChatCompletions_|ForwardAsChatCompletions_|HandleChatStreamingResponse_|ForwardResponses_|ForwardAsAnthropic_ForceChatCompletions|ChatCompletionsBufferedResponses|AnthropicBufferedResponsesReadErrorKeepsExistingBehavior|ForwardGrokChat|ForwardAsChatCompletionsForGrokComposerBridgesImageInput|ForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle|ResponsesOutputTiming_|ResponsesUsageTiming_HTTP) -count=1"
+      ],
+      "pass_top_level": 124,
+      "pass_including_subtests": 271,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ],
+      "package_results": [
+        {
+          "action": "pass",
+          "package": "github.com/Wei-Shaw/sub2api/internal/service"
+        }
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "最终定向回归通过",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-targeted-corrected.log",
+      "sha256": "6588b0ab3e4b1b8ae7f62955b61006a2b54fc24c283cdc392d06e6ec793bf2d3",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^(TestChatOutputTiming_|TestChatUsageTiming_|TestForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle) -count=1"
+      ],
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ],
+      "package_results": [],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "修正后的定向检查通过",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/implementation-targeted.log",
+      "sha256": "19dc1e5077cc89c53ab69ed9a0852d55f6e1870d9edbe7de16de687b742427b5",
+      "commands": [
+        "go test -tags=unit ./internal/service -run ^(TestChatOutputTiming_|TestChatUsageTiming_|TestForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle) -count=1"
+      ],
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 1"
+      ],
+      "package_results": [],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "测试误认旧owner EOF/read_error返回error，修正断言以保留原合同",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/review-audio-alias-red.log",
+      "sha256": "8cd3fb9e87f993d963c1de2bdbef728d834fd2d58dcb91476491ef0879f3b47f",
+      "commands": [
+        "go test -json -tags=unit ./internal/service -run ^TestChatUsageTiming_PartialAudioAliasSurvivesFinalMissingSplit$ -count=1"
+      ],
+      "pass_top_level": 0,
+      "pass_including_subtests": 0,
+      "fail_top_level": 1,
+      "fail_including_subtests": 5,
+      "exit_lines": [
+        "exit_code: 1"
+      ],
+      "package_results": [
+        {
+          "action": "fail",
+          "package": "github.com/Wei-Shaw/sub2api/internal/service"
+        }
+      ],
+      "candidate_inputs": "implementation-pre-review-inputs.json",
+      "classification": "首轮P2四组合预期红，NULL断言失败",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    },
+    {
+      "artifact": "/Users/sc/.codex/validation/sub2api-kin/20261010-s151/review-audio-alias-green.log",
+      "sha256": "f4307805af6340e36cd990a5b5d05383243c17b82a02f11ee28ae486a3c23a7c",
+      "commands": [
+        "go test -json -race -tags=unit ./internal/service -run ^TestChatUsageTiming_(PartialAudioAliasSurvivesFinalMissingSplit|ResponsesAcceptedUsage|InvalidAliasAudioRemainsUnknown|ProtocolOwnersFailuresAndDrain|UncollectedMessagesStayLegacy|ForwardOwners|ProtocolOwnersContent|UsageOnlyDoesNotInventOutput|ForwardAttemptsStayIsolated)$ -count=1"
+      ],
+      "pass_top_level": 9,
+      "pass_including_subtests": 69,
+      "fail_top_level": 0,
+      "fail_including_subtests": 0,
+      "exit_lines": [
+        "exit_code: 0"
+      ],
+      "package_results": [
+        {
+          "action": "pass",
+          "package": "github.com/Wei-Shaw/sub2api/internal/service"
+        }
+      ],
+      "candidate_inputs": "implementation-final-inputs.json",
+      "classification": "P2修正后受影响范围race9顶层/69含子例通过",
+      "cwd": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin/backend"
+    }
+  ],
+  "initial_inputs": {
+    "backend/internal/service/openai_gateway_cc_pipeline.go": "e319290fdc0e7ca60c502213d660519bbf3e4d240a6cc43bdb452feba804f53f",
+    "backend/internal/service/openai_gateway_chat_completions.go": "56f14abf89f9a9eec73d6b47ed2cdeefc156f5ceb2abd34d1b5fbbf1c3d32f7a",
+    "backend/internal/service/openai_gateway_chat_completions_raw.go": "a2120da74ba8ae24571e5b5ff317641ff4107a647ae778851ba06baa93e29f54",
+    "backend/internal/service/openai_gateway_grok_chat_bridge_test.go": "871754285bdbcc64ebf0f25862aa5b549d7a55bbebb2e1f549753025d9d5cbd5",
+    "backend/internal/service/openai_gateway_grok_test.go": "800fbf229f31ed837d36df2061f8aec7ff92c66dc19e9a68c6bbff88e42aa667",
+    "backend/internal/service/openai_gateway_messages.go": "8dc0ad6b64048989a6e79ba50f8f06a8d8dc677b75f14f71fb56ef4ed919aeea",
+    "backend/internal/service/openai_gateway_passthrough_function_args_test.go": "9b9de35a144a73c2a3dbb43ae133ec9069282e7cd2ee91f945ace58f10215cf0",
+    "backend/internal/service/openai_gateway_responses_chat_fallback.go": "5c7c6cf2304f39f611468d0c4c369931a11a980ee0e72fa6424e302d02cefe7c",
+    "backend/internal/service/stream_output_timing.go": "b4b2881c60cdfacd498b0164a7491addd3a668f9e23c40ca46d562d9a6d936b2",
+    "backend/internal/service/chat_output_timing.go": "c871a7fc618894bf633877710d9263152f8d16ba84b6e9f02aa078f7d2db3da7",
+    "backend/internal/service/chat_output_timing_test.go": "1526ffaf13c8365a932b464a0b97337df1cd6c5e0e55fc66e8edbdd0b1addaa5",
+    "backend/internal/service/chat_usage_timing_test.go": "26b94c73783dcba581f47f33ae38d198b2ea2034b83ee415d48bfd40812daba5"
+  },
+  "parent_fix": {
+    "owner": "主代理",
+    "reason": "首轮独立P2阻断",
+    "changed_files": [
+      "backend/internal/service/chat_output_timing.go",
+      "backend/internal/service/chat_usage_timing_test.go"
+    ],
+    "pre_inputs": "implementation-pre-review-inputs.json",
+    "final_inputs": "implementation-final-inputs.json",
+    "red": "review-audio-alias-red.log",
+    "green": "review-audio-alias-green.log",
+    "source_change": "仅新Chat helper非terminal实际接受usage纳入audio别名；Token parser/全局Responses core不变"
+  },
+  "reuse_within_session": "P2仅修改Chat接受usage helper与新增测试；修正前成功证据只在未受影响的owner/合同上复用，最终受影响范围race9/69重新验证",
+  "counts_note": "顶层/含子用例为同批两种计数，不相加；多个命令筛选有重叠",
+  "observable_boundary": "本地服务Forward/协议owner与HTTP upstream fixture；未请求真实供应商",
+  "validated_contracts": [
+    "严格输出与metadata/role/name/usage/DONE区分",
+    "JSON完整内容观察时刻",
+    "多choice/finish_reason与真实Responses终态",
+    "first-terminal冻结与取消/write失败后drain",
+    "最终接受usage对象/音频NULL替换",
+    "attempt隔离",
+    "旧Messages v0与既有返回/Token/Grok桥行为",
+    "未变Responses共享core回归"
+  ],
+  "reused_evidence": "s1.5.1-reused-evidence.json",
+  "independent_review": "s1.5.1-reviews.json",
+  "not_run": [
+    "真实供应商付费请求",
+    "新增数据库/迁移/真实JWT/浏览器全流程",
+    "完整回归或完整E2E/浏览器矩阵",
+    "本候选远端CI与release/deploy门禁"
+  ],
+  "not_run_reason": "未变下游按输入与合同复用；本轮仅协议采集与转换；S1.5.4/5尚未执行且用户禁止本轮合并/发布/部署",
+  "external_actions": "无push/PR更新/新CI/SSH/合并/镜像发布/生产部署"
+}

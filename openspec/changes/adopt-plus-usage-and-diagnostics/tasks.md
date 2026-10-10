@@ -1,8 +1,10 @@
 # KIN 借鉴 Plus 功能任务清单
 
+- 本轮状态（2026-10-10，S1.5.1）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
+- 本轮工作位置：应用 `codex/plus-chat-timing-s151`，仅使用personal应用源码；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`。旧快照及原未提交应用改动保留；既往S4.4完成状态以本轮main证据树的记录为准。
 - 对应方案：[plan.md](plan.md)。
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 当前状态：S0.1–S0.3、S1.1–S1.4、S2.1–S2.7、S3.1–S3.6及S4.1–S4.4完成。PR #7累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`已合入personal，最终SHA`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的[必要CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)全部11项成功；正式[版本0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)与固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`已发布。生产原生部署记录`20261010T120908Z-b497b80ee8a6`成功，仅替换应用并追加251–254迁移，PG/Redis身份保持；S4先关闭核对真实终态，再以默认阈值开启v2。12:19–12:24UTC实际窗口成功10/失败0/排除0/未知0，水位12:24UTC无错误；有请求分组显示已观察样本正常，无近期请求分组及全站摘要保持未知。独立复核确认问题已关闭，先前中断worker的审计终态缺口明确保留。S1.5和S5未开始；下一项S1.5.1不自动执行。
+- 历史状态（上一轮快照）：S0.1–S0.3、S1.1–S1.4、S2.1–S2.7、S3.1–S3.6及S4.1–S4.4完成。PR #7累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`已合入personal，最终SHA`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的[必要CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)全部11项成功；正式[版本0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)与固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`已发布。生产原生部署记录`20261010T120908Z-b497b80ee8a6`成功，仅替换应用并追加251–254迁移，PG/Redis身份保持；S4先关闭核对真实终态，再以默认阈值开启v2。12:19–12:24UTC实际窗口成功10/失败0/排除0/未知0，水位12:24UTC无错误；有请求分组显示已观察样本正常，无近期请求分组及全站摘要保持未知。独立复核确认问题已关闭，先前中断worker的审计终态缺口明确保留。S1.5和S5未开始；下一项S1.5.1不自动执行。
 - `[x]` 表示本任务的交付与验证已经完成；`[ ]` 表示待执行。已具备的旧候选不等于本计划的新功能完成。
 - 每项勾选时记录最终候选 SHA、验证结果、覆盖入口及限制；涉及线上动作时另记真实版本和 digest。
 
@@ -63,7 +65,7 @@
 
 ### S1.5 第二批采集与交付
 
-- [ ] **S1.5.1 接入 Chat Completions 及转换链路。**按覆盖表实现，确认 Token、reasoning/tool 输出与最终用量归属。
+- [x] **S1.5.1 接入 Chat Completions 及转换链路。**按覆盖表实现，确认 Token、reasoning/tool 输出与最终用量归属。应用 `1ae266791d0ab324cd13a63ab344019c79102176`；raw CC JSON/SSE、CC ↔ Responses 双向转换及复用Grok桥，严格内容/终态/usage/audio及attempt隔离验证完成；初版124顶层/271含子用例、race20/115和追加3/9通过；音频P2修正后受影响范围race9/69通过，fresh只读复核完成。旧DTO/SQL/计费/页面/导出证据按未变边界复用；未接入Anthropic及Gemini/媒体保留后续任务。见[覆盖](coverage.md#s151-chat-completions-与转换链路)、[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)及[验证](evidence/s1.5.1-validation.json)。未push/新CI/合并/发布/部署。
 - [ ] **S1.5.2 接入 Anthropic。**覆盖实际启用的直连/透传/转换入口；确认协议开始事件与有效内容的区别。
 - [ ] **S1.5.3 接入 Gemini/Antigravity 及实际启用的媒体入口。**区分文本和媒体输出，音频统计未知不填零；未支持入口明确登记。
 - [ ] **S1.5.4 验证并复核第二批差异。**执行对应协议/用量测试，独立复核新增入口的采集、结算与异步归属；未变化的第一批证据可复用。

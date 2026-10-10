@@ -1,0 +1,57 @@
+{
+  "task": "S1.5.1",
+  "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "accepted": true,
+  "remaining_confirmed_findings": 0,
+  "summary": "两次fresh独立只读复核完成；首轮音频别名P2由主代理修正并以4组合红绿/最终race9顶层69含子例关闭，最终未确认新增问题。",
+  "reviews": [
+    {
+      "task": "S1.5.1",
+      "reviewer": "critical_reviewer",
+      "runtime_ref": "/root/chat_review",
+      "scope": "12冻结输入与必要owner/caller，终态/取消/usage/audio/attempt/异步Clone/共享Messages/Grok",
+      "reviewer_writes_observed": false,
+      "findings": [
+        {
+          "priority": "P2",
+          "file": "backend/internal/service/chat_output_timing.go",
+          "line": 281,
+          "trigger": "非terminal已接受的CC audio别名为正，最终usage缺拆分",
+          "impact": "AudioOutputTokens错误填零，本应NULL的文本TPS被视作可计算；Token和费用不变",
+          "fix": "在实际接受的部分usage对象处观察audio别名；stream/buffer回归验证",
+          "status": "主代理修正，fresh独立复核确认关闭"
+        }
+      ],
+      "evidence": "代码条件确认；未重复测试；开始/结束12文件指纹一致",
+      "coverage_gaps": [
+        "真实provider付费请求",
+        "新SQL/JWT/E2E/全量发布门禁",
+        "Anthropic/Gemini/独立媒体入口"
+      ]
+    },
+    {
+      "reviewer": "critical_reviewer",
+      "runtime_ref": "/root/audio_fix_review",
+      "findings": [],
+      "closed_findings": [
+        "首轮部分CC音频别名→最终缺拆分被误填零P2"
+      ],
+      "scope": "typed terminal覆盖/通用parser接受顺序/零终态保持/部分正音频持续事实/NULL与别名/stream-buffer caller/Token费用错误保持",
+      "source_inputs": "implementation-final-inputs.json",
+      "start_end_inputs_match": true,
+      "writes_observed": false,
+      "evidence": "review-audio-alias-red.log四组合NULL断言按预期红；review-audio-alias-green.log 9顶层/69含子例PASS exit0；源码接受点独立检查",
+      "coverage_gaps": [
+        "真实provider付费请求",
+        "新增SQL/JWT/E2E/完整发布门禁",
+        "无typed零终态及data包装仅合同/源码复核，未新增专用执行",
+        "Anthropic/Gemini/独立媒体入口"
+      ]
+    }
+  ],
+  "parent_fix": "parent-fix.json",
+  "initial_regression_reuse_boundary": "初版124/271、race20/115、extra3/9仅在未受P2两文件修正影响边界复用，不是最终完整重跑",
+  "audit_id": "20261010T124536Z-kin-plus-chat-timing-s151-8eafe6a1",
+  "self_review_not_counted_as_independent": true,
+  "runtime_model_not_claimed": true
+}

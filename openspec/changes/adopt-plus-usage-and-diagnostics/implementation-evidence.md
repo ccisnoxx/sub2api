@@ -767,3 +767,46 @@ PR #7的候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`全部必要CI通过，2
 S0.2、S0.3与S4.4/四个子任务现全部勾选。最终应用保持personal固定SHA；main仅登记工具/证据/任务与开发日志，原应用13项未提交改动及四个无关工作树保留。下一项为S1.5.1“接入Chat Completions及转换链路”，本会话不开始；S5未排期。定时同步的上游祖先检查失败仍为独立维护项，没有为本次固定来源绕过检查。
 
 最终文档JSON/本地文件链接/任务勾选及改动保留核对通过，见[文档检查](evidence/s4.4-final-document-checks.json)。实际staged diff仅main任务/证据/日志，未包含应用或工具源码，已检查私密凭据值与生产身份未暴露。新版启动后当前生产浏览器会话记录的应用错误0、扩展错误0；其范围仅已访问页面，不声称所有页面矩阵。
+
+## S1.5.1 Chat Completions 与转换链路
+
+### 基线、工作位置与保留
+
+本轮仅执行 S1.5.1。先读取用户指定 `fix-version-usage-help` 的 plan/tasks/journal，再核对最新 personal、main、相关候选和未提交改动。指定目录仍为旧 `9397eb8af` 加未提交应用修复，进度停在 S4.4.1；最新 main 已登记 S4.4 完成，因此不能直接在那里用旧应用续改。
+
+- 应用从 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 创建 `/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin`，分支 `codex/plus-chat-timing-s151`，最终本地应用提交 `1ae266791d0ab324cd13a63ab344019c79102176`。personal 与已交付 S4 候选 `d72a3dafbdcb1edb642fca8dcfb29a803eaa97af` 的完整 tree 相同；KIN 来源仍为 `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。
+- main 仅用于维护证据，从 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930` 创建 `/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin`，分支 `codex/plus-chat-timing-s151-evidence`；没有使用 main 维护应用源码实现新采集。
+- 原指定目录的17项应用改动及其他历史候选保持；本轮只增量更新指定目录、当前 personal 候选及 main 证据树的计划/任务/覆盖/执行证据/日志，旧日志完整保留。其他任务勾选不改；历史快照明确标识，完整既往交付以当前 main 证据为准。
+- AGENTS 引用的 `docs/conventions/codex-outbound-identity.md` 和 `docs/tasks/` 在本地仓库及相关工作树未找到，已如实登记；本轮不修改出站身份或账号 extra。
+
+### 完成内容及合同
+
+新增 CC 内容观察器，沿用原 startTime，为 raw CC JSON/SSE、Responses→CC→Responses 和 CC→Responses→CC 的实际 owner 接入 UsageTiming v1；复用这些 owner 的 Grok 桥一并验证。采集非空 text/reasoning/tool 参数，严格排除 role/name/metadata/usage/DONE；JSON 时点表示完整结果观察时刻。CC n choices 和各 finish_reason、真实 Responses 终态决定完成状态；合成 completed 不能掩盖原始上游中断。
+
+终态、客户端断连与最终用量来源分开：第一次终态冻结，取消或写失败后仍可 drain 取得 final usage。音频拆分随原 parser 最终接受对象整体替换，未知/非法不填零；Grok Composer 聚合多个上游用量无法确认单一来源时为 unknown / NULL。新 collector 每次尝试独立、深复制结果，沿用 handler 和 RecordUsage 的异步前 Clone。共享 reader 的 observer 可选，未接入 Messages 保持 version 0。
+
+实际 diff 为 backend service 12文件，未改 Token 计算、计费、调度、错误返回、迁移、DTO 或前端。失败无 usage 时不新增用量行。逐入口范围和未支持路径见[覆盖补充](coverage.md#s151-chat-completions-与转换链路)；候选源码指纹见[候选清单](evidence/s1.5.1-candidate.json)。
+
+### 验证与证据复用
+
+| 检查 | 结果 | 证明范围 |
+|---|---|---|
+| 同一 ForwardOwners 测试覆盖旧源码 / 新源码 | 旧实现三链路 × JSON/SSE 共6项均因 timing_version 0 按预期失败；新实现通过 | 新回归保护实际缺失的 ForwardResult 采集合同；通过 Go overlay 恢复旧源码，不改受保护工作树 |
+| 音频P2修正前协议/转换/用量/既有桥定向回归 | 124顶层、271含子用例 PASS，exit 0；修正后只复用未受影响边界 | text/reasoning/tool、n choices、EOF/读错/取消/drain、最终usage接受点、Grok、原Responses及未接入Messages合同 |
+| 音频P2修正前 collector 与终态定向 race | 20顶层、115含子用例 PASS，exit 0 | CC、新转换与未变Responses公共计时core、快照和取消排序 |
+| 音频P2修正前追加边界定向 race | 3顶层、9含子用例 PASS，exit 0 | usage-only不造首/末；同服务失败→成功attempt隔离；非法audio别名仍NULL |
+| 音频P2回归红绿与受影响范围 race | 修正前4组合NULL断言失败；修正后9顶层/69含子用例PASS，exit 0 | CC入站/Responses上游的流式与buffer、top/nested正音频别名→最终缺拆分保持NULL；Token/source/终态和共享caller保持 |
+| 实际 diff 与输入检查 | git diff --check通过，12源码输入绑定最终本地提交 | 改动仅限本轮owner和保护测试，无生成物/依赖/无关格式变化 |
+| DTO、页面和导出复用 | 18个S1输入中16完整一致；2份locale仅S2模型目录新增文案，S1用量文案不变；6份原日志SHA-256全部匹配 | 只证明未变DTO/页面/导出，未重跑浏览器、frontend build或新SQL |
+| 下游异步、计费与SQL边界 | 12个当前personal输入及依赖保持；当前personal旧CI/PG18兼容证据按原边界复用 | 不将旧CI/生产运行证明写作本轮新增采集的CI或真实供应商验收 |
+| fresh独立只读复核 | 两次fresh独立只读复核完成；首轮音频别名P2由主代理修正并以4组合红绿/最终race9顶层69含子例关闭，最终未确认新增问题。 | 终态/取消/异步快照、最终usage/音频、共享caller与跨转换实际diff；未将自查记为独立复核 |
+
+首轮独立复核确认部分usage的CC音频别名遗漏P2，主代理修正两文件后追加有效红绿并复验受影响范围；旧成功证据仅按未受影响owner复用，不把修正前完整筛选结果冒充修正后重跑。顶层与含子用例是同一批检查的两种计数，不相加；几批筛选有重叠，不宣称其和为不同测试总数。完整命令、cwd、原始日志、SHA、失败分类及复用边界见[验证清单](evidence/s1.5.1-validation.json)、[复用登记](evidence/s1.5.1-reused-evidence.json)和[复核](evidence/s1.5.1-reviews.json)。初次 red 测试夹具错误、targeted对旧owner error返回的错误预期均已定位修正，原日志保留，不计为产品缺陷或有效回归红证据。
+
+### 完成状态与下一项
+
+S1.5.1 本地实现与定向验证完成，仅勾选此项；S1.5.4 的第二批整体差异验证和 S1.5.5 的阶段交付未提前勾选。下一项为 **S1.5.2 接入 Anthropic**，本会话不自动进入。
+
+本轮没有 push、PR 更新、新CI、SSH、合并、镜像发布或生产部署。没有新增迁移，无数据库或部署环境变更。真实供应商付费请求、当前候选完整CI、数据库/JWT/页面整体新贯通均未执行；既有有效证据仅在输入及合同不变的边界复用。后续交付必须绑定届时最终候选，不能拿 personal 基线的旧CI或 `.5-tps.2` 生产记录替代本候选门禁。
+
+[子代理执行摘要](evidence/s1.5.1-subagent-digest.md)由本轮审计工具生成，audit_id `20261010T124536Z-kin-plus-chat-timing-s151-8eafe6a1`。最终保留、任务勾选和链接检查见[文档检查](evidence/s1.5.1-document-checks.json)。

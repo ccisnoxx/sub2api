@@ -1,0 +1,271 @@
+{
+  "task": "S1.5.1",
+  "frontend_dto_inputs": {
+    "backend/internal/handler/dto/mappers.go": {
+      "expected": "1cab891fae768f5f62043f2400f2f70059a55380e1b413f7fe9de2acf8e2b920",
+      "actual": "1cab891fae768f5f62043f2400f2f70059a55380e1b413f7fe9de2acf8e2b920",
+      "match": true
+    },
+    "backend/internal/handler/dto/mappers_usage_test.go": {
+      "expected": "30b2857fb9b6dc741496c6314b719c05916ef7f01674c795fda6df0c7f72b7fe",
+      "actual": "30b2857fb9b6dc741496c6314b719c05916ef7f01674c795fda6df0c7f72b7fe",
+      "match": true
+    },
+    "backend/internal/handler/dto/types.go": {
+      "expected": "77f98b7c2f8782c2836dafdc2c7d3176b78789b3e75f18af559c645e21948dc3",
+      "actual": "77f98b7c2f8782c2836dafdc2c7d3176b78789b3e75f18af559c645e21948dc3",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/UsageFirstToken.vue": {
+      "expected": "944931abd5503165669e6896d2e6b4b72d37562aa4e6387da446e22b27e07c38",
+      "actual": "944931abd5503165669e6896d2e6b4b72d37562aa4e6387da446e22b27e07c38",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/UsageTable.vue": {
+      "expected": "b74bcdf62d58edbe281d7223da1743e62193c7fc9c6d72dea5253bb44f1c6ad2",
+      "actual": "b74bcdf62d58edbe281d7223da1743e62193c7fc9c6d72dea5253bb44f1c6ad2",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/UsageTps.vue": {
+      "expected": "bb1cbed32bbbc37a0f3f001b701d92741b53609ca77e60a09be8c7c225983599",
+      "actual": "bb1cbed32bbbc37a0f3f001b701d92741b53609ca77e60a09be8c7c225983599",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/__tests__/UsageFirstToken.spec.ts": {
+      "expected": "8e6ced300a7989dfe149f87e98dec5409eabf070c31037f0383381c34de8f849",
+      "actual": "8e6ced300a7989dfe149f87e98dec5409eabf070c31037f0383381c34de8f849",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts": {
+      "expected": "58d603adcedcb65bd6c7d494db4daccf42f0268e4ae147d0cc4faa197508f21e",
+      "actual": "58d603adcedcb65bd6c7d494db4daccf42f0268e4ae147d0cc4faa197508f21e",
+      "match": true
+    },
+    "frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts": {
+      "expected": "48ffb9fa1b6fb11ed1cc692a10304319b7eea522530a3dd11af2f2fac5800e46",
+      "actual": "48ffb9fa1b6fb11ed1cc692a10304319b7eea522530a3dd11af2f2fac5800e46",
+      "match": true
+    },
+    "frontend/src/i18n/locales/en/dashboard.ts": {
+      "expected": "99456466ddef1a7c63a9475891852265f531a905d11bd768c303facc62d47628",
+      "actual": "c7ce3c403577905d2f74b254397d6309ae942a4401d65f4e0006f4589d99420e",
+      "match": false
+    },
+    "frontend/src/i18n/locales/zh/dashboard.ts": {
+      "expected": "bb39e41d8361268675801d84dd71194985ae49bf2b446d8d21bcf95a54da2bd5",
+      "actual": "5bf1dc843743d188b4e50b85d8da3b65e967cfd98a7f1e46a00c9cd7e4942165",
+      "match": false
+    },
+    "frontend/src/types/index.ts": {
+      "expected": "aee17cb611bfbf8624215b506ac0687f0ffa06d879dcbf775a02a6a455013a8f",
+      "actual": "aee17cb611bfbf8624215b506ac0687f0ffa06d879dcbf775a02a6a455013a8f",
+      "match": true
+    },
+    "frontend/src/utils/__tests__/usageTiming.spec.ts": {
+      "expected": "407c1e81ebfeea2f820357dbfbcc85d2fc633587b134ccd42014210ffbcca8fb",
+      "actual": "407c1e81ebfeea2f820357dbfbcc85d2fc633587b134ccd42014210ffbcca8fb",
+      "match": true
+    },
+    "frontend/src/utils/usageTiming.ts": {
+      "expected": "18a7484afa23bf7a92d502c1402e344d6e1774c1fd8c67988860147ff1fccf25",
+      "actual": "18a7484afa23bf7a92d502c1402e344d6e1774c1fd8c67988860147ff1fccf25",
+      "match": true
+    },
+    "frontend/src/views/admin/UsageView.vue": {
+      "expected": "c8bd2c5d2f8554abf9d1a0793ebaee114cc95ff05095fdf0ed5cb233307ef3a0",
+      "actual": "c8bd2c5d2f8554abf9d1a0793ebaee114cc95ff05095fdf0ed5cb233307ef3a0",
+      "match": true
+    },
+    "frontend/src/views/admin/__tests__/UsageView.spec.ts": {
+      "expected": "5bfa7426089d93290bded99f4d9d264c1007de7480e1926d8d97a0e786caa323",
+      "actual": "5bfa7426089d93290bded99f4d9d264c1007de7480e1926d8d97a0e786caa323",
+      "match": true
+    },
+    "frontend/src/views/user/UsageView.vue": {
+      "expected": "ce78fcda1117beff3310c3434a45a3ef991feed9a46724a8d7a682be4b6923ef",
+      "actual": "ce78fcda1117beff3310c3434a45a3ef991feed9a46724a8d7a682be4b6923ef",
+      "match": true
+    },
+    "frontend/src/views/user/__tests__/UsageView.spec.ts": {
+      "expected": "0a2a0614a99ca5910b9de1f1e912cfb357afe3727d80e710025d9be6c6b2b6e2",
+      "actual": "0a2a0614a99ca5910b9de1f1e912cfb357afe3727d80e710025d9be6c6b2b6e2",
+      "match": true
+    }
+  },
+  "selected_S1_artifacts": [
+    {
+      "name": "browser-mobile-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/browser-mobile-final.log",
+      "sha256": "6d19d427522e2f2ae48a04b3b5c1e5c199a114b14489ccbd29fcd3a04dc3b87a",
+      "bytes": 52,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "final-browser-tooltip-corrected.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-browser-tooltip-corrected.log",
+      "sha256": "503993b0edff4e4fa327baeb1590f40e174e855e68340ccc4c7b62e988b5fcb7",
+      "bytes": 106,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "final-build.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/final-build.log",
+      "sha256": "105e4da666269fc3486f55e1407ed70e0ba5518c59278937b7ee2badb3e4d7ca",
+      "bytes": 45073,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "frontend-commands.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-commands.log",
+      "sha256": "9ba8a2b769f9db8f595567a9ab33671a3f60ef7b3921079865e8b30e9b43e125",
+      "bytes": 3183,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "frontend-tests.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/frontend-tests.log",
+      "sha256": "477442676feb3fc71b5c3d60a839fdea66fd263072455127f8e473fc5745414a",
+      "bytes": 2778,
+      "present": true,
+      "match": true
+    },
+    {
+      "name": "storage-dto.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s1/storage-dto.log",
+      "sha256": "0927ebfd75d89a120f0d826f43d5f0ed51c8090a66890c0af53d65cab1ccf33f",
+      "bytes": 4270,
+      "present": true,
+      "match": true
+    }
+  ],
+  "downstream_inputs_at_current_personal": [
+    {
+      "path": "backend/internal/handler/openai_chat_completions.go",
+      "sha256": "ffb9b37776cbf8eaf01512f4a1ff94ddaa2a995e72b748eda913132c449e6c4b",
+      "base_blob": "7d9664d5a05e6603fcf7695192a0bd8ac616558e"
+    },
+    {
+      "path": "backend/internal/handler/openai_gateway_handler.go",
+      "sha256": "8cac1b809e848c92178845c877ff6c097319f5c2dd76b7d732a383486aba5e36",
+      "base_blob": "c933092007d135d435db6c002e19d6206c1e878e"
+    },
+    {
+      "path": "backend/internal/service/usage_timing.go",
+      "sha256": "d64c3cb3f403cf405b517683a37cd665ae584d182c51043d8639a53a191759b5",
+      "base_blob": "337e62a6a8129efa2a7aa70893ae525571ee0724"
+    },
+    {
+      "path": "backend/internal/service/openai_gateway_usage.go",
+      "sha256": "9cd03ab3efdb00b7e132e7b1f83ad63bb0486bb012f0644c64c94ee1e85759e1",
+      "base_blob": "72a7213ea1d4e9ce10afb9e94ed338a66dfb817c"
+    },
+    {
+      "path": "backend/internal/service/gateway_usage_billing.go",
+      "sha256": "70847eca1cdf0fd98b64722114e6775524668441f605bf6da3f6ca996be7bd26",
+      "base_blob": "0bf293a14350ec9de183a349661bc73b3cc1b836"
+    },
+    {
+      "path": "backend/internal/service/openai_usage_timing_billing_test.go",
+      "sha256": "46c4e6e389110fcf128d4d355b4b668d14bdb2e043d47d6139cff22c8141b192",
+      "base_blob": "a6e03f86d49bdffb5f844f48c89c5e77ac7798d2"
+    },
+    {
+      "path": "backend/internal/repository/usage_log_repo_insert.go",
+      "sha256": "a46eb617cc3dd0f36d4ca47c0f781a02cf9407570e21a3b4460ac83c48133e18",
+      "base_blob": "75679a436e22fdd1838d74c1c872de22da4e77cb"
+    },
+    {
+      "path": "backend/internal/repository/usage_log_repo_query.go",
+      "sha256": "fbf59d76d12490db9dff370556b32add5de88f239c1d81823460bc29424ead88",
+      "base_blob": "90fdac2432c69464d2fb2ee663d560705a68c70b"
+    },
+    {
+      "path": "backend/internal/repository/usage_log_timing_integration_test.go",
+      "sha256": "187b2bd6172839c99cd90674340e4fc1db122287c11c5ca35cd495c657710d9d",
+      "base_blob": "d53daab41ac141386bcc21c635de7c2a00eeabf9"
+    },
+    {
+      "path": "backend/migrations/251_add_usage_log_timing.sql",
+      "sha256": "abce11c5a8cf8fa993d9a0fb25190af3130722fcc419f1f94b5a5397ff60003b",
+      "base_blob": "35cd6f7c0ef38dbf3650568d2f87b11be5c4fb2e"
+    },
+    {
+      "path": "backend/go.mod",
+      "sha256": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+      "base_blob": "1690d136cc7e5032689aac28e69dd516665cc823"
+    },
+    {
+      "path": "backend/go.sum",
+      "sha256": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+      "base_blob": "845fdc249d6c127aa6ed2d2a38838c00090aa9d7"
+    }
+  ],
+  "current_personal": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+  "same_tree_as_S4_final_candidate": true,
+  "baseline_CI": {
+    "headSha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "conclusion": "success",
+    "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726",
+    "jobs": [
+      {
+        "name": "binding",
+        "conclusion": "success"
+      },
+      {
+        "name": "tps",
+        "conclusion": "success"
+      },
+      {
+        "name": "sync-contracts",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / test",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / release-helpers",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-security / frontend-security",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / frontend",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / golangci-lint",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-security / backend-security",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / shell",
+        "conclusion": "success"
+      },
+      {
+        "name": "personal-ready",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "scope": "旧DTO/前端页面导出复用S1原证据；SQL/计费/异步owner复用当前personal CI和S4.4已登记PG18兼容，仅证明未改变的下游边界；不证明本轮新增Chat采集。",
+  "i18n_changed_input_boundary": {
+    "paths": [
+      "frontend/src/i18n/locales/en/dashboard.ts",
+      "frontend/src/i18n/locales/zh/dashboard.ts"
+    ],
+    "actual_diff": "仅S2模型目录availableChannels新增/搜索文案，S1用量字段/弹层文案不变；当前personal TPS/build CI重新覆盖整文件加载。",
+    "reviewed_against": "3f04437572e2819f0313ccc2a3f1a618a2afcdf0"
+  },
+  "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "final_recheck": "所有本轮复用输入和选定产物SHA保持；只复用不变边界"
+}

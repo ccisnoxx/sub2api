@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-10：S1.5.1 Chat Completions 及转换链路本地完成
+
+- 先核对指定旧计划、最新personal/main、相关候选与未提交改动；personal基线`3d5e1fde82707900a21f2b5538b112c7bab3c04a`，KlN来源`.5/c7aacf5`。应用在独立`plus-chat-timing-s151`工作树、分支`codex/plus-chat-timing-s151`实现，本地提交`1ae266791d0ab324cd13a63ab344019c79102176`；main仅在`plus-chat-timing-s151-evidence`分支登记证据，未用main维护源码代替personal应用。
+- raw CC JSON/SSE、Responses→CC→Responses和CC→Responses→CC接入UsageTiming v1，复用Grok桥验证；采集真实text/reasoning/tool参数，排除role/name/metadata/usage/DONE，按n choices/finish_reason及真实Responses事件冻结终态。取消/write失败后drain final usage不改断连状态；音频最终对象替换与NULL语义保持，非流式只记录完整内容观察时点。
+- 初版定向回归124顶层/271含子用例、race20/115及追加usage-only/attempt隔离/非法audio3/9通过；首轮P2由主代理修正，受影响范围race9/69通过；三链路×JSON/SSE的旧源码6项因version0预期失败，新源码通过。两次测试准备/预期错误日志保留并分类。旧DTO/页面/导出16个完整相同输入、2份仅S2文案差异、6份原日志校验；下游12输入保持，按未变边界复用personal既有CI及PG18/SQL证据，未把它们算本轮新采集的CI。
+- 两次fresh独立只读复核完成；首轮音频别名P2由主代理修正并以4组合红绿/最终race9顶层69含子例关闭，最终未确认新增问题。 原17项应用改动、无关工作树和旧日志保留。只增量更新计划、任务、覆盖和执行证据；仅S1.5.1勾选，S1.5.4/5不提前完成。缺失AGENTS出站身份文档/任务目录已登记，本轮不改相关身份配置。
+- [任务清单](../openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md)、[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s151-chat-completions-与转换链路)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-validation.json)和[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-reviews.json)已更新。新供应商付费请求、数据库/JWT/浏览器整体贯通、完整回归或新CI未执行；本轮无push/PR更新/SSH/合并/镜像发布/生产部署。下一项S1.5.2“接入Anthropic”，本会话不自动继续。
+
 ## 2026-10-10：S4.4 完成，正式个人版本部署及生产 S4 启用验收通过
 
 - personal累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`经PR #7合入，最终`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的11项必要CI38049101726全部成功；正式Release38050231176发布`0.2.14-klno.5-tps.2`，固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`，实际标签与唯一linux/amd64绑定一致。main工具/文档与personal应用分开维护，原13项应用未提交文件及无关工作树保留。

@@ -1,10 +1,12 @@
 # KIN 借鉴 Plus 功能的实施计划
 
+- 本轮状态（2026-10-10，S1.5.1）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
+- 本轮工作位置：应用 `codex/plus-chat-timing-s151`，仅使用personal应用源码；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`。旧快照及原未提交应用改动保留；既往S4.4完成状态以本轮main证据树的记录为准。
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 状态：S0.1–S0.3、S1.1–S1.4、S2.1–S2.7、S3.1–S3.6及S4.1–S4.4完成。PR #7累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`已合入personal，最终SHA`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的[必要CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)全部11项成功；正式[版本0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)与固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`已发布。生产原生部署记录`20261010T120908Z-b497b80ee8a6`成功，仅替换应用并追加251–254迁移，PG/Redis身份保持；S4先关闭核对真实终态，再以默认阈值开启v2。12:19–12:24UTC实际窗口成功10/失败0/排除0/未知0，水位12:24UTC无错误；有请求分组显示已观察样本正常，无近期请求分组及全站摘要保持未知。独立复核确认问题已关闭，先前中断worker的审计终态缺口明确保留。S1.5和S5未开始；下一项S1.5.1不自动执行。
+- 历史状态（上一轮快照）：S0.1–S0.3、S1.1–S1.4、S2.1–S2.7、S3.1–S3.6及S4.1–S4.4完成。PR #7累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`已合入personal，最终SHA`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的[必要CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)全部11项成功；正式[版本0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)与固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`已发布。生产原生部署记录`20261010T120908Z-b497b80ee8a6`成功，仅替换应用并追加251–254迁移，PG/Redis身份保持；S4先关闭核对真实终态，再以默认阈值开启v2。12:19–12:24UTC实际窗口成功10/失败0/排除0/未知0，水位12:24UTC无错误；有请求分组显示已观察样本正常，无近期请求分组及全站摘要保持未知。独立复核确认问题已关闭，先前中断worker的审计终态缺口明确保留。S1.5和S5未开始；下一项S1.5.1不自动执行。
 - 执行入口：[任务清单](tasks.md)；当前结果见[执行证据](implementation-evidence.md)。
 - 推荐顺序：S0 现有修复交付 → S1 用量计时和请求完成状态 → S2 模型价格展示 → S3 错误诊断；S4 服务状态、S5 用户协助视图按使用规模另行排期。
-- 本轮按后续明确授权补齐固定旧应用PG18兼容、真实多轮WS、取消与恢复、独立复核，推进最终personal SHA的CI、绑定版本/digest发布及生产验收；结果见[执行证据](implementation-evidence.md)。不自动进入S1.5或S5。
+- 上一轮按后续明确授权补齐固定旧应用PG18兼容、真实多轮WS、取消与恢复、独立复核，推进最终personal SHA的CI、绑定版本/digest发布及生产验收；结果见[执行证据](implementation-evidence.md)。不自动进入S1.5或S5。
 
 ## 1. 目标与范围
 
