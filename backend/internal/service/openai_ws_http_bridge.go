@@ -542,7 +542,11 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 	}
 
 	turnStart := time.Now()
-	timing := newResponsesOutputTiming(WithServiceStatusOwner(ctx, c.Request.Context()), turnStart, account)
+	timingCtx := ctx
+	if c != nil && c.Request != nil {
+		timingCtx = WithServiceStatusOwner(ctx, c.Request.Context())
+	}
+	timing := newResponsesOutputTiming(timingCtx, turnStart, account)
 	defer timing.stop()
 	timingResponseID := ""
 	rejectedFieldRetryState := newOpenAIResponsesRejectedFieldRetryState(body)
