@@ -93,7 +93,7 @@ tools/s44-ws-runtime/bin/s44-ws-fixture drive --url http://127.0.0.1:实际端�
 | `http-retry-zero` | 首次429，应用隐藏 retry/换号后同 marker 完成，Token=0 | SS01：同 observation key 中 attempt 与 completed；success=1/failure=0，费用=0，只有一条计费生命周期 |
 | `ws-multiturn` | turn1 的 attempt1 在任何输出前断连；同 marker attempt2 返回500 `response.failed`；同下游连接 turn2 返回零Token完成 | SS06：fixture session/local_turn 重置与应用 logical_turn 区分；turn1 与 turn2 两独立 observation key；同 turn 重建保持键，turn2 不覆盖失败 |
 | `ws-retry` / `ws-retry-429` | 首次断连/429，第二次同 marker 完成 | 同轮 transport retry/账号切换对照；429 至少两账号，ctx_pool 有 retry，passthrough 是否允许隐藏 retry 以实际合同为准 |
-| `ws-cancel --control http://fixture:8081` | 收到created后客户端中断，等待750ms，控制放行completed | SS02：终态应 client_disconnected/excluded；fixture 最后 completed written=true 证明上游 drain 真发生；client run_complete 本身不证明 drain |
+| `ws-cancel --control http://fixture:8081` | 收到created后客户端中断，等待750ms，控制放行completed | SS02：以服务端实际检测顺序判断；只有提前冻结 client_disconnected 才验收取消 drain，completed 记录保留为检测竞态；client run_complete 本身不证明 drain |
 | `ws-cancel-probe --control http://fixture:8081` | 客户端中断后单独放行非终态 delta；再等待750ms后独立放行completed | SS02：先检测取消再drain；DB client_disconnected 的 observed_at 必须早于 completed 写出。ctx_pool 未先检测到断连时保持先观察完成的既有S1规则 |
 | `ws-success --count 5` | 同连接5次独立 completed 后1000正常关闭 | SS02 completed→close 保持success；SS13 每个恢复周期使用新 run，形成新 observed_at |
 | `ws-failure --count 5` | 同连接5个500 provider终态 | SS03：5个 key/生命周期；正常关闭不新增失败；同批重扫不推进事件 |
