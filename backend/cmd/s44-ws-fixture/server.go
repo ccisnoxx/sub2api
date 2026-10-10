@@ -304,8 +304,14 @@ func (f *fixture) websocket(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				// 非终态帧使真实 gateway 有机会先观察下游断连；完成仍由独立 gate 控制。
-				if !f.writeWS(conn, r.Context(), e, "response.output_text.delta", map[string]any{"type": "response.output_text.delta", "response_id": m.responseID(), "item_id": "msg_s44", "output_index": 0, "content_index": 0, "delta": "s44"}) {
-					return
+				// TCP FIN 后首个写入可能仍成功；间隔发送三个帧，使真实写失败可被检测。
+				for probe := 0; probe < 3; probe++ {
+					if !f.writeWS(conn, r.Context(), e, "response.output_text.delta", map[string]any{"type": "response.output_text.delta", "response_id": m.responseID(), "item_id": "msg_s44", "output_index": 0, "content_index": 0, "delta": "s44"}) {
+						return
+					}
+					if err := waitPace(r.Context(), 50*time.Millisecond); err != nil {
+						return
+					}
 				}
 			}
 			select {

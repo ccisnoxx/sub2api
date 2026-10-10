@@ -278,8 +278,10 @@ func TestNonterminalProbeAndCompletionHaveIndependentGates(t *testing.T) {
 	if err := controlGate(context.Background(), http.DefaultClient, o, m, "probe"); err != nil {
 		t.Fatal(err)
 	}
-	if got := readFixture(t, c); got != "response.output_text.delta" {
-		t.Fatal(got)
+	for probe := 0; probe < 3; probe++ {
+		if got := readFixture(t, c); got != "response.output_text.delta" {
+			t.Fatal(got)
+		}
 	}
 	f.mu.Lock()
 	for _, e := range f.events {
