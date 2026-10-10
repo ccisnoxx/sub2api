@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 私密报告安全漏洞 / Report a security vulnerability privately
+    url: https://github.com/ccisnoxx/sub2api/security/advisories/new
+    about: 请通过本仓库的私密渠道报告漏洞，勿在公开 Issue 中披露细节。 Use this fork's private reporting channel; keep vulnerability details out of public issues.

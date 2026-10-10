@@ -18,6 +18,10 @@
 
 </div>
 
+## 安全漏洞报告
+
+影响 **`ccisnoxx/sub2api`** 的漏洞，请通过 [GitHub 私密漏洞报告](https://github.com/ccisnoxx/sub2api/security/advisories/new)提交。请勿在公开 Issue、Pull Request 或 Discussion 中披露漏洞细节。支持版本、安全范围和披露流程见本 fork 的[安全政策](.github/SECURITY.md)。
+
 
 ## ⚠️ 重要提醒
 

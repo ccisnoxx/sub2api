@@ -18,6 +18,10 @@
 
 </div>
 
+## セキュリティ脆弱性の報告
+
+**`ccisnoxx/sub2api`** に影響する脆弱性は、[GitHub の非公開脆弱性報告](https://github.com/ccisnoxx/sub2api/security/advisories/new)から送信してください。公開 Issue、Pull Request、Discussion に脆弱性の詳細を投稿しないでください。サポート対象、安全性の対象範囲、開示手順は、この fork の[セキュリティポリシー](.github/SECURITY.md)をご確認ください。
+
 ## ⚠️ 重要なお知らせ
 
 本プロジェクトをご利用になる前に、以下の内容を必ずよくお読みください：

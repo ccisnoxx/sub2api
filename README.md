@@ -18,6 +18,10 @@ English | [中文](README_CN.md) | [日本語](README_JA.md)
 
 </div>
 
+## Security Reports
+
+Report vulnerabilities affecting **`ccisnoxx/sub2api`** through [GitHub Private Vulnerability Reporting](https://github.com/ccisnoxx/sub2api/security/advisories/new). Please keep vulnerability details out of public issues, pull requests, and discussions. See this fork's [security policy](.github/SECURITY.md) for supported versions, scope, and the disclosure process.
+
 ## ⚠️ Important Notice
 
 Please read the following carefully before using this project:
