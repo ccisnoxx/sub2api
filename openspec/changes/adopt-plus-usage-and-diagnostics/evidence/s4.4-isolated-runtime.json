@@ -1,0 +1,429 @@
+{
+  "remote_before": {
+    "production": [
+      {
+        "name": "/sub2api-kin",
+        "id": "22dc9a93c0657d377f8f68be783ea44797671fe260836de10e100c1f8dd751be",
+        "image": "sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6",
+        "started_at": "2026-10-09T03:55:39.941022269Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+        "networks": [
+          "sub2api-kin_sub2api-network"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin_sub2api_data",
+            "destination": "/app/data"
+          }
+        ]
+      },
+      {
+        "name": "/sub2api-kin-postgres",
+        "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+        "image": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+        "started_at": "2026-09-18T08:29:52.196019009Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": null,
+        "networks": [
+          "sub2api-kin_sub2api-network"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin_postgres_data",
+            "destination": "/var/lib/postgresql/data"
+          },
+          {
+            "type": "volume",
+            "name": "d49c10e44f43f7b8a62c5ef24a8f5d0915ee85353d5b422799e7578708f0e724",
+            "destination": "/var/lib/postgresql"
+          }
+        ]
+      },
+      {
+        "name": "/sub2api-kin-redis",
+        "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+        "image": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+        "started_at": "2026-09-18T08:29:52.19357992Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": null,
+        "networks": [
+          "sub2api-kin_sub2api-network"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin_redis_data",
+            "destination": "/data"
+          }
+        ]
+      }
+    ],
+    "target_directory_exists": false
+  },
+  "remote_after": {
+    "production": [
+      {
+        "name": "/sub2api-kin",
+        "id": "22dc9a93c0657d377f8f68be783ea44797671fe260836de10e100c1f8dd751be",
+        "image": "sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6",
+        "started_at": "2026-10-09T03:55:39.941022269Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+        "networks": [
+          "sub2api-kin_sub2api-network"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin_sub2api_data",
+            "destination": "/app/data"
+          }
+        ]
+      },
+      {
+        "name": "/sub2api-kin-postgres",
+        "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+        "image": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+        "started_at": "2026-09-18T08:29:52.196019009Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": null,
+        "networks": [
+          "sub2api-kin_sub2api-network"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin_postgres_data",
+            "destination": "/var/lib/postgresql/data"
+          },
+          {
+            "type": "volume",
+            "name": "d49c10e44f43f7b8a62c5ef24a8f5d0915ee85353d5b422799e7578708f0e724",
+            "destination": "/var/lib/postgresql"
+          }
+        ]
+      },
+      {
+        "name": "/sub2api-kin-redis",
+        "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+        "image": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+        "started_at": "2026-09-18T08:29:52.19357992Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": null,
+        "networks": [
+          "sub2api-kin_sub2api-network"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin_redis_data",
+            "destination": "/data"
+          }
+        ]
+      }
+    ],
+    "isolated": [
+      {
+        "name": "/sub2api-kin-s44-validation-app-1",
+        "id": "90d1dcf27e499b0dd555c8f9e06eeaf61b638d820f6765712eaf5e21a9d1b948",
+        "image": "sha256:b581786c4de40326c2bc2e7576d343169612565660dd2c40fa7e53939f9bf6be",
+        "started_at": "2026-10-10T06:37:48.254735359Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": "35962a802fdc499639c9c861072f25774ccba50b",
+        "networks": [
+          "sub2api-kin-s44-validation_default",
+          "sub2api-kin-s44-validation_ingress"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin-s44-validation_app-data",
+            "destination": "/app/data"
+          }
+        ],
+        "service": "app",
+        "project": "sub2api-kin-s44-validation",
+        "ports": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "10444"
+            }
+          ]
+        },
+        "memory_limit": 536870912,
+        "nano_cpus": 750000000,
+        "security_opt": [
+          "no-new-privileges:true"
+        ],
+        "docker_socket_mounted": false,
+        "selected_environment": {
+          "DATABASE_HOST": "postgres",
+          "DATABASE_PORT": "5432",
+          "DATABASE_DBNAME": "s44_validation",
+          "DATABASE_USER": "s44",
+          "REDIS_HOST": "redis",
+          "REDIS_PORT": "6379",
+          "REDIS_DB": "0",
+          "SERVER_PORT": "8080",
+          "RUN_MODE": "standard"
+        },
+        "running_binary_sha256": "7c3847a2aae08fac15db8b404af464dd83da24bc2b04cd4eff4a8c8c2437db0d"
+      },
+      {
+        "name": "/sub2api-kin-s44-validation-postgres-1",
+        "id": "3f32daad3f424c5859c2fb716db65b6b58d0ab0dbe5aca62465acc02e6166a54",
+        "image": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+        "started_at": "2026-10-10T06:35:41.297462296Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": null,
+        "networks": [
+          "sub2api-kin-s44-validation_default"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin-s44-validation_pg-data",
+            "destination": "/var/lib/postgresql"
+          }
+        ],
+        "service": "postgres",
+        "project": "sub2api-kin-s44-validation",
+        "ports": {
+          "5432/tcp": null
+        },
+        "memory_limit": 402653184,
+        "nano_cpus": 500000000,
+        "security_opt": [
+          "no-new-privileges:true"
+        ],
+        "docker_socket_mounted": false
+      },
+      {
+        "name": "/sub2api-kin-s44-validation-redis-1",
+        "id": "0dd5538c283a7b384e3ad1df96ae9ddf12bdf1fd285aca07a9396c25b3e783de",
+        "image": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+        "started_at": "2026-10-10T06:35:41.307569474Z",
+        "restart_count": 0,
+        "health": "healthy",
+        "revision": null,
+        "networks": [
+          "sub2api-kin-s44-validation_default"
+        ],
+        "mounts": [
+          {
+            "type": "volume",
+            "name": "sub2api-kin-s44-validation_redis-data",
+            "destination": "/data"
+          }
+        ],
+        "service": "redis",
+        "project": "sub2api-kin-s44-validation",
+        "ports": {
+          "6379/tcp": null
+        },
+        "memory_limit": 100663296,
+        "nano_cpus": 250000000,
+        "security_opt": [
+          "no-new-privileges:true"
+        ],
+        "docker_socket_mounted": false
+      }
+    ],
+    "isolated_networks": [
+      {
+        "name": "sub2api-kin-s44-validation_default",
+        "internal": true,
+        "driver": "bridge"
+      },
+      {
+        "name": "sub2api-kin-s44-validation_ingress",
+        "internal": false,
+        "driver": "bridge"
+      }
+    ],
+    "isolated_redis": {
+      "authenticated_dbsize": 210,
+      "version": "8.10.1"
+    },
+    "credential_file_mode": "0o600",
+    "compose_sha256": "094eec501e8b22dbb0b76c68501d172bc1cb87dc48a817ca1db3347307891d80",
+    "host_resources": {
+      "mem_available_kib": 1778832
+    }
+  },
+  "db_initial": {
+    "users": [
+      {
+        "id": 1,
+        "role": "admin",
+        "status": "active",
+        "is_test_identity": true
+      }
+    ],
+    "config": {
+      "id": 1,
+      "enabled": false,
+      "version": 1,
+      "platforms": [
+        "openai"
+      ],
+      "minimum_samples": 5,
+      "abnormal_windows": 2,
+      "recovery_windows": 3,
+      "outage_error_rate": 0.9,
+      "observation_starts": {},
+      "warning_error_rate": 0.05
+    },
+    "database": "s44_validation",
+    "s4_tables": [
+      "service_status_config",
+      "service_status_facts_1m",
+      "service_status_incidents",
+      "service_status_scope_states",
+      "service_status_watermark"
+    ],
+    "watermark": {
+      "id": 1,
+      "coverage": [],
+      "gap_code": "",
+      "config_version": 1,
+      "last_error_code": "",
+      "source_error_at": null,
+      "observed_through": null
+    },
+    "user_count": 1,
+    "new_migrations": [
+      "250_add_group_gwpool_active_accounts.sql",
+      "251_add_usage_log_timing.sql",
+      "252_add_ops_routing_diagnostics.sql",
+      "253_service_status_observation.sql",
+      "254_service_status.sql"
+    ],
+    "postgres_major": 18,
+    "upstream_account_count": 0
+  },
+  "db_after_browser_write": {
+    "users": [
+      {
+        "id": 1,
+        "role": "admin",
+        "status": "active",
+        "is_test_identity": true
+      }
+    ],
+    "config": {
+      "id": 1,
+      "enabled": true,
+      "version": 2,
+      "platforms": [
+        "openai"
+      ],
+      "minimum_samples": 6,
+      "abnormal_windows": 2,
+      "recovery_windows": 3,
+      "outage_error_rate": 0.9,
+      "observation_starts": {
+        "openai": "2026-10-10T06:44:00Z"
+      },
+      "warning_error_rate": 0.05
+    },
+    "database": "s44_validation",
+    "s4_tables": [
+      "service_status_config",
+      "service_status_facts_1m",
+      "service_status_incidents",
+      "service_status_scope_states",
+      "service_status_watermark"
+    ],
+    "watermark": {
+      "id": 1,
+      "coverage": [],
+      "gap_code": "",
+      "config_version": 1,
+      "last_error_code": "",
+      "source_error_at": null,
+      "observed_through": null
+    },
+    "user_count": 1,
+    "new_migrations": [
+      "250_add_group_gwpool_active_accounts.sql",
+      "251_add_usage_log_timing.sql",
+      "252_add_ops_routing_diagnostics.sql",
+      "253_service_status_observation.sql",
+      "254_service_status.sql"
+    ],
+    "postgres_major": 18,
+    "upstream_account_count": 0
+  },
+  "db_final": {
+    "users": [
+      {
+        "id": 1,
+        "role": "admin",
+        "status": "active",
+        "is_test_identity": true
+      },
+      {
+        "id": 2,
+        "role": "user",
+        "status": "active",
+        "is_test_identity": true
+      }
+    ],
+    "config": {
+      "id": 1,
+      "enabled": true,
+      "version": 2,
+      "platforms": [
+        "openai"
+      ],
+      "minimum_samples": 6,
+      "abnormal_windows": 2,
+      "recovery_windows": 3,
+      "outage_error_rate": 0.9,
+      "observation_starts": {
+        "openai": "2026-10-10T06:44:00Z"
+      },
+      "warning_error_rate": 0.05
+    },
+    "database": "s44_validation",
+    "s4_tables": [
+      "service_status_config",
+      "service_status_facts_1m",
+      "service_status_incidents",
+      "service_status_scope_states",
+      "service_status_watermark"
+    ],
+    "watermark": {
+      "id": 1,
+      "coverage": [],
+      "gap_code": "",
+      "config_version": 1,
+      "last_error_code": "",
+      "source_error_at": null,
+      "observed_through": null
+    },
+    "user_count": 2,
+    "new_migrations": [
+      "250_add_group_gwpool_active_accounts.sql",
+      "251_add_usage_log_timing.sql",
+      "252_add_ops_routing_diagnostics.sql",
+      "253_service_status_observation.sql",
+      "254_service_status.sql"
+    ],
+    "postgres_major": 18,
+    "upstream_account_count": 0
+  }
+}

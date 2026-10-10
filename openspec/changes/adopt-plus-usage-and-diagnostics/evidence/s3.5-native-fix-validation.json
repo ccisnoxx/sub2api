@@ -1,0 +1,811 @@
+{
+  "task": "native当前轮次安全重放修复及S3.5复验",
+  "application_sha": "da581c6846d1bf89926ca9730abf2290ea8b65ea",
+  "root_checks": {
+    "handler-04": {
+      "label": "handler",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/handler",
+        "-run",
+        "^(TestS35WS|TestOpenAIWSCurrentTurnModelFailover$|TestOpenAIWSNextAttemptMessage|TestWSSelectionUsesCurrentRoutingOwnerWithoutReplacingPricingContext$|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry$|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner$|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot$|TestOpenAIWSTurnPricing|TestOpenAIResponsesWebSocket_(PassthroughTracksModelPerTurn|PassthroughKeepsTurnMappingSnapshot|CtxPoolAppliesPerTurnMappingAndPreservesRequestedModel|FailoverOnUpstreamUsageLimitEvent|FirstOutputTimeoutWithoutDownstreamReusesClientForOneFailover)$)",
+        "-count=1"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 20.84,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/handler-04.jsonl",
+      "sha256": "efb295d773fb25006e91dbb2ecc40fb73e586323f98a79c6ccd3cb2d552eb0fc",
+      "top_level_pass": 18,
+      "test_pass_events": 27,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIResponsesWebSocket_PassthroughTracksModelPerTurn",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIResponsesWebSocket_PassthroughKeepsTurnMappingSnapshot",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIResponsesWebSocket_CtxPoolAppliesPerTurnMappingAndPreservesRequestedModel",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIResponsesWebSocket_FailoverOnUpstreamUsageLimitEvent",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIResponsesWebSocket_FirstOutputTimeoutWithoutDownstreamReusesClientForOneFailover",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/select_only_current_model_account",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/requested_price",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/channel_mapped_price",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/current_image_intent_requires_responses",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/current_string_input",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSNextAttemptMessageUsesCurrentTurnPayload",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSNextAttemptMessageRejectsMissingCurrentTurnPayload",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSNextAttemptMessageKeepsInitialMessageForFirstTurnFailover",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSTurnPricingCurrentOr/frozen_time_takes_precedence",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSTurnPricingCurrentOr/zero_value_falls_back_to_turn_start",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSTurnPricingCurrentOr",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSTurnPricingFreezePerTurn",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestWSSelectionUsesCurrentRoutingOwnerWithoutReplacingPricingContext",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSNativeLaterTurnFailoverReplaysCurrentTurn"
+      ],
+      "failed_events": [],
+      "inputs": {
+        "backend/internal/service/ops_upstream_context.go": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+        "backend/internal/service/ops_stream_turn_ownership_test.go": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+        "backend/internal/service/openai_ws_forwarder_ingress.go": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+        "backend/internal/service/openai_ws_native_resume_test.go": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+        "backend/internal/service/openai_ws_forwarder_payload.go": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+        "backend/internal/service/openai_ws_forwarder.go": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+        "backend/internal/handler/openai_gateway_handler.go": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+        "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+        "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+      },
+      "inputs_stable": true
+    },
+    "native-regression-03": {
+      "label": "native-regression",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/service",
+        "-run",
+        "^TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_(KeepLeaseAcrossTurns|FollowupCreateCanOmitModel|WriteFailBeforeDownstreamRetriesOnce|PreviousResponseNotFoundRecoversByDroppingPrevID|StoreDisabledStrictAffinityPreviousResponseNotFoundLayer2Recovery|ClientDisconnectStillDrainsUpstream|StoreDisabledPreflightPingFailReplaysFunctionCallOutputWithContext|StoreDisabledPreflightPingFailClosesWhenFunctionCallOutputNeedsPreviousResponseID|InvalidEncryptedContentLineageStripsNextTurn)$",
+        "-count=1"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 27.1,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/native-regression-03.jsonl",
+      "sha256": "c9138be24a04760354037db9fdc6b21a72c3b27c6466a640f9a065ecd113b871",
+      "top_level_pass": 9,
+      "test_pass_events": 9,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_KeepLeaseAcrossTurns",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_FollowupCreateCanOmitModel",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_StoreDisabledPreflightPingFailReplaysFunctionCallOutputWithContext",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_StoreDisabledPreflightPingFailClosesWhenFunctionCallOutputNeedsPreviousResponseID",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_WriteFailBeforeDownstreamRetriesOnce",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_PreviousResponseNotFoundRecoversByDroppingPrevID",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_StoreDisabledStrictAffinityPreviousResponseNotFoundLayer2Recovery",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_ClientDisconnectStillDrainsUpstream",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_ProxyResponsesWebSocketFromClient_InvalidEncryptedContentLineageStripsNextTurn"
+      ],
+      "failed_events": [],
+      "inputs": {
+        "backend/internal/service/ops_upstream_context.go": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+        "backend/internal/service/ops_stream_turn_ownership_test.go": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+        "backend/internal/service/openai_ws_forwarder_ingress.go": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+        "backend/internal/service/openai_ws_native_resume_test.go": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+        "backend/internal/service/openai_ws_forwarder_payload.go": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+        "backend/internal/service/openai_ws_forwarder.go": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+        "backend/internal/handler/openai_gateway_handler.go": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+        "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+        "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+      },
+      "inputs_stable": true
+    },
+    "native-safety-01": {
+      "label": "native-safety",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/service",
+        "-run",
+        "^TestOpenAIWSNativeLaterTurn",
+        "-count=1"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 27.23,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/native-safety-01.jsonl",
+      "sha256": "6df2537b4f797797e523aaea5712e09e444d3fb286de9337697900c9e9f338a9",
+      "top_level_pass": 7,
+      "test_pass_events": 24,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverReplaysCompleteCurrentContext",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/missing_terminal_output",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/untyped_terminal_output",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unpaired_historical_tool_call",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unknown_initial_anchor",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unknown_current_anchor",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/missing_root_input",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/null_root_input",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/orphan_tool_output",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/item_reference_is_not_portable",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/failed_previous_turn",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/done_with_incomplete_status",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverIndependentInputStartsNewRoot",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnRateLimitAfterOutputDoesNotFailOver",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases/historical_alias_when_current_tools_omitted",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases/current_independent_request_alias",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput/unicode_escapes_newline_quote",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput/empty_string",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation/unicode_escapes_newline_quote",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation/empty_string",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation"
+      ],
+      "failed_events": [],
+      "inputs": {
+        "backend/internal/service/ops_upstream_context.go": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+        "backend/internal/service/ops_stream_turn_ownership_test.go": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+        "backend/internal/service/openai_ws_forwarder_ingress.go": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+        "backend/internal/service/openai_ws_native_resume_test.go": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+        "backend/internal/service/openai_ws_forwarder_payload.go": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+        "backend/internal/service/openai_ws_forwarder.go": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+        "backend/internal/handler/openai_gateway_handler.go": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+        "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+        "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+      },
+      "inputs_stable": true
+    },
+    "ops": {
+      "label": "ops",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/service",
+        "./internal/handler",
+        "-run",
+        "^(TestOpsStream|TestOpsRoutingDiagnostics|TestLogOpsStreamError|TestEnqueueOpsErrorLog|TestOpsErrorLoggerMiddleware)",
+        "-count=1"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 21.19,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/ops.jsonl",
+      "sha256": "04a7c82a70891a2a599593e7b171e7ce4d87119862a6a1d67016e66b96a37ec5",
+      "top_level_pass": 41,
+      "test_pass_events": 61,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddlewareSkipsCyber",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestEnqueueOpsErrorLog_QueueFullDrop",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestEnqueueOpsErrorLog_EarlyReturnBranches",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestEnqueueOpsErrorLog_SanitizesAndBoundsBodyBeforeQueue",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_DoesNotBreakOuterMiddlewares",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_HardSkipsIngressRejection",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_DedicatedCyberSessionBlockRecordsExactlyOnce",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_OrdinaryPermissionStillRecords",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_RecordsRecoveredUpstreamTelemetryOutsideFailureSLA",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_RecoveredTelemetryFiltersSkipMonitoringAttempts",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_RecoveredTelemetrySkipsAllHiddenAttempts",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_IntermediateSkipMonitoringDoesNotHideFinalVisibleFailure",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_CapturesSplitResponsesFailedSSE",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_StreamFailureUsesTerminalErrorOverAttemptContext",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_PrefersContextRequestID",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_RecordsInBandConcurrencyLimit",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_UpstreamFailureCountsTowardsSLA",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_NoopWhenNotMarked",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_SkipWhenPassthroughSkipMonitoring",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_RecordsOneFailurePerWebSocketTurn",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_LocalModelConfigurationFields",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_LargeTerminalFrameUsesEventFallback",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_DetectsTerminalDataAtEOFWithoutBlankLine",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_NonStreamInBandContentPolicy",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_RequestScopedIgnoresResidualUpstreamContext",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_RequestScopedInBandErrorKeepsRecoveredTelemetry",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_UpstreamInBandFailureStillSingleRow",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_SkipsPureClientClosed",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_RecordsClientClosedAfterUpstreamFailure",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsErrorLoggerMiddleware_RecordsClientClosedWhenIgnoreContextCanceledDisabled",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsStreamTurnClearsRoutingProducerState",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsRoutingDiagnosticsQueuedCopyAndBudget",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsRoutingDiagnosticsFinalOwnerUsesFailedAttempt",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/unknown",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/observed_zero",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/unobserved",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/partial_WS",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist/admin_list",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist/user_list",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist/user_detail",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/unknown_filter",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/zero_filter",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/incomplete_empty",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/precision",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/layer",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/reason",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/sum",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/missing_reasons",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/unobserved_count",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/version",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/negative",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/turn",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/reason_layer",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsAttemptBindingAndTurnSnapshots",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsQueueServiceAndInvalidObject",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsHistoryAndListProjection",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsTurnOwnerCannotReuseConnectionBinding",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsStreamLogicalTurnDedupSurvivesProxyRestart"
+      ],
+      "failed_events": [],
+      "inputs": {
+        "backend/internal/service/ops_upstream_context.go": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+        "backend/internal/service/ops_stream_turn_ownership_test.go": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+        "backend/internal/service/openai_ws_forwarder_ingress.go": "16968568de149e0541e0044323060a5c48ba2d04d1dcfd1f01f66be930db1172",
+        "backend/internal/service/openai_ws_native_resume_test.go": "a540f48abead368dfb85b4b553ccf1fcd17a8ec39df722c569b7b39bd926cdf6",
+        "backend/internal/service/openai_ws_forwarder_payload.go": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+        "backend/internal/service/openai_ws_forwarder.go": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+        "backend/internal/handler/openai_gateway_handler.go": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf",
+        "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+        "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+      },
+      "inputs_stable": true,
+      "reuse_scope": "Ops source/test unchanged; no new Ops behavior in later model/string repairs"
+    },
+    "handler-race-03": {
+      "label": "handler-race",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-tags=unit",
+        "-json",
+        "./internal/handler",
+        "-run",
+        "^(TestS35WS|TestOpenAIWSCurrentTurnModelFailover$)",
+        "-count=1"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 36.6,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/handler-race-03.jsonl",
+      "sha256": "8145255efa94e9d780dbcd11a3ae72c73f89d3fcf986d9b6cd12e117299524c9",
+      "top_level_pass": 4,
+      "test_pass_events": 11,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/select_only_current_model_account",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/requested_price",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/channel_mapped_price",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/current_image_intent_requires_responses",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover/current_string_input",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIWSCurrentTurnModelFailover",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestS35WSNativeLaterTurnFailoverReplaysCurrentTurn"
+      ],
+      "failed_events": [],
+      "inputs": {
+        "backend/internal/service/ops_upstream_context.go": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+        "backend/internal/service/ops_stream_turn_ownership_test.go": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+        "backend/internal/service/openai_ws_forwarder_ingress.go": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+        "backend/internal/service/openai_ws_native_resume_test.go": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+        "backend/internal/service/openai_ws_forwarder_payload.go": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+        "backend/internal/service/openai_ws_forwarder.go": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+        "backend/internal/handler/openai_gateway_handler.go": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+        "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+        "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+      },
+      "inputs_stable": true
+    },
+    "ops-race": {
+      "label": "ops-race",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-tags=unit",
+        "-json",
+        "./internal/service",
+        "./internal/handler",
+        "-run",
+        "^(TestOpsStreamLogicalTurnDedupSurvivesProxyRestart|TestOpsRoutingDiagnostics|TestLogOpsStreamError|TestOpenAIWSNativeLaterTurn)",
+        "-count=1"
+      ],
+      "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "seconds": 48.05,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/ops-race.jsonl",
+      "sha256": "aabb57f359bb1b72f488cd05f5870c1ddac545e676db3eb9b24e8083414601a6",
+      "top_level_pass": 22,
+      "test_pass_events": 55,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_RecordsInBandConcurrencyLimit",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_UpstreamFailureCountsTowardsSLA",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_NoopWhenNotMarked",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_SkipWhenPassthroughSkipMonitoring",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_RecordsOneFailurePerWebSocketTurn",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_NonStreamInBandContentPolicy",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestLogOpsStreamError_RequestScopedIgnoresResidualUpstreamContext",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsRoutingDiagnosticsQueuedCopyAndBudget",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpsRoutingDiagnosticsFinalOwnerUsesFailedAttempt",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverReplaysCompleteCurrentContext",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/missing_terminal_output",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/untyped_terminal_output",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unpaired_historical_tool_call",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unknown_initial_anchor",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unknown_current_anchor",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/missing_root_input",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/null_root_input",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/orphan_tool_output",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/item_reference_is_not_portable",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/failed_previous_turn",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/done_with_incomplete_status",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverIndependentInputStartsNewRoot",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnRateLimitAfterOutputDoesNotFailOver",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases/historical_alias_when_current_tools_omitted",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases/current_independent_request_alias",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/unknown",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/observed_zero",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/unobserved",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip/partial_WS",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_AdminDetailRoundTrip",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist/admin_list",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist/user_list",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist/user_detail",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsDTO_ListAndUserWhitelist",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/reason",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/sum",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/missing_reasons",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/incomplete_empty",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/unobserved_count",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/version",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/precision",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/turn",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/layer",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/reason_layer",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/unknown_filter",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/zero_filter",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract/negative",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsValidationAndNullContract",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsAttemptBindingAndTurnSnapshots",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsQueueServiceAndInvalidObject",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsHistoryAndListProjection",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsRoutingDiagnosticsTurnOwnerCannotReuseConnectionBinding",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpsStreamLogicalTurnDedupSurvivesProxyRestart"
+      ],
+      "failed_events": [],
+      "inputs": {
+        "backend/internal/service/ops_upstream_context.go": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+        "backend/internal/service/ops_stream_turn_ownership_test.go": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+        "backend/internal/service/openai_ws_forwarder_ingress.go": "a768734a8ab51126404bc0a65be16c5d45880f61d3a8638961ebdb9b248c20ed",
+        "backend/internal/service/openai_ws_native_resume_test.go": "c18840a10909bae43533484498f35eebe33ee4ca3c54bfa729c95e2e5723313a",
+        "backend/internal/service/openai_ws_forwarder_payload.go": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+        "backend/internal/service/openai_ws_forwarder.go": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+        "backend/internal/handler/openai_gateway_handler.go": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf",
+        "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+        "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+      },
+      "inputs_stable": true,
+      "reuse_scope": "Ops与native并发控制owner保持；纯string历史规范化后native功能7/24、实际handler/string/routing WS race4/11替换final实际WS依据"
+    }
+  },
+  "native_service_delivery": {
+    "status": "completed",
+    "owned_files_modified": [
+      "backend/internal/service/openai_ws_forwarder_ingress.go",
+      "backend/internal/service/openai_ws_native_resume_test.go"
+    ],
+    "sha256": {
+      "backend/internal/service/openai_ws_forwarder_ingress.go": "a768734a8ab51126404bc0a65be16c5d45880f61d3a8638961ebdb9b248c20ed",
+      "backend/internal/service/openai_ws_native_resume_test.go": "c18840a10909bae43533484498f35eebe33ee4ca3c54bfa729c95e2e5723313a"
+    },
+    "native_service_validation": {
+      "metadata": "green-native-service-02.meta.json",
+      "exit_code": 0,
+      "top_level_passed": 5,
+      "all_passed": 18,
+      "passed_tests": [
+        "TestOpenAIWSNativeLaterTurnFailoverReplaysCompleteCurrentContext",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/missing_terminal_output",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/untyped_terminal_output",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unpaired_historical_tool_call",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unknown_initial_anchor",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/unknown_current_anchor",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/missing_root_input",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/null_root_input",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/orphan_tool_output",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/item_reference_is_not_portable",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/failed_previous_turn",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext/done_with_incomplete_status",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsIncompleteContext",
+        "TestOpenAIWSNativeLaterTurnFailoverIndependentInputStartsNewRoot",
+        "TestOpenAIWSNativeLaterTurnRateLimitAfterOutputDoesNotFailOver",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases/historical_alias_when_current_tools_omitted",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases/current_independent_request_alias",
+        "TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases"
+      ]
+    },
+    "baseline_red": {
+      "metadata": "red-native-service-01.meta.json",
+      "exit_code": 1,
+      "confirmed_failure": "后续 current-turn wrapper 缺失，原 429 error chain 存在"
+    },
+    "shared_helper_validation": {
+      "metadata": "green-replay-helpers-01.meta.json",
+      "exit_code": 0,
+      "top_level_passed": 6,
+      "all_passed": 32,
+      "reuse_basis": "后续只加强 native ingress 的完整性守卫和新增 socket 夹具，共享 payload helpers / wrapper / 工具 coverage 实现均未变化"
+    },
+    "actual_invariants": [
+      "只有本轮未写下游的 UpstreamFailoverError 能产生 native current-turn wrapper",
+      "当前 input/model/client identity 来自当前 client turn，跨账号删除 previous_response_id，原 error chain 不变",
+      "continuation 仅接本连接最近已完成且 input/output 完整的 response.id；历史序列不允许 helper 删项",
+      "工具别名来源无法跨 attempt 证明可移植性时明确拒绝，complete=false 沿 continuation 保存",
+      "同账号 transport retry、原工具 replay、hooks turn 编号以及 pricing/usage owner 保持"
+    ],
+    "residual_limits": [
+      "具有 OAuth 工具别名的当前请求或 continuation 历史须重新连接并由客户端重新发送完整未别名化请求；本轮不建立跨账号别名恢复层",
+      "未知 response anchor、缺完整 terminal output、失败/未完成历史、item_reference、孤立 tool output 等无法安全恢复的后续 turn 明确拒绝换号重放"
+    ],
+    "not_run_by_this_agent": [
+      "真实 handler / usage / ops / race 验证由主代理独占",
+      "全量 suite、CI、提交、推送、合并、发布、部署"
+    ],
+    "independent_review": "由主代理安排，需覆盖 native history 完整性与原错误链、alias 边界，以及其独占 Ops 逻辑 turn 补丁",
+    "diff_check": {
+      "exit_code": 0,
+      "output": ""
+    },
+    "evidence_scope": "9c时初始5/18与helpers6/32历史记录保留；当前native功能以native-safety-01 7/24为准"
+  },
+  "model_delivery": {
+    "baseline_commit": "9c2c5fba1d71b2e7e3b6f518ef61938d2cb57cae",
+    "owned_files": [
+      "backend/internal/handler/openai_gateway_handler.go",
+      "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go"
+    ],
+    "sha256": {
+      "backend/internal/handler/openai_gateway_handler.go": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+      "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": "45359941c1aefc1f488cd7d33a1addb21e3c3b61666a73d96a18c4ea7c54c63c"
+    },
+    "checks": [
+      {
+        "name": "red-model-04",
+        "exit_code": 1,
+        "command": [
+          "go",
+          "test",
+          "-tags=unit",
+          "-overlay=/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/model/red-overlay.json",
+          "./internal/handler",
+          "-run",
+          "^TestOpenAIWSCurrentTurnModelFailover$",
+          "-count=1",
+          "-json"
+        ],
+        "meta": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/model/red-model-04.meta.json",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/model/red-model-04.jsonl",
+        "passed_top_level": 0,
+        "passed_test_events": 0,
+        "failed_tests": [
+          "TestOpenAIWSCurrentTurnModelFailover/select_only_current_model_account",
+          "TestOpenAIWSCurrentTurnModelFailover/requested_price",
+          "TestOpenAIWSCurrentTurnModelFailover/channel_mapped_price",
+          "TestOpenAIWSCurrentTurnModelFailover/current_image_intent_requires_responses",
+          "TestOpenAIWSCurrentTurnModelFailover"
+        ],
+        "runtime_sequence": [
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93602 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93603 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:31: 实际用量 account_id=93601 model=public-turn-a requested=public-turn-a upstream=route-turn-a total=0.125000 actual=0.125000；定价 owner model=public-turn-b B=0.750000 A=0.125000",
+          "openai_gateway_ws_current_turn_model_test.go:31: 实际用量 account_id=93603 model=public-turn-b requested=public-turn-a upstream=route-turn-b total=0.125000 actual=0.125000；定价 owner model=public-turn-b B=0.750000 A=0.125000",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93603 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:34: 实际用量 account_id=93601 model=public-turn-a requested=public-turn-a upstream=route-turn-a total=2.500000 actual=2.500000；定价 owner model=route-turn-b B=3.500000 A=2.500000",
+          "openai_gateway_ws_current_turn_model_test.go:34: 实际用量 account_id=93603 model=public-turn-b requested=public-turn-a upstream=route-turn-b total=3.500000 actual=3.500000；定价 owner model=route-turn-b B=3.500000 A=2.500000",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93602 model=route-turn-b input=turn-b"
+        ]
+      },
+      {
+        "name": "green-model-02",
+        "exit_code": 0,
+        "command": [
+          "go",
+          "test",
+          "-tags=unit",
+          "./internal/handler",
+          "-run",
+          "^TestOpenAIWSCurrentTurnModelFailover$",
+          "-count=1",
+          "-json"
+        ],
+        "meta": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/model/green-model-02.meta.json",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/model/green-model-02.jsonl",
+        "passed_top_level": 1,
+        "passed_test_events": 5,
+        "failed_tests": [],
+        "runtime_sequence": [
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93603 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:28: 实际用量 account_id=93601 model=public-turn-a requested=public-turn-a upstream=route-turn-a total=0.125000 actual=0.125000；定价 owner model=public-turn-b B=0.750000 A=0.125000",
+          "openai_gateway_ws_current_turn_model_test.go:28: 实际用量 account_id=93603 model=public-turn-b requested=public-turn-b upstream=route-turn-b total=0.750000 actual=0.750000；定价 owner model=public-turn-b B=0.750000 A=0.125000",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93603 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:31: 实际用量 account_id=93601 model=public-turn-a requested=public-turn-a upstream=route-turn-a total=0.125000 actual=0.125000；定价 owner model=public-turn-b B=0.750000 A=0.125000",
+          "openai_gateway_ws_current_turn_model_test.go:31: 实际用量 account_id=93603 model=public-turn-b requested=public-turn-b upstream=route-turn-b total=0.750000 actual=0.750000；定价 owner model=public-turn-b B=0.750000 A=0.125000",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93603 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:34: 实际用量 account_id=93601 model=public-turn-a requested=public-turn-a upstream=route-turn-a total=2.500000 actual=2.500000；定价 owner model=route-turn-b B=3.500000 A=2.500000",
+          "openai_gateway_ws_current_turn_model_test.go:34: 实际用量 account_id=93603 model=public-turn-b requested=public-turn-b upstream=route-turn-b total=3.500000 actual=3.500000；定价 owner model=route-turn-b B=3.500000 A=2.500000",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-a input=turn-a",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93601 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:94: 实际发送 account_id=93603 model=route-turn-b input=turn-b",
+          "openai_gateway_ws_current_turn_model_test.go:37: 实际用量 account_id=93601 model=public-turn-a requested=public-turn-a upstream=route-turn-a total=0.125000 actual=0.125000；定价 owner model=public-turn-b B=0.750000 A=0.125000",
+          "openai_gateway_ws_current_turn_model_test.go:37: 实际用量 account_id=93603 model=public-turn-b requested=public-turn-b upstream=route-turn-b total=0.750000 actual=0.750000；定价 owner model=public-turn-b B=0.750000 A=0.125000"
+        ]
+      },
+      {
+        "name": "green-affected-owner-01",
+        "exit_code": 0,
+        "command": [
+          "go",
+          "test",
+          "-tags=unit",
+          "./internal/handler",
+          "-run",
+          "^(TestOpenAIResponsesWebSocket_(PassthroughTracksModelPerTurn|ChannelMappedTargetSelectsAccountWithoutRequestedAlias|PassthroughKeepsTurnMappingSnapshot|CtxPoolAppliesPerTurnMappingAndPreservesRequestedModel|CompositeAdmissionUsesPublicModel|CompositeModelSwitchRequiresReconnect|CompositeSessionModelSwitchRequiresReconnect|CompositeChannelBilling|SubsequentTurnModelNotAllowedCloses_NativeIngress|SubsequentTurnOmittedModelUsesSessionModel)|TestOpenAIWSTurnBillingModelPreservesImagePricingModel)$",
+          "-count=1",
+          "-json"
+        ],
+        "meta": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/model/green-affected-owner-01.meta.json",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/model/green-affected-owner-01.jsonl",
+        "passed_top_level": 11,
+        "passed_test_events": 25,
+        "failed_tests": [],
+        "runtime_sequence": []
+      }
+    ],
+    "diff_check_exit": 0,
+    "working_tree": " M backend/internal/handler/openai_gateway_handler.go\n?? backend/internal/handler/openai_gateway_ws_current_turn_model_test.go\n",
+    "billing_evidence_boundary": "simple模式使用真实ChannelService、ModelPricingResolver及BillingService计算TotalCost/ActualCost并由真实RecordUsage落入UsageLogRepository；未验证标准模式余额扣减事务。",
+    "requested_model_absent_result_boundary": "AfterTurn依次按当前attempt和匹配局部turn的请求/渠道快照回退，再接受非空result.Model；此缺失result.Model分支已自审，未通过修改生产producer强制制造。",
+    "independent_review_needed": [
+      "current model selection/channel/capability/image intent",
+      "requested/channel_mapped pricing and exact turn snapshot",
+      "post-proxy attempt state updates and preserved composite/same-account contracts"
+    ],
+    "deferred_to_parent": [
+      "受影响handler与新增实际流程race",
+      "fresh独立复核"
+    ],
+    "unchanged_evidence_reused": [
+      "native安全重放service回归",
+      "Ops逻辑turn归属回归"
+    ],
+    "evidence_scope": "62c的model4子例红绿与11/25保留；root后来只扩展handler fixture字符串发送子例，最终current五子例都在handler-04及race-03通过，不声称旧fixture哈希等于当前"
+  },
+  "red_handler": {
+    "command": [
+      "go",
+      "test",
+      "-json",
+      "-tags=unit",
+      "-overlay=/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/baseline-overlay.json",
+      "./internal/handler",
+      "-run",
+      "^TestS35WSNativeLaterTurnFailoverReplaysCurrentTurn$",
+      "-count=1"
+    ],
+    "exit_code": 1,
+    "expected_response_id": "resp_session-1-turn-2",
+    "actual_response_id": "resp_session-1-turn-1",
+    "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/red-handler-02.jsonl",
+    "log_sha256": "414faf991f0872eb63407116d661796741dc1bd26db380cc840e5359449a3bcd",
+    "tested_fixture": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/red-handler-fixture.go",
+    "tested_fixture_sha256": "7b796c59ea745d47cb2fb5b10c9b14cc262e4dd150a575dcbec157e795dc4c9b",
+    "production_overlay": {
+      "Replace": {
+        "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend/internal/service/openai_ws_forwarder_ingress.go": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/baseline/openai_ws_forwarder_ingress.go",
+        "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend/internal/service/openai_ws_forwarder_payload.go": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/baseline/openai_ws_forwarder_payload.go",
+        "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend/internal/service/openai_ws_forwarder.go": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/baseline/openai_ws_forwarder.go"
+      }
+    },
+    "classification": "正式observable回归在修复前源码上因错误重放失败，不使用probe的anti-success哨兵。"
+  },
+  "red_ops": {
+    "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/red-ops-turn.jsonl",
+    "exit_code": 1,
+    "reason": "同逻辑turn代理重启重复记录，先红后绿"
+  },
+  "failed_checks_and_convergence": {
+    "red-handler.jsonl": "夹具设置脚本路径失败后go没有选中新测试；不算正式验证，正式red-handler-02自然失败",
+    "handler-result.json": "错误旧Turn=1断言及真实Ops跨proxy去重缺口；修正断言及Ops逻辑owner后handler-02绿，最终handler-03绿",
+    "model_early_attempts": {
+      "red-model-01": "新夹具常量groupID取地址编译失败，改为变量；不是功能反例",
+      "red-model-02": "仅A候选错误已出现，但首轮费用夹具尚未对齐（0与期望0.125/2.5），不能作为最终费用反例",
+      "red-model-03": "对齐费用后明确复现Requested A=0.125而B=0.75、ChannelMapped RequestedModel A错归；后增加image capability反例形成最终red-model-04",
+      "green-model-01": "功能/费用断言通过，原硬编码selectorCalls=2断言实际为4；改用真实首轮调用量作为基数验证恰好多一次选择",
+      "green-model-02": "最终同fixture绿色；4个子用例全部通过，后续没有再次修改2份source/test"
+    },
+    "string": "两service顶层/四子case以固定62c旧ingress同fixture red-string-02先红、green-string-02后绿；真实handler旧source非法scalar在root-string-bridge-red复现，最终handler-04正常发送合法object items"
+  },
+  "reused_evidence": "s3.5-native-fix-reused-evidence.json",
+  "billing_boundary": "新WS在simple模式以生产selector/channel/pricing/BillingService/RecordUsage验证费用与usage仓库写入；标准余额/订阅/atomic/legacy扣费与去重用未变owner固定旧/新16同oracle各25PASS，不宣称新WS真实扣款。",
+  "not_run": [
+    "完整JWT服务器/真实生产DB扣费",
+    "付费上游/生产请求",
+    "passthrough后续turn换号",
+    "后续turn同账号重建的新runtime",
+    "OAuth账号工具别名恢复（本轮明确拒绝）",
+    "result.Model缺失强制runtime（快照fallback源码复核）",
+    "无变前端重新build/浏览器",
+    "全量Go/远端CI/安全扫描/发布/部署"
+  ],
+  "scope_limits": [
+    "其他平台/独立旧入口/TokenCount及无新评估的后续turn保持未知",
+    "隐藏WS 429不增加恢复telemetry producer",
+    "真实64项stream上限仅源码保持，本轮没有新增边界runtime"
+  ],
+  "S3.6_started": false,
+  "string_delivery": {
+    "baseline_commit": "62c08468569c1852d07edfb8f746157022804225",
+    "owned_files": [
+      "backend/internal/service/openai_ws_forwarder_ingress.go",
+      "backend/internal/service/openai_ws_native_resume_test.go"
+    ],
+    "source_sha256": {
+      "backend/internal/service/openai_ws_forwarder_ingress.go": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+      "backend/internal/service/openai_ws_native_resume_test.go": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63"
+    },
+    "checks": [
+      {
+        "name": "red-string-02",
+        "command": [
+          "go",
+          "test",
+          "-overlay=/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/string/red-overlay.json",
+          "./internal/service",
+          "-run",
+          "^TestOpenAIWSNativeLaterTurnFailover(IndependentStringInput|StringRootContinuation)$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 1,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/string/red-string-02.jsonl",
+        "meta": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/string/red-string-02.meta.json",
+        "passed_top_level": 0,
+        "passed_test_events": 0,
+        "failed_tests": [
+          "TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput/unicode_escapes_newline_quote",
+          "TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput/empty_string",
+          "TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput",
+          "TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation/unicode_escapes_newline_quote",
+          "TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation/empty_string",
+          "TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation"
+        ],
+        "runtime_sequence": []
+      },
+      {
+        "name": "green-string-02",
+        "command": [
+          "go",
+          "test",
+          "./internal/service",
+          "-run",
+          "^TestOpenAIWSNativeLaterTurnFailover(IndependentStringInput|StringRootContinuation)$",
+          "-count=1",
+          "-json"
+        ],
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/string/green-string-02.jsonl",
+        "meta": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/string/green-string-02.meta.json",
+        "passed_top_level": 2,
+        "passed_test_events": 6,
+        "failed_tests": [],
+        "runtime_sequence": [
+          "openai_ws_native_resume_test.go:295: captureconn 原发送 input[0]=\"old-root\" input[1]=\"\\u6c49字🌦\\n\\\"quoted\\\"\\\\path\\t\\u2028\"；生产 wrapper={\"type\":\"response.create\",\"model\":\"public-model\",\"client_metadata\":{\"thread_id\":\"current-string\"},\"input\":[{\"role\":\"user\",\"content\":\"汉字🌦\\n\\\"quoted\\\"\\\\path\\t\\u2028\"}]}",
+          "openai_ws_native_resume_test.go:295: captureconn 原发送 input[0]=\"old-root\" input[1]=\"\"；生产 wrapper={\"type\":\"response.create\",\"model\":\"public-model\",\"client_metadata\":{\"thread_id\":\"current-string\"},\"input\":[{\"role\":\"user\",\"content\":\"\"}]}",
+          "openai_ws_native_resume_test.go:343: captureconn 原字符串根=\"\\u6c49字🌦\\n\\\"quoted\\\"\\\\path\\t\\u2028\"；生产 wrapper={\"type\":\"response.create\",\"input\":[{\"role\":\"user\",\"content\":\"汉字🌦\\n\\\"quoted\\\"\\\\path\\t\\u2028\"},{\"type\":\"message\",\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\",\"text\":\"完整回答\\n\\\"assistant\\\"\"}]},{\"role\":\"user\",\"content\":\"continuation-current\"}],\"model\":\"public-model\"}",
+          "openai_ws_native_resume_test.go:343: captureconn 原字符串根=\"\"；生产 wrapper={\"type\":\"response.create\",\"input\":[{\"role\":\"user\",\"content\":\"\"},{\"type\":\"message\",\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\",\"text\":\"完整回答\\n\\\"assistant\\\"\"}]},{\"role\":\"user\",\"content\":\"continuation-current\"}],\"model\":\"public-model\"}"
+        ]
+      }
+    ],
+    "diff_check_exit": 0,
+    "working_tree": " M backend/internal/handler/openai_gateway_ws_current_turn_model_test.go\n M backend/internal/service/openai_ws_forwarder_ingress.go\n M backend/internal/service/openai_ws_native_resume_test.go\n",
+    "other_owner_changes_preserved": [
+      "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go"
+    ],
+    "official_contract": {
+      "source": "https://developers.openai.com/api/reference/resources/responses/methods/create",
+      "verified": "input 顶层字符串等价 user 文本；数组项可使用 role=user、content=string 的 EasyInputMessage object；type=message 可省略。"
+    },
+    "behavior": "仅 native 换号完整历史将顶层字符串输入转为 user 消息对象，再复用既有提取、拼接、配对及完整性 guard。原首发/同账号载荷和 shared helper 未改。",
+    "covered": [
+      "独立当前字符串输入：unicode/转义/换行/引号/空字符串；不拼旧根",
+      "字符串根+成功assistant output+已知previous_response_id continuation：正确顺序和 object items",
+      "wrapper 当前模型保持、锚点移除、429 前无下游输出、首发原字符串和转义字节保持"
+    ],
+    "validation_boundary": "真实下游 client socket、production native owner、既有 captureconn 上游夹具；未调用付费或生产上游。",
+    "deferred_to_parent": [
+      "直接受影响 native 旧例",
+      "真实 handler/S35/model socket 回归与 race",
+      "fresh 独立复核"
+    ],
+    "committed": false
+  },
+  "red_real_handler_string": {
+    "command": [
+      "go",
+      "test",
+      "-tags=unit",
+      "-json",
+      "-overlay=/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/root-string-bridge-overlay.json",
+      "./internal/handler",
+      "-run",
+      "^TestOpenAIWSCurrentTurnModelFailover$/^current_string_input$",
+      "-count=1"
+    ],
+    "exit_code": 1,
+    "baseline_sha": "62c08468569c1852d07edfb8f746157022804225",
+    "ingress_sha256": "a768734a8ab51126404bc0a65be16c5d45880f61d3a8638961ebdb9b248c20ed",
+    "fixture_sha256": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+    "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/root-string-bridge-red.jsonl",
+    "log_sha256": "ad4f3539ec92516fa15f491cc7f6e8e4baa2a60b5c5f9fde1e461e868bf20155",
+    "passed": [],
+    "failed": [
+      "TestOpenAIWSCurrentTurnModelFailover/current_string_input",
+      "TestOpenAIWSCurrentTurnModelFailover",
+      "github.com/Wei-Shaw/sub2api/internal/handler"
+    ],
+    "protocol_failure_observed": [
+      "openai_gateway_ws_current_turn_model_test.go:105: 实际换号载荷包含非法非对象项：{\"type\":\"response.create\",\"model\":\"route-turn-b\",\"input\":[\"turn-b\"],\"stream\":false}",
+      "openai_gateway_ws_current_turn_model_test.go:105: 实际换号载荷包含非法非对象项：{\"type\":\"response.create\",\"model\":\"route-turn-b\",\"input\":[\"turn-b\"],\"stream\":false}"
+    ]
+  },
+  "stage_accepted": true,
+  "reviewed_manifest_sha256_before_acceptance": {
+    "final-candidate.json": "b2f7a2415ebbb9390d41362a339a69155e8a69a990a67fc25419051a5514f25d",
+    "final-validation.json": "b19efae8ac29e71d28f87fc2a8bc73a46202267b2c65edfcda249fcda502134d"
+  },
+  "final_independent_review": "s3.5-native-fix-reviews.json",
+  "audit_id": "20261010T014850Z-kin-plus-native-turn-replay-s35-8306a592",
+  "audit_verified": true
+}

@@ -1,0 +1,183 @@
+{
+  "candidate_sha": "1d9603c7755ab98df5b1f92f3708c86e531a43e8",
+  "review_result": "no_open_confirmed_P0_P1_P2",
+  "independent_read_only": true,
+  "runtime_anchor": "7bd38c3e5c671e325a8a1236327ba137c20fe46f",
+  "runtime_sha256": "b37da537d70f419fe12922ae9b593f8b3cdb75e1f63a6c621e9da95e103ddf77",
+  "reviewed_deployment_inputs": {
+    "deploy/personal/deploy_hostdzire.py": "3f474d051a9431a5f4267d79e7650291dd0b7b79fd7a4311050d7e66992ac23d",
+    "deploy/personal/test_deploy_hostdzire.py": "e123b75c5d0bc34bc1dbab1f344609358c4af34920f3332b3213b9565f089dbb",
+    "deploy/personal/README.md": "0587853c7bbf09ea4856963924679cda7e2fde5fd316b1360e9e98c1d62c3257"
+  },
+  "closed_findings": [
+    {
+      "severity": "P2",
+      "trigger": "HTTP200 failed JSON明确数字500/503",
+      "fix": "直接原始error共用严格数字状态owner；未知仍unknown",
+      "evidence": "http-linked-facts.json Usage65→66 + source-all-terminal-final-green.log"
+    },
+    {
+      "severity": "P2",
+      "trigger": "已观察迁移prefix2/4，恢复时退到1/3",
+      "fix": "Deployment唯一高水位owner，在全部读取边界拒绝回退",
+      "evidence": "deployment-high-water-red.log / deployment-high-water-green.log"
+    },
+    {
+      "severity": "P3",
+      "trigger": "旧cancel文档把client close等同后端检测",
+      "fix": "明确S1检测顺序，直接internal probe/drain两gate验收",
+      "evidence": "cancel-final-linked-facts.json + snapshot-final-cancel.json"
+    }
+  ],
+  "counts": {
+    "source_top_level": 27,
+    "source_pass_items": 77,
+    "fixture_top_level": 6,
+    "fixture_pass_items": 9,
+    "deployment_all": 60,
+    "deployment_final_anchor_selected": 17
+  },
+  "unexecuted_at_review": [
+    "final personal SHA CI",
+    "merge/version/digest release",
+    "production app-only replace",
+    "postdeploy health/schema/selection/actualtraffic"
+  ],
+  "production_rollback_scope": "定向合同证据；本轮未执行真实生产故障或回滚演练",
+  "final_bridge_compat_review": {
+    "candidate_sha": "17418811eec3362a038bafac230468f949708bdd",
+    "runtime_sha256": "da74993c5a8e75108c672120f1a34ca2f4fa739c5f4a55c1bc88e4af4d320b59",
+    "review_result": "无新阻断问题",
+    "fresh_read_only": true,
+    "findings": [],
+    "scope": "正常Request仍承接相同turn owner；nil Gin保留传ctx并恢复已存在429失败/限流契约；完整128路径/真实Git/四迁移/部署三文件字节绑定复核",
+    "unverified": "候选CI、最终personal CI、镜像和生产事实仍需实际验收",
+    "existing_limit": "计时guard不代表全bridge支持任意非nil Gin但nil Request；已有Grok helper仍要求Request，没有已确认调用需要扩大修复。"
+  },
+  "final_fixture_binding_review": {
+    "candidate_sha": "53eee7fe03079929de015b2d46b73e9e790dba4e",
+    "control_sha": "8f916487d04804956893c1c552e736c04f38c470",
+    "result": "accepted_no_confirmed_blocker",
+    "independent": true,
+    "read_only": true,
+    "runtime_sha256": "efbc4a13efad1d9201ec8a39756809941c10f42d198251387aa102ffc760b6d6",
+    "proof_sha256": "eda345b34cd947aaeff0dd56604435d4be6bf2052061965b0244843b666a4aa6",
+    "closed_risks": [
+      "fixture清理仅自身ID/UUID，真实提交/批量/fallback保持",
+      "DB重新可见基线之后的新恢复窗口，其他旧未知源保留",
+      "128路径及四固定SQL与真实Git对象/新锚点一致"
+    ],
+    "limitations": [
+      "未独立运行托管CI/正式OCI/生产健康/真实回滚，后续实际门禁和验收单独记录",
+      "既有ConcurrencyCache TODO skip未验证"
+    ]
+  },
+  "clock_binding_review": {
+    "application": "74508aa0e1c2d61e9e269fbe73e3eb8ce515a9da",
+    "control": "e52ef31a799a3fc69c9affdb6e290ff10f74424e",
+    "review_accepted": true,
+    "candidate_approved": false,
+    "findings": [
+      {
+        "severity": "P2",
+        "file": "backend/internal/repository/service_status_repo_integration_test.go",
+        "line": 355,
+        "finding": "全站 scope_unavailable 掩盖冻结事件 DTO 清空比例的原合同；需增加完整覆盖且无缺口的冻结快照。",
+        "status": "待主代理修复验证"
+      }
+    ]
+  },
+  "latest_candidate_sha": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+  "latest_review_result": "已确认NULL比例/分钟一致性两项P2关闭，候选及最终personal必要CI成功；版本/digest/正式镜像与生产先关后开由主代理实际验证",
+  "frozen_rate_fix": {
+    "candidate": "4babebff68ff5e39fbf24b808c275cc9e8270339",
+    "change": "只改测试，保留全站缺口；新增完整覆盖/当前版本/无缺口的冻结快照，recovery_count 初值2检测重置",
+    "tests": {
+      "green": "真实 PG18.1/Redis8.4，两顶层用例通过3.378s",
+      "red": "Go overlay 仅移除生产冻结时清空比例一行，NULL断言预期失败3.138s",
+      "CI": true,
+      "unrelated_group_visibility": "沿用未变合同的上轮完整 repository 成功证据；本次过滤实际只运行冻结/超限两个用例"
+    },
+    "files": {
+      "backend/internal/repository/service_status_repo_integration_test.go": "a62d81976944fb39e581df3743a7c344eed34376cf09de13834641fdbc3faee1",
+      "backend/internal/repository/service_status_repo.go": "d20abc0a6fc4fb5d83f33f40ff702db0f582a47343c019f1936fe41f0ea15058"
+    },
+    "logs": {
+      "frozen-no-gap-green.log": "f80802f3fc8fe6c4522876209853e71ce252f4593f4d6f88c1fb70e844382037",
+      "frozen-null-rate-mutant-red.log": "02f577576d9ea3dc1f9d198fdaab5e343164004fd39f0eea48a5a5e9e3f139b8",
+      "frozen-no-gap-targeted-green.log": "820f2da3959f68c752d871c537857aee754c0bab1d4fdd1608fb69472880b472"
+    },
+    "source_overlay": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/frozen-null-rate-overlay.json",
+    "production_source_mutated": false,
+    "cancelled_superseded_ci": 38042366636
+  },
+  "frozen_rate_final_review": {
+    "candidate": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+    "reviewed_candidate": "4babebff68ff5e39fbf24b808c275cc9e8270339",
+    "control_reviewed": "c04c24ee69ee7e52118f80672963c2f698f413ff",
+    "independent_review_result": "原NULL比例P2关闭；新增分钟P2按只读复核的一行建议修复并完成受控红绿",
+    "production_source_changed": false,
+    "patch": "仅Aggregate(ctx, now) → Aggregate(ctx, snapshotMinute)",
+    "controlled_counterexample": "Go overlay仅让statusSQLFixture最初now比实际分钟落后1分钟；旧调用报SERVICE_STATUS_UNAVAILABLE，新调用通过",
+    "red": {
+      "exit": 1,
+      "seconds": 3.447
+    },
+    "green": {
+      "exit": 0,
+      "seconds": 3.32
+    },
+    "logs": {
+      "frozen-minute-controlled-red.log": "db50324c66fc0721b96a1d904ef4db71f44a6e91bf7ca8f620a206f50d8b4fb5",
+      "frozen-minute-controlled-green.log": "7dffdd93013520db7a0c07ea9ac49d98b57cd6579dd65574fa1dee488d8061d2"
+    },
+    "test_source_hash": "4b05ac70bd162fe3ba970878baa1a3d4151338b905771eecd886b7e0cb53ded6",
+    "unexecuted_at_review": [
+      "OCI/version",
+      "production"
+    ]
+  },
+  "interrupted_review_not_accepted": {
+    "worker": "/root/frozen_rate_review",
+    "runtime_terminal_state": "unknown",
+    "reason": "用户中断后未取得可验收报告；不计通过，不伪造终态"
+  },
+  "final_personal_sha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+  "parent_delivery_verification": {
+    "final_personal_sha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "CI": {
+      "run_id": 38049101726,
+      "result": "success",
+      "required_jobs": 11
+    },
+    "release": {
+      "run_id": 38050231176,
+      "version": "0.2.14-klno.5-tps.2",
+      "digest": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+      "result": "success"
+    },
+    "production_record": "20261010T120908Z-b497b80ee8a6",
+    "production_observation": "S4 v2默认阈值；完整窗口/水位/真实源/未知原因核验",
+    "reviewer_personally_verified_production": false,
+    "evidence": "s4.4-runtime-validation.json"
+  },
+  "audit_execution_digest": {
+    "checked_at": "2026-10-10T11:28:01.536845+00:00",
+    "validated": false,
+    "audit_id": "20261010T071229Z-kin-s44-runtime-release-production-5760e4bf",
+    "missing_execution": [
+      "10-frozen-rate-review.execution.json"
+    ],
+    "reason": "中断复核的精确运行终态未知；没有伪造审计状态。现行stage11执行summary独立校验通过，旧stage10未计验收。历史SUBAGENT_EXECUTION_DIGEST仅涵盖旧阶段，不能作为本任务完整汇总。",
+    "execution_counts": "unavailable"
+  },
+  "audit_finalization": {
+    "checked_at": "2026-10-10T12:27:23.677743+00:00",
+    "audit_id": "20261010T071229Z-kin-s44-runtime-release-production-5760e4bf",
+    "exit_code": 2,
+    "finalized": false,
+    "execution_digest_validated": false,
+    "known_gap": "10-frozen-rate-review.execution.json缺失，精确运行终态未知，不补造报告",
+    "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/subagent-finalize.log"
+  }
+}

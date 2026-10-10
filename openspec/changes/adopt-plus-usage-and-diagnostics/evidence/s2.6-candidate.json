@@ -1,0 +1,38 @@
+{
+  "task": "S2.6",
+  "status": "本地模型查看流程验收完成；生产源码无变更",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "application_head": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+  "application_feature_commit": "b8cf49ca25007cbc23338a9443b71df4c0411155",
+  "validation_commit": "3722c48ccdc0e4468dbc5c6ebb13584624c566d6",
+  "application_branch": "codex/plus-catalog-verify-s25",
+  "application_worktree": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+  "maintenance_branch": "codex/plus-pricing-s22-evidence",
+  "source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "files_sha256": {
+    "frontend/src/views/user/AvailableChannelsView.vue": "d321294a1d0b4f0c18800003f418bcb34832ede8927e222d03fdc825d99d44ee",
+    "frontend/src/components/channels/ModelCatalogCard.vue": "e548f65dca529a13e6b14080b9eaf1f1a751548005a963ea8e5692cc01d4a5cb",
+    "frontend/src/utils/modelCatalog.ts": "f7d5ee5a7454e253859c253473f7f5c72d9cf50a233bc1ee5f7c38e7d12c4549",
+    "frontend/src/api/channels.ts": "3a4169f60ae893aafc52c4588800897fa0029fdd81bf59df78ab6fe5178de8e8",
+    "frontend/src/__tests__/fixtures/modelCatalog.ts": "62bbfdd6e0f3f3b04e862a2a40dd0c71f326cc6f3d9f548ea58a9e3a085df868",
+    "backend/internal/handler/available_channel_handler.go": "9ca659c4803dc5cbe2e1909b334ac5dbc431dab9838d61a380829b596a0e26f0",
+    "backend/internal/service/channel_available.go": "759085dc75694b4c01529009b7b9a4bc9cb6d47eb74c98dcc4824ff75daa11e5",
+    "backend/internal/repository/available_catalog_contract_integration_test.go": "44ba6219f58d24ba56c045c0f8a845aa82b38bbd3dec72b46ac58c2feaa2f291"
+  },
+  "build_inputs_sha256": {
+    "frontend/package.json": "d1fd3d91ccf9bbca6cf0a79428343109a16efa6b3675fd01869d37db5d63083e",
+    "frontend/pnpm-lock.yaml": "1d8e54cc8e1f1bd3e7593805f607d9314ff81dab98ab5a9a6396475e148b26ce",
+    "frontend/vite.config.ts": "815b3dec61328dc35361667718016d2c192dd5236f90fd062c8a5d5293d22538",
+    "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+    "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+  },
+  "production_source_files_checked": 4380,
+  "application_changes": [],
+  "candidate_scope": "复用S2.5完整HEAD验收；仅本阶段文档与外部验收脚本/产物更新，无新应用提交",
+  "external_actions": "未执行",
+  "recorded_utc": "2026-10-09T19:14:24.586670+00:00"
+}

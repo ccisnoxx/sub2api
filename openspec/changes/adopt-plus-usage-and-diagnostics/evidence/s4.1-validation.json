@@ -1,0 +1,190 @@
+{
+  "task": "S4.1",
+  "status": "完成需求确认，选择仅管理员全站S4；尚未启用",
+  "recorded_utc": "2026-10-10T04:19:58.414432+00:00",
+  "application_root": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+  "application_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "maintenance_branch": "codex/plus-status-demand-s41",
+  "s36_gate_reuse": {
+    "run_id": 38020112510,
+    "scope": "未改应用候选的既有S3.6交付门禁；不证明S4实现、线上流量或当前运行设置"
+  },
+  "requirement_inputs": {
+    "user_requested_s41": true,
+    "implementation_selected": true,
+    "audience": "仅认证管理员查看全站聚合状态",
+    "continuous_real_traffic": true,
+    "traffic_volume": {
+      "today_request_card": 2516,
+      "current_rpm_card": 7,
+      "scope": "既有仪表盘单次只读摘要，非新S4终态口径"
+    },
+    "production_platforms": null,
+    "operational_question": {
+      "user_reply": "当前部署持续有真实请求，可以查看线上项目的情况",
+      "interpretation": "管理员了解全站健康、新鲜度和故障/恢复事实；具体维度与优先级留S4.2"
+    },
+    "audience_user_reply": "仅管理员查看全站状态（建议先采用）"
+  },
+  "source_observations": [
+    {
+      "fact": "V1代码缺省；V2被动聚合受功能/模式开关控制，当前生产值未观测",
+      "files": [
+        "backend/internal/service/setting_public.go",
+        "backend/internal/service/channel_monitor_v2_aggregator.go"
+      ]
+    },
+    {
+      "fact": "V2使用usage/error真实记录，成功计数代理为actual_cost > 0；错误SQL按request_id去重，没有跨表成功终态优先",
+      "files": [
+        "backend/internal/repository/channel_monitor_v2_aggregation.go",
+        "backend/internal/repository/usage_log_repo.go"
+      ]
+    },
+    {
+      "fact": "V2有JWT/管理员认证、服务端可访问组限制和普通用户计数/详情/配置裁剪；新S4权限未实现",
+      "files": [
+        "backend/internal/server/routes/admin.go",
+        "backend/internal/server/routes/user.go",
+        "backend/internal/handler/channel_monitor_v2_handler.go",
+        "backend/internal/service/channel_monitor_v2.go"
+      ]
+    }
+  ],
+  "source_files": [
+    {
+      "path": "deploy/personal-source.json",
+      "sha256": "a0fc1fa8344ef7ca0c897cb999e76da629c9e55c54cb88dd3dd399508054240e"
+    },
+    {
+      "path": "docs/conventions/personal-maintenance.md",
+      "sha256": "7564f5260a99c75c61ba36cf2233efc08ef18727ee9f477d867294ed3e7b49c8"
+    },
+    {
+      "path": "docs/channel-monitor-v2-safe-defaults.md",
+      "sha256": "f0f6487928e1d9ed79a4f6058cdb8aa56dd43d05c0ad69034bd4937d158099ef"
+    },
+    {
+      "path": "backend/internal/service/setting_public.go",
+      "sha256": "2d829f10c09b0ac952e2b71c2d434da6ddcdc1230f3b71178edaa9827622ae84"
+    },
+    {
+      "path": "backend/internal/service/channel_monitor_v2_aggregator.go",
+      "sha256": "673bd8799e52649144b56679cd451d2410b3f2975ee2dfe23878a7850130feba"
+    },
+    {
+      "path": "backend/internal/service/channel_monitor_v2.go",
+      "sha256": "a48e0fa20ead31c1768725f3932a963d0a681938396bd567814af0942c2cddb6"
+    },
+    {
+      "path": "backend/internal/repository/channel_monitor_v2_aggregation.go",
+      "sha256": "f0c6c8829f188064361ac26922484a04ce2b44aef66286539ebbeeed74084e86"
+    },
+    {
+      "path": "backend/internal/repository/usage_log_repo.go",
+      "sha256": "99e8f2ee1bc7567af97ccefe9c41b99cc0a156b4468cf8bdd107bb11e9dadad4"
+    },
+    {
+      "path": "backend/internal/handler/channel_monitor_v2_handler.go",
+      "sha256": "6c578ae2ae32ac2435926791cc9625a3d6c18c350ad5bac93fbdd3f89ee2d479"
+    },
+    {
+      "path": "backend/internal/server/routes/admin.go",
+      "sha256": "548b84e60b1c6faa18164af34986067743e755ae1993782267448e6ea5ab780d"
+    },
+    {
+      "path": "backend/internal/server/routes/user.go",
+      "sha256": "77bdb755320cd6a95e9caaab4716c3fb5cedbdde6f75fbbe8d847e53adee25a0"
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md",
+      "sha256": "c20334f094c81b061e93d574569dc2b3887f5bee00154c772a52de6a51c6db48"
+    }
+  ],
+  "independent_review": {
+    "performed": false,
+    "reason": "仅需求文档，未改变应用公开合同、持久化或权限实现；实际S4候选以后按具体风险独立复核"
+  },
+  "not_executed": [
+    "Go/前端测试、构建、新CI、付费探测",
+    "生产数据库/VPS/不可变镜像版本/监控设置读取；所有生产设置修改",
+    "S4.2规格、S4.3实现、S4.4验收",
+    "push/PR更新/合并/发布/部署"
+  ],
+  "next_task": "S4.2 编制独立规格（未开始）",
+  "task_checkbox": "checked",
+  "original_changes_preserved_check": "见s4.1-document-checks.json",
+  "documentation_only": true,
+  "s4_enabled_by_this_task": false,
+  "visibility_decision": {
+    "audience": "仅认证管理员全站聚合状态",
+    "ordinary_user_and_anonymous_s4_entry": false,
+    "authorized_group_user_view_selected": false,
+    "sensitive_fields_excluded": [
+      "凭据/API Key/敏感header/完整body",
+      "账号/上游地址",
+      "用户身份/请求ID/原始错误正文",
+      "费用/余额/用户排行"
+    ],
+    "implementation_status": "仅需求决策；未实现S4权限或更改既有V1/V2",
+    "thresholds_not_defined": true
+  },
+  "online_observation": {
+    "task": "S4.1",
+    "archived_utc": "2026-10-10T04:16:13Z",
+    "observation_time": "本轮既有管理员浏览器会话；归档时间不等于精确采样秒点",
+    "url": "https://api.962850.xyz/admin/dashboard",
+    "method": "经已有管理员登录会话，只读浏览器可访问性树",
+    "version_label": "v0.2.14-klno.5-tps.1",
+    "today_request_card": 2516,
+    "current_rpm_card": 7,
+    "model_distribution_window_label": "近24小时",
+    "model_request_rows": [
+      {
+        "model": "gpt-6.1-sol",
+        "requests": 8868
+      },
+      {
+        "model": "gpt-6-astra",
+        "requests": 420
+      },
+      {
+        "model": "gpt-6-luna",
+        "requests": 509
+      },
+      {
+        "model": "gpt-6-sol",
+        "requests": 98
+      },
+      {
+        "model": "gpt-5.6-sol",
+        "requests": 93
+      },
+      {
+        "model": "gpt-5.6-luna",
+        "requests": 22
+      },
+      {
+        "model": "gpt-5.6-terra",
+        "requests": 3
+      },
+      {
+        "model": "gpt-5.5",
+        "requests": 4
+      }
+    ],
+    "limits": [
+      "今日卡片与近24小时模型榜窗口不同，未核验界面时区；不得互当同窗总量",
+      "现有看板统计足以佐证真实流量，不证明新S4成功率、终态完整性、恢复或每模型持续充分样本",
+      "模型名不能独立证明平台或协议入口；生产平台分布仍未核验",
+      "页面版本标签不证明镜像digest/revision、生产监控模式或S1/S3新采集已部署"
+    ],
+    "redaction": "只归档上述聚合字段；未保存完整页面、身份、账号、余额、费用或凭据",
+    "actions": "未发起模型请求、未改设置、未访问生产数据库或VPS"
+  },
+  "document_coverage_gap": {
+    "preexisting_anchor_issue": "tasks.md的implementation-evidence.md#s31-结构化诊断合同冻结与现有S3.1：标题锚点不匹配",
+    "scope": "开工前已存在；本轮保留历史内容，S4.1新增链接/锚点通过"
+  }
+}

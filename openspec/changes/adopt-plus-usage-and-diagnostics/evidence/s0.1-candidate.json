@@ -1,0 +1,63 @@
+{
+  "task": "S0.1",
+  "checked_at": "2026-10-09T09:14:03.872727+00:00",
+  "application_worktree": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+  "branch": "codex/fix-version-usage-help",
+  "base_commit": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "candidate_commit": null,
+  "application_patch_sha256": "dc20cf45f0f4c904c11a792dc2b77f3abdb3bd8ea98ba22b3a54d6fa8e1a4639",
+  "application_files_sha256": {
+    "backend/internal/handler/admin/system_handler.go": "394be8cbb5989e06c5877cd23672f7839190a3d466ca9c7604d5965d4224543f",
+    "backend/internal/handler/admin/system_handler_test.go": "5e553e3b83ee6a95cc8ac15f29fc85fddffb6b9c74ecb56012a25122ea0d8bcb",
+    "backend/internal/service/update_service.go": "90f2cb96ebd5e4969c2ff929da6055778bf7776812ef6f886a6b2fc0ed34b4bd",
+    "backend/internal/service/update_service_test.go": "4eed00da35fc16698db2e425cf14217bbca08f0ca8d93a9822fb04ea8723ae3f",
+    "frontend/src/api/admin/system.ts": "6affaf0bf713e6ff4e13ceb997480db3f91d4b46f6d7eb12d1035d4e084e8c33",
+    "frontend/src/components/admin/usage/UsageTable.vue": "0654dca1fe33d69fcd2c599a03ff8569b03358ff1606d890d2b6eee5a8509db8",
+    "frontend/src/components/admin/usage/UsageTps.vue": "eb3823f1c5b48bb6341d1dcfbe0a404a2dbb46218139220bd7f8aaeac3bfec58",
+    "frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts": "da5bc0d34e55e25643aed3f733df5de7d0c98ba811eb7117eb540e5b24991989",
+    "frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts": "348b9fac3e27815956dbb2e48f2b015294d0c9c1cde457350be5810b73b9ad35",
+    "frontend/src/components/common/VersionBadge.vue": "792cc132af73620ffdb68011060b1f12dfa8f8f54d33095ac5c3e6f4ead7df45",
+    "frontend/src/components/common/__tests__/VersionBadge.spec.ts": "f6c5ba0538988321e40256621a92990bd1e9ec8d22d1c8883cdd3b18a809c181",
+    "frontend/src/i18n/locales/en/dashboard.ts": "017439969bf34b80f83f5253fbcec5e79057ea1185343131debacee52197e5e1",
+    "frontend/src/i18n/locales/en/misc.ts": "08338d1b91dd26adef7fa8402cc29a3e59673eaae4153d164f0ef89085bc543d",
+    "frontend/src/i18n/locales/zh/dashboard.ts": "dbde42541fe1da3dfcf5ac3b1c1d2b3b7bc693ee60a062c197195f631e5782ee",
+    "frontend/src/i18n/locales/zh/misc.ts": "8b3d5f980ae150fd49a430989d5d31bebc3dfa28003eb5006bbf33ec46fcdfda",
+    "frontend/src/stores/__tests__/app.spec.ts": "d1251e3653da78bf7554cceca105013d392f8992908031aa02f0f3ec15118dd2",
+    "frontend/src/stores/app.ts": "8ad1f3cfb315740e8ae11d5e5ef8873a3c08da907705da591f417acf3706b5ac"
+  },
+  "baseline_inputs_sha256": {
+    "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+    "backend/go.sum": "109d6d9f25fe0e39747e202035ec2074ff0da6d2da6dde3dc50b4d423491543f",
+    "frontend/package.json": "d1fd3d91ccf9bbca6cf0a79428343109a16efa6b3675fd01869d37db5d63083e",
+    "frontend/pnpm-lock.yaml": "1d8e54cc8e1f1bd3e7593805f607d9314ff81dab98ab5a9a6396475e148b26ce",
+    "frontend/vite.config.ts": "815b3dec61328dc35361667718016d2c192dd5236f90fd062c8a5d5293d22538",
+    "frontend/vitest.config.ts": "7fe146c9d88c0b4a24e73f7b583cb1dd3ab94436246337482d18d0c8616db1a2",
+    "frontend/tsconfig.json": "f98ff6cf3dda571189c0220ab3a7e52305e393856650785be136edd403217fe6",
+    "frontend/.eslintrc.cjs": "12f3ccc6cbf83af6fe69d71ebf89d37e7ad05f2501ffc9d1407857a7d9fe905e"
+  },
+  "application_tree": "27d96087e53a97386fd86935afa4ccc3dcd991e3",
+  "application_diff_numstat": [
+    "1\t1\tbackend/internal/handler/admin/system_handler.go",
+    "28\t1\tbackend/internal/handler/admin/system_handler_test.go",
+    "131\t53\tbackend/internal/service/update_service.go",
+    "168\t1\tbackend/internal/service/update_service_test.go",
+    "2\t0\tfrontend/src/api/admin/system.ts",
+    "21\t24\tfrontend/src/components/admin/usage/UsageTable.vue",
+    "18\t6\tfrontend/src/components/admin/usage/UsageTps.vue",
+    "16\t6\tfrontend/src/components/admin/usage/__tests__/UsageTable.spec.ts",
+    "23\t10\tfrontend/src/components/admin/usage/__tests__/UsageTps.spec.ts",
+    "65\t21\tfrontend/src/components/common/VersionBadge.vue",
+    "115\t2\tfrontend/src/components/common/__tests__/VersionBadge.spec.ts",
+    "1\t0\tfrontend/src/i18n/locales/en/dashboard.ts",
+    "4\t0\tfrontend/src/i18n/locales/en/misc.ts",
+    "1\t0\tfrontend/src/i18n/locales/zh/dashboard.ts",
+    "4\t0\tfrontend/src/i18n/locales/zh/misc.ts",
+    "44\t0\tfrontend/src/stores/__tests__/app.spec.ts",
+    "14\t0\tfrontend/src/stores/app.ts"
+  ],
+  "historical_preservation_manifest": {
+    "path": "/tmp/sub2api-plus-adoption-preserved-files.json",
+    "sha256": "e73c1042fc1b8dbd72a9c49835d0aedcd48588da122c3f0528ab5bcfd6a2f6b6",
+    "match_count": 17
+  }
+}

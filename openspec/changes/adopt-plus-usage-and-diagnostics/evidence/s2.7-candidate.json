@@ -1,0 +1,25 @@
+{
+  "task": "S2.7",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "candidate_base": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+  "candidate_commit": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+  "candidate_tree": "1403104d1c38c866e3eaccde8456d9e3073e3c7e",
+  "branch": "codex/verify-personal-ci-plus-catalog-s27",
+  "worktree": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+  "source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "production_changes_from_s26": [
+    "backend/internal/service/catalog_pricing.go (等价if/else改switch，静态检查风格修正)"
+  ],
+  "ci_control_diff_from_personal": [],
+  "gate": "Personal CI native PR events, initial gate failure diagnosed; corrected stable candidate gate required",
+  "merge_release_deploy": "not_executed",
+  "initial_candidate_commit": "aee00ae7716218418ed3cb772e37c1763873fde7",
+  "test_changes_from_s26": [
+    "backend/internal/server/api_contract_test.go (历史用量9项冻结字段预期)",
+    "backend/internal/service/openai_usage_timing_test.go (测试清理显式忽略已关闭连接返回值)"
+  ]
+}

@@ -1,0 +1,769 @@
+# KIN 借鉴 Plus 功能执行证据
+
+- 记录日期：2026-10-09（America/Los_Angeles）。
+- 当前续接范围：仅S3.4；历史记录保留，本轮本地页面、归属修复与验证/复核见文末S3.4。
+- 当前维护登记位置：从 `origin/main` 准备的 `codex/plus-pricing-s22-evidence`，只归档本 change 与开发日志；同步原指定计划位置及 personal 应用候选。历史登记位置见各阶段记录，应用始终从 personal 出发。
+- 当前完成S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.4；S2旧累计候选真实Personal CI通过，合并、镜像发布、生产部署、S1.5及S3.5以后均未执行。
+
+## S0.1 现有修复最终候选核对
+
+### 基线、工作位置与候选身份
+
+先读取用户指定的 plan.md、tasks.md、docs/dev-journal.md，再核对 Git 工作树、远端分支、来源记录和默认 main 的最新维护日志。远端通过 `git ls-remote origin refs/heads/personal refs/heads/main refs/heads/codex/fix-version-usage-help` 只读查询，未执行 fetch、push、PR 或 Actions dispatch。
+
+| 对象 | 实际值与结论 |
+|---|---|
+| 最新远端 personal、本地 personal、修复 HEAD | 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，提交差异为 0；候选无需更新应用基线 |
+| 应用来源 | `deploy/personal-source.json` 固定 `KlN-4096/sub2api`、`v0.2.14-klno.5`、`c7aacf5d3ae383d0d5c75f471f66e61690a5701d` |
+| 应用检查位置 | `/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin`，分支 `codex/fix-version-usage-help` |
+| 初始未提交改动 | 17 个应用文件、docs/dev-journal.md，以及未跟踪的本 change 计划目录；原 index 没有 staged 改动 |
+| 最新远端 main | `b43a472f4b1bde5983b3bdfa1447cd3622a77540`；维护日志已登记 `.5-tps.1` 的旧版本上线，不是本修复候选的发布证据 |
+| 文档登记位置 | `/Users/sc/.codex/worktrees/plus-s01-evidence/sub2api-kin`，从 `origin/main` 上述 SHA 创建 `codex/plus-s01-evidence`；没有搬运 main 的应用源码到 personal |
+| 原聊天 checkout | `/Users/sc/PycharmProjects/sub2api-kin`，`codex/ci-validation-scope` / `7949efe62e3854c83f39a21a0c36e03402c05688`，初始干净；本次未修改 |
+| 远端修复分支 | 查询没有返回 `refs/heads/codex/fix-version-usage-help`，本修复尚未推送 |
+
+应用候选仍未提交，**`9397eb8af` 是基线 SHA，不是包含修复的最终提交 SHA**。本次以以下身份固定实际检查的内容：
+
+- 应用候选树：`27d96087e53a97386fd86935afa4ccc3dcd991e3`。从基线使用临时 Git index 加入 17 个应用文件生成；不包含本次文档，没有改变原 index、HEAD 或分支。
+- 应用补丁 SHA-256：`dc20cf45f0f4c904c11a792dc2b77f3abdb3bd8ea98ba22b3a54d6fa8e1a4639`，对应 `git diff --binary HEAD -- <17 个应用路径>`。
+- [候选校验清单](evidence/s0.1-candidate.json)登记完整基线、17 文件 SHA-256、构建/锁文件输入及逐文件 diff 统计；`candidate_commit=null` 明确表示未提交。
+- 候选树只用于内容核对，不能作为 Personal CI、合并或发布所需的 commit SHA。S0.2 应先提交已审查内容，再绑定实际完整提交 SHA；本次不提前执行。
+
+### 最终 diff 与行为确认
+
+应用相对最新 personal 的净差异仅为 17 文件、656 行新增、125 行删除；没有新增用量字段、迁移、Ent 生成代码或调整转发、指纹、调度、gwpool、计费和导出。
+
+| 范围 | 最终候选行为 |
+|---|---|
+| 个人更新通道 | `X.Y.Z-klno.N-tps.N` 使用 `ccisnoxx/sub2api` 的最近 100 条 release，过滤草稿和非法标签，保留 prerelease，按基础版本、KlN 序号、TPS 序号选择最新；普通 KlN release 沿用 KlN latest，Wei-Shaw 只读监测 |
+| 缓存与构建能力 | 缓存绑定发布仓库并校验个人标签；当前版本重启后重新比较。API 的 build_type、update_mode、release_repository 分开报告；个人 release 是 container，个人 source 是 manual，普通 KlN release 保留 in_place |
+| 二进制操作 | 个人镜像/源码构建在 service 的查询、下载或文件替换之前拒绝更新及回滚；真实 service 接入的个人 HTTP 测试确认四个入口为 `409 / IN_PLACE_UPDATE_NOT_SUPPORTED`；回滚列表 handler 保留结构化错误 |
+| 版本提示 | 保留完整 `klno.N-tps.N` 后缀；尚未检查及检查失败不显示“已是最新”。个人镜像显示固定 digest 更新及数据兼容回滚说明；普通 KlN 的更新/重启入口保留 |
+| TPS 点击说明 | TPS 标签和数值去掉原生 title；TPS 旁独立圆圈使用 HelpTooltip click 模式。计算仍为 `output_tokens × 1000 / duration_ms`，包含首字等待；颜色、数字格式和不可用范围不变 |
+| 旧首字文案 | 首字旁使用自己的说明按钮；中英文明确这是转发开始到记录的首个响应事件或输出，可能包含元数据、推理或工具调用，未采集显示 `-`；没有把旧 first_token_ms 声称为严格首 Token |
+| 使用入口 | 管理员和用户页面继续复用同一 UsageTable；两个说明互相关闭，点击/Enter/Space 打开，Escape/点击外部或关闭按钮关闭，窄屏定位沿用已验证的 HelpTooltip |
+
+本轮没有修改上述应用文件。最终 diff 自查未确认需要修正的新增可操作问题；本结论是当前范围的自查，独立复核另见下表。
+
+### 验证结果与证据复用
+
+逐文件校验 `/tmp/sub2api-plus-adoption-preserved-files.json`，**17/17 与计划编制时的最终修复内容一致**。相关配置和锁文件相对 personal HEAD 无变更，已有 node_modules 仍标记 `pnpm@9.15.9`；源码修改时间早于各自成功日志和最终复核。历史日志实际读取，审计包按 manifest 逐个验证 SHA-256，而非只引用任务状态。
+
+| 验证 | 本次处理 | 结果与边界 |
+|---|---|---|
+| UpdateService/SystemHandler 定向 Go | 复用最终原始日志 `/tmp/sub2api-version-final-go-tests.log` | service 和 handler/admin 两包通过；日志没有保留完整 shell 筛选命令，本次不补造，也没有重跑 Go |
+| UsageTps、UsageTable、HelpTooltip | 复用 `/tmp/sub2api-usage-tooltip-tests.log` | 51 + 41 + 5 = 97 个用例通过；对应说明、适用范围、双入口切换和关闭合同 |
+| 最终 VersionBadge | 复用 `/tmp/sub2api-version-final-ui-tests.log` | 10 个用例通过；涵盖个人后缀、失败/待检查、个人源码模式、普通 KlN 更新与重启 |
+| 版本 store | 本次补充已有测试的原始执行证据 | `/tmp/sub2api-tps-tools/pnpm test:run src/stores/__tests__/app.spec.ts`，28 个用例通过；没有新增测试 |
+| 改动前端文件 ESLint | 本次补充原始执行证据 | pnpm 9.15.9 `exec eslint` 检查 13 个改动前端文件，exit 0；未使用 --fix |
+| i18n / Vue 类型 / Vite | 复用 `/tmp/sub2api-version-usage-build.log` | pnpm build 全部通过，locale completeness 3 个用例通过；Browserslist 数据过旧、Node shell 选项弃用及 chunk 体积提示是历史构建警告，没有宣称零 warning |
+| 说明浏览器交互 | 复用 `usage-help-fix/results.json`、对应 qa.cjs 和截图 | 合成 API；管理员/用户、1440/390、中文/英文、明暗组合共四组通过；首轮两个管理员组合仍有尚未加入版本文案的 i18n warning，不能宣称该首轮零 warning |
+| 最终版本浏览器状态 | 复用 `usage-help-fix/version-results.json` | update/current/error 三个状态均 passed，errors/warnings 为空；最终版本文案已补齐。本次未重启预览或重新进行浏览器矩阵 |
+| 最终 service 真实网络闭环 | 复用 `/tmp/sub2api-version-live-check.log` | 当时匿名查询 GitHub，`.5-tps.1` 识别为当前最新，release=container；同通道缓存用于 source=manual。该证据只证明当时查询，不代表本次生产验收或未来发布状态 |
+| 历史独立复核 | 复用 `20261009T061925Z-fix-version-tps-tooltips-06d9f2b5` | 历史两次 critical_reviewer 只读复核；初轮两项问题已修正，最终记录未确认新增可操作问题。20 个审计产物校验通过，bundle closed/verification passed；本次新增独立复核数为 0 |
+| 当前 diff / 保留改动 | 本次检查 | git diff --check 通过，17 文件校验值一致；本次仅增改计划、任务、日志与证据 |
+
+完整本次工具结果、历史日志摘要及 SHA-256、浏览器原始结果和审计身份见[验证登记](evidence/s0.1-validation.json)。浏览器截图和审计包仍在 Git 外原路径；记录中的历史复核次数不计为本次新委派。
+
+补充检查首次使用当前默认 pnpm 11.25.0 时，触发与 pnpm 9 依赖布局不匹配的自动安装准备，并以 `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` 退出；测试和 lint 当时尚未启动。这属于工具版本不匹配，不是应用失败。确认 `.modules.yaml` 与既有 pnpm 路径后，使用本机已安装的 9.15.9 重新执行受影响的两项检查并通过，没有重建依赖或改动锁文件。初次失败原始结果保留在验证登记。
+
+### 完成状态、限制与下一项
+
+- **S0.1 已完成**：最新 personal、实际候选、最终 diff、可复用证据与未提交状态均明确；原有 17 个应用文件保持原值。
+- 应用候选与本次维护文档均未提交、未推送。没有给未提交应用修复补造 commit SHA，没有使用旧 `9397eb8af` CI 或 `.5-tps.1` 发布/生产结果证明本候选交付。
+- 本次未执行完整回归、新的 Personal CI/Release gate、数据库检查或新的浏览器矩阵；本次没有新增对应业务、迁移或交互变化，已有直接证据覆盖 S0.1。真实权限隔离、生产页面及生产版本不属于本次本地核对证据。
+- 现有部署工具按固定后端运行树约束兼容；本候选改动 update_service.go，不能沿用 `.5` 旧候选的固定运行树证明。针对真实提交审定部署兼容与回退边界，留待后续交付准备。
+- **下一项是 S0.2**：先固定实际应用提交 SHA，按仓库必要门禁取得该候选的 CI 证据，准备合并、个人发布和部署兼容条件。实际合并与发布须在相应授权范围内执行；本会话止于 S0.1。S0.3 与 S1 仍未开始。
+
+
+## S1.1–S1.4 第一批本地实施与交付准备
+
+### 基线、保存原候选与稳定身份
+
+本次先读取指定 plan/tasks/journal，读取 personal 约定、相关领域/用量/计费、迁移、DTO、页面与导出合同，再核对工作树与候选。只读远端复查在 UTC 2026-10-09 14:19:42 完成：personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，main 为 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`。`deploy/personal-source.json` 保持 KlN `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`；Plus 参考仍为固定 `90da415c62b94c9417d9ce2b72b1507ed22f0303`。
+
+| 对象 | 实际状态 |
+|---|---|
+| 工作位置 | `/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin`，`codex/plus-usage-s1`，工具创建并附加的独立 personal 工作树 |
+| 原 S0 候选 | 原 tracked diff 与 untracked change 文档按字节复制，再在新树本地提交 `6bf78b18ce759e4f211c62b0518c3bca7418efde`；原17个应用文件未修改 |
+| 数据/迁移 | `0e2ea47950564aa05dd6e8eca374874725047057`，包含主代理冻结的 `UsageTiming` 与 spec；Ent 由正规 generator 维护 |
+| 页面/导出 | `12499e1a7`，15文件；后续说明修正在下列独立补丁 |
+| HTTP/SSE/WS采集 | `f9d9fbbd7ce6048b3b18be46a55f964a8db4b34e`，19文件；后续复核修正 `36ba3360d6c0839af1593d017e729ff9b0fdaba5` |
+| 最终验证应用 | `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`，最终音频事实修正后再通过受影响采集与race；相对已保存S0新增/修改54个应用文件 |
+| 当前聊天 checkout | `codex/ci-validation-scope` / `7949efe62e3854c83f39a21a0c36e03402c05688` 继续干净，没有借用其 main 应用源码或未合入CI选择候选 |
+| 文档职责 | 新应用树保存阶段记录；原指定位置与 main 来源的既有文档候选增量同步。各自既有journal全文保留，未合入远端main |
+
+[候选清单](evidence/s1.1-4-candidate.json)固定最终应用完整 SHA、54文件 SHA-256、构建/依赖输入和来源。该 SHA 是已验证应用提交；文档归档提交会推进本地分支 HEAD，后续 CI 必须重新绑定届时的实际完整候选 HEAD，不能把旧 SHA 的结果改标成新 SHA。
+
+AGENTS 引用的 `docs/conventions/codex-outbound-identity.md` 与 `docs/tasks/` 在当前 personal 与 main 来源树中缺失；已搜索相关本地/历史来源，没有补造规则。本期未修改出站身份、指纹、账号调度、gwpool、自动重试、现有计费解析与结算 owner。`openai_ttft_mode`、旧 `first_token_ms`、旧迁移/聚合均保留。
+
+### 数据与实际入口
+
+- 新增 `251_add_usage_log_timing.sql`，只追加9项观测字段及注释；事务内 lock_timeout=5s，历史值为0/NULL/unknown，不回填成功、不清理数据。原SQL文件 SHA-256 为 `abce11c5a8cf8fa993d9a0fb25190af3130722fcc419f1f94b5a5397ff60003b`；runner 对 TrimSpace 后内容计算 ledger checksum，两者不能混用。
+- 领域、Ent schema/8个生成文件、6组显式SQL列/参数、扫描、单条/批量/幂等/best-effort fallback、用户与管理员DTO及前端类型贯通。规范化仅处理空状态/source→unknown，不猜未知枚举。go.mod/前端锁文件无变更；go.sum只追加8行正规generator依赖checksum，无版本升级。
+- [冻结合同](spec.md)与[覆盖表](coverage.md)分别说明数据和实际owner。第一批原生 Responses 普通/透传 HTTP/SSE、非流式JSON/SSE转JSON、pooled WS/ingress/WS→HTTP桥接、原生WS relay已接线；用原duration起点与权威turn/ID，提交深复制快照。
+- 首次终态冻结；取消/完成、failure/DONE、多turn、重试attempt隔离均有定向反例。流式只有done聚合不补造严格时点；非流式是完整内容观察时点。可信正音频统计也保留持续音频事实；权威缺失拆分保持NULL，明确零才为0，拒绝的全零终态保留原部分值。
+- 页面与导出使用同一helper。平均TPS使用总耗时及可信文本/媒体拆分，保留原始未舍入值；历史旧首字、新严格首Token与部分状态分开说明。所有新行说明非流式观察边界，避免pooled WS旧DTO没有原请求模式时漏说明；未改变旧request_type。
+
+### 实际验证与复用
+
+完整实际命令、退出、原始日志SHA-256、浏览器结果和环境事件见[验证登记](evidence/s1.1-4-validation.json)。原始输出已持久保存至 `/Users/sc/.codex/validation/sub2api-kin/20261009-s1`，可由JSON清单核验，不只保存在/tmp。原始green日志自身没有记录筛选命令/HEAD，登记中的命令及退出来自本次实际工具调用记录；不把日志单独视为这两项元数据证明。
+
+| 检查 | 结果与范围 |
+|---|---|
+| Ent generator / repository unit / DTO | 正规生成通过；55个repository顶层定向检查、13个DTO顶层检查通过。新夹具时序调整后只重跑受影响范围 |
+| PostgreSQL 16集成 | 7个顶层检查通过，后续仅4个新字段夹具重跑；真实单条/批量/重复写、Ent、历史未知、真实FK引发best-effort失败后single fallback、新字段读回。不是skip或纯mock |
+| 旧应用与恢复往返 | 固定6bf78b18c旧源码执行真实ApplyMigrations、SQL/DTO；真实pg_dump/pg_restore隔离库；修checksum夹具后同库S1→S0→S1启动、迁移与新SQL/双DTO读回通过 |
+| 最终Responses采集 / 计费快照 | service与WS relay定向集合对最终3f0443757通过；覆盖HTTP六种组合、取消/失败、重试隔离、WS owner、多ID/两turn、legacy/atomic×balance/subscription费用/倍率/扣费次数/原command保持、可空字段深复制 |
+| 既有回归 / race | 原失败、lease、多turn、bridge retry与计费幂等通过并复用；36ba修正的定向race两包通过；3f最终正音频事实与WS归属race通过。未运行完整Go suite |
+| 前端定向 / lint / build | 7相关测试文件合计162个去重用例通过，含最终首Token组件6项；15个改动文件lint及后续2文件lint通过；最终i18n3项、vue-tsc、Vite通过。既有Node/Browserslist/import/chunk警告仍登记 |
+| 页面与真实导出 | 合成API的4组Chromium配置：管理员/用户、zh/en、light/dark、1440/390；说明点击/Enter/Space/Escape、互斥、外部关闭、视口边界；实际四份CSV/Excel共32行解析，原始TPS/空值/bool/旧列语义一致 |
+| 最终说明布局 | 更新条件说明后仅重跑四组tooltip流程，无error/warning、无裁切；未改导出helper，先前32行一致性证据复用 |
+| S0证据 | 版本service/handler、VersionBadge/store等文件保持原内容，沿用S0.1仍有效证据；变化的TPS/表格由本期验证替换，未把S0成功结果套给新功能 |
+
+首次新增首Token组件用例的detached DOM断言失败，修挂载后重跑；浏览器精确文本、窄屏focus滚动和外部点击目标的夹具问题已诊断修正，只重跑失败mobile。新复核反例先红后绿；shell首轮测试直接解引用NULL产生panic，改NotNil断言后证实同一遗漏。共享定向集合还发现纯文本零音频在替换后被清空，调整接受后确认顺序后通过。用户暂停后预览进程结束，继续时连接拒绝；核对端口无进程后重新启动，本次补验通过。这些结果没有被写成首轮全通过，也没有盲重试。
+
+### 独立复核与交付限制
+
+4次fresh独立只读复核的实际候选与逐项关闭见[复核登记](evidence/s1.1-4-reviews.json)：存储确认临时checksum夹具缺陷已以真实往返关闭；采集/导出确认四类P2指标边界已修；进一步确认usage-only正音频事实分支已补先红后绿回归。最后20行按实际3f0443757独立复核，可关闭，未确认残余阻断。独立复核未单独执行测试，不等于独立测试。
+
+本任务审计 `20261009T092527Z-kin-plus-usage-s1-c8034a11` 已closed、audit-verify passed，34产物完整校验，无errors/warnings。[确定性子代理摘要](evidence/s1.1-4-subagent-digest.md)来自当前5个stage的校验结果；模型/effort只表示Agent TOML配置，未冒充运行时遥测。
+
+实际未覆盖边界：HTTP原失败仍返回nil、不新增失败用量行；WS缺少可信turn/ID/start的fallback、opaque binary保留旧版本或未知；Cyber、CC/Anthropic/Gemini/Grok转换及其他媒体API未接入。没有真实provider凭据请求、生产/真实用户授权隔离或跨浏览器矩阵。第一批不能宣布全部平台完成。
+
+[交付准备](delivery.md)已记录增量迁移、备份/恢复、固定旧应用兼容边界及保留扩展schema的回退策略。personal当前必要CI仍是binding、existing-ci、existing-security、tps、sync-contracts及personal-ready；当前聊天的CI范围候选未生效，未借用。远端CI/安全/发布gate未执行，需后续推送/PR授权并绑定实际最终候选；部署工具的真实运行树兼容仍须针对实际生产候选审定。本会话没有推送、PR、Actions dispatch、合并、版本分配、镜像发布、SSH或生产部署，没有把历史tps.1当本候选证据。
+
+**S1.1–S1.4 已完成本地实现、验证与交付准备。** S1.5、S2–S5不自动开始；按计划推荐下一项为 **S2.1 模型价格目录的权限与接口合同**，S1.5第二批采集按实际使用入口另行选择。合并、发布和生产验收保持独立未执行状态。
+
+## S2.1 模型与价格目录权限与接口合同
+
+### 基线与工作位置
+
+- 先读取指定 plan/tasks/journal，再只读查询远端 `personal/main`。远端 personal、本地 personal 与 origin/personal 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；远端 main 与 origin/main 均为 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`。未 fetch、push 或修改远端。
+- 当前聊天仍为干净的 CI 维护 checkout `7949efe62e3854c83f39a21a0c36e03402c05688`，未用其应用源码。原 `fix-version-usage-help` 基线仍为 `9397eb8af`，17 个未提交应用文件保留。
+- 本轮核对应用使用干净的 `/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin`，HEAD `e3edb5666a03a582bfbb83a718aedda03ba6ea08`，包含 S1 已验证应用 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`；personal 是其祖先。与 personal 比较的九个核心渠道/授权/客户端文件无差异，S1 不改变本次旧接口基线。
+- 文档沿用 `/Users/sc/.codex/worktrees/plus-s01-evidence/sub2api-kin`，只增量编辑本 change 与 journal，并同步用户指定的原计划目录。两处 plan/tasks/implementation-evidence 编辑前逐字一致，日志各自旧内容保留。S1 源码工作树、HEAD 和历史应用证据不变。
+
+### 合同结果
+
+[目录权限与接口合同](catalog-contract.md)已冻结：
+
+1. 同一路由只有单个、大小写精确的 `view=catalog` 选择新对象；缺失、空、未知、重复值仍返回旧数组。成功封装、原客户端类型、认证/后台模式/限流不变。
+2. 分组授权复用 GetAvailableGroups；公开限制、专属授权、有效订阅独立处理，订阅组必须有 active 且未过期的本人订阅。用户参数和管理员身份不能扩大目录范围。
+3. 先授权分组，再关联 active 绑定渠道，再做普通/复合平台隔离与模型筛选。有权无模型组保留 models=[]；全局价格不扩增模型。新目录额外复用 KIN 现有 Group.ModelAllowlist.Allows；旧数组本轮不修改。
+4. 冻结目录外层、分组/offer 基本字段、稳定身份、白名单与空值；个人倍率读取失败与授权失败分开。旧展示价格包含仅供展示的全局合成，不当作实际扣费报价。
+5. S2.2 冻结并接入 KIN 权威价格解析，S2.3 实现目录 DTO 和查询分支。S2.1 未提前新增 resolver、API、前端、迁移或测试代码。
+
+### 本轮检查与未验证项
+
+源码核对覆盖路由/JWT/后台模式、设置读取、分组授权/订阅 SQL、渠道状态/平台/模型枚举、分组模型白名单、旧 DTO 与客户端；关键源文件的实际 SHA-256、Git 基线和检查结果见[检查清单](evidence/s2.1-contract-checks.json)。既有权限、平台、白名单与错误传播用例只作覆盖定位，没有宣称本轮运行通过。
+
+文档链接、任务编号、唯一勾选变化、空白/代码块、两处同步与历史日志保留均检查；四个工作树的 HEAD、既有17个应用改动和关键源文件校验值不变，S1 应用树与当前 CI checkout 保持干净。使用临时快照核验保留内容，持久证据只登记实际结果与必要校验值，不保存无关日志或凭据。
+
+依计划的文档阶段规则未运行应用构建、Go/前端测试、数据库、浏览器或完整门禁；S1 成功证据没有扩大为目录验证。本轮没有新委派或独立代码复核。当前接口未实现 catalog；新分支、跨用户权限、倍率失败状态与权威报价的一致性由 S2.3/S2.5 的实际候选验证。
+
+**S2.1 已完成。下一项为 S2.2 接入 KIN 权威价格解析；未自动开始。** 合并、镜像发布与生产部署均未执行。
+
+
+## S2.2 KIN 权威价格解析
+
+### 基线、工作位置与保留结果
+
+先读取用户指定 plan/tasks/journal，核对当前 personal、S0/S1 候选与未提交内容。远端、本地及 origin/personal 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；main 为 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`。应用从干净 S1 候选 `e3edb5666a03a582bfbb83a718aedda03ba6ea08` 创建 `codex/plus-pricing-s22`，位于 `/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin`。S1 已验证应用 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0` 是其祖先，来源继续为 KlN `.5/c7aacf5d`；没有使用 main 应用源码。
+
+原 S0 工作树的17个未提交应用文件逐一匹配原 manifest；S1 的54个应用文件、45个原始验证产物校验值均匹配。原 S0 应用文件及 HEAD、S1 工作树与 HEAD、聊天 CI checkout `7949efe62` 均保留。此前 `plus-s01-evidence` 在本轮文档写入前已不在磁盘，未由本会话删除；指定原计划目录保存最新 S2.1。因此新建 main 来源 `codex/plus-pricing-s22-evidence` 仅登记文档，各位置旧 journal 原文保留。
+
+最终已验证应用提交 `e82287300d1b7cc625295c5307ebaa83c707c019`，6个服务源码/测试文件；[候选清单](evidence/s2.2-candidate.json)登记真实 commit、tree、来源及文件/依赖校验值。其后的文档归档提交不替代这个应用身份。完整行为与 S2.3 接线要求见[价格合同](pricing-contract.md)。
+
+### 实现与计费责任
+
+新增 CatalogPricingResolver 消费已授权活跃分组和绑定渠道快照，复用 KIN 平台索引、精确/通配/模型归一化、requested/channel_mapped 及 Group → Channel → LiteLLM → 内置来源链。构造检查不代替权限；模型枚举、白名单、聚合与 DTO 仍属于 S2.3。upstream/response_model 与无显式价卡的 Composite 不伪造最终模型报价。
+
+Token 与按请求次数价格从真实计费探针求值，固定 ReferenceAt，输出 (min,max] 有效上下文段、服务档位、FreeFast、独立分时与最终 effort 规则。个人倍率覆盖分组默认值（含0），订阅高峰及独立图片/视频倍率复用实际 owner；各因素仅应用一次。未知与明确零分别保留 nil/0，来源存在性随同次价格读取传递，不因价格刷新混用版本。
+
+按次合法重叠区间按真实首次命中拆段；零标签表示随请求上下文继续求价，FallsBackToContext=true、Price=nil，引用有效上下文与默认价。只有明确 UsageKind=request 才输出 USD/request；媒体按张/秒/分钟/字符和图片 Token 单价没有可靠完整入口，明确 unsupported_unit/UnsupportedComponents。resolved 的 reason 为空，后续 DTO 映射 null；所有规则为参考，不能承诺未来完整账单。
+
+旧 ModelPricingResolver 构造、旧模型广场和计费公式/结算/调度保持原行为。新增元数据不序列化；未新增 HTTP、DTO、前端或迁移代码，不直接序列化 Group/Channel 等领域对象。
+
+### 实际验证与独立复核
+
+- backend 的实际 Go toolchain 为 go1.27.2 darwin/arm64。首次编译发现包内 int max 和原测试访问 concrete channelService；分别改用 math.Max、保留原字段并增加私有快照来源，编译错误消除。失败日志保留，不记为测试通过。
+- 最终 `go test -tags unit ./internal/service -run '^TestCatalog' -count=1 -v` 通过：15个顶层、22个含子用例 PASS 项；其中48组服务档位/上下文/缓存输入与生产 ChannelService 和独立 ModelPricingResolver 逐项对账。
+- 受影响既有 resolver、阶梯、Token/按次、缓存零价、动态价格解析及旧模型广场定向回归通过：98个顶层、158个含子用例 PASS 项。来源元数据修正后重新执行；最后仅目录零标签表示改动，其 owner 输入未变，复用最终通过结果。已有夹具 warning 如实保留。
+- 2次 fresh critical_reviewer 只读实际 diff 与日志；4项 P2 已修正：重叠按次区间、刷新时零值存在性、成功 reason、零标签跨上下文。四项都有针对合同的先红后绿证据，零标签覆盖默认0/0.25和0/1/100/101/300 Token。第二轮明确认可回退标记方向；最后小修由主代理按该方向实施并对账，没有第三次 fresh 全文复核。复核代理未独立运行测试。
+- 委派审计 `20261009T151715Z-kin-plus-pricing-s22-ef4e4438` 已 closed、audit-verify passed；计划/执行记录均校验，源码写入观测为零。见[复核与关闭记录](evidence/s2.2-reviews.json)、[生成执行摘要](evidence/s2.2-subagent-digest.md)。验收通过计数表示复核交付被接受，不表示含问题的早期候选被接受。
+- S0/S1 输入和原验证产物校验成功，仅复用它们原有边界；不扩大为新目录权限验证。详见[验证记录与日志校验](evidence/s2.2-validation.json)。文档链接、唯一勾选变化、三处计划同步、旧日志保留、最终 diff 与工作树检查登记在[文档收尾检查](evidence/s2.2-document-checks.json)。
+
+没有运行新 HTTP/权限/DTO、前端/浏览器、数据库/迁移、完整回归、远端 CI 或真实上游请求：本轮只改只读价格服务，对应新目录行为由 S2.3–S2.6 的实际候选取得证据。未执行推送、PR、合并、镜像发布或生产部署。
+
+**S2.2 已完成。下一项是 S2.3 实现模型聚合 DTO 与 opt-in 查询接线，未自动开始。** 当前接口仍返回旧渠道数组，目录功能尚未对用户启用。
+
+## S2.3 模型目录 DTO 与查询分支
+
+### 基线、候选与保留结果
+
+先读取用户指定 plan/tasks/journal，再核对远端及本地 personal、现有 S0/S1/S2.2 工作树与未提交改动。personal 保持 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，main 保持 `b43a472f4b1bde5983b3bdfa1447cd3622a77540`；应用来源仍为 KlN `v0.2.14-klno.5/c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。
+
+从干净 personal 来源的 S2.2 HEAD `e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2` 创建并附加 `codex/plus-catalog-s23`，路径 `/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin`。其中包含已验证价格实现 `e82287300d1b7cc625295c5307ebaa83c707c019`；本轮已验证应用提交为 `49c209a77059d2927f78bbd31c1dd479b509dc6f`，5个源码/测试/正规生成文件。完整身份见[候选清单](evidence/s2.3-candidate.json)。文档归档提交会推进本地 HEAD，后续 CI 仍须绑定真实最终候选 SHA。
+
+复用干净的 main 来源文档工作树 `codex/plus-pricing-s22-evidence` 仅增量登记本 change 和日志，同步指定原计划位置与新应用树；没有使用 main 应用源码替代 personal，也没有合入 main。原 S0 工作树17个未提交应用文件保持原值；S1的54个应用文件及45个原产物、S2.2的6个应用文件及12个原产物校验一致。新应用相对 S0 的6个用量文件差异是 S1 已有演进，不能称本轮改变。原 S1/S2.2 候选和聊天 checkout 的 HEAD、状态均保持原值；三个登记位置各自历史 journal 全文保留。
+
+AGENTS 引用的出站身份约定和 docs/tasks 在可用应用/维护树与本地历史 refs 中仍未找到，本轮继续登记缺失，不补造规则；实现不涉及出站身份。
+
+### 实际行为与责任
+
+- 同一 GET 路由只在 URL 解码后 `view` 恰有一个值且精确为 `catalog` 时返回对象；默认、空、未知、大小写变体及重复参数继续返回旧渠道数组。用户查询参数不切换 JWT 主体，旧数组的模型白名单行为不改。
+- 先执行真实 `APIKeyService.GetAvailableGroups`，再读取一次绑定授权组的活跃渠道配置；分组模型使用 `SupportedModels` 有限候选、普通/复合平台筛选及公开请求名 `ModelAllowlist.Allows`。目录按分组保留报价并在平台/模型维度稳定排序/去重，有权空组保留 models=[]。页面卡片聚合留在 S2.4。
+- 每个分组的模型枚举与 S2.2 价格 resolver 使用同次克隆渠道配置，避免再读旧展示合成价或共享渠道缓存。只读取一次当前用户倍率，仅嵌入授权组覆盖；成功且无覆盖为 null、明确零为0、读取失败为 unavailable 和参考默认倍率。授权/渠道/价格失败显式返回，不夹带部分目录。
+- 显式 DTO 白名单保留上下文/服务档位/分时/effort、UnsupportedComponents 与按次零标签回退规则；缺失和0分开。单价未乘用户/分组倍率，已解析适用倍率单独输出，消费者仅应用一次。offer_key 用分组、渠道、具体平台和小写请求ID派生SHA-256，不输出原始内部渠道ID。
+- GET 没有可信媒体/按次请求入口事实，per_request/image/video 配置返回 unsupported_unit，单位unknown；upstream/response_model 依赖真实请求时返回 request_dependent。不改变扣费、结算、调度、数据库或前端。实现字段和算法见[目录合同补充](catalog-contract.md#s23-已实现的目录-dto-与查询分支)。
+
+### 检查、复用与独立复核
+
+| 实际检查 | 结果与证据边界 |
+|---|---|
+| 新 handler/DTO 与旧接口定向检查 | `go test -tags unit ./internal/handler -run '^(TestAvailableModelCatalog\|TestUserAvailableChannel\|TestFilterUserVisibleGroups\|TestToUserSupportedModels\|TestBuildPlatformSections)' -count=1 -v` 通过；新增13顶层/32含子项PASS，旧helper10顶层/PASS，共23顶层/42PASS。表格中的竖线为Markdown转义，机器命令见JSON；夹具预期的500错误日志保留 |
+| 权限与响应验证边界 | 在仓库边界注入夹具，执行真实授权/平台/白名单/价格owner，覆盖选择兼容、公开限制/专属/有效及过期订阅/他人订阅、跨用户、短路、错误、零/未知、参考倍率、单次快照与DTO白名单；不称真实JWT或生产隔离验证 |
+| 服务端构造编译 | `go test ./cmd/server -run '^$'` 通过；明确无业务测试运行，保护新增BillingService注入与生成结果可编译 |
+| 正规Wire生成 | 固定v0.7.0。首次被工具go.sum缺项阻止；全局GOFLAGS临时modfile又触发loader非module目录错误；按诊断仅给生成器构建传入临时modfile后成功。应用go.mod/go.sum未变化。生成器还重排两项独立构造并省略维护源码中的注释；实际调用与生命周期不变，未手改生成文件 |
+| 证据复用 | S2.2同输入的15顶层/22PASS、48组owner对账及既有98顶层/158PASS结果复用；本轮未重跑这些检查。S0/S1仅复用其未变边界，不作为目录权限、真实数据库、浏览器或当前远端CI证据 |
+| fresh独立只读复核 | 1次critical_reviewer完成，未确认可操作缺陷；复核实际diff/5文件/原始日志，未重跑测试。派发前后5文件校验一致；其后主代理只修正handler的分支注释，不改生产逻辑，复用行为测试与构造编译 |
+| 实际diff与收尾 | 应用5文件、902新增/6删除，未改扣费/调度/前端/迁移/依赖；git diff --check、格式与保留工作树核对通过。三处任务及合同同步、唯一新增S2.3勾选、链接与历史日志保留另见[收尾检查](evidence/s2.3-document-checks.json) |
+
+委派审计 `20261009T155935Z-kin-plus-catalog-s23-f949dc81` 已closed、audit-verify passed、无errors/warnings。验收通过只表示复核交付被接受；模型/effort是Agent TOML配置证据。见[复核记录](evidence/s2.3-reviews.json)、[确定性执行摘要](evidence/s2.3-subagent-digest.md)和[原始日志及复用清单](evidence/s2.3-validation.json)。
+
+本轮未执行真实JWT/后台模式/面板限流运行链、真实数据库/生产报价链、前端构建或浏览器、全量回归、远端CI或上游凭据请求。路由及middleware未改，复杂价格owner输入未变；本轮只实现S2.3，进一步阶段一致性验证与完整页面流程仍由S2.5/S2.6取得实际证据。没有推送、PR、Actions、合并、镜像发布、SSH或生产部署。
+
+**S2.3 已完成本地实现、验证与执行证据。下一项是 S2.4 改造已有可用渠道页面，未自动开始。** S2.5–S2.7及其他阶段保持未执行。
+
+
+## S2.4 可用渠道页面模型与分组报价目录
+
+本轮仅 S2.4，本地应用 **`b8cf49ca25007cbc23338a9443b71df4c0411155`**；[候选校验](evidence/s2.4-candidate.json)、[检查与原始证据](evidence/s2.4-validation.json)。S2.5、S2.6、S2.7 均保持未执行。
+
+### 应用来源与工作位置
+
+先读取原指定计划、任务和日志，再核对全部6个工作树及远端。personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；来源 KlN `.5/c7aacf5d`。S2.3 的 personal 来源候选 `b8db9596977d196f025d79a1f4cf0c3442e5b3d8` 干净且包含 S1/S2.2/S2.3 依赖，从它建立 `/Users/sc/.codex/worktrees/plus-catalog-ui-s24/sub2api-kin` / `codex/plus-catalog-ui-s24`。未用 main 应用源码。
+
+main 来源 `codex/plus-pricing-s22-evidence` 只登记本 change 与日志，并增量同步原指定计划位置。原 S0 17应用文件均匹配；S1、S2.2、S2.3 与聊天维护树的源码、HEAD保持原值。每处原journal全文保留。AGENTS要求的出站约定与docs/tasks仍未找到，沿用前轮缺失记录；本轮不涉及出站身份。
+
+### 用户可见结果与价格边界
+
+- 新客户端 `getCatalog` 显式传单个 `view=catalog`，旧 `getAvailable` 类型、签名和数组调用不变。页面不再并发拼接 `/groups/rates`，仅使用当前目录内嵌倍率。
+- 模型按具体平台与大小写无关名称聚合；检索模型/平台/分组/渠道，保留各组报价和空模型组。原生 details/summary 允许键盘展开，详情切分组、服务档，显示来源、订阅/专属、(min,max]整单上下文、缓存单价、参考时点与单位。
+- 单价仅乘服务端已解析适用Token倍率一次，并转换USD/token为USD/1M token。服务档策略已在单价中，不另乘Fast/Flex；分时与最终effort单独展示规则且明确未进入表内。没有计算“最低路由价”或完整账单。
+- null显示—，明确0显示$0；unsupported_unit/request_dependent/pricing_unavailable展示不同原因。媒体未知单位不猜测；未支持分量明确说明。个人倍率unavailable保留参考默认倍率和刷新提示。
+- 刷新先清目录，失败显式错误与重试；用户ID变化同步取消、清筛选及重载，晚到成功/错误需匹配请求序号与主体。卸载取消并使旧响应失效，不延用旧用户报价。
+
+### 实际验证与独立复核
+
+| 检查 | 实际结果与限制 |
+|---|---|
+| 新合同定向测试 | API/聚合/过滤/一次倍率4通过；组件与页面6通过，共10去重用例。保护零/未知、阶梯/档位、失败重试、晚到成功/错误、用户切换与退出/卸载。首轮4失败为runtime-only测试夹具没有应用JIT define；中间2次模块路径尝试未收集测试；最终只修夹具并重跑受影响2文件 |
+| lint/类型/build | 11文件lint通过，夹具变更后2文件lint与最终vue-tsc -b通过；build包含双语完整性3通过、类型与Vite。Node DEP0190、Browserslist过期、混合导入和chunk警告保留；测试自定义message compiler警告仅在夹具，不宣称零warning |
+| 浏览器 | `/available-channels`，1440×1100/390×844、中英、明暗4组通过；身份/标题、内容、无overlay、检索、分组/服务档、零与未知、参考倍率失败、空目录、错误与重试，Enter/Space、Escape及焦点恢复。另对2组价格表实际ArrowRight横向滚动与截图，整页无水平溢出 |
+| 浏览器证据边界 | Browser plugin not available，复用Playwright 1.62.1/Chromium与合成GET夹具；不称真实JWT/数据库/生产隔离。正常流程零error/warning，每组1次有意HTTP500有独立错误状态与恢复验证。早期原生select键盘提交假设与缺少AppLayout `/keys`夹具的失败保留诊断；最终以selectOption验证报价切换，原生summary键盘另行通过 |
+| 未变证据复用 | S2.2的6文件/12产物、S2.3的5文件/14产物均校验一致；复用原价格owner48组对账和原授权/DTO/旧接口成功边界，不重跑Go。新页面证据由本轮获得；S0/S1不扩大为目录权限证明 |
+| fresh只读复核 | 1次critical_reviewer未确认可行动缺陷；检查实际源码、DTO、合同与原始日志，未独立执行测试。复核输入校验一致，之后无应用修改；浏览器键盘/双语缺口由主代理实际验收补齐 |
+| 最终diff | 仅11前端文件，644新增/100删除；backend/deploy/依赖/锁文件相对S2.3无差异，未改扣费、调度、权限owner或迁移。diff/保留源/文档链接与状态核对见[收尾检查](evidence/s2.4-document-checks.json) |
+
+委派审计 `20261009T164258Z-kin-plus-catalog-ui-s24-61dc32dd` closed、audit-verify passed、无errors/warnings；[确定性执行摘要](evidence/s2.4-subagent-digest.md)。模型/effort是Agent TOML配置证据；验收通过表示复核交付被接受。
+
+**S2.4 已完成本地实现、检查与执行证据。下一项 S2.5 验证权限与报价一致性，未自动开始。** S2.6完整阶段验收仍保持未勾选，本轮页面证据可在输入未变时复用。真实JWT/数据库、全量/浏览器矩阵、远端CI、推送/PR/Actions、合并、镜像发布、SSH和生产部署均未执行。
+
+
+## S2.5 权限与报价一致性验证
+
+本轮仅 S2.5，验证候选 **`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`**；[候选校验](evidence/s2.5-candidate.json)、[验证与原始证据](evidence/s2.5-validation.json)、[独立复核](evidence/s2.5-reviews.json)、[文档及保留检查](evidence/s2.5-document-checks.json)。S2.6、S2.7和其他尚未开始的阶段保持未执行。
+
+### 基线与工作位置
+
+先读取指定计划、任务和日志，核对远端 personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，来源 KlN `.5/c7aacf5d`，main 仍 `b43a472f4`。S2.4工作树开始时干净，HEAD `1696d054c82044fb5aaaf0d4851023f0423846dc`，已验证功能为 `b8cf49ca25007cbc23338a9443b71df4c0411155`。从该完整SHA建立并附加 `/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin`，本地分支 `codex/plus-catalog-verify-s25`；没有使用main应用源码。
+
+原S0的17个应用文件与历史校验值全部匹配，未提交改动保留。S1、S2.2、聊天维护checkout保持原HEAD和源码状态。S2.3/S2.4旧目录在新树准备后已不在磁盘，本会话未调用删除或归档；原Git分支引用及提交完整保留，不声称旧目录仍存在。main来源 `codex/plus-pricing-s22-evidence`仅增量登记文档，并同步指定计划位置及新应用树；各自旧journal全文保留。AGENTS指定的出站约定和docs/tasks仍未找到，本轮不涉及出站身份或账号extra。
+
+### 实际验证与复用
+
+新增一个integration测试文件，复用仓库真实迁移、PG16/Redis harness、生产用户路由注册、JWT鉴权、分组/订阅/渠道/倍率SQL仓库及生产解析器。HTTP请求不注入AuthSubject；本地合成用户使用真实签名JWT，GET变更审计插槽为no-op。测试不调用上游、调度、用量结算或生产数据。
+
+| 边界 | 实际结果 |
+|---|---|
+| JWT与权限 | A→B→A主体隔离；查询user_id/group_id/admin不切换主体；公开限制、专属组、有效/过期/停用/他人订阅、停用/软删除组、有权空组按真实SQL和授权owner过滤；原始响应不含隐藏渠道名 |
+| 旧接口与middleware | 无view、大小写不同、重复view仍是旧数组；两视图均拒绝无效/缺失JWT、密码指纹变化后的旧Token及停用用户；后台模式普通用户403，管理员仍只有自身范围；真实Redis共用按用户桶，旧数组后catalog返回429及Retry-After |
+| 报价与计费 | HTTP目录明确3模型和default/priority/flex/ultrafast四档；0/unknown、平台/公开请求名白名单与内部映射边界；个人倍率0.5/0覆盖默认7，仅应用一次；1/100/101/300上下文及普通输入/缓存读取，共64次费用与独立生产ChannelService→ModelPricingResolver→CalculateCostUnified对账一致 |
+| HTTP规则 | 精确断言UTC分时、唯一00:00至23:59倍率2及high effort=1.5，费用期望使用响应倍率；不把隐藏规则漏出或缺失误算成完整对账 |
+| 新执行结果 | `go test -tags integration ./internal/repository -run '^TestAvailableCatalog(JWTDatabasePermissions\|HTTPBillingParity)$' -count=1 -v`，最终2顶层/11 PASS项；使用DOCKER_HOST、PG16与CI=true禁止harness静默跳过。Go1.27.2；gofmt/diff检查通过 |
+| 仍有效证据 | S2.2的8输入/12产物、S2.3的7输入/14产物、S2.4的15输入/25产物均匹配，共30输入/51产物；复用原48组owner对账、定向回归/HTTP/DTO以及页面倍率/类型/build证据，各自保持原覆盖，不称新执行 |
+| 失败与修正 | 初次编译夹具误用不存在的SetTokenVersion，尚未运行测试；改用真实密码指纹变化。第二次夹具直接写后台模式绕过进程缓存，预期403得200；改用真正UpdateSettings刷新缓存。生产owner未改。首轮三项测试保护缺口修正后仅重跑原两个定向集成测试，通过 |
+
+实际命令、日志、SHA-256及环境/复用边界见验证清单。Colima开始为停止，本轮启动已有实例；临时PG/Redis/ryuk容器在检查后清理，原三个无关停止容器保持，Colima最终恢复停止。没有安装依赖或扩大为全量验证。
+
+### 独立复核与交付边界
+
+两次fresh只读复核：首轮检查现有S2权限/价格链及本轮测试，未确认生产逻辑缺陷，但确认原始响应泄漏断言、模型/服务档范围断言、HTTP分时/effort字段三处测试保护缺口。主代理修正并定向重跑；第二轮仅复核这些修正及最终日志，三项关闭，未确认新增可操作问题。复核未独立执行测试；验收通过统计指复核交付被接受，不能理解为首轮候选已经无问题。
+
+审计 `20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef` closed、audit-verify passed；[确定性执行摘要](evidence/s2.5-subagent-digest.md)。最终diff仅新增测试和本阶段文档；生产代码、扣费、调度、迁移及依赖保持S2.4候选内容。
+
+这些是本地真实基础设施的HTTP集成证据，未启动生产服务进程，未使用生产JWT、带会话指纹的绑定变化、上游凭据或实际扣款请求。过期JWT/数据库错误/Redis故障没有新增集成检查；未变错误边界保留既有证据。新集成夹具限定UTC单时段和high effort，非UTC、工作日限制及跨午夜沿用原owner证据；weekdays_only普通bool未单独观察字段省略/null，当前生产DTO明确输出。媒体和依赖真实请求的报价继续unknown，不宣称整张请求账单或实时可用性。S2.6浏览器完整查看流程、S2.7阶段交付、全量/远端CI及发布门禁未运行。本会话没有push/PR/Actions、合并、镜像发布、SSH或生产部署。
+
+**S2.5已完成。下一项S2.6验收模型查看流程，未自动开始。**
+
+
+## S2.6 模型查看流程验收
+
+本轮仅 S2.6，复用 personal 来源应用 HEAD **`f6e91d55d05ca71332657bd577f223ccb7849cb0`**；功能提交 `b8cf49ca25007cbc23338a9443b71df4c0411155`，S2.5验证提交 `3722c48ccdc0e4468dbc5c6ebb13584624c566d6`。没有新应用源码改动或提交。[候选校验](evidence/s2.6-candidate.json)、[浏览器与复用证据](evidence/s2.6-validation.json)、[独立复核](evidence/s2.6-reviews.json)、[文档及保留检查](evidence/s2.6-document-checks.json)。S2.7和其他尚未开始的阶段保持未执行。
+
+### 基线、工作位置与源码保留
+
+先读取用户指定plan/tasks/journal，核对远端、本地及origin/personal仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，来源KlN `v0.2.14-klno.5/c7aacf5d`；main仍为 `b43a472f4`。S2.5应用工作树开始时干净，HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`，为S2.5验证后的文档提交，包含S2.4功能/S2.5测试；personal为其祖先。复用 `/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin` 运行应用验收，未使用main应用源码。S2.3/S2.4旧目录已不在磁盘，但原分支/提交仍保留。
+
+原修复工作树的17应用文件与S0校验值一致，未提交应用改动保留；本轮开始/结束核对应用的4380个backend/frontend/来源文件完全一致。main来源 `codex/plus-pricing-s22-evidence`仅登记本change文档及journal，增量同步原指定文档位置和应用树；三处旧journal全文保留。原聊天checkout、S1、S2.2工作树HEAD/文件状态保持原值。AGENTS中指定的出站约定与docs/tasks在相关工作树仍未找到，本轮没有出站身份或账号extra修改。
+
+### 浏览器实际结果
+
+流程为 `/available-channels` → 检索/筛选 → 模型详情 → 分组/档位报价 → 无权限/空目录与恢复。Browser技能未列出，按frontend-testing-debugging使用已有Playwright 1.62.1/Chromium headless shell，无新依赖。地址 `http://127.0.0.1:4186/available-channels`，中文亮色1440×1100、英文暗色390×844两组，各9条流程通过。真实personal前端静态资源配合本地合成API/用户/JWT占位；该浏览器数据不证明后端权限，真实授权及计费证据单独复用S2.5。
+
+| 验收边界 | 新运行结果 |
+|---|---|
+| 入口与身份 | 正确URL/中英title，有模型内容、目录范围说明；无空白页或框架错误覆盖 |
+| 检索/筛选 | 模型大小写、平台、分组、渠道检索；无匹配与有权空组；检索及分组筛选没有额外请求 |
+| 详情与报价 | Enter/Space展开，Escape关闭回焦；default/priority与公开/专属offer切换；USD/1M、适用倍率一次、明确$0、分量unknown为—；模型unknown/媒体单位unsupported不伪造单价 |
+| 范围收窄 | 刷新等待时旧目录/报价清空；选中专属组移出响应后筛选重置到全部，旧专属报价不可见且不可检索 |
+| 倍率失败与拒绝 | 个人倍率失败显示明确默认参考价；403清空现有目录/报价并显示错误；重试恢复当前目录 |
+| 空结果及功能关闭 | 无授权组显示空目录，分组列表无残留；功能关闭后入口隐藏，直达页面也只有空目录 |
+| 窄屏与视觉 | 390px价格表能用ArrowRight横向滚动，页面本身无横向溢出；12张状态截图，已查看入口、报价与拒绝截图 |
+| 控制台 | 每组有意触发1次HTTP403资源错误；正常流程无app error/warning，不把故意403写成零error |
+
+S2.4旧构建目录已不在磁盘，使用当前候选执行 `pnpm exec vite build`重新生成178个静态文件供浏览器使用；已有i18n/类型/单元/lint证据未变化，未重复运行。Vite成功，保留Node DEP0190、Browserslist过期、混合动态/静态导入及chunk大小警告。初次构建命令在应用根目录没有package.json，构建未开始；改到frontend。项目没有Playwright命令，使用已有bundled runtime。浏览器首轮夹具错误地期待Vue null选项的原生value为空，实际是选项文字；改断言selectedIndex=0验证重置状态，两组完整流程通过，没有改生产源码。
+
+### 有效证据复用与独立复核
+
+S2.2的8输入/12产物、S2.3的7输入/14产物、S2.4的15输入/39产物、S2.5的5输入/33产物引用均校验匹配。计数按清单引用，可能跨阶段引用同一文件，不作为去重用例数。复用原权威owner48组对账/定向回归、HTTP/DTO授权、十个前端合同/类型/lint/build、四组中英/桌面/窄屏浏览器与两组价格表键盘，以及S2.5真实JWT/PG16/Redis权限和64组HTTP/生产计费对账；各自保留原覆盖边界，不称本轮新执行。
+
+1次fresh critical_reviewer只读复核稳定候选：先授权后聚合、真实JWT主体/DTO白名单、KIN resolver与同次配置来源、个人倍率/服务档/单位/零/未知及页面刷新/主体切换隔离，未确认可操作问题；不独立执行测试。复核具体覆盖/限制见复核清单。审计 `20261009T190805Z-kin-plus-model-flow-s26-e70c703d` closed、audit-verify passed；[确定性执行摘要](evidence/s2.6-subagent-digest.md)。复核同时登记一项非阻断覆盖限制：`available_model_catalog_test.go:482`先解码成已知DTO再验证字段，不能独立捕获原始HTTP响应中被解码丢弃的额外字段；本轮逐字段检查生产DTO，未确认泄漏。需要补强时直接用通用JSON检查`w.Body`的嵌套字段白名单。未把旧用例描述为完整原始响应泄漏检测。本轮无需源码修复或新持久化/扣费/调度改动。
+
+### 边界与下一项
+
+本轮浏览器由合成响应控制权限收窄、403、空目录、功能关闭及个人倍率失败；不是启动真实后端并接数据库/JWT的浏览器E2E，也没有生产用户、凭据、上游调用或实际扣款。真实后端权限和价格链依靠S2.5未变集成证据及本轮独立复核。未测试其他浏览器，不声明完整浏览器矩阵；媒体或实际路由依赖的报价继续unknown，不承诺整张请求账单、实时健康或最低价路由。
+
+**S2.6已完成。下一项S2.7登记阶段交付，未自动开始。** 未执行全量/远端CI、push/PR/Actions、合并、镜像发布、SSH或生产部署；本轮登记文档保留为未提交改动，固定应用HEAD与原候选引用保持。
+
+
+## S2.7 阶段交付登记
+
+本轮仅S2.7，最终累计personal候选 **`88156f09fcf980a771a8aab570f0dbaec5de25fb`**；[候选与来源](evidence/s2.7-candidate.json)、[真实门禁与复用](evidence/s2.7-validation.json)、[文档保留检查](evidence/s2.7-document-checks.json)、[交付与回退](delivery.md#s2-阶段交付s27)。[草稿PR #5](https://github.com/ccisnoxx/sub2api/pull/5)保持草稿且未合并，下一项S3.1未自动开始。
+
+### 候选与实际差异
+
+开始/结束personal均`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，KlN来源`.5/c7aacf5d`、main仍`b43a472f4`。从完整S2.5 HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`创建并附加 `/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin`，分支`codex/verify-personal-ci-plus-catalog-s27`；只复制已验证的9个S2.6文档，初始提交`aee00ae7716218418ed3cb772e37c1763873fde7`，随后完成下述3文件门禁修正，形成最终SHA。没有使用main应用源码或未合入CI选择方案；原S0的17应用改动及全部旧工作树保留。
+
+候选包含S0版本/TPS说明修复、S1 Responses HTTP/SSE/WS计时与迁移251、S2模型目录，并非只含S2补丁。S2功能增量从S1文档候选`e3edb5666`核对23个应用/测试文件：目录GET/DTO/页面只读；BillingService只增价格来源存在性元数据，实际计算不消费该元数据；上下文探针提取保持旧参数；resolver的渠道快照仅由目录注入，真实计费保留原ChannelService路径。S2未改余额/订阅写入、Token计算、调度、gwpool、重试或新增迁移，Wire仅接入目录所需BillingService。最终相对S2.6的4380文件快照有4377文件完全一致，另外3处是门禁修正，不声称这些文件hash未变化。
+
+### 门禁失败与最小修正
+
+首轮[Personal CI `37981138211`](https://github.com/ccisnoxx/sub2api/actions/runs/37981138211)实际failure：后端`TestAPIContracts/GET_/api/v1/usage_(paginated)`的旧JSON预期遗漏S1已冻结的9字段；生产DTO正确保留历史`timing_version=0`、可空字段null及unknown。只补测试wantJSON，既有费用/Token/首字仍原值。首轮单元失败后integration/recording race步骤skipped，不登记为首轮通过。
+
+golangci-lint另报告S1 WS测试`CloseNow`未显式处理返回值和S2目录平台分支QF1003。只将测试兜底清理写成显式忽略已关闭连接返回值，及平台if/else改等价switch；正常关闭仍require.NoError，不添加lint豁免、不改检查规则。共3文件13新增/3删除，生产改动仅等价平台分支。实际diff/gofmt核对通过；定向API合同1顶层/12 PASS项和目录价格、倍率及WS测试16顶层/23 PASS项全部通过，原48组价格owner对账在该目录测试中重跑。未安装本地golangci-lint，由必需远端门禁验证；没有重复本地完整回归或浏览器。
+
+### 最终真实门禁与绑定
+
+当前personal保护为strict/App 15368 `personal-ready`，管理员也受约束。现行Personal CI需要binding、existing-ci、existing-security、tps、sync-contracts及末尾personal-ready，未合入CI选择优化不生效。首轮明确失败诊断后，定向通过才推送修正的最终SHA，由PR synchronize原生事件触发[最终run `37982040213`](https://github.com/ccisnoxx/sub2api/actions/runs/37982040213)。总计2次普通候选分支push、2次不同SHA原生门禁，0次额外dispatch/同SHA rerun/本地完整gate；既有`codex/verify-personal-ci-*`排除规则避免push事件再起重复CI/Security Scan，CLA Assistant按原政策skipped。
+
+最终所有必要job success：shell、Go单元/集成/recording race、前端、golangci-lint、release helpers、两类安全检查、TPS、同步合同及personal-ready。开始/结束绑定同一候选`88156f09fcf980a771a8aab570f0dbaec5de25fb`与最新personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，API读回要求App 15368 check的head SHA及结论。实际job、初始失败/定向修正和最终完整日志均存清单，不拿旧SHA结果代替最终门禁。
+
+PR仍draft，personal/main未更新；没有候选对应个人发布、Release或镜像digest。发布自动化仅接受personal成功push/dispatch，本轮为独立候选pull_request；原自动化变量和workflow保持。正式合并后的personal完整SHA仍必须获得它自身的成功personal-ready，PR门禁不替代正式发布资格。
+
+### 证据复用与交付边界
+
+初始S2.2–S2.6所有输入和原产物校验匹配；最终catalog_pricing.go因等价风格修正hash变化，其目录价格合同在本轮重跑，未变输入与产物继续按原范围复用。S2.5真实JWT/PG16/Redis/64组HTTP价格owner对账、S2.4/S2.6合成浏览器仍各有证据边界。各阶段独立复核按原行为复用，不冒充本轮fresh复核，本轮无新委派。原始HTTP额外字段白名单的非阻断测试限制、媒体/请求依赖unknown、S1第二批未接入及生产审计/会话绑定/实际上游与扣款未验证继续登记。
+
+S2无新增迁移，但累计候选含S1迁移251；原固定旧源码/扩展schema兼容证据和备份恢复要求继续适用，不能据无S2迁移宣称累计候选无数据变化。未分配版本、发布镜像或连接生产；未来部署需真实备份、固定digest及工具运行树审定。
+
+S2.7结果按main来源维护职责登记，并增量同步原指定计划位置和旧S2.5应用树，各自旧journal全文保留；最终门禁候选保持干净固定HEAD，本轮交付记录在三处登记树未提交，避免登记结果后改变已验证SHA或再次触发完整gate。
+
+**S2.7已完成。下一项S3.1冻结结构化诊断合同，未自动开始。合并、镜像发布和生产部署均未执行。**
+
+
+## S3.1：结构化诊断合同冻结
+
+本轮仅 S3.1。最新远端/本地 personal 仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；应用分析仅使用干净 personal 累计候选 `88156f09fcf980a771a8aab570f0dbaec5de25fb`。[草稿 PR #5](https://github.com/ccisnoxx/sub2api/pull/5) 仍 OPEN/draft、head/base 与 S2.7 一致且未合并；来源 KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d` 未变。main 来源 `plus-pricing-s22-evidence` 只维护文档，增量同步原计划树与 S2.5 记录树；没有替换应用源码或移动任何已有 HEAD。
+
+### 冻结结果与来源检查
+
+[结构化诊断合同](routing-diagnostics-contract.md)明确可选 v1 对象、选择层/原因机器码、入口池观察点、过滤原因白名单和完整/部分/未观察统计。已观察空列表为 `0`，预检查拒绝/列表报错/未观察池为 `NULL`；池是实际分组/平台查询范围内返回的账号行，无法推算全库。Grok/阈值前置过滤及 compact 最终拒绝保留真实入口观察；旧 CandidateCount、TopK、子池、summary 文案和模型可用性补查均不能作为新统计。
+
+按 26 个 personal owner 文件和 6 个既有测试边界对照，确认 legacy/advanced、channel pricing、Grok、compact、gwpool、handler failover、日志归因/恢复 telemetry、队列和用户白名单。冻结每次完整选择评估的新序号、同账号发送的绑定快照、WS turn 清理及不可变副本；传输/身份 producer 不能改写选择事实。诊断仅进入已有管理员详情，不向普通用户列表/详情、导出或对客错误帧开放；不含凭据、原始 body/header、账号列表、成本/利润或内部会话标识。
+
+参考固定 Plus `90da415c62b94c9417d9ce2b72b1507ed22f0303` 的 ERROR_REQUEST_DIAGNOSTICS.md，只借鉴完整 owner 快照与观察/未知原则，按 KIN 现有 owner 适配；来源文件与符号校验值见 [候选证据](evidence/s3.1-candidate.json)。没有修改 producer、持久化/迁移、DTO、页面、调度/重试/扣费或依赖。
+
+### 实际验证与复用边界
+
+- 开工快照覆盖 7 处相关工作树的文件、HEAD/branch、已有未提交改动与三处各自文档；结尾按增量白名单比较，原 S0 的 17 项应用改动、全部既有源文件和其他工作树改动保留。三处 journal 分别保留原文，旧执行证据全文保留，任务只新增 S3.1 完成。
+- 3 个 JSON 合同样例核对已观察 0、预检查 NULL 和 WS 部分过滤；字段/整数/机器码、原因加总和范围关系核对；源码符号定位、文档链接和最终 diff 检查通过。结果见 [文档及保留检查](evidence/s3.1-document-checks.json)。这属于文档检查，不是 producer 运行测试。
+- S2.7 的 24 个原始证据产物校验值一致，已成功的 [Personal CI 37982040213](https://github.com/ccisnoxx/sub2api/actions/runs/37982040213) 仅按同一 88156f09 候选及原行为边界复用；不证明新诊断实现、NULL 持久化或 WS 快照传递。
+- 本轮未运行应用测试/构建、数据库/浏览器或完整门禁，未触发新 CI；未取得新独立代码复核。现有 S3 合同由主代理源码对照及文档自查，实际实现的归属/权限/异步快照独立复核留到 S3 候选与 S3.6。后续 producer 覆盖与运行验收清单在合同中明确，不勾选后续任务。
+
+证据根目录：`/Users/sc/.codex/validation/sub2api-kin/20261009-s31`；保留 baseline.json、reused-evidence.json、PR 元数据、固定 Plus 原文及最终检查产物。本轮文档未提交，应用候选保持干净；未 push/修改 PR、更新 personal、合并、发布镜像、生成 digest 或部署生产。
+
+**S3.1 已完成；下一项 S3.2「接入实际决策 producer」，本轮停止，不自动进入。**
+
+
+## S3.2 实际决策 producer 接入
+
+本轮仅S3.2。开工与收尾只读确认personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`、main仍`b43a472f4b1bde5983b3bdfa1447cd3622a77540`；[草稿PR #5](https://github.com/ccisnoxx/sub2api/pull/5)仍OPEN/draft、head `88156f09fcf980a771a8aab570f0dbaec5de25fb`、base personal且未合并。KlN `.5/c7aacf5d`来源保持。核对7处旧工作树31283个已有文件及未提交改动后，从干净S2.7 personal候选创建独立`codex/plus-routing-producer-s32`，应用位于`/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin`，本地应用提交`cee1e908261c68880040b740aae8054410e03070`，13个应用/测试文件。main来源维护树仅承担文档登记；原S0的17项应用改动、旧S2.7门禁候选及其他工作树源码全部保留。
+
+### 实际行为与范围
+
+新增v1 `RoutingDiagnostics`及请求/turn内选择owner，由真实分支形成选择层、原因、池、过滤数量/理由及coverage。列表成功返回后、阈值/Grok后置过滤前观察入口；池与过滤均按不同账号ID计一次。实际空列表为`0/0/{}/complete`；预检查拒绝、列表失败及只查单号的sticky未观察池时为NULL，不解析错误summary、不额外查询或重跑有副作用的限制。TopK、子池、未probe、排序及WaitPlan不算过滤；compact stale恢复不算最终排除；信息不全保留partial。
+
+覆盖OpenAI主调度advanced/legacy、公开OpenAI `SelectAccountWithLoadAwareness` legacy、previous/guardian/session/weighted sticky与load balance、订阅/普通子池、渠道定价/阈值/Grok额度/compact fresh与DB复核、proxy第二评估、gwpool重选/终检及图片native→basic。每次真实新评估生成新attempt及全新字段；成功结果、决策、结构化错误和当前请求状态分别深复制，保留`Error()`与`errors.Is/As`，结果及决策字段为`json:"-"`。
+
+实际HTTP/SSE入口复用`setOpsRequestContext`的请求owner。Responses WS在业务ctx、当前Request及gwpool wait写回之间显式绑定同一owner；建连重选保留Turn=NULL，Proxy开始后以连接逻辑turn建新owner。Proxy局部turn重启、同账号重试和后续429换号不能使新turn借用旧快照或序号；已有Ops/计费/安全钩子的局部编号保持。Grok Voice和Realtime预accept选路循环补齐请求owner；Realtime后续音频帧没有新turn producer。未重新选路的新WS turn没有当前诊断，不能冒充观察过池。
+
+其他平台的generic GatewayService、独立兼容或直接返回账号的旧入口、TokenCount尚未接入，保持nil；本轮不宣称全部平台覆盖。provider发送/终态绑定、Ops失败快照/队列预算、持久化/迁移、DTO/API及管理员页面尚未实现，用户错误白名单没有扩展。范围详见[合同补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。
+
+### 验证、复核与保留
+
+最终候选13文件SHA-256与测试/复核固定输入一致，gofmt和实际diff检查通过。Go `1.27.2 darwin/arm64`在应用树backend内完成：
+
+| 定向范围 | 最终实际结果 | 原始记录 |
+|---|---|---|
+| producer与既有派生值合同 | 17顶层、59 PASS项、0 FAIL、package pass、exit 0 | `service-final.jsonl` |
+| HTTP请求/WS/音频owner、既有归因与native/passthrough回归 | 17顶层、22 PASS项、0 FAIL、package pass、exit 0 | `handler-final.jsonl` |
+| 既有advanced/legacy/DB/compact/子池/gwpool/利润调度 | pass、exit 0 | `service-regression-final.log` |
+| 核心不可变副本/并发owner race | pass、exit 0 | `core-race-final.log` |
+| WS逻辑turn/实际failover/音频请求归属 race | pass、exit 0 | `handler-race-final.log` |
+
+服务合同包括提前NULL/真空池0、Grok原位全过滤、同ID去重及全排除、compact恢复、TopK/子池/WaitPlan部分观察、重复DB复核、新评估/网关池/图片fallback及TokenCount未知。实际本地httptest WS覆盖BeforeRequest前凭据重选与第二turn真实429换号后第三turn清空；Voice/Realtime实际handler三次凭据失败保持attempt=3且无上游发送。使用合成账号与本地假上游，无付费/生产请求。
+
+1次fresh独立只读复核完整diff、新文件、合同和日志，确认并修正4项：重复ID池统计；WS初始及gwpool wait写回丢owner；Proxy重启导致逻辑turn复用；Grok音频入口未保存请求owner。每次修正先检查受影响失败，再执行上述最终范围；最终无确认仍未修复的P0/P1/P2。复核未独立运行Go测试，结论来自原始日志与稳定源码。native/passthrough重试后的第三turn未新增同等E2E诊断断言，当前证据为共享映射源码、scope测试及既有WS回归；日志队列/终态和权限边界留S3.3。委派[执行摘要](evidence/s3.2-subagent-digest.md)已由审计工具close/verify通过。
+
+初次Grok夹具用APIKey代替仅OAuth的team gate并缺UsageLogRepository，修正后定向及最终通过；WS反例最初以第二turn 402触发换号，与既有仅后续429换号合同不符，改用429及正确input后通过。临时zaptest日志辅助在测试前要求间接依赖，改回已安装zap，没有go.mod/go.sum变化；没有盲重试或借测试改变调度。
+
+S3.1合同按原语义复用；S2.7 Personal CI `37982040213`/personal-ready仅继续证明旧88156f09，不作为本次应用门禁。未运行无关完整测试/CI、数据库或浏览器；无新存储、迁移、依赖、页面或workflow改动。AGENTS引用的outbound identity/account extra约定在相关personal文件及Git tree中未找到，本轮不触及对应owner，未借main替代或猜测规则。原始记录根为`/Users/sc/.codex/validation/sub2api-kin/20261009-s32`，完整命令/哈希/早期失败与复核边界见[验证清单](evidence/s3.2-validation.json)。
+
+完成时[文档与保留检查](evidence/s3.2-document-checks.json)核对旧7处工作树、原17项应用改动及旧证据；三处登记树分别追加文档并保留各自旧journal全文。独立应用树同步S2.7/S3.1既有登记与本轮S3.2文档，各自旧历史不覆盖；旧门禁候选保持干净原HEAD。应用与文档仅本地固定，维护/原计划/S2.5登记树的既有未提交文档保持未提交，没有push/修改PR、新CI、更新personal、合并、镜像发布或生产部署。
+
+**S3.2已完成；下一项S3.3「贯通错误存储与DTO」。本轮停止，不自动开始S3.3，S3.5/S3.6也未提前勾选。**
+
+## S3.3 贯通错误存储与 DTO
+
+本轮仅执行S3.3。开工及收尾核对personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`、KlN来源`v0.2.14-klno.5/c7aacf5d`；草稿PR #5仍OPEN/draft，head `88156f09fcf980a771a8aab570f0dbaec5de25fb`、base personal，未合并。从干净S3.2完整应用/文档候选`d9b06f4fe78a8588282958783d91e9966ff05231`建立独立`codex/plus-routing-storage-s33`，应用位于`/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin`。最终应用提交`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`；main来源维护树只登记文档，未替代personal应用源码。
+
+### 实际贯通范围
+
+- 选定账号后绑定不可变选择快照，发送绑定同时记录request/turn owner。同账号重试保留原选择，真实重选绑定新快照；owner不一致时旧连接绑定无效。同逻辑WS turn的Proxy重启保留新绑定，新turn未选号时为NULL。Voice/Realtime预accept两条独立选路循环也在真实选定账号后绑定；Realtime后续音频帧仍不提供新turn producer。
+- 上游失败事件各持所属发送快照，带内错误保存完整自有副本；后续请求修改、重选及WS turn不覆盖旧值。顶层provider/凭据故障取既有归因的最后失败尝试，routing本地终态取所属本次评估；RequestScoped不继承诊断，恢复provider错误仍为原telemetry。没有伪造额外上游事件来保存选择过程，phase/type/owner/source、状态与SLA/skip规则保持。
+- 队列前及服务准备边界验证完整v1：版本、9个必需字段、NULL、白名单、精确整数、层/原因与数量/coverage关系。未知码、版本、漏字段、非整数或矛盾关系只丢弃该诊断，并留下不含原始值的固定内部异常信号，真实故障继续记录。typed对象在进入队列前深复制并序列化，队列不持有原map；顶层JSON计入job bytes，事件对象随原JSON序列化计入256事件/512 KiB界限，最近16正文窗口和较早尝试丢弃标记继续沿用。
+- 新增`252_add_ops_routing_diagnostics.sql`，只扩展`ops_error_logs.routing_diagnostics` nullable JSONB，无默认、无回填、未改旧迁移/ledger。Ops表由手写SQL/迁移维护，无对应Ent schema，未新增虚假schema或手改生成文件。`OpsInsertErrorLogInput → 队列 → OpsService → 单条/批量SQL第39参数 → OpsErrorLogDetail`贯通；repository只保存经owner准备的JSON，不从typed或当前账号状态重建历史。
+- 详情严格解码白名单typed对象。历史SQL NULL及整体JSON null保持nil，已观察池0、过滤0与`{}`保持原值。坏历史对象省略诊断并发出固定`routing_diagnostics_invalid`信号，错误ID/正文仍可读。新对象仅管理员单记录`/ops/errors/:id`与`/ops/request-errors/:id`详情可见；普通列表及`upstream-errors?include_detail=1`列表裁剪顶层和事件内诊断。用户列表/详情白名单不扩展，直接user_id归属检查和admin认证/审计/合规/监控开关不变。
+
+### 验证与兼容
+
+全部选定最终检查退出码0，原始记录位于`/Users/sc/.codex/validation/sub2api-kin/20261009-s33`。具体命令、最终源文件及产物校验值见[验证清单](evidence/s3.3-validation.json)；下表按边界列出，不把交叉运行重复计为总覆盖数量。
+
+| 边界 | 实际结果 | 原始日志 |
+|---|---|---|
+| 新日志/队列/DTO、请求与WS owner、音频真实凭据失败绑定 | 14顶层/36 PASS项，全部通过 | `ws-owner-fix-final.jsonl` |
+| 既有错误归因、RequestScoped/recovered/skip/SLA、HTTP/WS | handler63顶层/129 PASS项通过；新音频断言另行先红后绿 | `handler-regression.jsonl`、`audio-binding-green.jsonl` |
+| 服务事件/脱敏/历史规范化及队列/记录回归 | 26顶层/59 PASS项通过 | `service-regression.jsonl` |
+| 管理员实际handler单记录/普通列表/include_detail列表及用户归属 | 管理员1顶层5次HTTP读取、用户4顶层通过；不是完整JWT服务器E2E | `admin-detail.jsonl`、`user-ownership.jsonl` |
+| 实际单条/批量SQL参数与DTO白名单 | 参数3顶层/6 PASS、DTO2顶层/9 PASS项通过 | `storage/validate-owner-and-args.log`、`storage/dto-unit.log` |
+| PG16真实迁移/写读/历史NULL/坏对象/批量原子失败 | 5顶层/12 PASS项通过，PG16.15 | `storage/pg16-integration.log` |
+| 新→固定旧d9b06f4→新源码/扩展schema | 真实migration runner检查、旧详情/列表读取及单条/批量写入通过，恢复新源码原诊断保持、3条旧写入SQL NULL，4条故障与252 ledger未变化 | `storage/compat-new-before.log`、`storage/compat-old.log`、`storage/compat-new-after.log` |
+| 新深副本及受影响WS/音频owner race | 服务与handler通过；真实WS/音频受影响范围最终通过 | `ws-owner-fix-race.log` |
+
+回退证据只证明上述固定旧源码的migration runner及Ops repository/DTO边界，不等于完整服务器启动、实际生产运行树或未知候选兼容。回退仅回退应用，保留新增列与ledger；部署前仍需按实际环境取得运行树证明、备份及恢复条件。测试容器已移除，Colima恢复停止，原三个停止容器及Docker default context保持；数据备份/原始日志留在本地证据目录，未提交数据库内容。
+
+### 复核、失败诊断与证据复用
+
+1次fresh独立只读复核覆盖全部17个应用/测试文件、主代理及storage实现、冻结合同和原始验证产物。确认初候选首WS turn借用建连诊断的P2，最终owner身份修正及先红后绿/受影响race证据足以关闭；最终未确认剩余P0/P1/P2。候选manifest曾残留初始SHA及两个旧哈希，复核指出后已统一为最终候选并逐项匹配17文件；无需因此重跑测试。复核未修改文件、未独立运行Go测试。未新增native/passthrough完整多turn贯穿队列/真实数据库/管理员HTTP的诊断E2E，真实认证/审计/开关HTTP和页面仍未验收。见[复核记录](evidence/s3.3-reviews.json)；[委派摘要](evidence/s3.3-subagent-digest.md)已由审计工具closed/verify通过。
+
+新增Voice/Realtime断言首轮把3次选择误当3次上游失败：实际两次凭据失败后第三次选择耗尽，修正夹具断言为2条真实事件。随后反例确认这两个独立入口未绑定发送诊断，补齐后每事件attempt 1/2正确、最终selection attempt 3，未增加事件或上游调用。WS建连反例先红确认beginProxy提前更换owner会借旧绑定；发送绑定owner校验修正后通过，覆盖同turn重启与新turn无选号。早期失败和最终成功日志分别保留，不盲重试、不借测试改变调度。
+
+S3.2原13项输入及5份最终产物逐项校验；未变producer/scheduler/builder及计费边界复用原服务producer、调度回归与core race成功证据，改动后的日志/stream/WS/音频边界使用本轮验证。S2.7 Personal CI `37982040213`/personal-ready继续只证明旧88156f09，不能当作本次应用门禁。没有新依赖或生成漂移，计费/调度/重试决策/身份/冷却owner未修改；gofmt、实际diff与文件归属检查通过。
+
+保留检查核对8处开工工作树。7处仍存在的旧树HEAD、应用文件及原未提交工作均保持；S2.5旧目录在核对过程中已移除，本轮工具未执行删除/归档，其分支仍指向原f6e91d55，4567项内容与原Git提交匹配、18份未提交文档有原hash副本，journal已按原SHA-256精确重建。19份原未提交记录另保存于本地`preserved-s25-uncommitted`；没有擅自重建或改写该旧工作树。维护树、原指定计划位置与本轮应用树增量更新任务/证据及各自journal，原旧历史全文保留。
+
+本轮新增文档链接/锚点及JSON清单检查通过。全量文档链接检查发现5处既有S3.1链接与原冒号标题的锚点不匹配，已按开工文档对照分类为历史缺口；未改写旧历史。非文档文件/原HEAD保留检查通过，最终17文件哈希保持。
+
+没有完整Go/CI门禁、浏览器/页面或付费上游/生产请求；没有push/PR更新/workflow dispatch、更新personal、合并、镜像发布或生产部署。HTTP管理员检查为真实handler与存根repository，数据库/SQL链另有真实PG证据；未宣称真实JWT完整服务器或native/passthrough重试后第三turn的新增日志E2E。其他平台、独立旧选择入口、TokenCount及无新选择的连接复用仍保持原未知边界；S3.5/S3.6综合验收与交付未提前勾选。
+
+**S3.3已完成；下一项S3.4「扩展现有错误详情」。本轮停止，未进入页面及下一阶段。**
+
+
+## S3.4 扩展现有错误详情
+
+本轮仅S3.4。先读取指定plan/tasks/journal，再核对8个现存树的HEAD/分支/未提交文件及来源、远端personal/main、草稿PR #5。personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，KlN `.5/c7aacf5d`，PR仍旧S2.7 `88156f09`、OPEN/draft/未合并。复用已附加且干净的S3.3 personal工作树，从完整`032db7982970847179f77ec68d33b2f1ea964521`新建`codex/plus-routing-details-s34`；原S3.3分支固定不动，未采用main维护应用源码。应用候选`d23474171035320eda06a35d76d455d7f8d7aae4`，8个前端/测试文件；文档固定后本地HEAD另记。原S0的17项应用改动、其他树既有未提交内容和各自journal保留。
+
+共享`OpsErrorDetailModal`接入`OpsRoutingDiagnosticsPanel`，只读取当前管理员单详情的可选v1快照：真实0保留，NULL/缺失为未知，partial明确已知下界；空原因map与未观察不同，未知schema说明不支持。6个选择层、11个原因、35个过滤码使用双语白名单标签，不回显额外属性或未知原始码；不推导剩余可用池。展示选择评估序号及已知WS逻辑turn，明确不等于发送/切换次数。保留当前详情phase/error_owner/error_source、原根因与诊断载荷；未新增敏感请求或认证字段、普通用户/列表字段、后端迁移或权限分支。Ops上游单详情别名沿用同一个管理员GetErrorLogByID owner，并非关联列表include_detail可见性扩展。
+
+旧详情/关联请求晚到可串记录的反例在改前明确失败；实现按show/errorId/errorType的generation隔离详情及关联列表成功、错误和finally，关闭/切换/卸载使旧结果失效。最终8文件hash固定，候选实现经过fresh只读`critical_reviewer`复核，无确认阻断；复核未重跑测试或验收浏览器。动态测试没有直接断言同ID切类型且旧请求pending、卸载后晚到rejection、旧finally先结束三种组合，源码归属保护已核对，未确认缺陷；不伪称全部生命周期E2E完成。
+
+| 检查 | 实际结果与边界 |
+|---|---|
+| 定向前端/国际化 | 详情6、面板12、列表6、图表3、管理员Usage15、Ops keys28、全部locale编译5/完整性3，共78项通过；旧响应反例先红后绿 |
+| 静态/构建 | 8文件lint、vue-tsc及Vite生产构建退出0；构建产物在仓库外，依赖/lock和受管静态资源未改；既有Node/Browserslist/import/chunk警告登记 |
+| 实际页面 | 本地127.0.0.1:4194生产前端；中文亮色1440×1100、英文暗色390×844，各自Usage错误列表四种诊断、Escape关闭、关闭pending后新详情与旧响应晚到、Ops上游详情返回列表通过；身份/非空/无overlay/console健康、首屏及面板截图检查通过 |
+| 后端证据复用 | S3.3的17后端输入逐项一致，只按原范围复用发送/终态、队列预算、SQL/PG16/固定旧应用往返、用户白名单及race；旧CI不证明本次前端 |
+| 保留和复核 | 三个登记位置各自旧journal/evidence/冻结合同正文保留，最终源hash/工作树与文档差异核对见机器清单；审计closed/verify passed |
+
+浏览器插件本会话未提供，使用已有Playwright 1.62.1/Chromium，无新依赖。浏览器是实际前端配合合成管理员/GET API，不能作为完整JWT服务器或生产权限证明。初始PNPM symlink安全拒绝、runtime-only i18n测试编译器、遗漏后台API与引导层键、返回离场过渡和截图入场动画均按诊断修正验证环境后重跑受影响部分，日志保留；未为此改生产源码。额外观察到既有`/admin/ops?open_error_details=1&error_type=upstream`首次打开列表未发GET；两个owner文件相对S3.3未改，正常卡片入口可加载并完成返回。此范围外问题已登记，未扩展修改或宣称深链接通过。
+
+[候选清单](evidence/s3.4-candidate.json)、[验证与原日志索引](evidence/s3.4-validation.json)、[复核及限制](evidence/s3.4-reviews.json)、[保留/文档检查](evidence/s3.4-document-checks.json)及[委派摘要](evidence/s3.4-subagent-digest.md)。外部原证据目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s34`；应用、维护文档树及用户原指定位置同步登记，main只改文档。
+
+S3.4勾选，下一项**S3.5「验证归属与行为保持」**未开始。S3.5综合账号选择/冷却/切换/扣费及S3.6阶段交付未提前完成；完整JWT后端浏览器E2E、native/passthrough多turn日志E2E、新远端门禁继续未覆盖。本轮无push/PR更新/合并、镜像发布或生产部署。
+
+
+## S3.5 验证归属与行为保持（部分完成，既有 P1 阻断）
+
+本轮仅S3.5。先读取用户指定plan/tasks/journal，核对8个现存树HEAD、分支、未提交内容及来源；personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，KIN `.5/c7aacf5d`，草稿PR #5仍旧S2.7 `88156f09`、OPEN/draft/未合并。复用已附加且干净的S3.4 personal应用树，从完整`e3140a68d245d6bb4bddbff509b30395ecaeeb19`新建`codex/plus-routing-behavior-s35`，原S3.4/S3.3分支固定。测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`仅新增HTTP/WS两份测试，不改生产调度、冷却、切换、计费、存储、权限或前端；未使用main维护应用源码。原S0的17项源码改动、其他树未提交内容及各自旧journal保留检查见机器清单。
+
+HTTP驱动真实Grok 402/429、选号/转发/冷却与Ops中间件：首失败属账号801/评估1，恢复成功属802/评估2；后续请求只发802、序号重置且已排队诊断不变。恢复行经过真实flush→RecordErrorBatch→仓库替身，以StatusCode=200留在失败SLA之外；权威查询按status_code≥400计失败，本轮未执行聚合SQL。该夹具是simple模式且usage repository为nil，不声称实际用量落库或数据库扣费。
+
+WS使用实际客户端及上游socket，native/dedicated与passthrough各两连接、每连接三turn：首turn隐藏429换号后客户端可见失败、第二turn成功、第三turn再失败。验证真实stream error→Ops中间件→队列的账号、消息、turn/评估与不可变JSON；第三turn未选号保持NULL。首连接队列保留至次连接完成后才消费。native另覆盖首turn下游尚未输出时同账号socket重建，发送序列、查询次数及6条用量/响应ID归属保持；用量经过真实AfterTurn/RecordUsage/Create。两种夹具均simple模式，标准扣费由独立service owner对照验证。Ops在连接退出才排队；帧内隐藏429未产生upstream error event，不能宣称WS恢复telemetry贯通，HTTP恢复证据单列。
+
+| 检查 | 实际结果与边界 |
+|---|---|
+| 新HTTP真实流程 | 1顶层/3 PASS，最终退出0；失败发送诊断不被恢复选择或后续请求覆盖，冷却与选号次数符合原行为 |
+| 新WS真实流程及race | 2顶层/4 PASS，最终unit-04/race-02退出0，无DATA RACE；通过范围为首turn换号/同账号恢复后多turn和延后队列消费 |
+| 旧/新行为对照 | 固定pre-S3 personal `88156f09`与当前使用16个相同测试oracle，各25 PASS；legacy/advanced选择、空池/模型筛尽、sticky、429限次/混合状态、402冷却、取消后停止切换、标准余额/订阅/atomic/legacy费用和去重一致；费用/切换owner及依赖哈希核实 |
+| 原证据复用 | 17个S3.3输入、6个producer/调度输入及12份原日志一致；复用S3.2选择前拒绝NULL/观察空池0/三路径筛尽/partial及S3.3发送、队列、SQL/真实PG16/旧应用兼容、admin单记录/用户白名单/race原边界；S3.4前端未变，不重复页面/build |
+| 外部后续turn探针 | probe-02自然退出1，确认native第2turn换号误发第1turn载荷；与通过候选分开，完整WS后续换号目标未通过 |
+| 独立复核 | fresh只读reviewer确认两份新增测试通过边界有效、无新增候选缺陷，并确认既有P1；未独立重跑测试，统计元数据及外部夹具问题关闭 |
+
+**既有P1：native后续turn换号误重放首包。**第1turn完成后，第2turn在下游尚未输出时收到429；实际发送`93501/turn-1成功→93501/turn-2 429→93502/turn-1误重放`。客户端期望`resp_session-1-turn-2`却收到`resp_session-1-turn-1`；真实失败snapshot/排队行属逻辑turn2、账号93502、诊断turn2/评估1，消息却来自旧turn1请求。native forwarder `openai_ws_forwarder_ingress.go:1918`返回finalErr未携带当前payload，handler `openai_gateway_handler.go:3260`获取不到包装而落到`:4039`首包fallback。pre-S3整个forwarder文件及三个关键分支与当前逐字相同，故按源码证据归类既有；仅当前运行时复现，旧WS运行时未执行。修复方向为native失败出口携带安全重放的当前turn载荷、沿用HTTP bridge安全判断；无法安全重放时显式终止。生产修复另行执行，本轮保存最小overlay/原日志和开放风险。
+
+HTTP首轮失败为手动队列读取不扣原子计数，WS早期失败为握手/turn及gwpool查询夹具期望；只修自有测试后重跑。probe-01同类收尾阻塞已终止，仅外部overlay改有界消费后probe-02得到上述真实失败。differential顶层统计误用Package斜杠已按Test字段修正，两边原日志不变、未重跑。没有无依据重试或全量门禁。
+
+passthrough后续turn换号、后续turn同账号重建、新完整JWT服务器/后台数据库消费/本次SLA聚合、旧native动态复现仍未覆盖。其他平台、独立旧入口、TokenCount和无新选择连接复用保持原未知；既有Ops深链接首次列表问题不在本轮修改范围。没有全量Go/新CI、付费上游/生产请求、push/PR更新/workflow dispatch、合并、镜像发布或生产部署。临时socket随检查退出，未启动常驻服务或改变容器/VPS；固定旧源码导出及复现夹具保留于外部证据目录。
+
+[候选](evidence/s3.5-candidate.json)、[验证与原日志](evidence/s3.5-validation.json)、[复核/开放P1](evidence/s3.5-reviews.json)、[文档/保留检查](evidence/s3.5-document-checks.json)、[委派摘要](evidence/s3.5-subagent-digest.md)。外部原证据目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s35`；两处现存登记位置各自旧正文保留。子任务交付验收与审计closed/verify通过不代表S3.5整体通过。
+
+**S3.5保持未勾选。下一步先修复既有native后续turn换号payload错误并复验S3.5，再进入S3.6；本轮停止，不自动开始生产修复或下一阶段。**
+
+收尾发现开工时的五个历史工作树已移出磁盘和Git worktree列表；本轮没有删除/归档调用，移除来源未由本轮确认。相关分支仍在，按Codex snapshot对照原文件哈希，五树共22527个文件全部一致，包含原维护树未提交文档；未重建目录或改写snapshot。原维护文档位置已不存在，本轮只同步现存应用树和用户原指定目录。
+
+## S3.5 native 当前轮次安全重放修复与复验
+
+本节为上节“部分完成，既有P1阻断”的后续闭环，保留原时点结论。用户本轮授权先修复native当前轮次安全重放，再复验S3.5；未授权进入S3.6或合并/发布/部署。
+
+### 候选与保留范围
+
+核对personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`、未合并草稿PR #5旧head `88156f09fcf980a771a8aab570f0dbaec5de25fb`及现有未提交改动后，复用personal应用树`/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin`；本轮分支`codex/plus-native-turn-replay-s35`，基线`0129d38696b1467768687aef9d8233092d4c1d7c`，最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`。native/Ops修复先固定于`9c2c5fba1d71b2e7e3b6f518ef61938d2cb57cae`，随后关闭跨模型P1。main维护应用树、原指定目录17项应用改动及两个目录各自旧journal正文保留，未创建/删除/归档工作树。
+
+### 完成内容与行为边界
+
+- native owner构造当前轮次的可移植上下文，完整成功的历史输出、工具调用及返回按实际顺序保留；独立input开启新上下文。账号换号不依赖原账号previous_response_id，并保持当前原始模型、请求字段和错误链。
+- 只有已证明完整、最近一次成功完成且response ID匹配的历史链可跨账号重放。缺失/失败/不完整终态、未知锚点、无input、孤立工具输出、item_reference及账号工具别名上下文停止重放，不回退建连首包。输出后429保持原停止行为；同账号重试、deadline和原预算未扩展。
+- Ops去重改为逻辑turn owner身份：同一逻辑turn跨代理重启first-wins，后续逻辑turn即使局部编号重复仍有独立错误行。公开旧Ops Turn保持原局部表示，未改SSE路径或64项上限。
+- 首次独立复核确认A→B后429换号仍按A选号/请求价的P1；最终handler在现有owner维护当前请求模型、渠道映射及重试输入，成功结果与fallback按当前请求归属。真实不同模型/候选/价格反例验证选择B能力账号、上游映射及B请求价，原首轮准入、复合分组和时间/并发语义保留。
+- 后续复核确认合法顶层字符串input被共享序列helper收集成数组内字符串；native历史owner将其无损转换为role=user消息项，只改变换号历史，不改原上游首发或shared helper。独立当前字符串与字符串历史续接均以先红后绿反例验证合法对象项；真实handler换号上游也检查对象项数组。[Responses输入合同](https://developers.openai.com/api/reference/resources/responses/methods/create)及[WebSocket示例](https://developers.openai.com/api/docs/guides/websocket-mode)支持合法顶层字符串语义。
+
+### 实际验证与复用
+
+native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。native完整上下文、原首包误重放、Ops同turn重复和跨模型选择/价格反例均保存先红后绿证据；首次handler集成失败分辨为旧Turn断言错误和实际Ops去重缺口后分别修正，原失败与修复记录保留。命令、exit、实际PASS项、输入哈希、日志哈希及证据边界见[验证清单](evidence/s3.5-native-fix-validation.json)。
+
+旧S3.5 HTTP真实402/429恢复及固定旧/新16同oracle各25 PASS，未变调度/费用owner、S3.2 producer、S3.3 SQL/迁移/DTO/权限与真实PG16兼容、S3.4前端按原有效边界复用；Ops owner有变化，旧Ops runtime证据由本轮日志/去重/race替换。没有重复前端build/浏览器、全量Go或远端CI。复用的日志与输入校验见[复用证据](evidence/s3.5-native-fix-reused-evidence.json)。
+
+新增native后续轮次换号、独立输入/完整工具上下文及跨模型映射和实际费用计算验证；WS使用simple模式的真实RecordUsage和仓库夹具，不证明实际余额扣款。标准扣费/幂等与调度对照按未变owner复用。完整JWT服务器、付费上游、生产、passthrough后续轮次换号及后续轮次同账号重建未新增运行时覆盖；隐藏WS 429未增加恢复telemetry producer，历史未知入口仍未知。
+
+### 复核与下一项
+
+三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终实际diff及日志复核无确认阻断。最终复核未独立运行测试，执行证据由主代理和写入代理提供；这仅是修复所需复核，不代表S3.6全阶段交付。详情见[复核记录](evidence/s3.5-native-fix-reviews.json)与[多代理摘要](evidence/s3.5-native-fix-subagent-digest.md)，审计`20261010T014850Z-kin-plus-native-turn-replay-s35-8306a592`通过验证并闭合。
+
+S3.5在上述实际覆盖与限制下完成并勾选。下一项为S3.6“完成独立复核与交付”，本轮未开始；push、PR更新、远端CI、合并、镜像发布和生产部署均未执行。
+
+
+## S3.6 独立复核与阶段交付
+
+本轮只执行S3.6。开工先读取用户指定plan/tasks/journal，核对三处现存工作树、未提交内容、远端personal及草稿PR #5；personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，来源KlN `v0.2.14-klno.5/c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。从干净S3.5完整`cc068ceb9f1fe2ad31397f75a209aea5b0800ad9`续接`codex/plus-routing-delivery-s36`，固定累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`，应用修复`da581c6846d1bf89926ca9730abf2290ea8b65ea`；原S3.5分支与PR #5旧候选88156f09保留。main来源新工作树`codex/plus-routing-delivery-evidence-s36`仅登记文档，没有使用main应用源码。
+
+| 边界 | 本轮实际证据 |
+|---|---|
+| 快照与日志独立复核 | fresh只读critical_reviewer检查88156f09→初始cc068ceb9完整S3 diff、v1数量/NULL/partial、请求/选择/发送/终态、WS逻辑turn/同turn重启去重、异步副本/预算与native修复交界；无确认可操作阻断。后续5文件行为等价lint修正由主代理核对diff/owner/调用者并定向验证，原独立复核按未改合同边界保留；未新增fresh最终全文复核。复核未独立执行测试或浏览器。 |
+| 数据与可见范围 | nullable JSONB/严格白名单读回、管理员两类单详情、普通/include_detail列表裁剪及用户归属/白名单核对；对应owner自S3.3不变。复用真实PG16及固定旧d9b06f4 repository/migration runner往返，不称完整生产服务器兼容。 |
+| 原证据复用 | 开工53份原产物和28个producer/存储/权限输入一致，初始候选的handler18/27、native安全7/24、既有native9/9、实际WS race4/11输入及PASS事件吻合。CI先后八项lint已以5文件等价修正关闭，最终25/28输入直接匹配，3项由本轮35顶层/114 PASS、追加并发1/1及S3四包不限输出lint 0 issues补充；原运行/并发owner未改的证据按原边界复用。较早Ops41/61与race22/55清单的三项全局输入后来变化，只按未变Ops/并发owner复用；当前重放/模型/定价由最终检查覆盖。 |
+| 前端及行为边界 | S3.4后frontend/依赖/迁移未变；复用78项定向、lint/类型/build及两组合成API页面。HTTP恢复和旧/新16同oracle各25 PASS、标准计费/幂等按原未变函数边界复用；S3.5已授权的native安全重放、当前模型及逻辑turn去重修复单独登记，不把它们描述为无行为变化。 |
+| 现行必需门禁 | [草稿PR #6](https://github.com/ccisnoxx/sub2api/pull/6)及[Personal CI `38020112510`](https://github.com/ccisnoxx/sub2api/actions/runs/38020112510)绑定最终完整候选和最新personal。全部必要job与App15368 personal-ready通过；不采用主聊天未合入的CI选择优化，不在本地重复完整gate。共3个不同SHA原生PR run，无额外dispatch/同SHA rerun；前两轮lint失败后随更新自动取消。首轮默认同类3条上限隐藏第八项，本地改动行筛选漏检；随后S3四包不限输出检查关闭剩余问题。详情见门禁清单。 |
+| 保留与登记 | 原修复目录17个应用改动、主聊天源码、personal基线、固定S3.5候选与原PR #5保留；三处各自旧journal和历史证据完整保留，main只新增文档。实际差异和链接/状态/保留校验见文档检查。 |
+
+累计候选含迁移251和252；S3没有新增扣费公式或用户权限，其他故障处理边界按已有行为证据保持。回退应用保留扩展列与migration ledger，禁止删除列、清历史或修改旧迁移；后续生产部署必须审定真实运行树、镜像revision/digest及备份/恢复条件。本轮没有生产数据库、SSH、付费上游或生产请求，不以历史镜像/部署结果声称本候选已上线。
+
+未验证范围继续保留：完整JWT后端浏览器、生产扣款/运行树、付费上游；WS simple模式的真实费用计算不证明余额扣款；passthrough后续换号和后续同账号重建未新增运行覆盖；隐藏WS429没有恢复telemetry producer；其他平台/独立旧入口/TokenCount及未重新选号的连接复用保持未知。既有Ops深链接首轮列表加载限制仍登记，未扩展修复。独立源码复核和CI不会补造这些运行证据。
+
+[候选清单](evidence/s3.6-candidate.json)、[证据核验](evidence/s3.6-reused-evidence.json)、[门禁与限制](evidence/s3.6-validation.json)、[独立复核](evidence/s3.6-reviews.json)、[保留/文档检查](evidence/s3.6-document-checks.json)及[委派摘要](evidence/s3.6-subagent-digest.md)。审计`20261010T025433Z-kin-plus-routing-s36-db5630b7` closed/verify passed；原始本地证据目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s36`。门禁绑定候选保持固定，登记文档是本地后续记录，不把文档HEAD当作已通过的应用候选。
+
+S3.6已勾选，S3主线阶段结束。PR保持草稿，personal未更新；合并、镜像发布、Release dry run、生成新镜像digest及生产部署均未执行。正式发布仍需合并后最终personal完整SHA自身的成功门禁和相应授权。下一顺序项为S4.1“确认启用需求”，S4/S5当前未排期；S1.5第二批及S0.2/S0.3继续独立选择。本会话不自动开始任何下一任务。
+
+
+## S4.1 启用需求核对（待确认）
+
+用户要求开始S4.1；本轮仅执行需求确认。开工读取计划、任务和最新日志，核对四处工作树及既有未提交内容。personal仍9397eb8af，应用候选afcc7852b与草稿PR #6未变、未合并；选择干净main来源S3.6文档提交53332c432续接`codex/plus-status-demand-s41`，只增量登记文档。原S3.6分支、应用源码和原17项改动保留。
+
+已静态核对V1默认/V2被动开关、usage/error聚合、计费成功代理、JWT/管理员认证及服务端分组过滤/DTO脱敏，形成[启用需求记录](service-status-demand.md)。V2已有真实请求统计能力，但`actual_cost > 0`不等于可信成功终态，错误去重未关联成功终态优先；S4新增价值应是终态服务状态，不重复流量看板。代码默认与本地验证不证明生产设置、流量或已部署终态能力。
+
+已通过文本问题向用户询问可见范围和真实流量/使用目的；尚未收到需求输入，不能把默认选项或仅管理员建议当作选择。当前没有本部署近期流量证据，未读取生产数据库/VPS或修改监控设置；S4.1保持未勾选，实际实施未排期。已完成可独立核对部分，待用户选择实施后再记完成；若暂缓则记录未排期。
+
+本轮仅需求文档，未运行应用测试/build/浏览器/CI或新增独立代码复核。S3.6成功门禁只按未改应用候选复用，不证明S4实现、线上流量或生产版本。来源/限制见[证据清单](evidence/s4.1-validation.json)，文件保留/链接/任务状态见[文档检查](evidence/s4.1-document-checks.json)。S4.2–S4.4、S5、push/PR更新、合并、镜像发布与部署均未执行。
+
+
+## S4.1 需求确认完成
+
+本节续接上节“待确认”的准备时点。用户已选择“仅管理员查看全站状态（建议先采用）”，并确认“当前部署持续有真实请求，可以查看线上项目的情况”。据此完成S4.1并选择推进仅管理员全站服务状态；普通用户及匿名不新增S4入口，授权分组用户视图不在此次选择内。状态视图只需聚合健康、证据窗口、新鲜度和未知原因，不纳入凭据、敏感header/body、账号/上游地址、个人身份、请求ID、原始错误、费用/余额或用户榜单。具体字段白名单、样本门槛及终态算法留S4.2，未在本次实现权限或聚合。
+
+本轮通过既有管理员浏览器会话只读查看线上`/admin/dashboard`，页面版本`v0.2.14-klno.5-tps.1`、今日请求2,516、当前7 RPM；模型榜选中近24小时，以GPT系列为主，其中gpt-6.1-sol为8,868请求。摘要于`2026-10-10 04:16:13 UTC`归档，只保留必要聚合字段，未保存完整页面或身份/账号/财务数据。今日卡片与近24小时榜窗口不同，界面时区未核验；模型名不能证明平台/协议。现有统计佐证流量需求，但不证明S4最终成功率、恢复、充分样本或S1/S3采集已在生产部署；镜像digest/revision和监控模式未核验。未读取生产数据库/VPS、发起模型请求或改变设置。
+
+personal基础`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`与应用候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`未改，原17项应用改动及各处旧日志保留。需求准备文档已在main来源文档分支`codex/plus-status-demand-s41`本地固定为`0d30e960b17d4534557f7f2de60b2fb4d13d360f`，此次继续仅更新文档，不使用main应用源码。S3.6的Personal CI `38020112510`只作为未变化应用候选的既有证据，不证明S4实现或线上运行条件。
+
+已完成来源指纹、四处工作树保留、三处阶段文档一致性、S4.1链接/锚点、任务勾选与diff检查；扩展锚点检查发现既有S3.1任务链接与冒号标题的锚点不匹配，该问题在开工前已存在且原样保留，不影响S4.1新增入口。见[需求记录](service-status-demand.md)、[证据清单](evidence/s4.1-validation.json)及[文档检查](evidence/s4.1-document-checks.json)。本轮没有行为变更，不运行应用测试/build、付费探测、新CI或独立代码复核；S4的实际候选仍须按后续具体风险复核。S4.1完成不表示功能已启用；下一顺序项S4.2“编制独立规格”未开始，S4.3/S4.4、S5、push/PR更新、合并、镜像发布与生产部署未执行。
+
+
+## S4.2 独立规格编制
+
+本轮只执行S4.2，先读取指定plan/tasks/journal并核对四处工作树、未提交改动、远端personal及草稿PR #6。personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，KlN来源`.5/c7aacf5d`；PR #6保持OPEN/draft，应用累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`未变。复用干净main来源S4.1文档树`codex/plus-status-demand-s41`（开工HEAD `dbb46705b7dd9e933355ff186df7214c4a9b7723`）编制规格；应用事实全部读取personal来源`plus-routing-storage-s33`，没有用main应用源码代替。
+
+[独立规格](service-status-contract.md)冻结终态成功优先于中间重试、客户端取消覆盖后排除、用户与供应商401/额度/429成对区分、未知终态/责任/入口不猜成功；当前5分钟、最近10分钟重算、180秒过期与有界关联、5样本及2次异常/3次新请求恢复观测、事件等待数据/旧样本不能证明恢复、31天匿名保留、独立默认关闭开关和仅管理员全站白名单。第一批只判可用性；旧首字与非流式完整响应观察时点不参与性能健康判定。
+
+源码核对发现KIN用量计费键可为client:/local:等，WS又可使用上游ID，与Ops两类ID不能直接等同。规格明确S4.3新增两表nullable监控关联元数据，由HTTP请求/WS逻辑turn owner形成不可变值；不改原request_id、幂等、计费或用量行创建规则。历史/未接入行保持未知，终态/归属冲突不任意挑最新。独立配置/事实/状态/事件/水位、原子提交、启用区间、管理员路由与21项验收输入均定义，尚未实现。
+
+| 检查边界 | 本轮结果与证据限制 |
+|---|---|
+| personal与候选 | 开始/结束只读核对远端基础、PR #6 SHA/草稿状态及原成功门禁；应用HEAD和来源关系未变。没有新CI或远端写入。 |
+| 源码与既有证据 | 22个源合同文件固定指纹；S4.1的12个来源指纹一致，5份既有需求/交付清单原值保留。S3.6 Personal CI `38020112510`/personal-ready SUCCESS仅复用到原未改候选；S4.1线上摘要仅佐证需求，未新增线上读取。 |
+| 规格核对 | 终态分类、独立计费键、NULL/未知、阈值/时间/事件、匿名字段/管理员范围及SS01–SS21输入预期一致性核对；21项是后续验收合同，没有作为应用测试执行。 |
+| 文档与保留 | 三处阶段文档同步，原各处journal/执行证据全文保留；四树开工清单逐文件核验，原17项应用改动及全部无关文件/HEAD/分支保持。新增链接/锚点、任务编号/勾选、JSON、diff空白和改动范围检查通过。既有S3.1锚点问题保留，不混称全部历史锚点无缺陷。 |
+| 尚未执行 | 无应用测试/build、真实SQL/迁移、浏览器、新独立代码复核、新CI或生产请求。新关联/终态元数据、表、API、管理员权限及阈值实测留S4.3/S4.4；当前线上终态覆盖和源写入完整性未证明。 |
+
+[来源清单](evidence/s4.2-candidate.json)、[证据与限制](evidence/s4.2-validation.json)、[文档检查](evidence/s4.2-document-checks.json)。本地原始检查目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s42`；文件hash固定未提交文档，不将开工文档HEAD当作新应用候选或S4成功门禁。
+
+S4.2已勾选；下一项S4.3“实现独立聚合与展示”未开始，S4.4未提前勾选。未自动推进下一阶段，S4未启用；无push/PR更新、合并、镜像发布或生产部署。
+
+
+## S4.3 独立聚合与展示实现
+
+本轮仅执行S4.3。开工读取指定plan/tasks/journal和S4.2规格，核对当前personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`、KlN `.5/c7aacf5d`、草稿PR #6及四处已有工作树/未提交改动。以personal累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`建立独立工作树`/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin`、分支`codex/plus-service-status-s43`；应用固定为`35962a802fdc499639c9c861072f25774ccba50b`（79文件）。main维护应用未用于实现，原17项未提交修复及旧候选保持；仅增量登记原文档树与main来源证据树，保留各自完整旧日志。
+
+HTTP请求和已准入WS逻辑turn独立UUID关联，重试保持同键，源owner冻结实际终态/时间/白名单原因并深复制到异步队列；历史与未接入入口未知，S1取消/完成顺序及计费键/结算合同保持。迁移253为两表增加nullable内部JSONB，不进入原DTO或导出；迁移254建立五张独立配置/分钟事实/状态/事件/水位表，默认关闭，不回填。60秒tick/45秒预算，配置行锁和领导锁保证原子重算与水位；50k超限回滚、31天保留、启用区间、持久源缺口与新证据事件状态落地。分组可见性转换用数据库同事务触发器冻结状态，共享配置锁及获锁后基线避免继承旧恢复证明。V1/V2、调度、重试决策和出站身份保留。
+
+仅管理员config GET/PUT及snapshot GET挂在既有认证/限流/审计之下，严格参数、完整配置/version冲突和匿名白名单；页面新增中英“服务状态”，展示当前5分钟/历史/新鲜度/未知原因/未结束与已恢复事件，支持窄屏和键盘，身份/路由/筛选取消旧请求，403/停用清空旧全站数据，晚到响应不能复原。
+
+| 检查边界 | 实际结果与限制 |
+|---|---|
+| 源与SQL | 源62顶层及race25、计费前失败1按未改逻辑复用；既有SQL定向17顶层/26 PASS关闭新增列fixture预期。最终PG16有13集成及同包7逻辑PASS，覆盖真实单/批/best-effort/fallback、隐私、幂等源缺口、配置/原子提交/锁/TTL/过滤/源缺口和恢复。 |
+| 生命周期与聚合 | 最终相关race21顶层通过；7项复核问题先红后绿关闭：停止缺口丢失、Ops panic、分组旧计数、获锁前基线、不同组锁争用、空平台摘要、未知比例。仅重跑失败及直接影响边界。 |
+| 接口与页面 | handler4/route2及相关服务通过；路由测试匿名401、注入普通用户403/用户路径不存在不等于真实JWT。前端5文件34用例、类型/16文件lint/build；中文1440与英文390实际Vue+合成API流程及布局通过，无横向溢出/控制台错误。 |
+| 构建与复核 | 正常Ent/Wire生成，实际依赖文件不变；最终backend build通过。2次fresh独立只读复核无残留确认阻断，最终79文件hash绑定，父代理确认最终PG/race/build；[审计摘要](evidence/s4.3-subagent-digest.md)已校验闭包。 |
+| 证据复用与缺口 | 原始receipt/hash保留，父代理修正用新增结果补充；前端及8项计费/依赖/工作流输入未变。原CI只证明旧afcc候选。S4.4真实JWT/PG/浏览器E2E、固定旧应用兼容、真实多轮WS/部署终态覆盖及完整SS01–SS21登记尚未执行；强制退出前异步缺口未落库不保证跨进程重建。 |
+
+详见[应用候选](evidence/s4.3-candidate.json)、[验证与失败分类](evidence/s4.3-validation.json)、[复核与修正](evidence/s4.3-reviews.json)及[文档保留检查](evidence/s4.3-document-checks.json)。原始目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s43`；测试使用临时PG16，Vite和任务依赖symlink已清理，Colima恢复开工Stopped。
+
+S4.3已勾选，下一项S4.4“完成验证与独立复核”保持未开始，本会话不自动进入。默认enabled=false，未启用、push/PR更新、新CI、合并、镜像发布或生产部署。应用回退前仍须S4.4固定旧源码兼容证据，不能以新SQL通过代替旧应用证明。
+
+
+## S4.4 隔离实例与真实 JWT/PG18/浏览器贯通
+
+本轮仅执行用户指定的S4.4第一步：在hostdzire建立独立验证实例并完成真实JWT→后端→数据库→浏览器。开工核对五处HEAD、工作树和未提交文件，续用personal应用`35962a802fdc499639c9c861072f25774ccba50b`/文档起点`55ef901a45954c8ddba7a1fab00c4805bdc445fb`。没有用main维护源码代替应用，也没有改动应用源码；79应用输入及179前端构建产物校验相符，S4.3定向测试/代码复核只按原不变边界复用，PG16和合成API证据不冒充本轮PG18/真实认证。
+
+| 检查边界 | 实际结果与限制 |
+|---|---|
+| 实例与生产保留 | hostdzire目录`/root/sub2api-kin-s44-validation`、Compose project `sub2api-kin-s44-validation`，独立DB `s44_validation`/Redis/卷/网络/随机凭据及2个example.invalid测试身份，0供应商账号。PG18与Redis使用生产当时的完整image ID，DB/Redis仅内部网络、不发布端口；应用仅127.0.0.1:10444，SSH转发本地4244。三服务healthy/restart=0；生产三容器ID/image/StartedAt/restart/net/volume与开工相同。未读写生产数据库。 |
+| 构建绑定 | 固定personal源码外部归档，Go linux/amd64 embed交叉编译通过，复用S4.3前端；以生产固定运行时image ID覆盖本候选binary/resources。仅服务器本地tag `sub2api-kin-validation:s44-35962a8`，实际image ID `sha256:b581786c4de40326c2bc2e7576d343169612565660dd2c40fa7e53939f9bf6be`、revision35962a8，运行binary hash与本地产物一致。BuildType=source；沿用旧版本标签不代表新正式版本，无personal-release构建/推送或新CI。 |
+| 真实JWT与持久化 | 真实浏览器登录admin/user得到真实后端JWT；首次admin门禁423经用户明确授权后由测试管理员提交电子确认200。浏览器默认enabled=false/v1/无摘要，snapshot503；UI保存enabled=true/最低6样本/v2后，真实psql只读隔离PG18回读，刷新与英文390新登录仍见同一值。迁移251–254及5张S4表真实存在。 |
+| 真实权限与未知 | 普通用户JWT配置GET/PUT与snapshot403，匿名GET401；旧version409、未知query400且配置仍v2。用户直达S4被转至/dashboard；追加等待真实dashboard数据及展开最终用户导航，确认入口/全站数据不存在。中文1440/英文390管理员无横向溢出；无源/无请求health=unknown，无健康/恢复证明。没有API mock、身份注入、付费上游或生产请求。 |
+| 失败分类 | Docker29仅内部网时Ports=null/连接重置，改为仅隔离应用加专属ingress bridge后通。10项行为记录均passed/87实际API请求；末尾汇总漏计电子确认前3个预期423导致3!=0，原始失败报告保留，离线按精确路径与确认前位置分类；修正未来脚本但不重复成功写入。最初用户截图在dashboard加载中，另加只读settled流程/截图补足最终导航。 |
+| 既有CSP问题 | 真实fresh脚本nonce一致、window.__APP_CONFIG__执行；reload缓存旧HTML与新CSP nonce冲突，注入未执行；直接If-None-Match返回304/空body/新nonce。embed_on.go与security_headers.go完整字节等于固定生产9397eb8，归类既有P2。当前JWT/config/刷新经真实API保持正确；正式发布前另修HTML缓存/nonce一致性，不通过unsafe-inline或关闭CSP掩盖。本轮无应用修复。 |
+| 独立复核与剩余边界 | fresh只读critical_reviewer审实际配置、运行时白名单、读取脚本、源hash/SQL/browser及CSP分类；未独立运行测试/SSH。只接受当前隔离贯通子任务，见复核记录。SS19补充真实认证，SS10补充无源unknown；SS21固定旧应用、真实多轮WS/重试取消/日志终态、故障与新请求恢复/部署入口、SS01–SS21最终覆盖仍待。 |
+
+详见[候选与产物hash](evidence/s4.4-isolated-candidate.json)、[实际验证与失败分类](evidence/s4.4-isolated-validation.json)、[独立复核](evidence/s4.4-isolated-reviews.json)、[委派摘要](evidence/s4.4-isolated-subagent-digest.md)及[文档保留检查](evidence/s4.4-isolated-document-checks.json)。原始产物在`/Users/sc/.codex/validation/sub2api-kin/20261009-s44-hostdzire`；凭据仅私有0600文件/服务器.env，不进入仓库或报告。隔离Compose仅为实际运行配置证据，不是正式发布定义。
+
+S4.4.1隔离贯通完成；S4.4保持未勾选、进行中。隔离实例启用监控仅为测试，生产没有部署/启用本候选。实例和SSH转发保留供下一步使用；下一项S4.4.2固定旧应用PG18兼容，后续S4.4.3真实多轮WS/部署终态与S4.4.4最终场景/独立复核不自动开始。无push、PR更新、新CI、合并、镜像发布或生产部署。
+
+
+## S4.4 固定旧应用兼容、真实WS终态与恢复（隔离完成，正式交付进行中）
+
+- 应用仍来自personal累计分支，固定候选`1d9603c7755ab98df5b1f92f3708c86e531a43e8`。hostdzire隔离应用实际revision9db7bfc；后续仅可控fixture/文档/既有审计例外同步变化，实际应用owner未变。main仅维护部署工具和阶段文档，没有用main应用树替换personal。
+- 生产旧应用固定9397/tps.1在隔离PG18扩展schema上通过旧ApplyMigrations、仓储单/批/重复/best-effort/FK fallback、历史NULL和旧ID/DTO/费用保持；真实JWT管理写读200、旧S4路由404；实际HTTP五条zeroToken用量10–14元数据NULL。随后只切换隔离应用，PG/Redis身份和schema保留。
+- 实际ctx_pool/OAuth/passthrough多轮失败→成功保持各轮独立键；ctx_pool传输和新鲜账号429隐藏重试完成。HTTP429的Ops10为attempt，与Usage37 completed共享键，唯一计费行、费用0。非流式原始500错误从Usage65 unclassified修正为新helperUsage66 provider_5xx。原始capacity白名单、显式原始5xx和JSON共用owner已闭环；失败红测及定向race27顶层/77项绿测保留。
+- ctx/OAuth取消用fixture容器内真实客户端直接连internal应用：先关闭下游，再独立gate放行非终态probe，最后completed；两条DB client_disconnected冻结时间分别早于完成约700/702ms。真实聚合水位08:22的两个范围各excluded1，未增加success/failure。passthrough对应取消证据也通过；完成后正常关闭保持completed。此前经SSH转发的completed原始记录保留为检测顺序/转发半关闭限制，不宣称取消通过。fixture race6顶层/9含子用例通过；不注入元数据或数据库事实。
+- 两批新provider失败建事件；旧失败退出5分钟窗口后无新请求仅awaiting_data。三批足够的新正常样本在不同真实聚合周期依次recovering/count1、2、resolved；期间应用重启保留count1，同批重扫不推进。正式候选切回后resolved事件仍持久。没有假时钟或直接注入监控表。
+- 79个S4.3源输入74不变；3个归因owner与2个停止测试由新增针对证据替代。PG16原子提交/配置版本/领导锁/超限回滚/TTL/可见性、前端34/类型/lint/build和已完成真实JWT/browser按未变边界复用。CSP实际HTTP两次200/no-store/nonce新鲜且匹配、真实Chrome无错误，修复已有HTML304问题。完整SS映射及正式CI/生产证据待本任务最终收口。
+- 新[PR #7](https://github.com/ccisnoxx/sub2api/pull/7)的[Personal CI38037686631](https://github.com/ccisnoxx/sub2api/actions/runs/38037686631)运行中；旧afcc CI不能放行此候选，PR CI也不能放行最终personal合并SHA。未正式发布/生产替换/启用。下一步骤仅继续S4.4发布验收，S1.5/S5不执行。
+
+原始证据：Git外`/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release`；可审核摘要见[运行验证](evidence/s4.4-runtime-validation.json)。JWT/密码/真实API key及私密配置不进入仓库。
+
+SS01–SS21逐项可观察边界与复用入口见[场景映射](evidence/s4.4-scenario-map.json)。新增CI修正为旧清理测试增补依赖、fixture类型/清理返回值及停止测试显式错误断言；15顶层race通过、相关六包不限输出lint为0 issues。当前固定候选8c580bb，新CI38038296698运行中，首轮失败38037686631原始日志保留。
+
+
+### S4.4 候选 CI 兼容边界收敛（17418811）
+
+候选 `8c580bb972bf1f54e3ddc8683efbd61127ddf4cb` 的 [Personal CI 38038296698](https://github.com/ccisnoxx/sub2api/actions/runs/38038296698) 中 lint、前端、安全、TPS、同步与发布 helper 均成功，但单元测试 `TestOpenAIWSHTTPBridgeGrok429PersistsRateLimit` 发现旧 `nil` Gin 调用在新增 S4 owner 读取处 panic。`17418811eec3362a038bafac230468f949708bdd` 仅恢复这个已存在可选上下文合同：存在 Request 时承接真实 owner；否则保留传入 ctx，不生成新 owner、不改变显式错误或取消来源。相关 bridge/timing race 检查成功，证据为外部原始日志 `ws-bridge-nil-context-green.log`；没有把未运行的断言当通过。
+
+最终部署控制 `ce0a5034610cd6cf71edee5c3e24ad542d53519d` 绑定新候选完整运行树 `da74993c5a8e75108c672120f1a34ca2f4fa739c5f4a55c1bc88e4af4d320b59`，固定差异仍为128路径，251–254迁移未改。17项累计绑定检查成功，新的 [Deployment Tools CI 38039146704](https://github.com/ccisnoxx/sub2api/actions/runs/38039146704) 成功。fresh只读复核核对正常turn/取消、旧nil调用、真实Git树/祖先/来源/四SQL校验值与部署三文件字节，没有确认新阻断问题。该结论不推广为整条bridge支持任意非nil Gin但nil Request，已有Grok helper仍有Request前置条件。
+
+本候选的79个S4.3来源文件中73个未变，29份原日志保留；新增改变的bridge由这次race检查及新必要CI补证，其余改变owner用本轮源终态、reason与停止/预算检查补证。完整21场景映射见[evidence/s4.4-scenario-map.json](evidence/s4.4-scenario-map.json)，分别注明真实流程与未变边界复用，不声称21项全部在生产复现。PR必要CI为 [38039087470](https://github.com/ccisnoxx/sub2api/actions/runs/38039087470)，当前运行中；最终personal SHA的CI及发布/生产事实仍需后续实际证据。
+
+### S4.4 新候选仓储 fixture 纠正
+
+`17418811`的[Personal CI38039087470](https://github.com/ccisnoxx/sub2api/actions/runs/38039087470)集成失败保留。真实PG18/Redis完整repository复现三项失败：共享timingTestLog遗留8条用量及依赖污染旧Dashboard；GroupVisibility落在其他未分组Ops造成的全站scope_unavailable十分钟重算窗口，生产拒绝恢复符合合同。`53eee7fe03079929de015b2d46b73e9e790dba4e`只修改三个测试文件：按自身已知ID/UUID清理已提交资源，从数据库重新可见基线安排十分钟之后的三次新恢复窗口，保留无关旧源、原Dashboard断言及生产未知/恢复语义。定向组合与完整repository均通过；完整包既有ConcurrencyCache TODO skip不作为通过。未新增测试，Colima恢复启动前Stopped。新候选CI38040893627及main锚点8f91648的部署工具CI38040891088进行中；旧候选CI不作最终上线门禁。详见[运行清单](evidence/s4.4-runtime-validation.json)。
+
+53候选CI38040893627的单位、lint、前端、安全等成功，repository再暴露两个时间/共享源相关断言：LimitRollback预设全库facts为0实际有1个既存gap；FrozenIncident预期awaiting_data实际scope_unavailable。保留完整失败日志；未原样重跑CI，开始构造可控旧源完整分钟反例并核对真正回滚/冻结合同。未合入或变更生产。
+
+### S4.4 受控完整分钟缺口与最终回滚/冻结oracle
+
+`74508aa0e1c2d61e9e269fbe73e3eb8ce515a9da`仅修改现有service_status_repo_integration_test.go。在两个现有用例各插入自己拥有的上一完整分钟未分组legacy Ops并按ID清理，旧断言稳定2FAIL。Limit现在比较失败前后按完整主键排序的全部facts行完全不变，确认预存事实非空，并保留水位/超限码/leader和配置锁；Frozen在UpdateConfig返回后、Aggregate之前断言立即awaiting_data与recovery_count=0，再精确断言外部scope_unavailable优先、IncidentPhase=awaiting_data与两率NULL。没有生产兜底、删除无关源或等待随机分钟翻转。真实PG18受影响组合与完整repository通过，既有ConcurrencyCache TODO skip不算通过；Colima恢复Stopped。新[Personal CI38042366636](https://github.com/ccisnoxx/sub2api/actions/runs/38042366636)与main e52部署工具CI38042363913进行中，失败53结果保留。详见[清单](evidence/s4.4-runtime-validation.json)。
+
+## S4.4 发布前候选 CI 与复核收敛
+
+用户本轮明确授权兼容/真实 WS、最终门禁以及生产替换和 S4 启用；未进入 S1.5/S5。当前应用来自 personal，原 personal 9397eb8af；独立控制工作树维护 main 工具/文档，原应用未提交文件及其他工作树保留。
+
+固定旧应用扩展 PG18 schema 的读写/幂等/批量/fallback 与真实 HTTP 用量、真实 JWT/API/数据库/浏览器、多轮 WS/重试/供应商失败/取消后 drain、无新请求冻结及三个新增成功窗口恢复已完成；详见[运行验证](evidence/s4.4-runtime-validation.json)与[21 场景映射](evidence/s4.4-scenario-map.json)。原 S4.3 的 79 源中 71 未变，8 个变化分别补证；原验证不改称最终部署证据。
+
+必要 CI 的前四轮依次发现 server 测试构造/lint、nil Gin owner读取、共享测试数据/恢复窗口和完整分钟旧源缺口；修复后真实 PG18 完整 repository 通过，已有 ConcurrencyCache TODO skip 保留。74508aa 的独立复核另确认 P2：全站缺口掩盖冻结事件 NULL 比例。该候选 CI 38042366636 已取消，不用于最终门禁；4babebff68ff5e39fbf24b808c275cc9e8270339 新增无缺口足量正常统计的冻结快照，并将 recovery 初值设为2。原源码两个相关测试通过；Go overlay 仅删除比例清空一行时 NULL 断言预期失败，仓库生产源码未改。
+
+当前[候选 CI](https://github.com/ccisnoxx/sub2api/actions/runs/38043068585)尚在运行，独立复核待关闭新覆盖。main 控制 c04c24ee69ee7e52118f80672963c2f698f413ff 的[部署工具 CI](https://github.com/ccisnoxx/sub2api/actions/runs/38043065528)通过；候选锚点17项定向通过，完整128路径/四份固定迁移沿现有 proof 校验。草稿[PR #7](https://github.com/ccisnoxx/sub2api/pull/7)未合并。
+
+2026-10-10 09:56 UTC 只读生产仍 healthy/restart0，版本0.2.14-klno.5-tps.1/revision9397eb8af，PG18.6；S4表不存在，近10分钟24条真实用量。没有正式发布/生产替换/生产S4启用。后续仍需最终personal SHA自身CI、版本/digest发布、正式镜像隔离复验及生产先关闭后启用验收。定时同步38042678125因上游目标非来源后代停止，未改变固定.5来源，留独立维护。
+
+### 最终分钟一致性修正
+
+4babebf 的全部必要 CI 38043068585 在 10:10 UTC 完成成功，但最终只读复核发现新 water-mark 分钟与后续旧 now 混用的偶发反例（测试第398行，聚合水位倒退保护如预期拒绝）。原冻结NULL比例覆盖P2已关闭；此次按其一行建议统一使用 snapshotMinute。用 Go overlay 让初始fixture分钟落后实际一分钟，原调用3.447s失败，新调用3.320s通过；生产源码未改。最终候选 d72a3dafbdcb1edb642fca8dcfb29a803eaa97af 只增删一行测试，内层Git证明128路径与迁移不变、部署定向17项通过；main e3b3e8e284e2d9b0ff8f972650807c4d40863c64 的60项部署工具CI38047957139成功。候选CI38047961118仍待，不使用4bab成功替代新候选。
+
+前一会话中断的只读worker未取得最终报告，精确生命周期未知；不计验收通过，保留审计缺口。恢复后的独立复核报告与上述受控红绿另行登记，未伪造前一worker终态。
+
+### 最终personal合入与发布门禁
+
+PR #7的候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`全部必要CI通过，2026-10-10T11:38:04Z按保护规则以merge commit合入personal，最终SHA为`3d5e1fde82707900a21f2b5538b112c7bab3c04a`。完整Git树与候选逐字相同，整个运行树fingerprint仍为`ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747`；真实Git累计兼容证明通过。合入自动触发[最终personal CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)，等待这一SHA的实际成功结果后才允许版本发布。此登记时生产仍为9397/tps.1，未替换应用或启用S4。
+
+### 远端部署连接边界
+
+准备现场检查时，原生`hostdzire` SSH连接返回255，定向诊断确认TCP端口2222超时；没有主机密钥冲突，也没有执行远端写入。生产公开`/health`返回HTTP200，但这不能证明当前三容器身份、迁移账本或发布revision。旧09:56基线保留为历史证据，不生成新的生产容器基线。正式镜像隔离验收、生产仅应用更新及S4关闭/开启观察须待连接恢复后完成。
+
+2026-10-10T11:56:42Z原生入口恢复，重新取得生产只读基线：应用仍9397/tps.1且healthy/restart0，PostgreSQL18.6与Redis容器ID和历史基线相同，S4表尚不存在。最近10分钟自然用量为0，后续生产验收须按实际新源记录与样本登记，不能将低流量/未知状态报为正常。连接故障已解除，正式镜像隔离与生产步骤继续等待发布门禁。
+
+最终personal [CI38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)于2026-10-10全部11项必需job成功，包括personal-ready；[个人发布prepare38050213038](https://github.com/ccisnoxx/sub2api/actions/runs/38050213038)从可信main工具e3b3e8e执行成功，显式启动[正式Release38050231176](https://github.com/ccisnoxx/sub2api/actions/runs/38050231176)。此时Release仍运行，尚无正式digest或生产替换证据。
+
+## S4.4 最终发布与生产验收
+
+正式版本`0.2.14-klno.5-tps.2`/[Release](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)绑定personal`3d5e1fde82707900a21f2b5538b112c7bab3c04a`和digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`，唯一linux/amd64。标签真实Git对象指向personal SHA，CI11项与正式Release均成功。隔离匿名完整拉取后仅替换app，PG18/Redis身份保持；真实JWT管理员200、用户403/匿名401、HTTP1条/WS9条共10个独立终态通过。当前窗口成功8、失败1、取消排除1、未知0，合格9，与真实API和浏览器一致；取消不计合格样本。真实浏览器登录及刷新通过，应用/CSP错误0，两条password-manager扩展insertBefore错误单独分类。固定旧兼容、完整故障/恢复与S4.3证据按未变化边界复用，不重跑全部场景。
+
+生产部署此时正在执行，S4保持默认关闭；完成结果另行登记。
+
+生产原生部署记录`20261010T120908Z-b497b80ee8a6`成功、exit0/health_verified=true，实际运行F/tps.2/digest均与发布输入一致。工具revision为e3b3e8e，先完成PostgreSQL custom dump（62,648,300 bytes）与应用数据归档（14,412,182 bytes）校验及备份，再仅重建应用；PostgreSQL/Redis原容器身份保持，迁移账本303→307，原行保持并仅追加251–254。完整外层兼容证明现已绑定真实旧/新revision、版本、digest和128路径，保留在实际部署记录与运行验证摘要。S4默认v1关闭、水位NULL/无facts，生产新应用healthy/restart0。关闭期间真实gpt-6.1-sol WS完成8条，终态completed/role terminal/8个不同关联键/timing_version1；浏览器真实旧管理员会话刷新与个人版本提示成功，管理员TPS点击说明通过。随后仅将监控开关保存为开启，阈值/平台保持默认，开启后的实际水位和样本观察仍待。
+
+生产S4已保存v2开启，只修改enabled，默认openai/5样本/0.05与0.9阈值/2次异常与3次恢复保持。观测起点12:15UTC；首个记录水位已到12:17UTC、无gap_code/last_error_code/source_error。事实成功5、失败/排除/未知均0，仅覆盖新观测区间，没有回填停用期间15条WS。当前观测仅2分钟，5分钟窗口还未完整覆盖，scope保持unknown；继续观察新鲜水位。S0.3生产版本提示及两个用量页面点击说明现已完成，个人页面为同一管理员身份，无其他用户代入。
+
+
+### 完整生产窗口与最终状态
+
+2026-10-10T12:24:30Z生产只读复查：实际应用revision/version/digest仍与正式发布相同，三容器healthy/restart0，PG18.6与Redis身份保持。S4配置v2启用，观测区间[12:15,12:24]UTC、水位12:24UTC，lag约31秒，gap_code/last_error_code为空且source_error_at为NULL。新应用启动后实际源为8条SSE及25条WS，均completed/terminal/timing_version1，各协议内关联键唯一；没有新增Ops失败源。开启后匿名事实累计18成功，失败/排除/未知均0，不将累计数当滚动五分钟数。
+
+固定窗口[12:19,12:24)UTC的数据库facts与真实浏览器一致：分组2/gpt-6.1-sol成功10、失败0、排除0、未知0、gap为空，合格10，成功率100%/失败率0%，显示“已观察样本正常”。后续[12:20,12:25)窗口成功7，数据库与浏览器/截图仍一致；样本随窗口移出而减少属预期。分组3/4/5没有近期请求，明确显示未知和“当前窗口没有近期请求证据”，比例NULL；平台/全站摘要继续未知，不作全站正常声明。12:17的覆盖不足未知→完整窗口可判定，以及无请求未知均以实际显示保留。
+
+原始最终证据为Git外目录的production-final.json、production-final-window.json、production-final-browser.json、production-followup-window.json、production-followup-browser.json及production-service-status*.jpg；JSON摘要同步[运行验证](evidence/s4.4-runtime-validation.json)。截图排除管理员身份/余额，私有凭据与完整生产用量行不进入仓库。S0.3实际生产管理员与个人用量说明已核验；个人页使用同一管理员自身身份，普通用户权限证据来自隔离真实JWT。
+
+复用仍有效的S4.3/兼容/故障与恢复证据，不将unit/PG16或合成浏览器改称生产E2E。真实生产故障、回滚或数据库恢复演练未执行；隔离环境验证故障/取消及恢复。已有ConcurrencyCache TODO skip仍未验证；S1.5其他协议/平台未接入。前一中断复核worker的执行/summary报告缺失，精确终态未知；现行重新完成的独立复核有效，原worker未计验收。完整SUBAGENT_EXECUTION_DIGEST生成及audit-finalize失败，旧局部Digest不能作当前完整汇总；失败原因/审计ID和原始日志登记，不捏造状态或统计。
+
+S0.2、S0.3与S4.4/四个子任务现全部勾选。最终应用保持personal固定SHA；main仅登记工具/证据/任务与开发日志，原应用13项未提交改动及四个无关工作树保留。下一项为S1.5.1“接入Chat Completions及转换链路”，本会话不开始；S5未排期。定时同步的上游祖先检查失败仍为独立维护项，没有为本次固定来源绕过检查。
+
+最终文档JSON/本地文件链接/任务勾选及改动保留核对通过，见[文档检查](evidence/s4.4-final-document-checks.json)。实际staged diff仅main任务/证据/日志，未包含应用或工具源码，已检查私密凭据值与生产身份未暴露。新版启动后当前生产浏览器会话记录的应用错误0、扩展错误0；其范围仅已访问页面，不声称所有页面矩阵。

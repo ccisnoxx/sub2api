@@ -1,0 +1,27 @@
+{
+  "task": "S2.5",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "candidate_base": "1696d054c82044fb5aaaf0d4851023f0423846dc",
+  "candidate_commit": "3722c48ccdc0e4468dbc5c6ebb13584624c566d6",
+  "application_feature_commit": "b8cf49ca25007cbc23338a9443b71df4c0411155",
+  "application_tree": "ed16d80f1daf5314fcd97d29ef23f100270b696c",
+  "application_branch": "codex/plus-catalog-verify-s25",
+  "application_worktree": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+  "source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "files_sha256": {
+    "backend/internal/repository/available_catalog_contract_integration_test.go": "44ba6219f58d24ba56c045c0f8a845aa82b38bbd3dec72b46ac58c2feaa2f291"
+  },
+  "build_inputs_sha256": {
+    "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+    "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+    "frontend/package.json": "d1fd3d91ccf9bbca6cf0a79428343109a16efa6b3675fd01869d37db5d63083e",
+    "frontend/pnpm-lock.yaml": "1d8e54cc8e1f1bd3e7593805f607d9314ff81dab98ab5a9a6396475e148b26ce"
+  },
+  "changed_scope": "只新增真实权限与HTTP/计费对账集成测试；生产代码/迁移/依赖/调度/结算未改",
+  "external_actions": "not_executed",
+  "recorded_utc": "2026-10-09T17:10:40.016403+00:00"
+}

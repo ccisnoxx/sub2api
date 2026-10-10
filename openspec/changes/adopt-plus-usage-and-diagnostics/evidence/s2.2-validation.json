@@ -1,0 +1,217 @@
+{
+  "task": "S2.2",
+  "recorded_utc": "2026-10-09T15:37:07.517111+00:00",
+  "candidate_base": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "checks": [
+    {
+      "name": "首次编译诊断",
+      "command": "go test -tags unit ./internal/service -run '^TestCatalog' -count=1 -v",
+      "result": "compile_failed_before_tests",
+      "logs": [
+        "catalog-initial.log",
+        "catalog-first.log"
+      ],
+      "cause": "包内 max 为 int 函数；已有测试访问 resolver.channelService.cache。改用 math.Max，保留原 concrete 字段并增加只读快照来源。初次测试文件因工作目录路径错误未写入，第二次编译时已存在。"
+    },
+    {
+      "name": "新目录价格服务合同",
+      "command": "go test -tags unit ./internal/service -run '^TestCatalog' -count=1 -v",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "catalog-after-compile-fix.log",
+      "top_level_tests": 11,
+      "pass_entries": 14,
+      "billing_parity_cases": 48
+    },
+    {
+      "name": "受影响既有 owner 回归",
+      "command": "go test -tags unit ./internal/service -run '^(TestResolve_|TestGetIntervalPricing|TestGetRequestTierPrice|TestFilterValidIntervals|TestApplyTokenOverrides|TestResolveContextPricingSchedule|TestCalculateCostUnified|TestCalculateTokenCostForRequest|TestListPlazaGroups|TestChannelPricing_|TestGPT56ExplicitZeroCacheWrite|TestPricingService_Parse|TestParsePricingData)' -count=1 -v",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "owner-regression.log",
+      "top_level_tests": 98,
+      "pass_entries": 158,
+      "warnings": "包含既有用例预期的目录/缓存阶梯 warning；不声称零 warning。"
+    },
+    {
+      "name": "独立复核三项反例",
+      "command": "go test -tags unit ./internal/service -run '^TestCatalogPricing_(RequestOverlaps|ZeroPresence|ResolvedReason)' -count=1 -v",
+      "result": "failed_as_expected_before_fix_then_passed",
+      "red_log": "review-counterexamples-red.log",
+      "green_log": "review-counterexamples-green.log",
+      "contract_cases": [
+        "按次重叠区间100/101/1000及默认回退",
+        "动态价格 missing→positive 与 zero→missing 交错",
+        "resolved reason 空值"
+      ]
+    },
+    {
+      "name": "第一轮三项修正后的目录合同",
+      "command": "go test -tags unit ./internal/service -run '^TestCatalog' -count=1 -v",
+      "result": "passed",
+      "log": "catalog-final.log",
+      "top_level_tests": 14,
+      "pass_entries": 19,
+      "billing_parity_cases": 48
+    },
+    {
+      "name": "最终受影响 owner 回归",
+      "command": "go test -tags unit ./internal/service -run '^(TestResolve_|TestGetIntervalPricing|TestGetRequestTierPrice|TestFilterValidIntervals|TestApplyTokenOverrides|TestResolveContextPricingSchedule|TestCalculateCostUnified|TestCalculateTokenCostForRequest|TestListPlazaGroups|TestChannelPricing_|TestGPT56ExplicitZeroCacheWrite|TestPricingService_Parse|TestParsePricingData)' -count=1 -v",
+      "result": "passed",
+      "log": "owner-regression-final.log",
+      "top_level_tests": 98,
+      "pass_entries": 158
+    },
+    {
+      "name": "零标签随真实上下文回退反例",
+      "command": "go test -tags unit ./internal/service -run '^TestCatalogPricing_ZeroLabelFollowsContext' -count=1 -v",
+      "result": "failed_as_expected_before_fix_then_passed",
+      "red_log": "label-context-red.log",
+      "green_log": "label-context-green.log",
+      "boundaries": [
+        0,
+        1,
+        100,
+        101,
+        300
+      ],
+      "default_prices": [
+        0,
+        0.25
+      ]
+    },
+    {
+      "name": "最终全部新增目录合同",
+      "command": "go test -tags unit ./internal/service -run '^TestCatalog' -count=1 -v",
+      "cwd": "backend",
+      "result": "passed",
+      "log": "catalog-final-label.log",
+      "top_level_tests": 15,
+      "pass_entries": 22,
+      "billing_parity_cases": 48
+    },
+    {
+      "name": "最后标签小修复用既有 owner 回归",
+      "result": "reused_passed",
+      "log": "owner-regression-final.log",
+      "top_level_tests": 98,
+      "pass_entries": 158,
+      "reason": "最后改动仅新增目录标签的回退标记及对应目录测试；计费、解析器、动态价格解析和旧广场输入保持最终回归时的校验值。"
+    }
+  ],
+  "not_run": [
+    "新 HTTP catalog 查询/权限/DTO",
+    "前端构建与浏览器",
+    "数据库/迁移",
+    "完整回归与远端 CI",
+    "上游凭据请求",
+    "合并/镜像发布/生产部署"
+  ],
+  "not_run_reason": "S2.2 为只读价格服务；本轮未改路由/DTO/前端/迁移/结算/调度，S2.3–S2.6 未开始；原 S0/S1 未变化检查复用。",
+  "scope_limits": [
+    "媒体按张/秒/分钟/字符及图片 token 单价未接入，明确 unsupported",
+    "上游/response_model 或无显式价卡 Composite 依赖实际请求，unknown",
+    "服务档位规则与时点单价为参考，不能保证未来最终账单"
+  ],
+  "reuse": {
+    "s0.1-candidate.json": {
+      "checked": 17,
+      "mismatch": []
+    },
+    "s1.1-4-candidate.json": {
+      "checked": 54,
+      "mismatch": []
+    },
+    "scope": "S0/S1 application files unchanged; tests remain valid only for their original boundaries, not catalog pricing",
+    "s1_raw_artifacts": {
+      "checked": 45,
+      "missing_or_mismatched": []
+    }
+  },
+  "artifacts": [
+    {
+      "name": "catalog-after-compile-fix.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/catalog-after-compile-fix.log",
+      "sha256": "77158ef7afca4c62d3bd2c6b9fc6c840e9e9f095267621f6c20b094cb17148ae",
+      "bytes": 2161
+    },
+    {
+      "name": "catalog-final-label.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/catalog-final-label.log",
+      "sha256": "8be50e4393ed85eafa429cd9537ece9bf5980ee0218e3d6ae832c49efb0b664d",
+      "bytes": 3357
+    },
+    {
+      "name": "catalog-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/catalog-final.log",
+      "sha256": "478bdb96f52c0d52bd6590d57ccc335fae094a465076420ece3f8b2c500af5fc",
+      "bytes": 2947
+    },
+    {
+      "name": "catalog-first.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/catalog-first.log",
+      "sha256": "9f5afbdc09b184957c154e5ca1cd6b9b2a7a8f9672a60b5062fc99ac059d6186",
+      "bytes": 1457
+    },
+    {
+      "name": "catalog-initial.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/catalog-initial.log",
+      "sha256": "9f5afbdc09b184957c154e5ca1cd6b9b2a7a8f9672a60b5062fc99ac059d6186",
+      "bytes": 1457
+    },
+    {
+      "name": "final-review-plan.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/final-review-plan.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "name": "label-context-green.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/label-context-green.log",
+      "sha256": "e8c6255cac22f70dc17f090e8b2068c42c23d60738ae2b799d89582200d2abc3",
+      "bytes": 539
+    },
+    {
+      "name": "label-context-red.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/label-context-red.log",
+      "sha256": "b6a495806bd25a8297dc80ac5cf31994b623c9fc7926c768eb3e0ca7e8ec0132",
+      "bytes": 1310
+    },
+    {
+      "name": "owner-regression-final.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/owner-regression-final.log",
+      "sha256": "d3d2bf85321b245f338bc7e144e2677fb12a292e98be14028d2c72439a57e2db",
+      "bytes": 35285
+    },
+    {
+      "name": "owner-regression.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/owner-regression.log",
+      "sha256": "7fffcfcfb98bbdfe4998e79a4d27fdea2ff0cbd29b545293d2a867a64fe3b800",
+      "bytes": 35285
+    },
+    {
+      "name": "review-counterexamples-green.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/review-counterexamples-green.log",
+      "sha256": "7e0d1d527b2132b229f3cc60e44a59e50fa531259d15b3254bf6bd34a103eaba",
+      "bytes": 915
+    },
+    {
+      "name": "review-counterexamples-red.log",
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s22/review-counterexamples-red.log",
+      "sha256": "f36e365811ef039b30fec54b61fb326d4857f17e292be7fdb871d25146302300",
+      "bytes": 2581
+    }
+  ],
+  "verified_runtime": "go1.27.2 darwin/arm64 (backend go.mod selects toolchain)",
+  "candidate_commit": "e82287300d1b7cc625295c5307ebaa83c707c019",
+  "independent_review": {
+    "audit_id": "20261009T151715Z-kin-plus-pricing-s22-ef4e4438",
+    "audit_verify": "passed",
+    "fresh_reviews": 2,
+    "confirmed_findings": 4,
+    "findings_closed": 4,
+    "final_patch_review_limit": "第二轮明确认可零标签的回退表示；最终小修由主代理按该方向实施并完成先红后绿对账，没有第三次 fresh 全文复核。"
+  },
+  "completion_checks": "文档同步、链接、任务勾选及工作树保留在 s2.2-document-checks.json 中另行记录。"
+}

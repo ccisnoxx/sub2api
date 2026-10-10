@@ -1,0 +1,124 @@
+{
+  "candidate_sha": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+  "rule": "运行验证与未变owner证据各证明其边界；不把unit/PG16复用改称生产E2E",
+  "scenarios": [
+    {
+      "id": "SS01",
+      "actual_boundary": "真实HTTP429→completed；同键attempt与唯一Usage37；零Token/费用",
+      "evidence": "http-linked-facts.json；未变NormalizeTerminalPriority"
+    },
+    {
+      "id": "SS02",
+      "actual_boundary": "真实direct ctx/OAuth + passthrough先检测取消后drain；先completed再正常close",
+      "evidence": "cancel-final-linked-facts.json、snapshot-final-cancel.json、passfinalcancel1与ctxsuccess1"
+    },
+    {
+      "id": "SS03",
+      "actual_boundary": "真实两批provider失败；同批不推进，生命周期去重SQL/逻辑复用",
+      "evidence": "recoverfailure1/2 + S4.3 RepositoryAtomicEventsRepeatAndRecovery"
+    },
+    {
+      "id": "SS04",
+      "actual_boundary": "真实provider401/402；用户/供应商owner区别与相同状态排除复用",
+      "evidence": "oauthauth1、quotaisolated1 + SourceReasonRequiresActualOwner/NormalizeReasonPairsAndUnsupported"
+    },
+    {
+      "id": "SS05",
+      "actual_boundary": "仅attempt不能升级success的归一化合同复用",
+      "evidence": "S4.3 NormalizeTerminalPriorityAndZeroCostSuccess"
+    },
+    {
+      "id": "SS06",
+      "actual_boundary": "真实ctx/OAuth/passthrough失败→下一轮成功；同轮重建attempt2",
+      "evidence": "ctxmulti1、oauthmulti1、passmulti2与runtime-linked-facts"
+    },
+    {
+      "id": "SS07",
+      "actual_boundary": "真实HTTP client UUID/Ops裸UUID以新metadata关联；旧五行NULL；重复header合同复用",
+      "evidence": "http-linked-facts + old-fixed-real-http-verification + SourceHTTPRealRetryAndReusedClientHeader"
+    },
+    {
+      "id": "SS08",
+      "actual_boundary": "矛盾终态/逻辑轮冲突归一化复用",
+      "evidence": "S4.3 NormalizeConflictAndHistoricalKeys"
+    },
+    {
+      "id": "SS09",
+      "actual_boundary": "unsupported/excluded依据明确source owner；不扩大到未接入入口",
+      "evidence": "S4.3 NormalizeReasonPairsAndUnsupported；source覆盖合同"
+    },
+    {
+      "id": "SS10",
+      "actual_boundary": "真实cancel excluded、小样本NULL、无请求awaiting_data；其他unknown语义复用",
+      "evidence": "snapshot-final-cancel、snapshot-no-new-requests + ServiceStatusMetricsUnknownAndThresholds"
+    },
+    {
+      "id": "SS11",
+      "actual_boundary": "原子失败/超限/领导锁PG16与budget/停止race；未变水位stale语义复用",
+      "evidence": "S4.3 RepositoryLimitRollsBackAndLeaderConfigSerializes/EmptyEnabledPlatformIsUnknown + 新AggregatorCancellationAndBudget race"
+    },
+    {
+      "id": "SS12",
+      "actual_boundary": "真实旧失败移出窗口、无新请求不恢复",
+      "evidence": "snapshot-no-new-requests.json"
+    },
+    {
+      "id": "SS13",
+      "actual_boundary": "真实三批新成功周期count1→2→resolved；重启同批count1",
+      "evidence": "recovery1-state-after-restart、snapshot-recovery2、snapshot-recovery3-after-final-switch"
+    },
+    {
+      "id": "SS14",
+      "actual_boundary": "迟到与重算边界归一化/事件owner复用",
+      "evidence": "S4.3 NormalizeObservedAtEpochAndLimit + IncidentNeedsNewEvidenceAndThreeNewRecoveries"
+    },
+    {
+      "id": "SS15",
+      "actual_boundary": "平台未知/未结束事件不能被加权正常掩盖，复用",
+      "evidence": "S4.3 SummaryDoesNotWeightAwayUnknownOrIncident"
+    },
+    {
+      "id": "SS16",
+      "actual_boundary": "PG16普通/复合/停用/删除可见性与全站归属缺口复用",
+      "evidence": "S4.3 RepositoryGroupVisibilityRestartsRecovery/VisibilityLockAndBaseline/MissingModelIsVisibleGlobalGap"
+    },
+    {
+      "id": "SS17",
+      "actual_boundary": "真实旧/新应用切换重启、事件持久；停用/平台关闭区间PG16复用",
+      "evidence": "snapshot-recovery1-after-restart、snapshot-recovery3-after-final-switch + RepositoryConfigEpochVersionAndDisabled"
+    },
+    {
+      "id": "SS18",
+      "actual_boundary": "单领导/配置竞争/原子一致性真实PG16复用",
+      "evidence": "S4.3 RepositoryLimitRollsBackAndLeaderConfigSerializes/VisibilityLockAndBaseline"
+    },
+    {
+      "id": "SS19",
+      "actual_boundary": "隔离真实JWT匿名401/用户403/管理员浏览器写读；参数400/409；晚到清空前端复用",
+      "evidence": "s4.4-isolated-validation.json + S4.3前端34合同/浏览器"
+    },
+    {
+      "id": "SS20",
+      "actual_boundary": "31天TTL/201resolved/未结束全部及平台过滤PG16复用",
+      "evidence": "S4.3 RepositoryTTLFilterLimitAndPersistentSourceGap"
+    },
+    {
+      "id": "SS21",
+      "actual_boundary": "固定旧生产应用9397在PG18扩展schema真实仓储/服务写读，切回新应用",
+      "evidence": "old-compat-pg18.log、old-fixed-real-http-verification.json"
+    }
+  ],
+  "source_reuse_receipt": "71/79原S4.3源未变，8项变化按各自新证据；见s4.4-runtime-validation.json S4.3_reuse_receipt",
+  "raw_directory": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release",
+  "final_personal_sha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+  "formal_delivery": {
+    "version": "0.2.14-klno.5-tps.2",
+    "digest": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+    "production_record": "20261010T120908Z-b497b80ee8a6",
+    "final_personal_CI": "38049101726/success",
+    "published_image_runtime": "真实JWT/HTTP/WS/数据库/browser 10个不同终态",
+    "production_scope": "实际Responses SSE/WS completed源；S4先关闭后开启，完整窗口DB/UI/未知原因一致",
+    "production_failure_injection": false,
+    "all_scenarios_production_E2E": false
+  }
+}

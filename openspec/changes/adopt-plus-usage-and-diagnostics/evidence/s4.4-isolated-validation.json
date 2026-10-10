@@ -1,0 +1,305 @@
+{
+  "task": "S4.4/isolated-jwt-pg18-browser",
+  "result": "passed_with_explicit_existing_csp_issue",
+  "application_sha": "35962a802fdc499639c9c861072f25774ccba50b",
+  "raw_directory": "/Users/sc/.codex/validation/sub2api-kin/20261009-s44-hostdzire",
+  "behavior": {
+    "result": "passed_with_existing_csp_warning",
+    "source_report": "real-browser-e2e.json",
+    "executed_behavior_checks": [
+      {
+        "name": "real_browser_login_admin",
+        "result": "passed",
+        "status": 200,
+        "backend_minted_jwt": true,
+        "role": "admin"
+      },
+      {
+        "name": "operator_acknowledgement",
+        "result": "passed",
+        "status": 200,
+        "human_authorized": true,
+        "scope": "isolated_test_admin_only"
+      },
+      {
+        "name": "default_disabled_backend_and_browser",
+        "result": "passed",
+        "version": 1,
+        "snapshot_status": 503,
+        "summary_hidden": true
+      },
+      {
+        "name": "browser_write_real_jwt_backend_postgres18",
+        "result": "passed",
+        "status": 200,
+        "config_version": 2,
+        "minimum_samples": 6,
+        "database_readback": true
+      },
+      {
+        "name": "database_to_backend_to_refreshed_browser",
+        "result": "passed",
+        "persisted_on_reload": true,
+        "empty_sources_health": "unknown",
+        "no_provider_accounts": true
+      },
+      {
+        "name": "real_backend_conflict_query_and_anonymous_guards",
+        "result": "passed",
+        "stale_version_status": 409,
+        "invalid_query_status": 400,
+        "anonymous_status": 401,
+        "rejected_write_preserves_version": 2
+      },
+      {
+        "name": "real_browser_login_user",
+        "result": "passed",
+        "status": 200,
+        "backend_minted_jwt": true,
+        "role": "user"
+      },
+      {
+        "name": "real_user_jwt_permission_boundary",
+        "result": "passed",
+        "config_get": 403,
+        "snapshot_get": 403,
+        "config_put": 403,
+        "frontend_redirect": "/dashboard",
+        "admin_navigation_absent": true,
+        "persisted_user_count": 2
+      },
+      {
+        "name": "real_browser_login_admin",
+        "result": "passed",
+        "status": 200,
+        "backend_minted_jwt": true,
+        "role": "admin"
+      },
+      {
+        "name": "real_admin_english_narrow_browser",
+        "result": "passed",
+        "width": 390,
+        "horizontal_overflow": false,
+        "config_persisted": true,
+        "empty_health": "unknown"
+      }
+    ],
+    "actual_api_request_count": 87,
+    "page_error_count": 0,
+    "expected_http_denials": [
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/service-status/snapshot",
+        "query": "?range=24h",
+        "status": 503
+      },
+      {
+        "method": "PUT",
+        "path": "/api/v1/admin/service-status/config",
+        "query": "",
+        "status": 409
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/service-status/snapshot",
+        "query": "?range=24h&unexpected=1",
+        "status": 400
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/service-status/config",
+        "query": "",
+        "status": 401
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/service-status/config",
+        "query": "",
+        "status": 403
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/service-status/snapshot",
+        "query": "?range=24h",
+        "status": 403
+      },
+      {
+        "method": "PUT",
+        "path": "/api/v1/admin/service-status/config",
+        "query": "",
+        "status": 403
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/payment/config",
+        "status": 423
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/settings",
+        "status": 423
+      },
+      {
+        "method": "GET",
+        "path": "/api/v1/admin/system/check-updates",
+        "status": 423
+      }
+    ],
+    "classification_correction": "末尾汇总器遗漏确认前3个423，导致错误的3!=0；10项行为断言已全部通过。保留失败原产物，不重跑已通过写入。",
+    "unexpected_api_errors": [],
+    "residual_console_warning": [
+      "Executing inline script violates the following Content Security Policy directive 'script-src 'self' 'nonce-f2+QAU8bhJHFFlU6GQK++w==' https://challenges.cloudflare.com https://*.alicdn.com https://static.cloudflareinsights.com https://turing.captcha.qcloud.com https://turing.captcha.gtimg.com https://ca.turing.captcha.qcloud.com https://global.turing.captcha.gtimg.com https://www.tycaptcha.com https://cloudcache.tencentcs.com https://*.stripe.com https://static.airwallex.com https://checkout.airwallex.com https://static-demo.airwallex.com https://checkout-demo.airwallex.com'. Either the 'unsafe-inline' keyword, a hash ('sha256-pXxSN1V20QsXZXlmuwbp6YV+VGXhk1+omZpLz6uor7U='), or a nonce ('nonce-...') is required to enable inline execution. The action has been blocked."
+    ],
+    "api_mocking": false,
+    "injected_authentication": false,
+    "classification_inputs_unchanged": true,
+    "corrected_script_rerun": false,
+    "classification_check": "按确认成功位置和精确3个受保护路由限制423；不是普遍忽略423",
+    "raw_report_sha256": "6c3b21ee07e14012b4338023cd43e9dbe25d0647dc704c0183f9f239744e068c",
+    "csp_confirmation_artifact": "csp-http-source-proof.json"
+  },
+  "settled_user_browser": {
+    "api_mocking": false,
+    "injected_authentication": false,
+    "app_writes": false,
+    "result": "passed",
+    "frontend_redirect": "/dashboard",
+    "dashboard_loaded": true,
+    "expanded_user_navigation_loaded": true,
+    "admin_entry_absent": true,
+    "admin_data_absent": true,
+    "page_errors": []
+  },
+  "database_readback": {
+    "postgres_major": 18,
+    "config_version": 2,
+    "enabled": true,
+    "minimum_samples": 6,
+    "users": 2,
+    "upstream_accounts": 0,
+    "migrations": [
+      "250_add_group_gwpool_active_accounts.sql",
+      "251_add_usage_log_timing.sql",
+      "252_add_ops_routing_diagnostics.sql",
+      "253_service_status_observation.sql",
+      "254_service_status.sql"
+    ],
+    "s4_tables": [
+      "service_status_config",
+      "service_status_facts_1m",
+      "service_status_incidents",
+      "service_status_scope_states",
+      "service_status_watermark"
+    ]
+  },
+  "runtime_isolation": {
+    "verified": true,
+    "production_unchanged": true,
+    "runtime_proof": "remote-after.json",
+    "redis_auth_query_succeeded": true,
+    "redis_major": 8,
+    "redis_dbsize": 210
+  },
+  "failure_classifications": [
+    {
+      "stage": "isolated first loopback access",
+      "cause": "Docker29仅内部网络时宿主端口未发布，实际NetworkSettings.Ports为null",
+      "resolution": "仅isolated app加专属ingress bridge；PG/Redis留internal、无publishedport；真实端口/health/browser成功",
+      "production_touched": false
+    },
+    {
+      "stage": "browser final classification",
+      "cause": "成功电子确认前3个预期423未计入expected，末尾3!=0；10个行为断言均passed",
+      "resolution": "保留失败rawreport，离线精确确认前路由/位置分类，追加classified产物。未来脚本修正但未重跑已成功写入。",
+      "raw_report_preserved": true,
+      "corrected_script_rerun": false
+    },
+    {
+      "stage": "browser cached HTML reload",
+      "cause": "固定旧生产源码304新CSPnonce/旧HTMLnonce冲突，注入脚本被拒绝",
+      "severity": "P2_existing",
+      "proof": {
+        "result": "confirmed_existing_html_revalidation_nonce_mismatch",
+        "fresh_status": 200,
+        "revalidation_status": 304,
+        "revalidation_body_bytes": 0,
+        "same_etag_request": true,
+        "new_header_nonce_on_304": true,
+        "production_source_comparison": [
+          {
+            "path": "backend/internal/web/embed_on.go",
+            "unchanged_from_fixed_production_revision": true,
+            "sha256": "b241e67f13ca58445ec683a13176460cc58ac4c8a5a8f18e48b6137b65e63a8a"
+          },
+          {
+            "path": "backend/internal/server/middleware/security_headers.go",
+            "unchanged_from_fixed_production_revision": true,
+            "sha256": "239590bccf7a10c21115a26750696546364f7057b833511d19768421ae87a563"
+          }
+        ],
+        "application_scope_changed": false,
+        "impact": "刷新沿用旧nonce HTML，304返回新nonce CSP，window.__APP_CONFIG__注入被拒绝；当前JWT/config/刷新通过实际API回退正常。后续正式发布前单独修复，不降低CSP或修改安全边界。"
+      },
+      "resolution": "当前子任务通过，记录为正式发布前修复项，不降低CSP、不擅改应用。"
+    },
+    {
+      "stage": "final local access",
+      "cause": "此前复用SSH ControlMaster退出，4244无listener；隔离三容器healthy",
+      "resolution": "新独立SSH后台转发（非ControlMaster复用）恢复health/login200，源与运行配置未变，无需重复成功写入",
+      "production_touched": false
+    }
+  ],
+  "screenshots": {
+    "chinese_admin_1440": "real-admin-status-zh-1440.png",
+    "english_admin_390": "real-admin-status-en-390.png",
+    "english_user_settled_nav_390": "real-user-settled-nav-en-390.png",
+    "superseded_early_user_screenshot": "real-user-denied-en-390.png",
+    "early_user_limitation": "原用户截图拍于dashboard加载中；追加settled状态+展开导航断言/截图补充，不替换原证据"
+  },
+  "scenarios": {
+    "SS10": "无源/无请求unknown浏览器+后端真实验证；excluded-only、样本不足、有unknown混入未新增运行",
+    "SS19": "真实JWT管理员/用户、匿名401、用户GET/PUT403、strict query400、frontend路由拒绝/无入口；晚到响应与全部白名单边界仍按S4.3原证据",
+    "SS21": "未执行固定旧应用，保持待验"
+  },
+  "evidence_reuse": {
+    "result": "passed",
+    "application_source_files_matched": 79,
+    "frontend_assets_reused_and_embedded": 179,
+    "reuse_boundary": "S4.3构建/定向测试/独立代码复核仍仅按不变输入与原PG16/合成浏览器边界复用；本轮新PG18真实JWT/browser证据独立追加。",
+    "runtime_binary_sha256": "7c3847a2aae08fac15db8b404af464dd83da24bc2b04cd4eff4a8c8c2437db0d"
+  },
+  "not_run": [
+    "SS21固定旧应用PG18兼容往返",
+    "真实多轮WS/重试/取消和源终态持久化",
+    "部署入口终态覆盖与故障/新请求恢复",
+    "SS01–SS21最终覆盖登记与完整S4.4独立复核",
+    "正式候选CI/发布/生产启用决策"
+  ],
+  "operator_acknowledgement": {
+    "human_authorized": true,
+    "scope": "仅隔离测试管理员",
+    "actual_route": "POST /api/v1/admin/compliance/accept",
+    "actual_status": 200,
+    "production_record_written": false
+  },
+  "instance_retained": true,
+  "full_s44_completed": false,
+  "final_access": {
+    "result": "passed",
+    "observed_at_utc": "2026-10-10T07:00:44Z",
+    "local_url": "http://127.0.0.1:4244",
+    "health_status": 200,
+    "health_body": {
+      "status": "ok"
+    },
+    "login_document_status": 200,
+    "listener_pid": 48513,
+    "forward_mode": "dedicated_ssh_daemon",
+    "control_master_reuse": false,
+    "configured_prior_controlpersist_seconds": 600,
+    "server_alive_interval_seconds": 30,
+    "server_alive_count_max": 3,
+    "expiration_classification": "原复用ControlMaster连同本机转发退出；服务器隔离三服务仍healthy。改为独立-fN/ControlPath=none/ControlMaster=no/ControlPersist=no持续转发；未改应用/PG/Redis。",
+    "browser_and_db_successful_evidence_reused": true
+  }
+}

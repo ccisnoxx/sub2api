@@ -1,0 +1,52 @@
+{
+  "task": "S4.4/isolated-jwt-pg18-browser",
+  "application_sha": "35962a802fdc499639c9c861072f25774ccba50b",
+  "reviewer": "/root/s44_isolation_review",
+  "role": "critical_reviewer",
+  "fresh": true,
+  "read_only": true,
+  "independently_executed_tests": false,
+  "remote_commands_executed": false,
+  "accepted_scope": "仅当前隔离部署与真实JWT/PG18/浏览器贯通子任务",
+  "result": "no_new_blocker_existing_p2_retained",
+  "confirmed_findings": [
+    {
+      "priority": "P2",
+      "status": "existing_open_before_formal_release",
+      "file": "backend/internal/web/embed_on.go",
+      "line": 153,
+      "related_file": "backend/internal/server/middleware/security_headers.go",
+      "related_line": 140,
+      "trigger": "同ETag HTML重新验证返回304/旧正文nonce A，CSP却生成nonce B",
+      "impact": "window.__APP_CONFIG__注入被拒绝；当前登录/配置/刷新实际API回退成功，不阻断本子任务",
+      "fix_direction": "动态nonce HTML每次返回正文并与CSP同nonce；不固定nonce、不放宽CSP",
+      "proof": "csp-http-source-proof.json",
+      "source_same_as_fixed_production": true
+    }
+  ],
+  "reviewed": [
+    "运行时专属网/卷/回环端口/无socket与生产快照一致",
+    "实际PG18/隔离DB及Redis认证读取/0600秘密文件模式",
+    "79源码固定候选Gitblob和资源、运行binary hash",
+    "真实登录JWT/配置DB读回/刷新及用户403/匿名401/409/400",
+    "原始汇总失败与精确423分类",
+    "最终用户页面/展开导航补证"
+  ],
+  "classifications": {
+    "raw_browser_run": "failed末尾汇总，必须保留",
+    "behavior_records": 10,
+    "main_flow_actual_api_requests": 87,
+    "original_console_errors": 13,
+    "uncaught_page_errors": 0,
+    "corrected_script_rerun": false,
+    "csp_console_error": 1
+  },
+  "limits": [
+    "生产前后容器一致不证明期间请求无损或性能完全无影响",
+    "未重新提取远端二进制；不以OCI标签单独证明完整构建",
+    "179前端复用有父代理指纹检查，不新增构建",
+    "不读取秘密值，不比较秘密与生产；确认账号/DB/实例/目录与文件权限隔离",
+    "无有流量成功率/恢复、真实多轮WS、固定旧应用、生产迁移/回滚/终态证据",
+    "完整S4.4与正式门禁未完成"
+  ]
+}

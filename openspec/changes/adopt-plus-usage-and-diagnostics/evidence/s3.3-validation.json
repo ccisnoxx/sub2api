@@ -1,0 +1,747 @@
+{
+  "task": "S3.3",
+  "status": "完成",
+  "application_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+  "candidate": {
+    "task": "S3.3",
+    "worktree": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+    "branch": "codex/plus-routing-storage-s33",
+    "application_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+    "base_sha": "d9b06f4fe78a8588282958783d91e9966ff05231",
+    "source_files": {
+      "backend/internal/handler/admin/ops_handler.go": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "backend/internal/handler/grok_audio.go": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "backend/internal/handler/ops_error_logger.go": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "backend/internal/handler/ops_routing_diagnostics_log_test.go": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "backend/internal/repository/ops_repo.go": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "backend/internal/repository/ops_repo_args_test.go": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "backend/internal/service/ops_models.go": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "backend/internal/service/ops_port.go": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "backend/internal/service/ops_routing_diagnostics_dto_test.go": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "backend/internal/service/ops_service.go": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "backend/internal/service/ops_upstream_context.go": "de6efd7080915abc0c03ec9a9aa5392092b81110cd8a84c2e9d07eacfacb0397",
+      "backend/internal/service/routing_diagnostics_validation.go": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "backend/migrations/252_add_ops_routing_diagnostics.sql": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac"
+    },
+    "initial_candidate_sha": "e159d6f3168500ce2956ad8b98332e88afba7940",
+    "candidate_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+    "baseline_sha": "d9b06f4fe78a8588282958783d91e9966ff05231",
+    "files": {
+      "backend/internal/handler/admin/ops_handler.go": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "backend/internal/handler/grok_audio.go": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "backend/internal/handler/ops_error_logger.go": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "backend/internal/handler/ops_routing_diagnostics_log_test.go": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "backend/internal/repository/ops_repo.go": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "backend/internal/repository/ops_repo_args_test.go": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "backend/internal/service/ops_models.go": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "backend/internal/service/ops_port.go": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "backend/internal/service/ops_routing_diagnostics_dto_test.go": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "backend/internal/service/ops_service.go": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "backend/internal/service/ops_upstream_context.go": "de6efd7080915abc0c03ec9a9aa5392092b81110cd8a84c2e9d07eacfacb0397",
+      "backend/internal/service/routing_diagnostics_validation.go": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "backend/migrations/252_add_ops_routing_diagnostics.sql": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac"
+    }
+  },
+  "environment": {
+    "go": "go1.27.2 darwin/arm64",
+    "postgres": "16.15",
+    "temporary_containers": "已清理",
+    "colima": "恢复开工时STOPPED",
+    "docker_context": "default，未改原三个停止容器"
+  },
+  "checks": [
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-first.jsonl",
+      "sha256": "62d8f22df57bd94b4f42cacb8edecee48789d20f79f87fb921113248ee0c48d2",
+      "command": "go test ./internal/service ./internal/handler -run '^TestOpsRoutingDiagnostics' -count=1 -json",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 6,
+      "all_pass": 19,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler",
+          "result": "pass"
+        },
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/service",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "中间成功证据，受影响绑定由最终owner检查覆盖，不累计重复测试数"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-final.jsonl",
+      "sha256": "00b76b525e8333b3d25d8ac63da028a9059f5dfb5ecec839395f4d2ab3538ee8",
+      "command": "go test -tags=unit ./internal/service ./internal/handler -run '^TestOpsRoutingDiagnostics' -count=1 -json",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 8,
+      "all_pass": 28,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler",
+          "result": "pass"
+        },
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/service",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "中间成功证据，受影响绑定由最终owner检查覆盖，不累计重复测试数"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/handler-regression.jsonl",
+      "sha256": "41e11e94eb520ca18b151de0bcecef95b745b879c4927ffc59f2b7ef3aba11b5",
+      "command": "go test -tags=unit -json ./internal/handler -run '^(TestOpsErrorLoggerMiddleware|TestEnqueueOpsErrorLog|TestLogOpsStreamError|TestOpsRecovered|TestOpsWebSocketCredential|TestClassifyOps|TestSetOps|TestOpsStreamTurn|TestWSSelection|TestWSRoutingTurn|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner|TestOpenAIResponsesWebSocket_(PassthroughTracksModelPerTurn|PassthroughKeepsTurnMappingSnapshot|CtxPoolAppliesPerTurnMappingAndPreservesRequestedModel)|TestEstimateOpsErrorLogJobBytes)' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 63,
+      "all_pass": 129,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "复用未变归因/规范化边界；最终owner测试另覆盖后续绑定修复"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/service-regression.jsonl",
+      "sha256": "2494fa16fb89926fbca36b5a817232fdad873883e33df80369dbdae6684e92c4",
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestOpsStream|TestOpsUpstream|TestOpsService(RecordError|GetErrorLogByID|GetUserError)|TestToUserError|TestSanitizeOpsUpstreamErrorsForQueue|TestNormalizeOpsUpstream|TestParseOpsUpstream|TestOpsRoutingDiagnostics)' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 26,
+      "all_pass": 59,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/service",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "复用未变归因/规范化边界；最终owner测试另覆盖后续绑定修复"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/admin-detail.jsonl",
+      "sha256": "997f627afb35e0d988909828199c8a464cf5f02443e22a25331bf5bd65a3b914",
+      "command": "go test -tags=unit -json ./internal/handler/admin -run '^TestOpsRoutingDiagnosticsAdmin' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 1,
+      "all_pass": 1,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler/admin",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "最终选定边界通过"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/user-ownership.jsonl",
+      "sha256": "6e43a7fa5e6bf5da3edf04be98018b1013340e41150082bf810ad70d365d97bb",
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestListUserErrorRequests|TestGetUserErrorRequestDetail)' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 4,
+      "all_pass": 4,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/service",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "最终选定边界通过"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-attempt-binding.jsonl",
+      "sha256": "86f3d2d3103870dd1966da2d28ca8f015b54e01b7acd32fa73a7072007a55c7e",
+      "command": "go test -tags=unit -json ./internal/handler -run '^TestGrokAudioSelectionRetriesShareRequestRoutingOwner$' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 0,
+      "all_pass": 0,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler",
+          "result": "fail"
+        }
+      ],
+      "exit_code": 1,
+      "classification": "夹具把三次选择误当三次发送，修正为两条真实凭据失败事件"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-red.jsonl",
+      "sha256": "f4e08bd2bff0fb18d7c4ac9b22de72cab339037ab459a85397c7ecc475426380",
+      "command": "go test -tags=unit -json ./internal/handler -run '^TestGrokAudioSelectionRetriesShareRequestRoutingOwner$' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 0,
+      "all_pass": 0,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler",
+          "result": "fail"
+        }
+      ],
+      "exit_code": 1,
+      "classification": "实际Voice/Realtime独立选路未绑定发送快照；已修正，并定向及race通过"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-green.jsonl",
+      "sha256": "65487b94886f2d91c2309f87dbe02ece313af164aaaa580eb582858c7527a520",
+      "command": "go test -tags=unit -json ./internal/handler -run '^TestGrokAudioSelectionRetriesShareRequestRoutingOwner$' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 1,
+      "all_pass": 3,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "中间成功证据，受影响绑定由最终owner检查覆盖，不累计重复测试数"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-connection-binding-red.jsonl",
+      "sha256": "cdc0449becb9a59722d81469ae47a00164044d76de492fc1a350d0705670b160",
+      "command": "go test -tags=unit -json ./internal/service -run '^TestOpsRoutingDiagnosticsTurnOwnerCannotReuseConnectionBinding$' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 0,
+      "all_pass": 0,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/service",
+          "result": "fail"
+        }
+      ],
+      "exit_code": 1,
+      "classification": "首WS turn先换owner后Begin导致旧建连绑定漏清理；owner身份绑定修复后定向及race通过"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-final.jsonl",
+      "sha256": "d70ada0f85f923b54984ac10b0c19bfc9fd7f07d61f6e929f1e51fff136906b9",
+      "command": "go test -tags=unit -json ./internal/service ./internal/handler -run '^(TestOpsRoutingDiagnostics|TestOpsStreamTurnClearsRoutingProducerState|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner)' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "top_level_pass": 14,
+      "all_pass": 36,
+      "package_results": [
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/handler",
+          "result": "pass"
+        },
+        {
+          "package": "github.com/Wei-Shaw/sub2api/internal/service",
+          "result": "pass"
+        }
+      ],
+      "exit_code": 0,
+      "classification": "最终选定边界通过"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-race.log",
+      "sha256": "9290caf3ed56a46a3d6969ddf76e175f0a6a6eb75072ba524bb9eb4d489897e5",
+      "command": "go test -race -tags=unit ./internal/service ./internal/handler -run '^TestOpsRoutingDiagnostics' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "output": "ok  \tgithub.com/Wei-Shaw/sub2api/internal/service\t2.478s\nok  \tgithub.com/Wei-Shaw/sub2api/internal/handler\t2.249s",
+      "exit_code_evidence": "执行工具明确返回exit_code=0",
+      "classification": "中间成功证据，受影响绑定由最终owner检查覆盖，不累计重复测试数"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-race.log",
+      "sha256": "bb1a99acc787cac3f7581c425d23e80d2a2a7ee1b04a546aa8cbb4f6c38c6fed",
+      "command": "go test -race -tags=unit ./internal/handler -run '^TestGrokAudioSelectionRetriesShareRequestRoutingOwner$' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "output": "ok  \tgithub.com/Wei-Shaw/sub2api/internal/handler\t2.227s",
+      "exit_code_evidence": "执行工具明确返回exit_code=0",
+      "classification": "中间成功证据，受影响绑定由最终owner检查覆盖，不累计重复测试数"
+    },
+    {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-race.log",
+      "sha256": "8eb2feb701fdf3a027ad55578b2f90067090f674cd17a87218c79d4c29763f15",
+      "command": "go test -race -tags=unit ./internal/service ./internal/handler -run '^(TestOpsRoutingDiagnostics|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner)' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "output": "ok  \tgithub.com/Wei-Shaw/sub2api/internal/service\t2.334s\nok  \tgithub.com/Wei-Shaw/sub2api/internal/handler\t2.146s",
+      "exit_code_evidence": "执行工具明确返回exit_code=0",
+      "classification": "最终选定边界通过"
+    }
+  ],
+  "storage": {
+    "scope": "KIN Plus S3.3 storage and DTO only",
+    "worktree": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+    "base_commit": "d9b06f4fe78a8588282958783d91e9966ff05231",
+    "old_source_commit": "d9b06f4fe78a8588282958783d91e9966ff05231",
+    "written_files": [
+      "backend/internal/service/ops_port.go",
+      "backend/internal/service/ops_models.go",
+      "backend/internal/repository/ops_repo.go",
+      "backend/internal/repository/ops_repo_args_test.go",
+      "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go",
+      "backend/internal/service/ops_routing_diagnostics_dto_test.go",
+      "backend/migrations/252_add_ops_routing_diagnostics.sql"
+    ],
+    "candidate_source_sha256": {
+      "backend/internal/service/ops_port.go": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "backend/internal/service/ops_models.go": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "backend/internal/repository/ops_repo.go": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "backend/internal/repository/ops_repo_args_test.go": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "backend/internal/service/ops_routing_diagnostics_dto_test.go": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "backend/migrations/252_add_ops_routing_diagnostics.sql": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac",
+      "backend/internal/service/routing_diagnostics.go": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "backend/internal/service/routing_diagnostics_validation.go": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "backend/internal/service/ops_user_error.go": "938909d29d66554e0b97819c8573546606d31d1819b2ae8f46fdb2049091a3c9"
+    },
+    "old_source_sha256": {
+      "backend/internal/repository/ops_repo.go": "a5e240d163b138cba7346da74ecbac60f6e467f4fe8f53415c3a7af046d57a79",
+      "backend/internal/service/ops_port.go": "7087acfc05cdbb7e4d52379e0f6d3956c0fc946354aecde7e36068a9a5a46503",
+      "backend/internal/service/ops_models.go": "b8b2fa16362a16a42aa8959e725bc0224ac7e416cef51df9fe932667d8541533",
+      "backend/internal/repository/migrations_runner.go": "d18d93efe65bba309bc1184037cb2a24ddfcb3c954c2100de834a67ad6ed40d1"
+    },
+    "checks": {
+      "validate-owner-and-args": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/validate-owner-and-args.log",
+        "top_level_pass": 3,
+        "all_pass": 6,
+        "sha256": "a3b7fef1f26c3fc2f146bd3e4dddad804495d2e6e35ea6e6ef803f2ade302272"
+      },
+      "dto-unit": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/dto-unit.log",
+        "top_level_pass": 2,
+        "all_pass": 9,
+        "sha256": "8e54b11ef4c586b61de9253f4255724a8ac546e59ef03ea4fdc589fedf28d06d"
+      },
+      "pg16-integration": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/pg16-integration.log",
+        "top_level_pass": 5,
+        "all_pass": 12,
+        "sha256": "f3874e6d8fa098252f290950c9ad3a301aee03500166bd6946c16d1b194ea1ae"
+      },
+      "old-compat-binary": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/old-compat-binary.log",
+        "sha256": "3164c486d888b677016e0961d52355c8baf7d1aeda3f10fec42636eab1949c85"
+      },
+      "compat-new-before": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-new-before.log",
+        "sha256": "e66827e02da557226f314024272b5c7f6854a6d3113f7e4ab1583cd33a827167"
+      },
+      "compat-old": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-old.log",
+        "sha256": "f4365fac7c5cdf6cd4742a27b3eeea7ba2d7d6094d60431b49747fc97317affe"
+      },
+      "compat-new-after": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-new-after.log",
+        "sha256": "d1248b1f291dcbf5286b45926380c14c30844e34c9bfe3be8c0b056e220b4df0"
+      },
+      "compat-ledger-and-final-backup": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-ledger-and-final-backup.log",
+        "sha256": "05fbb4b290b94674b263d33c6a9304861a92359098529fdd05d8a723a5f122e5"
+      },
+      "candidate-storage-diff": {
+        "exit_code": 0,
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/candidate-storage-diff.log",
+        "sha256": "020c7d8469f283503fd2bcf17687fee2686afaf03fb5da727b239fde5fb7e0e7"
+      }
+    },
+    "postgres_server": "16.15",
+    "compatibility_result": "new repository -> fixed d9b06f4 repository -> new repository passed, ledger unchanged; original diagnosis retained, three old rows SQL NULL",
+    "invariants": {
+      "serialized_snapshot_owner": "OpsService; repository stores RoutingDiagnosticsJSON without current-state reconstruction",
+      "typed_decode_owner": "service.DecodeRoutingDiagnosticsJSON; repository preserves true error and logs fixed safe signal on rejection",
+      "details_only": "OpsErrorLogDetail; existing user whitelist and OpsErrorLog list omit diagnosis",
+      "unknown": "SQL NULL and JSON null => nil; zero and empty map retained",
+      "migration": "additive nullable JSONB, no default/backfill, no prior migration changes"
+    },
+    "rollback": "keep expanded schema and ledger; roll back only application; tested with fixed old repository/migration owner",
+    "partial_failure": "migration runs transactionally via existing runner; batch malformed JSON failure was explicit and rolled back all rows",
+    "independent_review": "not obtained by this subagent; parent must review integration and administrator-list exclusion",
+    "limitations": [
+      "Real full HTTP server and browser permission flow not executed by this storage branch.",
+      "No full regression, production runtime-tree proof, CI, push, PR, release, image or production operation.",
+      "repository intentionally consumes pre-serialized diagnostics; standalone raw insert caller must use service validation contract.",
+      "Repository AGENTS.md references docs/conventions/codex-outbound-identity.md and docs/tasks, both absent in selected source; searched source and current project docs."
+    ],
+    "environment_restored": {
+      "colima": "stopped",
+      "docker_context": "default",
+      "temporary_containers": "removed",
+      "preexisting_containers": "unchanged and stopped",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/restore-local-containers.log"
+    },
+    "setup_failure": {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/implementation-patch-missing-script-initial.log",
+      "cause": "编辑辅助脚本尚未创建，命令失败；创建脚本后实际编辑命令成功，无测试失败。"
+    }
+  },
+  "reuse": {
+    "source_checks": {
+      "backend/internal/handler/grok_audio.go": {
+        "unchanged": false,
+        "previous": "c26c53e6558474dbb228e8713528b79c46eabf3cced11292e5e8b9634610c5a9",
+        "current": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc"
+      },
+      "backend/internal/handler/openai_gateway_credential_failover_loop_test.go": {
+        "unchanged": true,
+        "previous": "6dc893a7118644f0886662f8da123b8b01dc9639303d4069d08703968bb2226d",
+        "current": "6dc893a7118644f0886662f8da123b8b01dc9639303d4069d08703968bb2226d"
+      },
+      "backend/internal/handler/openai_gateway_handler.go": {
+        "unchanged": true,
+        "previous": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf",
+        "current": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf"
+      },
+      "backend/internal/handler/openai_ws_routing_diagnostics.go": {
+        "unchanged": true,
+        "previous": "9c9c75ae0855e251c1f88b2004b54b4dfe714c69d8aababfad63eae97c727d0e",
+        "current": "9c9c75ae0855e251c1f88b2004b54b4dfe714c69d8aababfad63eae97c727d0e"
+      },
+      "backend/internal/handler/ops_error_logger.go": {
+        "unchanged": false,
+        "previous": "e4fea594fbca01ae654609ed4a0628433456c7fb505e3b882cc812718bc5c860",
+        "current": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21"
+      },
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": {
+        "unchanged": false,
+        "previous": "513ef2862ec345065464ee7de7091757700ddbe8594f8d1b819e2c49eb3b23e1",
+        "current": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d"
+      },
+      "backend/internal/service/gateway_service.go": {
+        "unchanged": true,
+        "previous": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+        "current": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58"
+      },
+      "backend/internal/service/openai_account_scheduler.go": {
+        "unchanged": true,
+        "previous": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+        "current": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b"
+      },
+      "backend/internal/service/openai_gateway_scheduling.go": {
+        "unchanged": true,
+        "previous": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+        "current": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2"
+      },
+      "backend/internal/service/openai_routing_diagnostics_test.go": {
+        "unchanged": true,
+        "previous": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+        "current": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280"
+      },
+      "backend/internal/service/ops_upstream_context.go": {
+        "unchanged": false,
+        "previous": "963b594f3ab29d88f9f9a413b10f803ff0f1d9f7a34d7d2bce6eab21d7159a5d",
+        "current": "de6efd7080915abc0c03ec9a9aa5392092b81110cd8a84c2e9d07eacfacb0397"
+      },
+      "backend/internal/service/routing_diagnostics.go": {
+        "unchanged": true,
+        "previous": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+        "current": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25"
+      },
+      "backend/internal/service/routing_diagnostics_test.go": {
+        "unchanged": true,
+        "previous": "dda07d0483249165d73897efa1539aebbe8fe068a10fd0da902e78a1f3228d93",
+        "current": "dda07d0483249165d73897efa1539aebbe8fe068a10fd0da902e78a1f3228d93"
+      }
+    },
+    "artifact_checks": {
+      "service-final.jsonl": {
+        "matched": true,
+        "sha256": "98f4aa3e49ac69de26e7d78775458fe06c77d1ccbfc9e6e9cb604150f8c42e27"
+      },
+      "handler-final.jsonl": {
+        "matched": true,
+        "sha256": "7516c6124d8d23a1bc22def773b6cc9b58493ae1f64a1c6c4c93c75ca99245a1"
+      },
+      "service-regression-final.log": {
+        "matched": true,
+        "sha256": "71f1b5b18a44108fb66abdbd0215eb3af83827aa25d004e1b39cc48f13084fef"
+      },
+      "core-race-final.log": {
+        "matched": true,
+        "sha256": "249b402975f219efcda628e7f540aa17b8da1c44d65a07eb587901e229e09856"
+      },
+      "handler-race-final.log": {
+        "matched": true,
+        "sha256": "4d9fc18d0a2a9b428375745485ebe8d8a956650e37061ea05df082fdb7b07420"
+      }
+    },
+    "reused": [
+      {
+        "run": "service-final.jsonl",
+        "boundary": "producer 与已有派生值合同",
+        "reason": "producer、scheduler、builder owner及已有定向测试未修改；复用原边界，不证明S3.3日志/SQL/DTO"
+      },
+      {
+        "run": "service-regression-final.log",
+        "boundary": "既有 advanced/legacy/DB/compact/负载/子池/gwpool/利润调度回归",
+        "reason": "producer、scheduler、builder owner及已有定向测试未修改；复用原边界，不证明S3.3日志/SQL/DTO"
+      },
+      {
+        "run": "core-race-final.log",
+        "boundary": "不可变快照及并发 owner",
+        "reason": "producer、scheduler、builder owner及已有定向测试未修改；复用原边界，不证明S3.3日志/SQL/DTO"
+      }
+    ],
+    "not_reused": [
+      {
+        "run": "handler-final.jsonl",
+        "reason": "日志/WS snapshot owner已修改；本轮按受影响边界重新验证"
+      },
+      {
+        "run": "handler-race-final.log",
+        "reason": "日志/WS snapshot owner已修改；本轮按受影响边界重新验证"
+      }
+    ]
+  },
+  "unchanged_permission_owners": {
+    "backend/internal/server/routes/admin.go": "548b84e60b1c6faa18164af34986067743e755ae1993782267448e6ea5ab780d",
+    "backend/internal/server/routes/user.go": "77bdb755320cd6a95e9caaab4716c3fb5cedbdde6f75fbbe8d847e53adee25a0",
+    "backend/internal/server/middleware/admin_auth.go": "f878899e7e03bda35ce8774a477800c96ad710482132a4672c8b1bfea4adf123",
+    "backend/internal/service/ops_user_error.go": "938909d29d66554e0b97819c8573546606d31d1819b2ae8f46fdb2049091a3c9",
+    "backend/internal/service/ops_service_user_error_test.go": "cd8afdefb4de224cff9e038fb6020f488026961d918bd665c29c02b7feeb7d60"
+  },
+  "preservation": {
+    "checked_worktrees": 7,
+    "files_checked": 31297,
+    "issues": [],
+    "missing_worktrees": [
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+        "head": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+        "branch_present": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+        "not_removed_by_this_task": true,
+        "same_bytes_from_commit": 4567,
+        "same_bytes_existing_sources": {
+          "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json",
+            "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json",
+            "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json",
+            "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md",
+            "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json",
+            "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md"
+          ],
+          "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": [
+            "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+            "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+            "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+          ]
+        },
+        "unresolved_files": [],
+        "recovered_journal": {
+          "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/preserved-s25-journal.md",
+          "sha256": "1402c8f380f0ee23b86098887d7f44c6d59b0296533f0662f3e88bf811817c77",
+          "base": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+          "entry_source": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/docs/dev-journal.md"
+        },
+        "uncommitted_recovery_root": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/preserved-s25-uncommitted",
+        "uncommitted_recovery_files": 19
+      }
+    ]
+  },
+  "remote_at_close": {
+    "personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "main": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+    "pr5": {
+      "url": "https://github.com/ccisnoxx/sub2api/pull/5",
+      "head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+      "base": "personal",
+      "state": "OPEN",
+      "draft": true,
+      "mergedAt": null
+    },
+    "read_only_commands": [
+      "git ls-remote origin refs/heads/personal refs/heads/main",
+      "gh pr view 5 --repo ccisnoxx/sub2api --json url,state,isDraft,headRefOid,baseRefName,mergedAt"
+    ],
+    "initial_close_lookup_error": "未指定repo时gh自动选错仓库；指定ccisnoxx/sub2api后正确查询成功，无写入"
+  },
+  "not_executed": [
+    "完整Go/CI门禁",
+    "新浏览器/页面验收",
+    "真实JWT完整服务器E2E",
+    "真实provider/生产请求",
+    "native/passthrough重试后第三turn新日志E2E",
+    "push/PR更新/dispatch",
+    "合并/镜像发布/生产部署"
+  ],
+  "limits": [
+    "管理员测试为真实handler+stub repository，数据库链另有真实PG证据",
+    "旧应用兼容仅固定d9b06f4 migration runner及Ops repository/DTO，非完整服务器或生产运行树",
+    "其他平台、独立旧选择入口、TokenCount和无新选择连接复用保持nil；Realtime帧无新turn producer",
+    "引用的outbound identity/account extra文档在personal源中未找到；未改对应owner"
+  ],
+  "next_task": "S3.4 扩展现有错误详情；未自动执行",
+  "independent_review": {
+    "task": "S3.3",
+    "candidate_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+    "baseline_sha": "d9b06f4fe78a8588282958783d91e9966ff05231",
+    "fresh_review_count": 1,
+    "agent_type": "critical_reviewer",
+    "runtime_ref": "/root/routing_storage_review",
+    "scope": "全部17文件，主代理及storage实现、合同、原始验证日志",
+    "read_only": true,
+    "observed_write_paths": [],
+    "source_hashes_after_review": {
+      "backend/internal/handler/admin/ops_handler.go": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "backend/internal/handler/grok_audio.go": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "backend/internal/handler/ops_error_logger.go": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "backend/internal/handler/ops_routing_diagnostics_log_test.go": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "backend/internal/repository/ops_repo.go": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "backend/internal/repository/ops_repo_args_test.go": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "backend/internal/service/ops_models.go": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "backend/internal/service/ops_port.go": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "backend/internal/service/ops_routing_diagnostics_dto_test.go": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "backend/internal/service/ops_service.go": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "backend/internal/service/ops_upstream_context.go": "de6efd7080915abc0c03ec9a9aa5392092b81110cd8a84c2e9d07eacfacb0397",
+      "backend/internal/service/routing_diagnostics_validation.go": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "backend/migrations/252_add_ops_routing_diagnostics.sql": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac"
+    },
+    "tests_independently_executed": false,
+    "result": "未确认剩余P0/P1/P2；初候选WS首turn P2已关闭",
+    "closed_findings": [
+      {
+        "severity": "P2",
+        "file": "backend/internal/service/ops_upstream_context.go",
+        "line": 128,
+        "trigger": "beginProxy先替换owner，BeginOpsStreamTurn随后看到同turn，建连绑定未清理",
+        "impact": "首turn provider事件继承建连诊断及turn=NULL，违反未选号未知合同",
+        "fix": "绑定保存owner身份，读取只接受当前owner；同turn proxy restart保留绑定",
+        "evidence": [
+          "ws-connection-binding-red.jsonl",
+          "ws-owner-fix-final.jsonl",
+          "ws-owner-fix-race.log"
+        ]
+      }
+    ],
+    "remaining_findings": [],
+    "boundaries": [
+      "同账号重试/重选/后续turn/provider最终失败与本地routing终态分离",
+      "RequestScoped/recovered状态与SLA保持",
+      "stream及事件深副本、严格v1校验、队列自有JSON及字节预算",
+      "nullable JSONB、单批SQL参数、PG16及固定旧源码往返/ledger",
+      "admin仅单记录可见，include_detail列表裁剪，用户归属/白名单及认证接线保持"
+    ],
+    "coverage_gaps": [
+      "未新增native/passthrough完整多turn贯穿队列、真实数据库及admin HTTP的诊断E2E",
+      "admin检查直接挂handler，未执行完整认证/审计/监控开关HTTP或浏览器",
+      "完整CI、镜像、生产运行未验证；S2.7 CI仅证明旧候选",
+      "S3.4/S3.5/S3.6未执行"
+    ]
+  },
+  "document_checks": {
+    "file": "s3.3-document-checks.json",
+    "status": "passed for current scope",
+    "existing_history_gaps": "5处既有S3.1链接指向包含冒号且无空格标题的不匹配锚点；本轮新增链接正常，原文保留",
+    "initial_failure_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/s3.3-document-checks-initial.json",
+    "initial_failure_sha256": "22d9e40f1334e90aaed259ac2a6b5d52e1d23bd84a6f6a80818af5a5c3c9b44d"
+  },
+  "audit": {
+    "id": "20261009T213638Z-kin-plus-routing-storage-s33-164e4725",
+    "status": "closed",
+    "verify": "passed",
+    "digest_sha256": "3669f876c7ac2dff295a989ede61a3b69ee91cd78f0048a12b315de28167c21d"
+  }
+}

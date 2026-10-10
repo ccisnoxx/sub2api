@@ -1,0 +1,157 @@
+{
+  "task": "S4.4/isolated-jwt-pg18-browser",
+  "status": "subtask_completed_s44_in_progress",
+  "application_sha": "35962a802fdc499639c9c861072f25774ccba50b",
+  "documentation_start_sha": "55ef901a45954c8ddba7a1fab00c4805bdc445fb",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "worktree": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+  "branch": "codex/plus-service-status-s43",
+  "application_source_changed": false,
+  "host_alias": "hostdzire",
+  "remote_directory": "/root/sub2api-kin-s44-validation",
+  "compose_project": "sub2api-kin-s44-validation",
+  "access": {
+    "remote_loopback": "127.0.0.1:10444",
+    "local_ssh_forward": "http://127.0.0.1:4244",
+    "postgres_published": false,
+    "redis_published": false,
+    "forward_mode": "dedicated_ssh_daemon"
+  },
+  "image": {
+    "local_tag": "sub2api-kin-validation:s44-35962a8",
+    "id": "sha256:b581786c4de40326c2bc2e7576d343169612565660dd2c40fa7e53939f9bf6be",
+    "revision": "35962a802fdc499639c9c861072f25774ccba50b",
+    "binary_sha256": "7c3847a2aae08fac15db8b404af464dd83da24bc2b04cd4eff4a8c8c2437db0d",
+    "published": false,
+    "build_type": "source",
+    "runtime_base_image": "sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6",
+    "limitation": "复用生产运行时镜像并覆盖固定源码交叉编译binary/候选resources，嵌入未变S4.3前端179产物；这是隔离验证构建，不是personal-release正式镜像或新CI。原版本标签不代表新候选已发布。"
+  },
+  "runtime": {
+    "run_mode": "standard",
+    "postgres_major": 18,
+    "postgres_same_image_as_production": true,
+    "redis_same_image_as_production": true,
+    "independent_database": "s44_validation",
+    "test_identity_count": 2,
+    "provider_account_count": 0,
+    "own_networks_volumes": true,
+    "all_healthy": true,
+    "production_container_metadata_unchanged": true,
+    "credential_file_modes": "0600",
+    "secrets_in_evidence": false,
+    "resource_limits_mib": {
+      "app": 512,
+      "postgres": 384,
+      "redis": 96
+    }
+  },
+  "raw_directory": "/Users/sc/.codex/validation/sub2api-kin/20261009-s44-hostdzire",
+  "artifacts": {
+    "build-inputs.json": {
+      "sha256": "3c978f7e5871b08de17fb34536caeda1f5c51c1b0462518345f6395de5bef290",
+      "bytes": 30576
+    },
+    "image-build.json": {
+      "sha256": "6985969076904df371c279ab624cbe12227408a504274317960a924774c63fbf",
+      "bytes": 854
+    },
+    "compose.yaml": {
+      "sha256": "094eec501e8b22dbb0b76c68501d172bc1cb87dc48a817ca1db3347307891d80",
+      "bytes": 2747
+    },
+    "Dockerfile": {
+      "sha256": "efe7555c4eee993ccc8eb4dfa6ed8649a399de1667f235f9b2a2c866ff29f626",
+      "bytes": 375
+    },
+    "remote-before.json": {
+      "sha256": "ceb99105fdf7bfe92b6593076be11201482b143bda76237e165172b15e65ea0e",
+      "bytes": 2009
+    },
+    "remote-after.json": {
+      "sha256": "5d3a0e9520fa59d5a05f91da2cf8594ecf989bb61a989ee5fd6587ceb1503858",
+      "bytes": 4498
+    },
+    "db-initial.json": {
+      "sha256": "e53adb43637e46a04b3bc4d882c79e6c8692ee0075f7f5b72769df193af1b6ea",
+      "bytes": 914
+    },
+    "db-after-browser-write.json": {
+      "sha256": "43afca5c21a7225b6cd689ff57f9371f235725df793b4a47f1d30fae323e13bf",
+      "bytes": 1150
+    },
+    "db-final.json": {
+      "sha256": "87f82774ef042ab8d30c04809591d98e67e0b4f07319ca31b9bbccd0915e4dee",
+      "bytes": 1257
+    },
+    "login-preflight.json": {
+      "sha256": "80b28c451767a9e100da6805f5a3ab1a1103fdc294ae4e7461ebccc518b765ff",
+      "bytes": 918
+    },
+    "real-browser-e2e.json": {
+      "sha256": "6c3b21ee07e14012b4338023cd43e9dbe25d0647dc704c0183f9f239744e068c",
+      "bytes": 14608
+    },
+    "real-flow-classified.json": {
+      "sha256": "3a61fea88829fbca516dec8e274d1b59923cb3a3893de76f6fe4fd9af7190a95",
+      "bytes": 4882
+    },
+    "real-snapshot.json": {
+      "sha256": "cc5b91a8e46363ac9c23f195a4db29471d150f625d3b80111ee820b645f01398",
+      "bytes": 1083
+    },
+    "csp-readonly-probe.json": {
+      "sha256": "4f14d7a7c1893b416ba8bf7434d0e5e40feba42be071db00fa16807e20f2a772",
+      "bytes": 1486
+    },
+    "csp-http-source-proof.json": {
+      "sha256": "83a0b90cbe3a97761c9939bf870fa5cc9bb65ca327365bcfa7ca89f67232f823",
+      "bytes": 955
+    },
+    "user-settled-browser.json": {
+      "sha256": "ba09fa0bf77f83376175120541be3312b29d4adfa1ebe92db8ebeeb33dd0e90b",
+      "bytes": 295
+    },
+    "reused-input-check.json": {
+      "sha256": "7f9ef36fd63b61fc12bd33fb78530cb76942e37a903330765be413543efdc062",
+      "bytes": 387
+    },
+    "real-admin-status-zh-1440.png": {
+      "sha256": "c96c6bbb2ab7d512e9d60b93711dcc419f92399256474d02bbec71649e9cd8b6",
+      "bytes": 489663
+    },
+    "real-admin-status-en-390.png": {
+      "sha256": "4b8524edf1fd592f5b7cdaa7e5bb3df4c78e7d3758e0a6c7430d33818aafe00f",
+      "bytes": 345842
+    },
+    "real-user-settled-nav-en-390.png": {
+      "sha256": "c4b8ad0be308c3d0e7706ec4b90924634a9bc9c2e356c2b6a0736ec96b40a7ab",
+      "bytes": 104160
+    },
+    "access-final.json": {
+      "sha256": "550a2f0bce4106c50ad9f1d2b79532b66be312463fdce86cfd45964be0757aee",
+      "bytes": 709
+    }
+  },
+  "reuse": {
+    "result": "passed",
+    "application_source_files_matched": 79,
+    "frontend_assets_reused_and_embedded": 179,
+    "reuse_boundary": "S4.3构建/定向测试/独立代码复核仍仅按不变输入与原PG16/合成浏览器边界复用；本轮新PG18真实JWT/browser证据独立追加。",
+    "runtime_binary_sha256": "7c3847a2aae08fac15db8b404af464dd83da24bc2b04cd4eff4a8c8c2437db0d"
+  },
+  "remaining": [
+    "SS21固定旧应用PG18兼容往返",
+    "真实多轮WS/重试/取消和源终态持久化",
+    "部署入口终态覆盖与故障/新请求恢复",
+    "SS01–SS21最终覆盖登记与完整S4.4独立复核",
+    "正式候选CI/发布/生产启用决策"
+  ],
+  "no_actions": [
+    "生产部署",
+    "合并",
+    "远端push/PR更新",
+    "新CI",
+    "镜像发布"
+  ]
+}

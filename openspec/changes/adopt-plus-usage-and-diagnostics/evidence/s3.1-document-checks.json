@@ -1,0 +1,241 @@
+{
+  "task": "S3.1",
+  "result": "PASS",
+  "recorded_utc": "2026-10-09T20:43:54.915271+00:00",
+  "validation_type": "文档、源码对照与文件保留检查；不是应用测试",
+  "whole_worktree_checks": [
+    {
+      "path": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+      "head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+      "branch": "codex/verify-personal-ci-plus-catalog-s27",
+      "baseline_files": 4577,
+      "unchanged_files": 4577,
+      "changed_existing": [],
+      "added": [],
+      "all_application_and_other_files_preserved": true,
+      "status": ""
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head": "aeead84a68545ed8ee6697345f42aa00e59f1cef",
+      "branch": "codex/plus-pricing-s22-evidence",
+      "baseline_files": 4261,
+      "unchanged_files": 4257,
+      "changed_existing": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "added": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md"
+      ],
+      "all_application_and_other_files_preserved": true,
+      "status": " M docs/dev-journal.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/plan.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md\n"
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "branch": "codex/fix-version-usage-help",
+      "baseline_files": 4555,
+      "unchanged_files": 4551,
+      "changed_existing": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+        "docs/dev-journal.md"
+      ],
+      "added": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md"
+      ],
+      "all_application_and_other_files_preserved": true,
+      "status": " M backend/internal/handler/admin/system_handler.go\n M backend/internal/handler/admin/system_handler_test.go\n M backend/internal/service/update_service.go\n M backend/internal/service/update_service_test.go\n M docs/dev-journal.md\n M frontend/src/api/admin/system.ts\n M frontend/src/components/admin/usage/UsageTable.vue\n M frontend/src/components/admin/usage/UsageTps.vue\n M frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts\n M frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts\n M frontend/src/components/common/VersionBadge.vue\n M frontend/src/components/common/__tests__/VersionBadge.spec.ts\n M frontend/src/i18n/locales/en/dashboard.ts\n M frontend/src/i18n/locales/en/misc.ts\n M frontend/src/i18n/locales/zh/dashboard.ts\n M frontend/src/i18n/locales/zh/misc.ts\n M frontend/src/stores/__tests__/app.spec.ts\n M frontend/src/stores/app.ts\n?? openspec/changes/adopt-plus-usage-and-diagnostics/\n"
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+      "head": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+      "branch": "codex/plus-catalog-verify-s25",
+      "baseline_files": 4580,
+      "unchanged_files": 4576,
+      "changed_existing": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "added": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md"
+      ],
+      "all_application_and_other_files_preserved": true,
+      "status": " M docs/dev-journal.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/plan.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md\n"
+    },
+    {
+      "path": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "branch": "codex/ci-validation-scope",
+      "baseline_files": 4219,
+      "unchanged_files": 4219,
+      "changed_existing": [],
+      "added": [],
+      "all_application_and_other_files_preserved": true,
+      "status": ""
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+      "branch": "codex/plus-pricing-s22",
+      "baseline_files": 4547,
+      "unchanged_files": 4547,
+      "changed_existing": [],
+      "added": [],
+      "all_application_and_other_files_preserved": true,
+      "status": ""
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+      "branch": "codex/plus-usage-s1",
+      "baseline_files": 4535,
+      "unchanged_files": 4535,
+      "changed_existing": [],
+      "added": [],
+      "all_application_and_other_files_preserved": true,
+      "status": ""
+    }
+  ],
+  "total_baseline_files": 31274,
+  "original_s0_files_17": "开工复用证据校验通过；结尾所有原应用文件不变",
+  "prior_journals_and_evidence_preserved": true,
+  "task_checkboxes_changed": [
+    "S3.1"
+  ],
+  "contract_examples": {
+    "count": 3,
+    "result": "PASS",
+    "covered": [
+      "observed_empty_0",
+      "precheck_unobserved_null",
+      "ws_partial_known_filter"
+    ],
+    "schema_fields": [
+      "candidate_pool",
+      "filter_coverage",
+      "filter_reasons",
+      "filtered_candidates",
+      "schema_version",
+      "selection_attempt",
+      "selection_layer",
+      "selection_reason",
+      "turn"
+    ],
+    "filter_reason_codes": [
+      "account_model_not_owned",
+      "capability_mismatch",
+      "capacity_limited",
+      "channel_upstream_restricted",
+      "compact_unsupported",
+      "excluded",
+      "gateway_pool_duplicate",
+      "grok_free_quota_soft_gate",
+      "grok_model_quota_block",
+      "grok_team_model_rate_limit",
+      "model_not_supported",
+      "model_rate_limited",
+      "not_schedulable",
+      "platform_mismatch",
+      "privacy_not_set",
+      "profit_invalid_account_rate",
+      "profit_threshold",
+      "proxy_stream_quarantined",
+      "quota_auto_pause",
+      "quota_auto_pause_5h",
+      "quota_auto_pause_7d",
+      "quota_auto_pause_requests",
+      "quota_auto_pause_retry_after",
+      "quota_auto_pause_tokens",
+      "quota_auto_reset_credit_check_5h",
+      "quota_auto_reset_credit_check_7d",
+      "quota_auto_reset_pending_5h",
+      "quota_auto_reset_pending_7d",
+      "recheck_rejected",
+      "runtime_blocked",
+      "scheduling_threshold",
+      "session_limit",
+      "shadow_parent_unhealthy",
+      "transport_incompatible",
+      "turn_state_hold"
+    ]
+  },
+  "source_manifest_files_checked": 26,
+  "existing_test_file_hashes_checked": 6,
+  "relative_link_checks": {
+    "count": 40,
+    "result": "PASS"
+  },
+  "common_document_sync": "PASS",
+  "remote_refs_end": {
+    "refs/heads/codex/verify-personal-ci-plus-catalog-s27": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "refs/heads/main": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+    "refs/heads/personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92"
+  },
+  "pr_end": {
+    "baseRefName": "personal",
+    "baseRefOid": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "headRefName": "codex/verify-personal-ci-plus-catalog-s27",
+    "headRefOid": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "isDraft": true,
+    "mergedAt": null,
+    "number": 5,
+    "state": "OPEN",
+    "url": "https://github.com/ccisnoxx/sub2api/pull/5"
+  },
+  "reused_s27_evidence": {
+    "original_s0_files": 17,
+    "s2.7_candidate": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "s2.7_artifacts_checked": 24,
+    "mismatches": [],
+    "ci_run": 37982040213,
+    "ci_conclusion": "success",
+    "reuse_scope": "原候选行为与CI证据，不能当作S3诊断实现已完成"
+  },
+  "actual_diff": "/Users/sc/.codex/validation/sub2api-kin/20261009-s31/incremental-document.diff",
+  "check_setup_issue": {
+    "first_result": "文档报告自身链接在报告生成前被检查，报告尚不存在",
+    "resolution": "先创建PENDING占位，再核对链接与最终文档/来源/工作树状态并替换为实际PASS；无应用错误或应用代码改动"
+  },
+  "not_run": [
+    "producer/runtime tests",
+    "build",
+    "database/browser",
+    "full CI",
+    "new independent code review"
+  ],
+  "application_candidate_clean": true,
+  "next_task": "S3.2 未开始",
+  "commits_pushes_pr_or_production_writes": false,
+  "final_diff_and_format_checks": {
+    "incremental_diff_review": "PASS",
+    "git_diff_check_roots": [
+      "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin"
+    ],
+    "git_diff_check": "PASS",
+    "new_document_whitespace": "PASS",
+    "task_evidence_table_contiguous": "PASS",
+    "note": "最终diff自查修正新增S3.1证据行前的空行，保持同一Markdown表；无应用改动。"
+  },
+  "automation_after_task": {
+    "id": "kin-s3-1",
+    "name": "KIN S3.1 自动续接",
+    "status": "PAUSED",
+    "kind": "heartbeat",
+    "target_thread_id": "01a1220e-ecf3-79a3-9601-24e7b81e42da"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "task": "S2.3",
+  "recorded_utc": "2026-10-09T16:11:19.047278+00:00",
+  "status": "passed",
+  "errors": [],
+  "task_status_changes": [
+    "S2.3"
+  ],
+  "documents_synced_targets": [
+    "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin",
+    "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin"
+  ],
+  "historical_journals_preserved": true,
+  "source_candidates_preserved": true,
+  "working_trees": [
+    {
+      "path": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "status": ""
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "status": "M backend/internal/handler/admin/system_handler.go\n M backend/internal/handler/admin/system_handler_test.go\n M backend/internal/service/update_service.go\n M backend/internal/service/update_service_test.go\n M docs/dev-journal.md\n M frontend/src/api/admin/system.ts\n M frontend/src/components/admin/usage/UsageTable.vue\n M frontend/src/components/admin/usage/UsageTps.vue\n M frontend/src/components/admin/usage/__tests__/UsageTable.spec.ts\n M frontend/src/components/admin/usage/__tests__/UsageTps.spec.ts\n M frontend/src/components/common/VersionBadge.vue\n M frontend/src/components/common/__tests__/VersionBadge.spec.ts\n M frontend/src/i18n/locales/en/dashboard.ts\n M frontend/src/i18n/locales/en/misc.ts\n M frontend/src/i18n/locales/zh/dashboard.ts\n M frontend/src/i18n/locales/zh/misc.ts\n M frontend/src/stores/__tests__/app.spec.ts\n M frontend/src/stores/app.ts\n?? openspec/changes/adopt-plus-usage-and-diagnostics/"
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+      "status": ""
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+      "status": ""
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head": "6d90ae06dbe4416e7514b2058f49d429f522e926",
+      "status": "M docs/dev-journal.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/catalog-contract.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/plan.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/pricing-contract.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-reviews.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-subagent-digest.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-validation.json"
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-catalog-s23/sub2api-kin",
+      "head": "49c209a77059d2927f78bbd31c1dd479b509dc6f",
+      "status": "M docs/dev-journal.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/catalog-contract.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/plan.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/pricing-contract.md\n M openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-candidate.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-document-checks.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-reviews.json\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-subagent-digest.md\n?? openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.3-validation.json"
+    }
+  ],
+  "remote_personal_at_final_check": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "remote_main_at_final_check": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+  "formatting": "gofmt -l 五文件无输出，diff --check通过",
+  "post_review_changes": [
+    "backend/internal/handler/available_channel_handler.go"
+  ],
+  "external_actions": "not_executed"
+}

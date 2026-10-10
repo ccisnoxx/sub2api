@@ -1,0 +1,61 @@
+{
+  "task": "S3.3",
+  "candidate_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+  "baseline_sha": "d9b06f4fe78a8588282958783d91e9966ff05231",
+  "fresh_review_count": 1,
+  "agent_type": "critical_reviewer",
+  "runtime_ref": "/root/routing_storage_review",
+  "scope": "全部17文件，主代理及storage实现、合同、原始验证日志",
+  "read_only": true,
+  "observed_write_paths": [],
+  "source_hashes_after_review": {
+    "backend/internal/handler/admin/ops_handler.go": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+    "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+    "backend/internal/handler/grok_audio.go": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+    "backend/internal/handler/ops_error_logger.go": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+    "backend/internal/handler/ops_routing_diagnostics_context_test.go": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+    "backend/internal/handler/ops_routing_diagnostics_log_test.go": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+    "backend/internal/repository/ops_repo.go": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+    "backend/internal/repository/ops_repo_args_test.go": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+    "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+    "backend/internal/service/ops_models.go": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+    "backend/internal/service/ops_port.go": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+    "backend/internal/service/ops_routing_diagnostics_dto_test.go": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+    "backend/internal/service/ops_routing_diagnostics_log_test.go": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+    "backend/internal/service/ops_service.go": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+    "backend/internal/service/ops_upstream_context.go": "de6efd7080915abc0c03ec9a9aa5392092b81110cd8a84c2e9d07eacfacb0397",
+    "backend/internal/service/routing_diagnostics_validation.go": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+    "backend/migrations/252_add_ops_routing_diagnostics.sql": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac"
+  },
+  "tests_independently_executed": false,
+  "result": "未确认剩余P0/P1/P2；初候选WS首turn P2已关闭",
+  "closed_findings": [
+    {
+      "severity": "P2",
+      "file": "backend/internal/service/ops_upstream_context.go",
+      "line": 128,
+      "trigger": "beginProxy先替换owner，BeginOpsStreamTurn随后看到同turn，建连绑定未清理",
+      "impact": "首turn provider事件继承建连诊断及turn=NULL，违反未选号未知合同",
+      "fix": "绑定保存owner身份，读取只接受当前owner；同turn proxy restart保留绑定",
+      "evidence": [
+        "ws-connection-binding-red.jsonl",
+        "ws-owner-fix-final.jsonl",
+        "ws-owner-fix-race.log"
+      ]
+    }
+  ],
+  "remaining_findings": [],
+  "boundaries": [
+    "同账号重试/重选/后续turn/provider最终失败与本地routing终态分离",
+    "RequestScoped/recovered状态与SLA保持",
+    "stream及事件深副本、严格v1校验、队列自有JSON及字节预算",
+    "nullable JSONB、单批SQL参数、PG16及固定旧源码往返/ledger",
+    "admin仅单记录可见，include_detail列表裁剪，用户归属/白名单及认证接线保持"
+  ],
+  "coverage_gaps": [
+    "未新增native/passthrough完整多turn贯穿队列、真实数据库及admin HTTP的诊断E2E",
+    "admin检查直接挂handler，未执行完整认证/审计/监控开关HTTP或浏览器",
+    "完整CI、镜像、生产运行未验证；S2.7 CI仅证明旧候选",
+    "S3.4/S3.5/S3.6未执行"
+  ]
+}

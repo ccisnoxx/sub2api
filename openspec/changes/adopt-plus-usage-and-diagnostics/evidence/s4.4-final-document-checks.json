@@ -1,0 +1,96 @@
+{
+  "checked_at": "2026-10-10T12:31:48.944470+00:00",
+  "result": "pass",
+  "JSON_files_checked_before_this_receipt": 74,
+  "local_file_links_checked": 301,
+  "missing_file_links": [],
+  "anchor_scope": "本次新增链接为存在的本地文件及已存在最终验收标题；未将历史S3.1锚点问题报为修复。",
+  "journal_original_main_sections_preserved": 6,
+  "journal_original_app_sections_preserved": 23,
+  "app_inherited": [
+    {
+      "path": "docs/dev-journal.md",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-candidate.json",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-compose.yaml",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-document-checks.json",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-reviews.json",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-runtime.json",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-subagent-digest.json",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-subagent-digest.md",
+      "unchanged": true
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-validation.json",
+      "unchanged": true
+    }
+  ],
+  "unrelated_worktrees": [
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head_unchanged": true,
+      "status_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head_unchanged": true,
+      "status_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "head_unchanged": true,
+      "status_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "head_unchanged": true,
+      "status_unchanged": true
+    }
+  ],
+  "prior_full_content_proof": {
+    "receipt": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/preservation-final.json",
+    "files": 17785,
+    "reused": true
+  },
+  "diff_check": "pass",
+  "S4.4_checked": true,
+  "S1.5_and_S5_not_started": true,
+  "application_test_reexecution": "本次只更新main文档；最终候选/最终personal CI及正式镜像运行证据不变，未重复构建或测试。",
+  "audit_digest_result": "failed_explicitly_recorded"
+}

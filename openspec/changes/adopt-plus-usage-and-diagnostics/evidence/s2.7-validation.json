@@ -1,0 +1,484 @@
+{
+  "task": "S2.7",
+  "candidate_commit": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+  "candidate_tree": "1403104d1c38c866e3eaccde8456d9e3073e3c7e",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "pull_request": {
+    "number": 5,
+    "url": "https://github.com/ccisnoxx/sub2api/pull/5",
+    "draft": true,
+    "merged": false
+  },
+  "remote_gate": {
+    "workflow": "Personal CI",
+    "run_id": 37982040213,
+    "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213",
+    "candidate_sha": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "event": "pull_request",
+    "conclusion": "success",
+    "run_attempt": 1,
+    "required_check": {
+      "name": "personal-ready",
+      "app_id": 15368,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "jobs": [
+      {
+        "name": "binding",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994702790,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994702790"
+      },
+      {
+        "name": "sync-contracts",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994790449,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994790449"
+      },
+      {
+        "name": "tps",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994790488,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994790488"
+      },
+      {
+        "name": "existing-security / frontend-security",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994790941,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994790941"
+      },
+      {
+        "name": "existing-ci / release-helpers",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994790952,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994790952"
+      },
+      {
+        "name": "existing-ci / shell",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994790959,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994790959"
+      },
+      {
+        "name": "existing-security / backend-security",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994790990,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994790990"
+      },
+      {
+        "name": "existing-ci / test",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994791039,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994791039"
+      },
+      {
+        "name": "existing-ci / golangci-lint",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994791087,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994791087"
+      },
+      {
+        "name": "existing-ci / frontend",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 113994791093,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/113994791093"
+      },
+      {
+        "name": "personal-ready",
+        "status": "completed",
+        "conclusion": "success",
+        "database_id": 114000397022,
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/37982040213/job/114000397022"
+      }
+    ],
+    "pushes": 2,
+    "native_runs": 2,
+    "dispatches": 0,
+    "full_local_gate_runs": 0,
+    "reruns_of_same_sha": 0,
+    "initial_run": {
+      "run_id": 37981138211,
+      "candidate_sha": "aee00ae7716218418ed3cb772e37c1763873fde7",
+      "conclusion": "failure",
+      "skipped_steps": [
+        "Integration tests",
+        "OpenAI recording concurrency checks"
+      ],
+      "diagnosis_and_targeted_correction": {
+        "task": "S2.7",
+        "initial_candidate": "aee00ae7716218418ed3cb772e37c1763873fde7",
+        "corrected_candidate": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+        "initial_run": 37981138211,
+        "confirmed_failures": [
+          {
+            "job": "existing-ci / test",
+            "cause": "S1历史用量API合同fixture遗漏9项增量字段",
+            "change": "仅补齐测试wantJSON的冻结值；未删除生产DTO字段"
+          },
+          {
+            "job": "existing-ci / golangci-lint",
+            "cause": "S1测试CloseNow未显式处理返回值；S2平台分支QF1003",
+            "change": "测试清理显式忽略已关闭连接返回值、等价switch；不添加lint豁免或改检查规则"
+          }
+        ],
+        "local_targeted": [
+          {
+            "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/api-contract-targeted.jsonl",
+            "sha256": "7f768c8f6e324c570535ea52822044e0b552fab2bbc976bcd2bf533118a60ab1",
+            "top_level_tests": 1,
+            "all_pass_events": 12,
+            "result": "passed"
+          },
+          {
+            "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/service-targeted.jsonl",
+            "sha256": "1aba7e3c36ba4e048dabad6e4086b5ff2ae51aaf49e06cd000ed8636b6fc4786",
+            "top_level_tests": 16,
+            "all_pass_events": 23,
+            "result": "passed"
+          }
+        ],
+        "local_full_lint": "not_run: 未安装golangci-lint；改动核对后由当前必需远端gate验证",
+        "changed_files": [
+          "backend/internal/server/api_contract_test.go",
+          "backend/internal/service/catalog_pricing.go",
+          "backend/internal/service/openai_usage_timing_test.go"
+        ],
+        "scope": "3文件、13新增/3删除；未改扣费/调度/权限/CI定义/依赖",
+        "recorded_utc": "2026-10-09T19:42:16.738855+00:00"
+      }
+    }
+  },
+  "reuse": {
+    "initial_check": {
+      "s2.2": {
+        "input_files_checked": 8,
+        "input_mismatches": [],
+        "artifacts_checked": 12,
+        "artifact_mismatches": []
+      },
+      "s2.3": {
+        "input_files_checked": 7,
+        "input_mismatches": [],
+        "artifacts_checked": 14,
+        "artifact_mismatches": []
+      },
+      "s2.4": {
+        "input_files_checked": 15,
+        "input_mismatches": [],
+        "artifacts_checked": 39,
+        "artifact_mismatches": []
+      },
+      "s2.5": {
+        "input_files_checked": 5,
+        "input_mismatches": [],
+        "artifacts_checked": 33,
+        "artifact_mismatches": []
+      },
+      "s2.6": {
+        "input_files_checked": 13,
+        "input_mismatches": [],
+        "artifacts_checked": 27,
+        "artifact_mismatches": []
+      }
+    },
+    "policy": "先前候选全部匹配；最终候选对未变输入复用，catalog_pricing.go等价风格修正不称原hash匹配，新增定向16服务测试验证。历史API及WS清理测试采用本轮新证据。",
+    "final_inputs": {
+      "s2.2": {
+        "input_files": 8,
+        "unchanged": 7,
+        "changed": [
+          {
+            "path": "backend/internal/service/catalog_pricing.go",
+            "old_sha256": "42b7512d567289b04ad6bcd7fc8d94a57783c7be10a12721ab65d1c051e06fe3",
+            "new_sha256": "47685fa5d1bcd4cd3817fe344e925c4772a8b82e1acdfdc9de8306038937a761"
+          }
+        ],
+        "replacement_evidence": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/correction-validation.json",
+        "original_artifacts": "与首轮相同且校验通过，历史阶段记录不修改"
+      },
+      "s2.3": {
+        "input_files": 7,
+        "unchanged": 7,
+        "changed": [],
+        "replacement_evidence": null,
+        "original_artifacts": "与首轮相同且校验通过，历史阶段记录不修改"
+      },
+      "s2.4": {
+        "input_files": 15,
+        "unchanged": 15,
+        "changed": [],
+        "replacement_evidence": null,
+        "original_artifacts": "与首轮相同且校验通过，历史阶段记录不修改"
+      },
+      "s2.5": {
+        "input_files": 5,
+        "unchanged": 5,
+        "changed": [],
+        "replacement_evidence": null,
+        "original_artifacts": "与首轮相同且校验通过，历史阶段记录不修改"
+      },
+      "s2.6": {
+        "input_files": 13,
+        "unchanged": 13,
+        "changed": [],
+        "replacement_evidence": null,
+        "original_artifacts": "与首轮相同且校验通过，历史阶段记录不修改"
+      }
+    }
+  },
+  "source_scope": {
+    "task": "S2.7",
+    "stable_candidate": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "scope_base": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+    "s2_changed_application_files": [
+      "M\tbackend/cmd/server/wire_gen.go",
+      "M\tbackend/internal/handler/available_channel_handler.go",
+      "A\tbackend/internal/handler/available_model_catalog.go",
+      "A\tbackend/internal/handler/available_model_catalog_test.go",
+      "A\tbackend/internal/repository/available_catalog_contract_integration_test.go",
+      "M\tbackend/internal/service/billing_context_schedule.go",
+      "M\tbackend/internal/service/billing_service.go",
+      "A\tbackend/internal/service/catalog_pricing.go",
+      "A\tbackend/internal/service/catalog_pricing_test.go",
+      "A\tbackend/internal/service/channel_catalog.go",
+      "M\tbackend/internal/service/model_pricing_resolver.go",
+      "M\tbackend/internal/service/pricing_service.go",
+      "A\tfrontend/src/__tests__/fixtures/modelCatalog.ts",
+      "A\tfrontend/src/api/__tests__/channels.catalog.spec.ts",
+      "M\tfrontend/src/api/channels.ts",
+      "A\tfrontend/src/components/channels/ModelCatalogCard.vue",
+      "A\tfrontend/src/components/channels/__tests__/ModelCatalogCard.spec.ts",
+      "M\tfrontend/src/i18n/locales/en/dashboard.ts",
+      "M\tfrontend/src/i18n/locales/zh/dashboard.ts",
+      "A\tfrontend/src/utils/__tests__/modelCatalog.spec.ts",
+      "A\tfrontend/src/utils/modelCatalog.ts",
+      "M\tfrontend/src/views/user/AvailableChannelsView.vue",
+      "A\tfrontend/src/views/user/__tests__/AvailableChannelsView.spec.ts"
+    ],
+    "confirmation": "S2增量无调度/重试/gwpool/结算写入变化；billing_context_schedule提取旧探针参数相同，ModelPricing仅增价格存在性元数据，resolver仅目录注入渠道快照，真实调用保留原ChannelService路径。现有owner对账和回归证据复用。",
+    "s2_migrations": [],
+    "inherited_migration": "251_add_usage_log_timing.sql (S1)",
+    "cumulative_candidate_scope": "S0版本/TPS修复、S1 Responses HTTP/WS计时/终态/迁移与展示、S2目录与价格",
+    "production_delta_from_s26": [
+      "backend/internal/service/catalog_pricing.go (等价if/else改switch，静态检查风格修正)"
+    ],
+    "ci_control_delta_from_personal": [],
+    "independent_review_reused": "原S1/S2只读复核按原行为边界复用；本轮三处最小门禁修正经实际diff与定向测试验证，不声称变更文件hash未变，无新委派",
+    "limits": [
+      "本项仅候选交付与门禁，不更新personal，不发布部署",
+      "不能将此PR门禁当成合并后的personal发布门禁；合并后最新完整SHA仍须其自身成功personal-ready"
+    ],
+    "test_delta_from_s26": [
+      "backend/internal/server/api_contract_test.go (历史用量9项冻结字段预期)",
+      "backend/internal/service/openai_usage_timing_test.go (测试清理显式忽略已关闭连接返回值)"
+    ]
+  },
+  "source_files": {
+    "files": 4380,
+    "unchanged": 4377,
+    "changed": [
+      {
+        "path": "backend/internal/server/api_contract_test.go",
+        "old_sha256": "dbb4611e7a6022b7094f0b341de82e81ab80a414d94f006a6c81f697a9bd2498",
+        "new_sha256": "82b4ca251a72afc181c59b773c8a1f2643e6de800c49676f7a3761c386340dc8"
+      },
+      {
+        "path": "backend/internal/service/catalog_pricing.go",
+        "old_sha256": "42b7512d567289b04ad6bcd7fc8d94a57783c7be10a12721ab65d1c051e06fe3",
+        "new_sha256": "47685fa5d1bcd4cd3817fe344e925c4772a8b82e1acdfdc9de8306038937a761"
+      },
+      {
+        "path": "backend/internal/service/openai_usage_timing_test.go",
+        "old_sha256": "7c3a0cf78b998420faa9ee40043b3a8477bc17255c55e623702d00b47e039459",
+        "new_sha256": "20ab013816ff466c07da2202c8148e18d026b0b84258d354de2838bcb4c01cd1"
+      }
+    ],
+    "billing_scheduler_behavior": "unchanged; catalog平台if/else与switch逐分支等价，其他两处仅测试"
+  },
+  "independent_review_reuse": "S1/S2既有只读复核按原行为边界复用；本轮只修门禁的测试预期/清理及等价switch，自查diff和定向测试，无新委派或fresh独立复核。",
+  "validation_policy": "执行现行必需Personal CI；首轮实际失败诊断后修正3文件，本地定向通过后对最终SHA触发第二次原生PR门禁。不采用未合入CI选择优化，不本地重复完整门禁，不反复rerun同SHA。",
+  "binding_checks": {
+    "task": "S2.7",
+    "result": "passed",
+    "candidate_sha": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "base_sha": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "pr_draft": true,
+    "pr_unmerged": true,
+    "required_check_app": 15368,
+    "required_check_head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "required_check": "personal-ready",
+    "required_check_conclusion": "success",
+    "gate_run": 37982040213,
+    "gate_conclusion": "success",
+    "native_runs": 2,
+    "reruns_same_sha": 0,
+    "dispatches": 0,
+    "remote_refs": {
+      "refs/heads/codex/verify-personal-ci-plus-catalog-s27": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+      "refs/heads/main": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+      "refs/heads/personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92"
+    },
+    "local_and_origin_personal_unchanged": true,
+    "workflow_delta_from_personal": [],
+    "automation_variables_unchanged": true,
+    "candidate_worktree_clean": true,
+    "personal_release_run_for_candidate": false,
+    "production_deploy": "not_executed",
+    "recorded_utc": "2026-10-09T19:58:11.616535+00:00"
+  },
+  "inherited_data_boundary": "S2无迁移；累计候选含S1迁移251，旧应用兼容仅按原固定源码证据，不授权生产回退。",
+  "not_executed": [
+    "合并或更新personal",
+    "个人发布、Release dry run、镜像构建/推送或生产部署",
+    "其他阶段包括S3.1",
+    "新浏览器或本地完整回归（未变边界复用有效证据）"
+  ],
+  "limits": [
+    "PR门禁只绑定本候选；正式personal发布资格必须绑定合并后的完整SHA及其自身成功personal-ready。",
+    "浏览器为合成API；S2.5真实JWT/PG16/Redis/HTTP集成证据独立；生产审计/会话绑定/上游/实际扣款未验证。",
+    "S1第二批平台尚未接入；媒体/请求依赖报价仍unknown；原始HTTP额外字段白名单的非阻断测试覆盖限制继续登记。"
+  ],
+  "artifacts": [
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/baseline.json",
+      "sha256": "1972a6a3c1ccfd9f737960e80781b0568a4b18258fdcda33de148268ecfb7491",
+      "bytes": 3668749
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/candidate-frozen-docs.json",
+      "sha256": "1004a7465a18b90f5004162984168592300d45a63ad457353ae8d54dd734f733",
+      "bytes": 1362
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/candidate.json",
+      "sha256": "ef38367995d5d97edf6e1db098c17593c710da3b9ddd7a1d393bfdad303c8e51",
+      "bytes": 1240
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/scope-checks.json",
+      "sha256": "9d6d38a661d8f866d805dce47702615d97f675d6cf0acc2318cc6186e6296096",
+      "bytes": 2885
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/reuse-checks.json",
+      "sha256": "5ed1b853959230b6cfa610b7601a863a9feb492ccf3368947a43aa01b4f93214",
+      "bytes": 674
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/reuse-final-checks.json",
+      "sha256": "96caf040f0cb0dc98f99f9852156340e020927a941eafed6b171f2ed8ebce6fe",
+      "bytes": 2437
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/source-final-check.json",
+      "sha256": "03c0c8903f34d3dc34b9a93c0166b5bc98db0d518a43fb095ab7bec8297ca610",
+      "bytes": 932
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/correction-validation.json",
+      "sha256": "95d8f3910964800e29f1ec3f8028462f8271902c3e28675a39a2a30445c61381",
+      "bytes": 1685
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/api-contract-targeted.jsonl",
+      "sha256": "7f768c8f6e324c570535ea52822044e0b552fab2bbc976bcd2bf533118a60ab1",
+      "bytes": 11151
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/service-targeted.jsonl",
+      "sha256": "1aba7e3c36ba4e048dabad6e4086b5ff2ae51aaf49e06cd000ed8636b6fc4786",
+      "bytes": 28313
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/gate-binding.json",
+      "sha256": "8d75b238929ff00df5608c63aa22d3db43673d45e2639cf348cd03306d524e44",
+      "bytes": 1088
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/gate-corrected-binding.json",
+      "sha256": "9e0b0ea1519cd197478bf6309f6fba52ddb987aa699cdabf47264f9103fd600c",
+      "bytes": 1188
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/gate-first-final.json",
+      "sha256": "0476f5e5034f28b782556994e0a1c5eaa9da81de1fb2d6e8159f5a6eb32c5e5a",
+      "bytes": 17457
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/backend-test-failed.log",
+      "sha256": "17bb5e94dfed7a9cb93dfdf3595e3f65c21ac33ec67cdac0ae9361e3345048f2",
+      "bytes": 60715
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/backend-lint-failed.log",
+      "sha256": "5e8d6235b488e06b1764f30854432e7faf887185cb076305e8aa27c71dd0973d",
+      "bytes": 25299
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/gate-final.json",
+      "sha256": "2bd59456d5486a7671347ca3ea71c1ac45929cc74aa03cc6f985b0fdd298b822",
+      "bytes": 26561
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/ready-check.json",
+      "sha256": "3f6e25c2bb6730a0b5ebaa171b3d2c09b8ebdaff66b4497ddcaccefe2037f2e1",
+      "bytes": 4480
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/pr-final.json",
+      "sha256": "d8aa083f193c450132dc6990d9ab2e82a8cdcc5ca4acfcc4b13330a6573e12d3",
+      "bytes": 342
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/final-binding-checks.json",
+      "sha256": "469a26b33a93ad20d75070ab14e04ea3d36d1be6696f9001f319516b14c734c2",
+      "bytes": 1077
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/branch-protection.json",
+      "sha256": "0a98de6f01943e012216d03dad07cf6dc98bbc8dd7ab813176cfc48c3e9c4cee",
+      "bytes": 994
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/automation-variables.json",
+      "sha256": "9aec8a0ddbd19bcb9a864f6902f83465d299806ed60a33c69f6e838ef4f121c6",
+      "bytes": 110
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/gate-watch.log",
+      "sha256": "e4bdb9ae1f206f98385fbc7b6c99ae288f16235a20f56bc8e2a2f5af6065c627",
+      "bytes": 28577
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/gate-corrected-watch.log",
+      "sha256": "db67122af1f9f1da3d5c5f1e4818e6c327f46d8eb7d004df378395e49a596b5a",
+      "bytes": 68077
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s27/gate-final.log",
+      "sha256": "ee6ae79a8bcc4c597fea8a36647e85010133c00941f446072c29b49cfa9f9a4a",
+      "bytes": 3420665
+    }
+  ],
+  "external_actions": {
+    "candidate_branch_push": true,
+    "draft_pr_created": true,
+    "native_personal_ci": true,
+    "merged": false,
+    "personal_updated": false,
+    "released": false,
+    "production_deployed": false
+  },
+  "recorded_utc": "2026-10-09T19:58:59.894067+00:00"
+}

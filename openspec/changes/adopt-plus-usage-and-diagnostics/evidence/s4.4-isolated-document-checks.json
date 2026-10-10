@@ -1,0 +1,107 @@
+{
+  "task": "S4.4/isolated-jwt-pg18-browser",
+  "result": "passed",
+  "tree_preservation": [
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head_before": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "application_and_unrelated_preserved": true,
+      "existing_file_count": 4241,
+      "expected_document_edits": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head_before": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "application_and_unrelated_preserved": true,
+      "existing_file_count": 4606,
+      "expected_document_edits": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ]
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "head_before": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+      "application_and_unrelated_preserved": true,
+      "existing_file_count": 4640,
+      "expected_document_edits": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "head_before": "dbb46705b7dd9e933355ff186df7214c4a9b7723",
+      "application_and_unrelated_preserved": true,
+      "existing_file_count": 4308,
+      "expected_document_edits": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ]
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "head_before": "55ef901a45954c8ddba7a1fab00c4805bdc445fb",
+      "application_and_unrelated_preserved": true,
+      "existing_file_count": 4676,
+      "expected_document_edits": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ]
+    }
+  ],
+  "all_22471_baseline_files_accounted_for": true,
+  "journal_old_body_preserved": true,
+  "s44_overall_unchecked": true,
+  "only_s44_1_checked": true,
+  "new_links_checked": 10,
+  "evidence_json_valid": true,
+  "three_document_trees_equal_for_updated_scope": true,
+  "secret_value_scan": "6个真实秘密值均未出现在新增仓库产物；PG/Redis image ID属于可记录构建身份，不作为秘密",
+  "unexpected_app_edits": [],
+  "raw_directory": "/Users/sc/.codex/validation/sub2api-kin/20261009-s44-hostdzire",
+  "document_changes": {
+    "roots": [
+      "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin"
+    ],
+    "changed_existing": [
+      "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+      "docs/dev-journal.md"
+    ],
+    "new_evidence": [
+      "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-candidate.json",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-validation.json",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-reviews.json",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-compose.yaml",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-subagent-digest.json",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-subagent-digest.md",
+      "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-runtime.json"
+    ],
+    "journal_old_body_preserved": true
+  },
+  "new_evidence_artifacts": [
+    "s4.4-isolated-candidate.json",
+    "s4.4-isolated-compose.yaml",
+    "s4.4-isolated-document-checks.json",
+    "s4.4-isolated-reviews.json",
+    "s4.4-isolated-runtime.json",
+    "s4.4-isolated-subagent-digest.json",
+    "s4.4-isolated-subagent-digest.md",
+    "s4.4-isolated-validation.json"
+  ],
+  "existing_anchor_issue": "S3.1历史锚点未改，本轮只核验新增S4.4目标",
+  "not_a_runtime_test": true,
+  "final_access_check": "独立SSH持续转发恢复，health/login200，原应用/运行配置不变",
+  "journal_completion_date": "2026-10-10"
+}

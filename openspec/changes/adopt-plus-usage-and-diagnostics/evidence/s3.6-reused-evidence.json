@@ -1,0 +1,1309 @@
+{
+  "task": "S3.6",
+  "manifests": {
+    "s3.2-validation.json": "f8972524856be32e553a02d9485f5ffe2a758898c68b07a4c3c3415c4ab74f61",
+    "s3.3-validation.json": "8c3859d50380ab23afe4ef4bf99b47a7a95926a7f5fe9a8fd48747327399251e",
+    "s3.4-validation.json": "b1b35a3b9cc32ffe7d284adeed9afa0d3bd3e432aa4b7b3b545087d8a4485a7d",
+    "s3.5-validation.json": "abe9b9930d061db34d3170983d59c2a478d09c4fe79791a673dfb61aa740e0ca",
+    "s3.5-native-fix-validation.json": "ebb9958695130fc7fb10d18b487920e3b18f8ec4d952af507fcf262425233865",
+    "s3.5-native-fix-candidate.json": "b2f7a2415ebbb9390d41362a339a69155e8a69a990a67fc25419051a5514f25d",
+    "s3.5-native-fix-reused-evidence.json": "81d68355d973875873b78a146676d2bbe4561d950c3dc5638e32c104632e9781"
+  },
+  "artifact_checks": [
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-first.jsonl",
+      "expected": "62d8f22df57bd94b4f42cacb8edecee48789d20f79f87fb921113248ee0c48d2",
+      "actual": "62d8f22df57bd94b4f42cacb8edecee48789d20f79f87fb921113248ee0c48d2",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-final.jsonl",
+      "expected": "00b76b525e8333b3d25d8ac63da028a9059f5dfb5ecec839395f4d2ab3538ee8",
+      "actual": "00b76b525e8333b3d25d8ac63da028a9059f5dfb5ecec839395f4d2ab3538ee8",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/1",
+        "s3.5-validation.json/reused_evidence/checks/0",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/handler-regression.jsonl",
+      "expected": "41e11e94eb520ca18b151de0bcecef95b745b879c4927ffc59f2b7ef3aba11b5",
+      "actual": "41e11e94eb520ca18b151de0bcecef95b745b879c4927ffc59f2b7ef3aba11b5",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/2",
+        "s3.5-validation.json/reused_evidence/checks/1",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/1"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/service-regression.jsonl",
+      "expected": "2494fa16fb89926fbca36b5a817232fdad873883e33df80369dbdae6684e92c4",
+      "actual": "2494fa16fb89926fbca36b5a817232fdad873883e33df80369dbdae6684e92c4",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/3",
+        "s3.5-validation.json/reused_evidence/checks/2",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/2"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/admin-detail.jsonl",
+      "expected": "997f627afb35e0d988909828199c8a464cf5f02443e22a25331bf5bd65a3b914",
+      "actual": "997f627afb35e0d988909828199c8a464cf5f02443e22a25331bf5bd65a3b914",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/4",
+        "s3.5-validation.json/reused_evidence/checks/3",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/3"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/user-ownership.jsonl",
+      "expected": "6e43a7fa5e6bf5da3edf04be98018b1013340e41150082bf810ad70d365d97bb",
+      "actual": "6e43a7fa5e6bf5da3edf04be98018b1013340e41150082bf810ad70d365d97bb",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/5",
+        "s3.5-validation.json/reused_evidence/checks/4",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/4"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-attempt-binding.jsonl",
+      "expected": "86f3d2d3103870dd1966da2d28ca8f015b54e01b7acd32fa73a7072007a55c7e",
+      "actual": "86f3d2d3103870dd1966da2d28ca8f015b54e01b7acd32fa73a7072007a55c7e",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/6"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-red.jsonl",
+      "expected": "f4e08bd2bff0fb18d7c4ac9b22de72cab339037ab459a85397c7ecc475426380",
+      "actual": "f4e08bd2bff0fb18d7c4ac9b22de72cab339037ab459a85397c7ecc475426380",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/7"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-green.jsonl",
+      "expected": "65487b94886f2d91c2309f87dbe02ece313af164aaaa580eb582858c7527a520",
+      "actual": "65487b94886f2d91c2309f87dbe02ece313af164aaaa580eb582858c7527a520",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/8"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-connection-binding-red.jsonl",
+      "expected": "cdc0449becb9a59722d81469ae47a00164044d76de492fc1a350d0705670b160",
+      "actual": "cdc0449becb9a59722d81469ae47a00164044d76de492fc1a350d0705670b160",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/9"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-final.jsonl",
+      "expected": "d70ada0f85f923b54984ac10b0c19bfc9fd7f07d61f6e929f1e51fff136906b9",
+      "actual": "d70ada0f85f923b54984ac10b0c19bfc9fd7f07d61f6e929f1e51fff136906b9",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/10",
+        "s3.5-validation.json/reused_evidence/checks/5",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/5"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-race.log",
+      "expected": "9290caf3ed56a46a3d6969ddf76e175f0a6a6eb75072ba524bb9eb4d489897e5",
+      "actual": "9290caf3ed56a46a3d6969ddf76e175f0a6a6eb75072ba524bb9eb4d489897e5",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/11",
+        "s3.5-validation.json/reused_evidence/checks/6",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/6"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-race.log",
+      "expected": "bb1a99acc787cac3f7581c425d23e80d2a2a7ee1b04a546aa8cbb4f6c38c6fed",
+      "actual": "bb1a99acc787cac3f7581c425d23e80d2a2a7ee1b04a546aa8cbb4f6c38c6fed",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/12",
+        "s3.5-validation.json/reused_evidence/checks/7",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/7"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-race.log",
+      "expected": "8eb2feb701fdf3a027ad55578b2f90067090f674cd17a87218c79d4c29763f15",
+      "actual": "8eb2feb701fdf3a027ad55578b2f90067090f674cd17a87218c79d4c29763f15",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/checks/13",
+        "s3.5-validation.json/reused_evidence/checks/8",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/8"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/validate-owner-and-args.log",
+      "expected": "a3b7fef1f26c3fc2f146bd3e4dddad804495d2e6e35ea6e6ef803f2ade302272",
+      "actual": "a3b7fef1f26c3fc2f146bd3e4dddad804495d2e6e35ea6e6ef803f2ade302272",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/validate-owner-and-args"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/dto-unit.log",
+      "expected": "8e54b11ef4c586b61de9253f4255724a8ac546e59ef03ea4fdc589fedf28d06d",
+      "actual": "8e54b11ef4c586b61de9253f4255724a8ac546e59ef03ea4fdc589fedf28d06d",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/dto-unit"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/pg16-integration.log",
+      "expected": "f3874e6d8fa098252f290950c9ad3a301aee03500166bd6946c16d1b194ea1ae",
+      "actual": "f3874e6d8fa098252f290950c9ad3a301aee03500166bd6946c16d1b194ea1ae",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/pg16-integration"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/old-compat-binary.log",
+      "expected": "3164c486d888b677016e0961d52355c8baf7d1aeda3f10fec42636eab1949c85",
+      "actual": "3164c486d888b677016e0961d52355c8baf7d1aeda3f10fec42636eab1949c85",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/old-compat-binary"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-new-before.log",
+      "expected": "e66827e02da557226f314024272b5c7f6854a6d3113f7e4ab1583cd33a827167",
+      "actual": "e66827e02da557226f314024272b5c7f6854a6d3113f7e4ab1583cd33a827167",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/compat-new-before"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-old.log",
+      "expected": "f4365fac7c5cdf6cd4742a27b3eeea7ba2d7d6094d60431b49747fc97317affe",
+      "actual": "f4365fac7c5cdf6cd4742a27b3eeea7ba2d7d6094d60431b49747fc97317affe",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/compat-old"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-new-after.log",
+      "expected": "d1248b1f291dcbf5286b45926380c14c30844e34c9bfe3be8c0b056e220b4df0",
+      "actual": "d1248b1f291dcbf5286b45926380c14c30844e34c9bfe3be8c0b056e220b4df0",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/compat-new-after"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/compat-ledger-and-final-backup.log",
+      "expected": "05fbb4b290b94674b263d33c6a9304861a92359098529fdd05d8a723a5f122e5",
+      "actual": "05fbb4b290b94674b263d33c6a9304861a92359098529fdd05d8a723a5f122e5",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/compat-ledger-and-final-backup"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/storage/candidate-storage-diff.log",
+      "expected": "020c7d8469f283503fd2bcf17687fee2686afaf03fb5da727b239fde5fb7e0e7",
+      "actual": "020c7d8469f283503fd2bcf17687fee2686afaf03fb5da727b239fde5fb7e0e7",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/storage/checks/candidate-storage-diff"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/preserved-s25-journal.md",
+      "expected": "1402c8f380f0ee23b86098887d7f44c6d59b0296533f0662f3e88bf811817c77",
+      "actual": "1402c8f380f0ee23b86098887d7f44c6d59b0296533f0662f3e88bf811817c77",
+      "matches": true,
+      "origins": [
+        "s3.3-validation.json/preservation/missing_worktrees/0/recovered_journal"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/detail-owner-red.actual.log",
+      "expected": "fce1d6b2ed2f229dcbe1b0de33e568e094889118c3b86b88c45eca8596e764e2",
+      "actual": "fce1d6b2ed2f229dcbe1b0de33e568e094889118c3b86b88c45eca8596e764e2",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/detail-owner-red.actual.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/panel-and-i18n-final.log",
+      "expected": "ebcbbc050978f4bc0070c1600e2ec280cf0a5e3f90e310420f5a8c7115523e08",
+      "actual": "ebcbbc050978f4bc0070c1600e2ec280cf0a5e3f90e310420f5a8c7115523e08",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/panel-and-i18n-final.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/detail-regression-final.log",
+      "expected": "00c004e0df2e475c179c8cb599362d8efe51bd16fa0f96410d27f82f8a03e130",
+      "actual": "00c004e0df2e475c179c8cb599362d8efe51bd16fa0f96410d27f82f8a03e130",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/detail-regression-final.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/typecheck.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/typecheck.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/lint-final.log",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/lint-final.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/build.log",
+      "expected": "f20c539c4d477186edc4fabc7f6947f616825e752f3a4af1cea1cc095e2d1607",
+      "actual": "f20c539c4d477186edc4fabc7f6947f616825e752f3a4af1cea1cc095e2d1607",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/build.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/browser-final.log",
+      "expected": "256360af36f2afa192e66c3713a89647aff49c23d88d500035d5b2606b19648b",
+      "actual": "256360af36f2afa192e66c3713a89647aff49c23d88d500035d5b2606b19648b",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/browser-final.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/browser-screens-final.log",
+      "expected": "d5f5045fabd0b8b8459a278e82bdfba8576a59a7ca33a90f2756b7704570aa6a",
+      "actual": "d5f5045fabd0b8b8459a278e82bdfba8576a59a7ca33a90f2756b7704570aa6a",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/log_manifest/browser-screens-final.log"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/qa-results.json",
+      "expected": "f4309d99af1793706afa93cd994163e092080345c1b13d081aca50d1925a1deb",
+      "actual": "f4309d99af1793706afa93cd994163e092080345c1b13d081aca50d1925a1deb",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/artifacts/qa-results.json"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/qa-screen-results.json",
+      "expected": "2db56ff5b04c0654debdf9f5220112108d19c6f0683fef2ca58fd34a8a0e5681",
+      "actual": "2db56ff5b04c0654debdf9f5220112108d19c6f0683fef2ca58fd34a8a0e5681",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/artifacts/qa-screen-results.json"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/zh-light-1440-initial.png",
+      "expected": "fae6813e87de626dc2e703621879ee56aa2d0164d40cae5d58edacc4dc0081b9",
+      "actual": "fae6813e87de626dc2e703621879ee56aa2d0164d40cae5d58edacc4dc0081b9",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/artifacts/zh-light-1440-initial.png"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/zh-light-1440-partial.png",
+      "expected": "fae6813e87de626dc2e703621879ee56aa2d0164d40cae5d58edacc4dc0081b9",
+      "actual": "fae6813e87de626dc2e703621879ee56aa2d0164d40cae5d58edacc4dc0081b9",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/artifacts/zh-light-1440-partial.png"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/en-dark-390-initial.png",
+      "expected": "912f3424798a10b2e886e2ca9009bca6c569a8ec1349629341db9bc03a03663d",
+      "actual": "912f3424798a10b2e886e2ca9009bca6c569a8ec1349629341db9bc03a03663d",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/artifacts/en-dark-390-initial.png"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/en-dark-390-partial.png",
+      "expected": "a15d9f0805945db99a0c63f56ecc203c37de4bb16f21b9048420afceafd6a040",
+      "actual": "a15d9f0805945db99a0c63f56ecc203c37de4bb16f21b9048420afceafd6a040",
+      "matches": true,
+      "origins": [
+        "s3.4-validation.json/artifacts/en-dark-390-partial.png"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/http-first.jsonl",
+      "expected": "e9bcbd806a44123d138ce6bb3c6b91ed4d07453a26f105f56b29870eda86762d",
+      "actual": "e9bcbd806a44123d138ce6bb3c6b91ed4d07453a26f105f56b29870eda86762d",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/checks/0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/http-final.jsonl",
+      "expected": "4321254c98b6eb99afbc4e87dba908fcec7c2b9a2371c8851e4010571f3f6baa",
+      "actual": "4321254c98b6eb99afbc4e87dba908fcec7c2b9a2371c8851e4010571f3f6baa",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/checks/1",
+        "s3.5-native-fix-reused-evidence.json/http_and_differential/0"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/differential-old.jsonl",
+      "expected": "6723810391f0d1f0ad881d5e8436ac64511eba2085a0f048db491b1d89086558",
+      "actual": "6723810391f0d1f0ad881d5e8436ac64511eba2085a0f048db491b1d89086558",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/checks/2",
+        "s3.5-native-fix-reused-evidence.json/http_and_differential/1"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/differential-current.jsonl",
+      "expected": "44496d03dfe703d1943e3ed000de0b38b5fb42213c3947f6d72014275a489ae6",
+      "actual": "44496d03dfe703d1943e3ed000de0b38b5fb42213c3947f6d72014275a489ae6",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/checks/3",
+        "s3.5-native-fix-reused-evidence.json/http_and_differential/2"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/unit-04.jsonl",
+      "expected": "c4817a72112965a78946930cba9327a0338f04ee872b4068730923104c1303c9",
+      "actual": "c4817a72112965a78946930cba9327a0338f04ee872b4068730923104c1303c9",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/checks/4"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/race-02.jsonl",
+      "expected": "b66065cbc31b6b3f7dbbc35775a9ab26db8134be6bc54bbfd8de7c825f0dc998",
+      "actual": "b66065cbc31b6b3f7dbbc35775a9ab26db8134be6bc54bbfd8de7c825f0dc998",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/checks/5"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/service-final.jsonl",
+      "expected": "98f4aa3e49ac69de26e7d78775458fe06c77d1ccbfc9e6e9cb604150f8c42e27",
+      "actual": "98f4aa3e49ac69de26e7d78775458fe06c77d1ccbfc9e6e9cb604150f8c42e27",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/reused_evidence/checks/9",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/9"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/service-regression-final.log",
+      "expected": "71f1b5b18a44108fb66abdbd0215eb3af83827aa25d004e1b39cc48f13084fef",
+      "actual": "71f1b5b18a44108fb66abdbd0215eb3af83827aa25d004e1b39cc48f13084fef",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/reused_evidence/checks/10",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/10"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/core-race-final.log",
+      "expected": "249b402975f219efcda628e7f540aa17b8da1c44d65a07eb587901e229e09856",
+      "actual": "249b402975f219efcda628e7f540aa17b8da1c44d65a07eb587901e229e09856",
+      "matches": true,
+      "origins": [
+        "s3.5-validation.json/reused_evidence/checks/11",
+        "s3.5-native-fix-reused-evidence.json/historical_artifacts/11"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/handler-04.jsonl",
+      "expected": "efb295d773fb25006e91dbb2ecc40fb73e586323f98a79c6ccd3cb2d552eb0fc",
+      "actual": "efb295d773fb25006e91dbb2ecc40fb73e586323f98a79c6ccd3cb2d552eb0fc",
+      "matches": true,
+      "origins": [
+        "s3.5-native-fix-validation.json/root_checks/handler-04"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/native-regression-03.jsonl",
+      "expected": "c9138be24a04760354037db9fdc6b21a72c3b27c6466a640f9a065ecd113b871",
+      "actual": "c9138be24a04760354037db9fdc6b21a72c3b27c6466a640f9a065ecd113b871",
+      "matches": true,
+      "origins": [
+        "s3.5-native-fix-validation.json/root_checks/native-regression-03"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/native-safety-01.jsonl",
+      "expected": "6df2537b4f797797e523aaea5712e09e444d3fb286de9337697900c9e9f338a9",
+      "actual": "6df2537b4f797797e523aaea5712e09e444d3fb286de9337697900c9e9f338a9",
+      "matches": true,
+      "origins": [
+        "s3.5-native-fix-validation.json/root_checks/native-safety-01"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/ops.jsonl",
+      "expected": "04a7c82a70891a2a599593e7b171e7ce4d87119862a6a1d67016e66b96a37ec5",
+      "actual": "04a7c82a70891a2a599593e7b171e7ce4d87119862a6a1d67016e66b96a37ec5",
+      "matches": true,
+      "origins": [
+        "s3.5-native-fix-validation.json/root_checks/ops"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/handler-race-03.jsonl",
+      "expected": "8145255efa94e9d780dbcd11a3ae72c73f89d3fcf986d9b6cd12e117299524c9",
+      "actual": "8145255efa94e9d780dbcd11a3ae72c73f89d3fcf986d9b6cd12e117299524c9",
+      "matches": true,
+      "origins": [
+        "s3.5-native-fix-validation.json/root_checks/handler-race-03"
+      ]
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/ops-race.jsonl",
+      "expected": "aabb57f359bb1b72f488cd05f5870c1ddac545e676db3eb9b24e8083414601a6",
+      "actual": "aabb57f359bb1b72f488cd05f5870c1ddac545e676db3eb9b24e8083414601a6",
+      "matches": true,
+      "origins": [
+        "s3.5-native-fix-validation.json/root_checks/ops-race"
+      ]
+    }
+  ],
+  "artifact_summary": {
+    "checked": 53,
+    "matched": 53,
+    "unavailable_or_changed": []
+  },
+  "final_root_checks": {
+    "handler-04": {
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/handler-04.jsonl",
+      "top_level_pass": 18,
+      "test_pass_events": 27,
+      "source_checks": {
+        "backend/internal/service/ops_upstream_context.go": {
+          "expected": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "matches": true
+        },
+        "backend/internal/service/ops_stream_turn_ownership_test.go": {
+          "expected": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "actual": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "matches": true
+        },
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": {
+          "expected": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "actual": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_ingress.go": {
+          "expected": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "actual": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_native_resume_test.go": {
+          "expected": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "actual": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_payload.go": {
+          "expected": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "actual": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder.go": {
+          "expected": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "actual": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_handler.go": {
+          "expected": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "actual": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": {
+          "expected": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "actual": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "matches": true
+        },
+        "backend/go.mod": {
+          "expected": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "actual": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "matches": true
+        },
+        "backend/go.sum": {
+          "expected": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "actual": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "matches": true
+        }
+      },
+      "all_inputs_match": true,
+      "observed_fail_events": [],
+      "observed_package_pass": [
+        "github.com/Wei-Shaw/sub2api/internal/handler"
+      ],
+      "observed_top_level_pass": 18,
+      "observed_all_test_pass": 27,
+      "inputs_match_initial_candidate": true,
+      "final_changed_input_paths": [
+        "backend/internal/service/openai_ws_native_resume_test.go"
+      ],
+      "reuse_after_correction": "按未改变的运行/并发/业务owner边界复用；native与诊断受改测试helper/断言由本轮35/114重新执行，修正候选自身CI另行绑定。"
+    },
+    "native-regression-03": {
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/native-regression-03.jsonl",
+      "top_level_pass": 9,
+      "test_pass_events": 9,
+      "source_checks": {
+        "backend/internal/service/ops_upstream_context.go": {
+          "expected": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "matches": true
+        },
+        "backend/internal/service/ops_stream_turn_ownership_test.go": {
+          "expected": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "actual": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "matches": true
+        },
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": {
+          "expected": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "actual": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_ingress.go": {
+          "expected": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "actual": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_native_resume_test.go": {
+          "expected": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "actual": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_payload.go": {
+          "expected": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "actual": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder.go": {
+          "expected": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "actual": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_handler.go": {
+          "expected": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "actual": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": {
+          "expected": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "actual": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "matches": true
+        },
+        "backend/go.mod": {
+          "expected": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "actual": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "matches": true
+        },
+        "backend/go.sum": {
+          "expected": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "actual": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "matches": true
+        }
+      },
+      "all_inputs_match": true,
+      "observed_fail_events": [],
+      "observed_package_pass": [
+        "github.com/Wei-Shaw/sub2api/internal/service"
+      ],
+      "observed_top_level_pass": 9,
+      "observed_all_test_pass": 9,
+      "inputs_match_initial_candidate": true,
+      "final_changed_input_paths": [
+        "backend/internal/service/openai_ws_native_resume_test.go"
+      ],
+      "reuse_after_correction": "按未改变的运行/并发/业务owner边界复用；native与诊断受改测试helper/断言由本轮35/114重新执行，修正候选自身CI另行绑定。"
+    },
+    "native-safety-01": {
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/native-safety-01.jsonl",
+      "top_level_pass": 7,
+      "test_pass_events": 24,
+      "source_checks": {
+        "backend/internal/service/ops_upstream_context.go": {
+          "expected": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "matches": true
+        },
+        "backend/internal/service/ops_stream_turn_ownership_test.go": {
+          "expected": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "actual": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "matches": true
+        },
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": {
+          "expected": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "actual": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_ingress.go": {
+          "expected": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "actual": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_native_resume_test.go": {
+          "expected": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "actual": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_payload.go": {
+          "expected": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "actual": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder.go": {
+          "expected": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "actual": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_handler.go": {
+          "expected": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "actual": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": {
+          "expected": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "actual": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "matches": true
+        },
+        "backend/go.mod": {
+          "expected": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "actual": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "matches": true
+        },
+        "backend/go.sum": {
+          "expected": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "actual": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "matches": true
+        }
+      },
+      "all_inputs_match": true,
+      "observed_fail_events": [],
+      "observed_package_pass": [
+        "github.com/Wei-Shaw/sub2api/internal/service"
+      ],
+      "observed_top_level_pass": 7,
+      "observed_all_test_pass": 24,
+      "inputs_match_initial_candidate": true,
+      "final_changed_input_paths": [
+        "backend/internal/service/openai_ws_native_resume_test.go"
+      ],
+      "reuse_after_correction": "按未改变的运行/并发/业务owner边界复用；native与诊断受改测试helper/断言由本轮35/114重新执行，修正候选自身CI另行绑定。"
+    },
+    "ops": {
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/ops.jsonl",
+      "top_level_pass": 41,
+      "test_pass_events": 61,
+      "source_checks": {
+        "backend/internal/service/ops_upstream_context.go": {
+          "expected": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "matches": true
+        },
+        "backend/internal/service/ops_stream_turn_ownership_test.go": {
+          "expected": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "actual": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "matches": true
+        },
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": {
+          "expected": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "actual": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_ingress.go": {
+          "expected": "16968568de149e0541e0044323060a5c48ba2d04d1dcfd1f01f66be930db1172",
+          "actual": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "matches": false
+        },
+        "backend/internal/service/openai_ws_native_resume_test.go": {
+          "expected": "a540f48abead368dfb85b4b553ccf1fcd17a8ec39df722c569b7b39bd926cdf6",
+          "actual": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "matches": false
+        },
+        "backend/internal/service/openai_ws_forwarder_payload.go": {
+          "expected": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "actual": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder.go": {
+          "expected": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "actual": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_handler.go": {
+          "expected": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf",
+          "actual": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "matches": false
+        },
+        "backend/go.mod": {
+          "expected": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "actual": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "matches": true
+        },
+        "backend/go.sum": {
+          "expected": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "actual": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "matches": true
+        }
+      },
+      "all_inputs_match": false,
+      "reuse_decision": "仅复用Ops日志/去重及其并发owner；不作为已变native重放、当前模型/定价整体证明，这些由最后handler/native/race覆盖。",
+      "unchanged_owner_inputs": [
+        "backend/internal/service/ops_upstream_context.go",
+        "backend/internal/service/ops_stream_turn_ownership_test.go"
+      ],
+      "changed_global_inputs": [
+        "backend/internal/service/openai_ws_forwarder_ingress.go",
+        "backend/internal/service/openai_ws_native_resume_test.go",
+        "backend/internal/handler/openai_gateway_handler.go"
+      ],
+      "observed_fail_events": [],
+      "observed_package_pass": [
+        "github.com/Wei-Shaw/sub2api/internal/handler",
+        "github.com/Wei-Shaw/sub2api/internal/service"
+      ],
+      "observed_top_level_pass": 41,
+      "observed_all_test_pass": 61,
+      "inputs_match_initial_candidate": false,
+      "final_changed_input_paths": [
+        "backend/internal/service/openai_ws_forwarder_ingress.go",
+        "backend/internal/service/openai_ws_native_resume_test.go",
+        "backend/internal/handler/openai_gateway_handler.go"
+      ],
+      "reuse_after_correction": "按未改变的运行/并发/业务owner边界复用；native与诊断受改测试helper/断言由本轮35/114重新执行，修正候选自身CI另行绑定。"
+    },
+    "handler-race-03": {
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/handler-race-03.jsonl",
+      "top_level_pass": 4,
+      "test_pass_events": 11,
+      "source_checks": {
+        "backend/internal/service/ops_upstream_context.go": {
+          "expected": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "matches": true
+        },
+        "backend/internal/service/ops_stream_turn_ownership_test.go": {
+          "expected": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "actual": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "matches": true
+        },
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": {
+          "expected": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "actual": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_ingress.go": {
+          "expected": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "actual": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_native_resume_test.go": {
+          "expected": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "actual": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_payload.go": {
+          "expected": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "actual": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder.go": {
+          "expected": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "actual": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_handler.go": {
+          "expected": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "actual": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": {
+          "expected": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "actual": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+          "matches": true
+        },
+        "backend/go.mod": {
+          "expected": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "actual": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "matches": true
+        },
+        "backend/go.sum": {
+          "expected": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "actual": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "matches": true
+        }
+      },
+      "all_inputs_match": true,
+      "observed_fail_events": [],
+      "observed_package_pass": [
+        "github.com/Wei-Shaw/sub2api/internal/handler"
+      ],
+      "observed_top_level_pass": 4,
+      "observed_all_test_pass": 11,
+      "inputs_match_initial_candidate": true,
+      "final_changed_input_paths": [
+        "backend/internal/service/openai_ws_native_resume_test.go"
+      ],
+      "reuse_after_correction": "按未改变的运行/并发/业务owner边界复用；native与诊断受改测试helper/断言由本轮35/114重新执行，修正候选自身CI另行绑定。"
+    },
+    "ops-race": {
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35-native-fix/ops-race.jsonl",
+      "top_level_pass": 22,
+      "test_pass_events": 55,
+      "source_checks": {
+        "backend/internal/service/ops_upstream_context.go": {
+          "expected": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+          "matches": true
+        },
+        "backend/internal/service/ops_stream_turn_ownership_test.go": {
+          "expected": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "actual": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+          "matches": true
+        },
+        "backend/internal/handler/s35_ws_routing_behavior_test.go": {
+          "expected": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "actual": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder_ingress.go": {
+          "expected": "a768734a8ab51126404bc0a65be16c5d45880f61d3a8638961ebdb9b248c20ed",
+          "actual": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+          "matches": false
+        },
+        "backend/internal/service/openai_ws_native_resume_test.go": {
+          "expected": "c18840a10909bae43533484498f35eebe33ee4ca3c54bfa729c95e2e5723313a",
+          "actual": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+          "matches": false
+        },
+        "backend/internal/service/openai_ws_forwarder_payload.go": {
+          "expected": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "actual": "2cc0f3988b3a1124a34db8638fbe4b1f8b2b4a7b356fee74ac574987d1cc7be5",
+          "matches": true
+        },
+        "backend/internal/service/openai_ws_forwarder.go": {
+          "expected": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "actual": "35910e9e58777fa1948423d93b4b30be6d944369a409811fa7fc88c65f183ed7",
+          "matches": true
+        },
+        "backend/internal/handler/openai_gateway_handler.go": {
+          "expected": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf",
+          "actual": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+          "matches": false
+        },
+        "backend/go.mod": {
+          "expected": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "actual": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+          "matches": true
+        },
+        "backend/go.sum": {
+          "expected": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "actual": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+          "matches": true
+        }
+      },
+      "all_inputs_match": false,
+      "reuse_decision": "仅复用Ops日志/去重及其并发owner；不作为已变native重放、当前模型/定价整体证明，这些由最后handler/native/race覆盖。",
+      "unchanged_owner_inputs": [
+        "backend/internal/service/ops_upstream_context.go",
+        "backend/internal/service/ops_stream_turn_ownership_test.go"
+      ],
+      "changed_global_inputs": [
+        "backend/internal/service/openai_ws_forwarder_ingress.go",
+        "backend/internal/service/openai_ws_native_resume_test.go",
+        "backend/internal/handler/openai_gateway_handler.go"
+      ],
+      "observed_fail_events": [],
+      "observed_package_pass": [
+        "github.com/Wei-Shaw/sub2api/internal/handler",
+        "github.com/Wei-Shaw/sub2api/internal/service"
+      ],
+      "observed_top_level_pass": 22,
+      "observed_all_test_pass": 55,
+      "inputs_match_initial_candidate": false,
+      "final_changed_input_paths": [
+        "backend/internal/service/openai_ws_forwarder_ingress.go",
+        "backend/internal/service/openai_ws_native_resume_test.go",
+        "backend/internal/handler/openai_gateway_handler.go"
+      ],
+      "reuse_after_correction": "按未改变的运行/并发/业务owner边界复用；native与诊断受改测试helper/断言由本轮35/114重新执行，修正候选自身CI另行绑定。"
+    }
+  },
+  "source_checks": {
+    "backend/internal/handler/admin/ops_handler.go": {
+      "expected": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "actual": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "matches_final": true
+    },
+    "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": {
+      "expected": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "actual": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "matches_final": true
+    },
+    "backend/internal/handler/grok_audio.go": {
+      "expected": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "actual": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "matches_final": true
+    },
+    "backend/internal/handler/ops_error_logger.go": {
+      "expected": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "actual": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "matches_final": true
+    },
+    "backend/internal/handler/ops_routing_diagnostics_context_test.go": {
+      "expected": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "actual": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "matches_final": true
+    },
+    "backend/internal/handler/ops_routing_diagnostics_log_test.go": {
+      "expected": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "actual": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "matches_final": true
+    },
+    "backend/internal/repository/ops_repo.go": {
+      "expected": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "actual": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "matches_final": true
+    },
+    "backend/internal/repository/ops_repo_args_test.go": {
+      "expected": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "actual": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "matches_final": true
+    },
+    "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": {
+      "expected": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "actual": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "matches_final": true
+    },
+    "backend/internal/service/ops_models.go": {
+      "expected": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "actual": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "matches_final": true
+    },
+    "backend/internal/service/ops_port.go": {
+      "expected": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "actual": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "matches_final": true
+    },
+    "backend/internal/service/ops_routing_diagnostics_dto_test.go": {
+      "expected": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "actual": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "matches_final": true
+    },
+    "backend/internal/service/ops_routing_diagnostics_log_test.go": {
+      "expected": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "actual": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "df2f7bdcf29c6de9e5ce6030c8ab97e56895b03ba3ad5465077ef061e46f9905",
+      "matches_final": false,
+      "final_validation": "5文件等价lint修正；35/114及追加并发1/1、S3四包不限输出lint通过。"
+    },
+    "backend/internal/service/ops_service.go": {
+      "expected": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "actual": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "matches_final": true
+    },
+    "backend/internal/service/ops_upstream_context.go": {
+      "expected": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+      "actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+      "matches_final": true
+    },
+    "backend/internal/service/routing_diagnostics_validation.go": {
+      "expected": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "actual": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "matches_final": true
+    },
+    "backend/migrations/252_add_ops_routing_diagnostics.sql": {
+      "expected": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac",
+      "actual": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac",
+      "matches_final": true
+    },
+    "backend/internal/service/openai_routing_diagnostics_test.go": {
+      "expected": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "actual": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "matches_final": true
+    },
+    "backend/internal/service/routing_diagnostics.go": {
+      "expected": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "actual": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "01a33968033c5b9d9c704c22259d5a331e6ce5f6aec4915fd59299541b82c33b",
+      "matches_final": false,
+      "final_validation": "5文件等价lint修正；35/114及追加并发1/1、S3四包不限输出lint通过。"
+    },
+    "backend/internal/service/openai_gateway_scheduling.go": {
+      "expected": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+      "actual": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "c64018bf61691a43f763bdfbd5dd708a2e5d8ecabca748ea28611e106d5be6ec",
+      "matches_final": false,
+      "final_validation": "5文件等价lint修正；35/114及追加并发1/1、S3四包不限输出lint通过。"
+    },
+    "backend/internal/service/openai_account_scheduler.go": {
+      "expected": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "actual": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "matches_final": true
+    },
+    "backend/internal/service/gateway_service.go": {
+      "expected": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "actual": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "matches_final": true
+    },
+    "backend/internal/service/openai_account_scheduler_test.go": {
+      "expected": "960da7cdd62b986c99e9babb575363ae3a0287bc0179d6d4a5f2581793195d9a",
+      "actual": "960da7cdd62b986c99e9babb575363ae3a0287bc0179d6d4a5f2581793195d9a",
+      "matches": true,
+      "origin": "producer_storage_inputs",
+      "final_actual": "960da7cdd62b986c99e9babb575363ae3a0287bc0179d6d4a5f2581793195d9a",
+      "matches_final": true
+    },
+    "backend/internal/server/routes/admin.go": {
+      "expected": "548b84e60b1c6faa18164af34986067743e755ae1993782267448e6ea5ab780d",
+      "actual": "548b84e60b1c6faa18164af34986067743e755ae1993782267448e6ea5ab780d",
+      "matches": true,
+      "origin": "s3.3 unchanged_permission_owners",
+      "final_actual": "548b84e60b1c6faa18164af34986067743e755ae1993782267448e6ea5ab780d",
+      "matches_final": true
+    },
+    "backend/internal/server/routes/user.go": {
+      "expected": "77bdb755320cd6a95e9caaab4716c3fb5cedbdde6f75fbbe8d847e53adee25a0",
+      "actual": "77bdb755320cd6a95e9caaab4716c3fb5cedbdde6f75fbbe8d847e53adee25a0",
+      "matches": true,
+      "origin": "s3.3 unchanged_permission_owners",
+      "final_actual": "77bdb755320cd6a95e9caaab4716c3fb5cedbdde6f75fbbe8d847e53adee25a0",
+      "matches_final": true
+    },
+    "backend/internal/server/middleware/admin_auth.go": {
+      "expected": "f878899e7e03bda35ce8774a477800c96ad710482132a4672c8b1bfea4adf123",
+      "actual": "f878899e7e03bda35ce8774a477800c96ad710482132a4672c8b1bfea4adf123",
+      "matches": true,
+      "origin": "s3.3 unchanged_permission_owners",
+      "final_actual": "f878899e7e03bda35ce8774a477800c96ad710482132a4672c8b1bfea4adf123",
+      "matches_final": true
+    },
+    "backend/internal/service/ops_user_error.go": {
+      "expected": "938909d29d66554e0b97819c8573546606d31d1819b2ae8f46fdb2049091a3c9",
+      "actual": "938909d29d66554e0b97819c8573546606d31d1819b2ae8f46fdb2049091a3c9",
+      "matches": true,
+      "origin": "s3.3 unchanged_permission_owners",
+      "final_actual": "938909d29d66554e0b97819c8573546606d31d1819b2ae8f46fdb2049091a3c9",
+      "matches_final": true
+    },
+    "backend/internal/service/ops_service_user_error_test.go": {
+      "expected": "cd8afdefb4de224cff9e038fb6020f488026961d918bd665c29c02b7feeb7d60",
+      "actual": "cd8afdefb4de224cff9e038fb6020f488026961d918bd665c29c02b7feeb7d60",
+      "matches": true,
+      "origin": "s3.3 unchanged_permission_owners",
+      "final_actual": "cd8afdefb4de224cff9e038fb6020f488026961d918bd665c29c02b7feeb7d60",
+      "matches_final": true
+    }
+  },
+  "source_summary": {
+    "checked": 28,
+    "matched": 28
+  },
+  "frontend_dependency_migration_delta_after_s34": [],
+  "scope": "只复用原可观察边界；历史中间输入与无输入记录不作为最终候选整体证明。",
+  "storage_and_frontend_proof": {
+    "s33_to_current_storage_delta": [],
+    "s34_to_current_frontend_delta": []
+  },
+  "initial_candidate_sha": "cc068ceb9f1fe2ad31397f75a209aea5b0800ad9",
+  "final_candidate_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+  "correction_validation": {
+    "candidate_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+    "files": [
+      "backend/internal/service/openai_gateway_scheduling.go",
+      "backend/internal/service/openai_ws_native_resume_test.go",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go",
+      "backend/internal/service/routing_diagnostics.go",
+      "backend/internal/service/routing_diagnostics_test.go"
+    ],
+    "changes": "仅无调用wrapper、保证已存在的类型断言和测试lint修正；不改变调度/计费/诊断合同",
+    "targeted": {
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestOpenAIWSNativeLaterTurn|TestOpsRoutingDiagnostics|TestRoutingDiagnostics|TestOpenAIRoutingDiagnostics|TestOpenAIGatewayService_SelectAccountWithScheduler_(NoAvailableErrorReportsEmptyPool|NoAvailableErrorReportsModelNotSupported|DefaultDisabledUsesLegacyLoadAwareness|EnabledUsesAdvancedPreviousResponseRouting))' -count=1",
+      "exit_code": 0,
+      "top_level_pass": 35,
+      "test_pass_events": 114,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-targeted.jsonl",
+      "sha256": "376c6b5abb23b10b237de7386db885dc5c77488aecdc9bc51bde34190d72c153"
+    },
+    "lint": {
+      "command": "golangci-lint 2.14.0 run ./internal/service --new-from-rev=cc068ceb9f1fe2ad31397f75a209aea5b0800ad9 --timeout=5m",
+      "exit_code": 0,
+      "result": "0 issues",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-lint.log",
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    "independent_review_reuse": "fresh critical_reviewer审查cc068ceb9完整S3；五文件等价lint修正由主代理实际diff/完整最小owner/调用者核对及targeted/lint验证，未新增fresh最终全文复核。",
+    "corrected_source_sha256": {
+      "backend/internal/service/openai_gateway_scheduling.go": "c64018bf61691a43f763bdfbd5dd708a2e5d8ecabca748ea28611e106d5be6ec",
+      "backend/internal/service/openai_ws_native_resume_test.go": "43631a62d6e131912d78b00c85d1de0b06500c83a250ede9ed9bd195b715c495",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go": "df2f7bdcf29c6de9e5ce6030c8ab97e56895b03ba3ad5465077ef061e46f9905",
+      "backend/internal/service/routing_diagnostics.go": "01a33968033c5b9d9c704c22259d5a331e6ce5f6aec4915fd59299541b82c33b",
+      "backend/internal/service/routing_diagnostics_test.go": "af1743ef76d322fae410afb07a4e84adc7594f6d1c3b8a4efb9a761425cfca50"
+    },
+    "diff_sha256": "4bb09779da4609237f5e0242db2018acb3cc71eaba73e39634f2cf9030bbecc7",
+    "diff_stat": "5 files changed, 22 insertions(+), 24 deletions(-)",
+    "unused_wrapper_has_no_callers": true,
+    "constructor_invariant": "beginRoutingDiagnosticsSelection先调用EnsureRoutingDiagnosticsRequest；私有key的实际值必为非nil routingDiagnosticsRequest，逗号ok写法不新增回退/吞错。",
+    "production_contract_changes": [],
+    "lint_output_limit_diagnosis": "golangci-lint 2.14.0默认max-same-issues=3；首轮7项中同文案3项导致第8项错误返回未显示；本地new-from-rev筛选遗漏未改测试。",
+    "confirmed_lint_issue_count": 8,
+    "final_lint_checks": [
+      {
+        "command": "golangci-lint run ./internal/service --max-same-issues=0 --max-issues-per-linter=0 --timeout=5m",
+        "exit_code": 0,
+        "result": "0 issues",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-service-lint-final.log",
+        "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+      },
+      {
+        "command": "golangci-lint run ./internal/handler ./internal/handler/admin ./internal/repository --max-same-issues=0 --max-issues-per-linter=0 --timeout=5m",
+        "exit_code": 0,
+        "result": "0 issues",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-other-s3-lint-released-lock.log",
+        "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+      }
+    ],
+    "last_affected_test": {
+      "command": "go test -tags=unit -json ./internal/service -run '^TestRoutingDiagnosticsConcurrentSequenceAndPublish$' -count=1",
+      "exit_code": 0,
+      "top_level_pass": 1,
+      "test_pass_events": 1,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-concurrent-final.jsonl",
+      "sha256": "1fae3186ccb62113ca14f4387a8d0d7448c043daadc2af2a5896e8cee408d3bc"
+    },
+    "environment_failed_check": {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-other-s3-lint-final.log",
+      "exit_code": 3,
+      "cause": "linter全局并行锁阻止启动；等service lint退出后顺序运行剩余S3包通过。"
+    }
+  },
+  "initial_summary_preserved": true,
+  "final_source_summary": {
+    "checked": 28,
+    "matched": 25,
+    "changed_by_lint_correction": [
+      "backend/internal/service/ops_routing_diagnostics_log_test.go",
+      "backend/internal/service/routing_diagnostics.go",
+      "backend/internal/service/openai_gateway_scheduling.go"
+    ]
+  }
+}

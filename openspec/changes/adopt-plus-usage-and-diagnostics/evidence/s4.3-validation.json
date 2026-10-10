@@ -1,0 +1,450 @@
+{
+  "task": "S4.3",
+  "application_sha": "35962a802fdc499639c9c861072f25774ccba50b",
+  "raw_directory": "/Users/sc/.codex/validation/sub2api-kin/20261009-s43",
+  "result": "passed_with_explicit_scope_limits",
+  "final_checks": [
+    {
+      "log": "service-status-pg16-final.log",
+      "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true SUB2API_TEST_POSTGRES_IMAGE=postgres:16-alpine go test -tags integration ./internal/repository -run '^TestServiceStatus' -count=1 -v",
+      "result": "passed",
+      "top_level_integration": 13,
+      "same_package_logic_top_level": 7,
+      "covers": "源单/批/best-effort/fallback、隐私、计费去重缺口；epoch/version/原子提交/领导锁/50k回滚/TTL/平台过滤/持久缺口；可见性恢复与共享锁/获锁后基线/NULL比例"
+    },
+    {
+      "log": "service-status-lifecycle-race-final.log",
+      "command": "go test -race ./internal/handler ./internal/service -run '^(TestServiceStatus|TestOpsErrorLogWorkersDrainOwnedQueue)' -count=1 -v",
+      "result": "passed",
+      "top_level": 21,
+      "covers": "HTTP/WS观察归属、配置/指标、reporter生命周期与停止错误、Ops panic/排空、handler合同"
+    },
+    {
+      "log": "backend-build-review-final.log",
+      "command": "go build -o <validation>/server-final ./cmd/server",
+      "result": "passed"
+    },
+    {
+      "log": "root-repository-unit-final.jsonl",
+      "result": "passed",
+      "top_level": 17,
+      "pass_items": 26,
+      "covers": "原SQL尾部位置及新增nullable参数的既有fixture合同"
+    },
+    {
+      "log": "root-integration-unit.jsonl",
+      "result": "selected_handler_routes_and_service_passed",
+      "top_level_handler": 4,
+      "top_level_routes": 2,
+      "top_level_service": 1,
+      "limitation": "此首轮同日志仓储fixture失败已在后续定向26 PASS关闭；认证测试不等于真实JWT"
+    },
+    {
+      "log": "frontend-tests-final.log",
+      "result": "passed",
+      "files": 5,
+      "tests": 34
+    },
+    {
+      "logs": [
+        "frontend-typecheck-final.log",
+        "frontend-lint-final.log",
+        "frontend-build.log"
+      ],
+      "result": "passed",
+      "lint_changed_files": 16
+    },
+    {
+      "logs": [
+        "browser-qa.log",
+        "browser-mobile-layout-final.log"
+      ],
+      "result": "passed",
+      "browser": "Chromium bundled Playwright 1.62.1",
+      "viewports": [
+        "中文1440x1000",
+        "英文390x844"
+      ],
+      "covers": "实际Vue/admin路由、筛选/键盘完整配置、停用清空、NULL/恢复文案、无横向溢出、控制台无错误/警告",
+      "limitation": "合成管理员身份与API拦截，无真实JWT/数据库浏览器贯通"
+    }
+  ],
+  "reused_evidence": {
+    "source_top_level": 62,
+    "source_race_top_level": 25,
+    "aggregate_logic_and_race_top_level": 11,
+    "source_prepersistence_top_level": 1,
+    "rule": "原始receipt只证明原提交时各自文件；最终父代理修正以新增绿测/race/PG补充。HTTP/WS/S1/计费等未改逻辑按原可观察边界复用；原源4与聚合5 PG已被最终13集成结果更新。前端16文件完全未变，34用例/类型/lint/build/浏览器继续有效。",
+    "input_boundaries": {
+      "previous_candidate": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+      "checks": [
+        {
+          "path": "backend/internal/service/gateway_usage_billing.go",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "70847eca1cdf0fd98b64722114e6775524668441f605bf6da3f6ca996be7bd26"
+        },
+        {
+          "path": "backend/internal/service/billing_service.go",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "84a9064388c96cae66bc91c3dd2c926fc152a4f078167dd847fc75ce9a49a4fb"
+        },
+        {
+          "path": "frontend/src/utils/usageTiming.ts",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "18a7484afa23bf7a92d502c1402e344d6e1774c1fd8c67988860147ff1fccf25"
+        },
+        {
+          "path": ".github/workflows/personal-ci.yml",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "2fcfa996612f1697f2325cdab141094876f1f8c3b793ab613b5a1546798e2c61"
+        },
+        {
+          "path": "backend/go.mod",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c"
+        },
+        {
+          "path": "backend/go.sum",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+        },
+        {
+          "path": "frontend/package.json",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "d1fd3d91ccf9bbca6cf0a79428343109a16efa6b3675fd01869d37db5d63083e"
+        },
+        {
+          "path": "frontend/pnpm-lock.yaml",
+          "unchanged_since_personal_candidate": true,
+          "sha256": "1d8e54cc8e1f1bd3e7593805f607d9314ff81dab98ab5a9a6396475e148b26ce"
+        }
+      ],
+      "use": "仅复用未变指标公式/计费算法/依赖与门禁定义事实；旧CI不证明新增S4行为"
+    },
+    "old_personal_ci": "38020112510仅证明afcc7852，不是本次S4候选CI"
+  },
+  "review_regressions": {
+    "source_red": "review-source-red.log",
+    "source_green": "review-source-green.log",
+    "source_green_top_level": 6,
+    "status_red": [
+      "review-status-red.log",
+      "review-status-empty-platform-red.log",
+      "review-status-final-boundaries-red.log"
+    ],
+    "status_green": [
+      "review-status-green.log",
+      "review-status-final-boundaries-green.log"
+    ],
+    "result": "7项确认问题的旧实现反例失败，修正后相关绿测及最终定向检查通过"
+  },
+  "classified_failures": [
+    "临时Ent部分生成曾导致runtime构造失败，正常隔离工具再生成后关闭，实际go.mod/go.sum未变",
+    "旧SQL fixture尾部/40参数预期未更新，已按真实新nullable列修正并定向复验",
+    "首次空平台反例未隔离其他active/composite组，修正fixture后旧实现失败",
+    "浏览器初次原生select与合成API fixture/结果打印问题，修正QA脚本后完成；窄屏选择器真实布局修正已验证"
+  ],
+  "not_run": [
+    "S4.4完整SS01–SS21验收登记",
+    "真实JWT/PG/Redis/浏览器贯通E2E",
+    "固定旧应用在扩展schema往返兼容",
+    "真实上游多轮WS与当前部署终态覆盖",
+    "Go全量lint/全量回归/新Personal CI/发布门禁",
+    "付费探测、线上读取、生产启用或部署"
+  ],
+  "environment": {
+    "postgres": "16-alpine",
+    "worker_generation_go": "1.27.1 isolated modules",
+    "parent_build_go": "1.27.2 toolchain",
+    "pnpm": "9.15.9",
+    "frontend_node_modules": "临时复用匹配锁文件的已安装依赖，已删除symlink",
+    "colima": "开工为Stopped，为测试启动并在结束恢复Stopped",
+    "vite": "任务服务已停止",
+    "production_build_output": "仅外部validation/app-dist与server-final，无源码内dist漂移"
+  },
+  "log_artifacts": {
+    "source-final-targeted.log": {
+      "sha256": "fa3a23e540b76c737f886ac6665e07cb28614515d4822eb15a29a89bce983787",
+      "bytes": 28040,
+      "top_level_tests": [
+        "TestOpsStreamLogicalTurnDedupSurvivesProxyRestart",
+        "TestServiceStatusSourceHTTPRetryUsesFinalS1Owner",
+        "TestServiceStatusSourceCancellationOrderMatchesS1",
+        "TestServiceStatusSourceWSTurnKeysSurviveProxyRetry",
+        "TestServiceStatusSourcePassthroughRegistryUsesAdmittedTurn",
+        "TestServiceStatusSourceMetadataContractAndClone",
+        "TestServiceStatusSourceReasonRequiresActualOwner",
+        "TestServiceStatusSourceFinalOwnerPreservesS1AndDoesNotGuessOpsStatus",
+        "TestServiceStatusSourceLatePriorAttemptCannotReplaceCurrentFact",
+        "TestServiceStatusSourceIntegrityFailureIsObservableAndReporterIsNonBlocking",
+        "TestServiceStatusSourceReporterDoesNotBlockOrLoseNewerGap",
+        "TestResponsesOutputTiming_StrictEventsAndMedia",
+        "TestResponsesOutputTiming_TerminalOrdering",
+        "TestResponsesOutputTiming_AudioUnknownAndUsageSource",
+        "TestResponsesOutputTiming_NonStreamingAndCompatibility",
+        "TestResponsesOutputTiming_CompactEchoIsNotGeneratedOutput",
+        "TestResponsesOutputTiming_NonemptyWhitespaceAndInvalidAudio",
+        "TestResponsesOutputTiming_NativeToolContentEvents",
+        "TestResponsesOutputTiming_FinalUsageReplacesAudioBreakdown",
+        "TestResponsesOutputTiming_PositivePartialAudioPreventsGuessedZero",
+        "TestResponsesOutputTiming_JSONUsageNeedsFinalEvidence",
+        "TestResponsesOutputTiming_ShellCallItemContent",
+        "TestUsageLogEffectiveRequestTypeNilReceiver",
+        "TestUsageLogSyncRequestTypeAndLegacyFieldsNilReceiver",
+        "TestUsageLogEffectiveRequestTypeFallback",
+        "TestUsageLogSyncRequestTypeAndLegacyFields",
+        "TestOpsServiceRecordErrorBatch_DoesNotFallbackToSingleInsertsWhenBatchFails",
+        "TestOpsErrorLoggerMiddlewareSkipsCyber",
+        "TestOpsErrorLoggerMiddleware_DoesNotBreakOuterMiddlewares",
+        "TestOpsErrorLoggerMiddleware_HardSkipsIngressRejection",
+        "TestOpsErrorLoggerMiddleware_DedicatedCyberSessionBlockRecordsExactlyOnce",
+        "TestOpsErrorLoggerMiddleware_OrdinaryPermissionStillRecords",
+        "TestOpsErrorLoggerMiddleware_RecordsRecoveredUpstreamTelemetryOutsideFailureSLA",
+        "TestOpsErrorLoggerMiddleware_RecoveredTelemetryFiltersSkipMonitoringAttempts",
+        "TestOpsErrorLoggerMiddleware_RecoveredTelemetrySkipsAllHiddenAttempts",
+        "TestOpsErrorLoggerMiddleware_IntermediateSkipMonitoringDoesNotHideFinalVisibleFailure",
+        "TestOpsErrorLoggerMiddleware_CapturesSplitResponsesFailedSSE",
+        "TestOpsErrorLoggerMiddleware_StreamFailureUsesTerminalErrorOverAttemptContext",
+        "TestOpsErrorLoggerMiddleware_PrefersContextRequestID",
+        "TestOpsErrorLoggerMiddleware_LocalModelConfigurationFields",
+        "TestOpsErrorLoggerMiddleware_LargeTerminalFrameUsesEventFallback",
+        "TestOpsErrorLoggerMiddleware_DetectsTerminalDataAtEOFWithoutBlankLine",
+        "TestOpsErrorLoggerMiddleware_RequestScopedInBandErrorKeepsRecoveredTelemetry",
+        "TestOpsErrorLoggerMiddleware_UpstreamInBandFailureStillSingleRow",
+        "TestOpsErrorLoggerMiddleware_SkipsPureClientClosed",
+        "TestOpsErrorLoggerMiddleware_RecordsClientClosedAfterUpstreamFailure",
+        "TestOpsErrorLoggerMiddleware_RecordsClientClosedWhenIgnoreContextCanceledDisabled",
+        "TestOpsStreamTurnClearsRoutingProducerState",
+        "TestServiceStatusSourceHTTPRealRetryAndReusedClientHeader",
+        "TestServiceStatusSourceOpsQueueSnapshotAndDrop",
+        "TestServiceStatusSourceWSLogicalTurnAcrossLocalProxyReset",
+        "TestServiceStatusSourceUsageTaskPanicIsObservable",
+        "TestOpsInsertErrorLogArgsPreservesExplicitZeroUpstreamStatus",
+        "TestOpsInsertErrorLogArgsPreservesSerializedRoutingDiagnostics",
+        "TestOpsErrorLogInsertDoesNotPersistRequestReplayFields",
+        "TestUsageLogStaticInsertShape_PlaceholdersMatchArgTypes",
+        "TestUsageLogRepositoryCreateSyncRequestTypeAndLegacyFields",
+        "TestUsageLogRepositoryListWithFiltersRequestTypePriority",
+        "TestUsageLogRepositoryGetUsageTrendWithFiltersRequestTypePriority",
+        "TestUsageLogRepositoryGetModelStatsWithFiltersRequestTypePriority",
+        "TestUsageLogRepositoryGetStatsWithFiltersRequestTypePriority",
+        "TestUsageLogInsertQueries_IncludeSessionID"
+      ]
+    },
+    "source-final-race.log": {
+      "sha256": "b9946ed4a49b0c805ae57ff7e07102af3a2cf66278c74b51881b432200e5f26d",
+      "bytes": 15905,
+      "top_level_tests": [
+        "TestServiceStatusSourceHTTPRetryUsesFinalS1Owner",
+        "TestServiceStatusSourceCancellationOrderMatchesS1",
+        "TestServiceStatusSourceWSTurnKeysSurviveProxyRetry",
+        "TestServiceStatusSourcePassthroughRegistryUsesAdmittedTurn",
+        "TestServiceStatusSourceMetadataContractAndClone",
+        "TestServiceStatusSourceReasonRequiresActualOwner",
+        "TestServiceStatusSourceFinalOwnerPreservesS1AndDoesNotGuessOpsStatus",
+        "TestServiceStatusSourceLatePriorAttemptCannotReplaceCurrentFact",
+        "TestServiceStatusSourceIntegrityFailureIsObservableAndReporterIsNonBlocking",
+        "TestServiceStatusSourceReporterDoesNotBlockOrLoseNewerGap",
+        "TestResponsesOutputTiming_StrictEventsAndMedia",
+        "TestResponsesOutputTiming_TerminalOrdering",
+        "TestResponsesOutputTiming_AudioUnknownAndUsageSource",
+        "TestResponsesOutputTiming_NonStreamingAndCompatibility",
+        "TestResponsesOutputTiming_CompactEchoIsNotGeneratedOutput",
+        "TestResponsesOutputTiming_NonemptyWhitespaceAndInvalidAudio",
+        "TestResponsesOutputTiming_NativeToolContentEvents",
+        "TestResponsesOutputTiming_FinalUsageReplacesAudioBreakdown",
+        "TestResponsesOutputTiming_PositivePartialAudioPreventsGuessedZero",
+        "TestResponsesOutputTiming_JSONUsageNeedsFinalEvidence",
+        "TestResponsesOutputTiming_ShellCallItemContent",
+        "TestServiceStatusSourceHTTPRealRetryAndReusedClientHeader",
+        "TestServiceStatusSourceOpsQueueSnapshotAndDrop",
+        "TestServiceStatusSourceWSLogicalTurnAcrossLocalProxyReset",
+        "TestServiceStatusSourceUsageTaskPanicIsObservable"
+      ]
+    },
+    "source-postgres-integration-final.log": {
+      "sha256": "3fa392989580b4ad26ac9c30875e36addef9ee35023ef7050a4cb729a8b9f766",
+      "bytes": 7197,
+      "top_level_tests": [
+        "TestServiceStatusSourcePersistenceUsageSingleBatchBestEffortAndFallback",
+        "TestServiceStatusSourcePersistenceOpsSingleBatchAndInternalPrivacy",
+        "TestServiceStatusSourcePersistenceInvalidMetadataDoesNotBlockUsage",
+        "TestServiceStatusSourcePersistenceBillingDedupDoesNotHideNewLifecycle"
+      ]
+    },
+    "source-final-prepersistence.log": {
+      "sha256": "f2e837c3bb5fcbde079c536167dcdc100be17533c3635c54e2373bc68eedc221",
+      "bytes": 369,
+      "top_level_tests": [
+        "TestServiceStatusSourceUsageFailureBeforePersistenceIsObservable"
+      ]
+    },
+    "aggregate-unit-final.log": {
+      "sha256": "7523a46b2624b1bd61e269114e47f553e0733da7064105d71d011f21701f0d74",
+      "bytes": 1686,
+      "top_level_tests": [
+        "TestServiceStatusAggregatorCancellationAndBudget",
+        "TestServiceStatusConfigValidation",
+        "TestServiceStatusMetricsUnknownAndThresholds",
+        "TestServiceStatusSummaryDoesNotWeightAwayUnknownOrIncident",
+        "TestServiceStatusNormalizeTerminalPriorityAndZeroCostSuccess",
+        "TestServiceStatusNormalizeConflictAndHistoricalKeys",
+        "TestServiceStatusNormalizeReasonPairsAndUnsupported",
+        "TestServiceStatusNormalizeObservedAtEpochAndLimit",
+        "TestServiceStatusIncidentNeedsNewEvidenceAndThreeNewRecoveries",
+        "TestServiceStatusIncidentUnknownConfigAndAbnormalResetRecovery",
+        "TestServiceStatusCoverageLeavesDisabledAndFailureIntervalsBlank"
+      ]
+    },
+    "aggregate-race-final.log": {
+      "sha256": "324989c95f3d80c6e6bbe7e24bfd5813ce7595dd05c3cd1085eeca4719e322b6",
+      "bytes": 1686,
+      "top_level_tests": [
+        "TestServiceStatusAggregatorCancellationAndBudget",
+        "TestServiceStatusConfigValidation",
+        "TestServiceStatusMetricsUnknownAndThresholds",
+        "TestServiceStatusSummaryDoesNotWeightAwayUnknownOrIncident",
+        "TestServiceStatusNormalizeTerminalPriorityAndZeroCostSuccess",
+        "TestServiceStatusNormalizeConflictAndHistoricalKeys",
+        "TestServiceStatusNormalizeReasonPairsAndUnsupported",
+        "TestServiceStatusNormalizeObservedAtEpochAndLimit",
+        "TestServiceStatusIncidentNeedsNewEvidenceAndThreeNewRecoveries",
+        "TestServiceStatusIncidentUnknownConfigAndAbnormalResetRecovery",
+        "TestServiceStatusCoverageLeavesDisabledAndFailureIntervalsBlank"
+      ]
+    },
+    "aggregate-pg16-frozen.log": {
+      "sha256": "fe7e22ced9f23cb137509c0fe983da3b4be093bf798aead6e27abb748eee030d",
+      "bytes": 2877,
+      "top_level_tests": [
+        "TestServiceStatusRepositoryConfigEpochVersionAndDisabled",
+        "TestServiceStatusRepositoryAtomicEventsRepeatAndRecovery",
+        "TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes",
+        "TestServiceStatusRepositoryTTLFilterLimitAndPersistentSourceGap",
+        "TestServiceStatusRepositoryMissingModelIsVisibleGlobalGap"
+      ]
+    },
+    "frontend-tests-final.log": {
+      "sha256": "f85d012085b1c3c3423462d5e7db34d1c2cad71324297bd6b08cbe210956844b",
+      "bytes": 1162,
+      "top_level_tests": []
+    },
+    "frontend-typecheck-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "top_level_tests": []
+    },
+    "frontend-lint-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "top_level_tests": []
+    },
+    "frontend-build.log": {
+      "sha256": "9d4879d4dfe993e0acce88cedb67d0514c6e57c244d9247a77446940e6b87376",
+      "bytes": 50900,
+      "top_level_tests": []
+    },
+    "backend-build-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "top_level_tests": []
+    },
+    "wire-generate.log": {
+      "sha256": "9c87f6828e9a7349dab8d0d597b2408323cee10cc3e57fb6ff264be4a31b59e3",
+      "bytes": 146,
+      "top_level_tests": []
+    },
+    "browser-qa.log": {
+      "sha256": "41d2d0148ccb596f9718bd2d8a53fa96f1c83ad0296c926fc6ed789351b9dd9b",
+      "bytes": 1226,
+      "top_level_tests": []
+    },
+    "browser-mobile-layout-final.log": {
+      "sha256": "29c66a4a4f3e5a7932158a1c879279d1c3ff8f7bddc5a55a68479f4fe1a6620a",
+      "bytes": 422,
+      "top_level_tests": []
+    },
+    "root-repository-unit-final.jsonl": {
+      "sha256": "4873c06276f30dedacd860a4731979606926f87f3c85272d31e3fe399454b6f4",
+      "bytes": 26412,
+      "top_level_tests": []
+    },
+    "root-source-reporter-race.jsonl": {
+      "sha256": "09e18f50d8610225e82e9a8fdbe7bb890f6c0f48168ebf39056ba6e3af48cffc",
+      "bytes": 1760,
+      "top_level_tests": []
+    },
+    "review-source-red.log": {
+      "sha256": "2829d1a2978b696baa31fa9a2a0e25c803fbaee25d08d162f536c03f3648bba9",
+      "bytes": 3983,
+      "top_level_pass": 0,
+      "contains_failure": true
+    },
+    "review-source-green.log": {
+      "sha256": "6cff59c5add919dd2d87860ef35be7e5ae597f41c5afed58b84ec94cb83961ac",
+      "bytes": 5580,
+      "top_level_pass": 6,
+      "contains_failure": false
+    },
+    "review-status-red.log": {
+      "sha256": "31c79492af0ea85b865ae7e42dc30c2bd1294395fde86fc5ccf35cbcffa92190",
+      "bytes": 3063,
+      "top_level_pass": 1,
+      "contains_failure": true
+    },
+    "review-status-empty-platform-red.log": {
+      "sha256": "cc434443c1705c836f753df3b616198174d4b7a315489d2a355599bcb4c1f4bf",
+      "bytes": 2997,
+      "top_level_pass": 0,
+      "contains_failure": true
+    },
+    "review-status-green.log": {
+      "sha256": "9b9ce7c064f5365804fa9b6dbde2542c36b010596c535f129da25ba469341e42",
+      "bytes": 2419,
+      "top_level_pass": 2,
+      "contains_failure": false
+    },
+    "review-status-final-boundaries-red.log": {
+      "sha256": "978f297f3609f60af5037666b92c9a52fd7e2ea9f8947648096549481029a961",
+      "bytes": 3618,
+      "top_level_pass": 0,
+      "contains_failure": true
+    },
+    "review-status-final-boundaries-green.log": {
+      "sha256": "1b3d47b4cb5a6e56d8b02c72086b22d9e46a8bcdab236d8f3377a04245840e7b",
+      "bytes": 2755,
+      "top_level_pass": 2,
+      "contains_failure": false
+    },
+    "service-status-pg16-final.log": {
+      "sha256": "0dceda68cf6a9b4438bc50af740b23d83c67830735f0833d57dee44285dafb04",
+      "bytes": 9957,
+      "top_level_pass": 20,
+      "contains_failure": false
+    },
+    "service-status-lifecycle-race-final.log": {
+      "sha256": "cf616f4e14116b854ede0aac51d9dee77a9fd4286bbd0ba4c9e17727e445e209",
+      "bytes": 7652,
+      "top_level_pass": 21,
+      "contains_failure": false
+    },
+    "backend-build-review-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "top_level_pass": 0,
+      "contains_failure": false
+    },
+    "wire-generate-review-fix.log": {
+      "sha256": "9c87f6828e9a7349dab8d0d597b2408323cee10cc3e57fb6ff264be4a31b59e3",
+      "bytes": 146,
+      "top_level_pass": 0,
+      "contains_failure": false
+    },
+    "root-integration-unit.jsonl": {
+      "sha256": "d8cc5dfc32cf4a2a0be3d43ce032bc8cad6de3c780bf2e584d26f14d578021cd",
+      "bytes": 60734,
+      "top_level_pass": 0,
+      "contains_failure": false
+    }
+  }
+}

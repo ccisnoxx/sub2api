@@ -1,0 +1,743 @@
+{
+  "task": "S3.5",
+  "status": "部分完成；既有P1导致完整验收阻断",
+  "stage_accepted": false,
+  "application_sha": "3101cb41636a658dbac47e882ebdc37f34e84641",
+  "environment": {
+    "go": "go1.27.2 darwin/arm64",
+    "scope": "本地Go真实handler/selector/socket/queue与仓库替身，标准计费owner定向测试；没有新容器或常驻服务"
+  },
+  "checks": [
+    {
+      "command": "go test -tags=unit -json ./internal/handler -run '^TestS35HTTP' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/http-first.jsonl",
+      "sha256": "e9bcbd806a44123d138ce6bb3c6b91ed4d07453a26f105f56b29870eda86762d",
+      "exit_code": 1,
+      "top_level_pass": 0,
+      "test_pass_events": 0
+    },
+    {
+      "command": "go test -tags=unit -json ./internal/handler -run '^TestS35HTTP' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/http-final.jsonl",
+      "sha256": "4321254c98b6eb99afbc4e87dba908fcec7c2b9a2371c8851e4010571f3f6baa",
+      "exit_code": 0,
+      "top_level_pass": 1,
+      "test_pass_events": 3
+    },
+    {
+      "label": "old",
+      "working_directory": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/old-personal-baseline/backend",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/handler",
+        "./internal/service",
+        "-run",
+        "^(TestResponsesGrok429FailoverIsBounded|TestResponsesGrok402FailoverCooldown|TestResponsesGrok429FailoverHandlesMixedStatuses|TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected|TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient|TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent|TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling|TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo|TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields|TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist|TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness|TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported|TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate|TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback)$",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/differential-old.jsonl",
+      "sha256": "6723810391f0d1f0ad881d5e8436ac64511eba2085a0f048db491b1d89086558",
+      "top_level_pass": 16,
+      "test_pass_events": 25,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok402FailoverCooldown",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/429_then_500_stops_after_the_bounded_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/500_then_429_permits_one_healthy_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/OAuth_429_then_API-key_failure_cannot_bypass_the_bound",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/first_rate_limited_account_selects_healthy_account",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/two_rate_limited_accounts_stop_without_sweeping_the_pool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicbalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicsubscription",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacybalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacysubscription"
+      ]
+    },
+    {
+      "label": "current",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/handler",
+        "./internal/service",
+        "-run",
+        "^(TestResponsesGrok429FailoverIsBounded|TestResponsesGrok402FailoverCooldown|TestResponsesGrok429FailoverHandlesMixedStatuses|TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected|TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient|TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent|TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling|TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo|TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields|TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist|TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness|TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported|TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate|TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback)$",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/differential-current.jsonl",
+      "sha256": "44496d03dfe703d1943e3ed000de0b38b5fb42213c3947f6d72014275a489ae6",
+      "top_level_pass": 16,
+      "test_pass_events": 25,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok402FailoverCooldown",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/429_then_500_stops_after_the_bounded_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/500_then_429_permits_one_healthy_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/OAuth_429_then_API-key_failure_cannot_bypass_the_bound",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/first_rate_limited_account_selects_healthy_account",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/two_rate_limited_accounts_stop_without_sweeping_the_pool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicbalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicsubscription",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacybalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacysubscription"
+      ]
+    },
+    {
+      "command": "go test -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/unit-04.jsonl",
+      "sha256": "c4817a72112965a78946930cba9327a0338f04ee872b4068730923104c1303c9",
+      "top_level_pass": 2,
+      "test_pass_events": 4
+    },
+    {
+      "command": "go test -race -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/race-02.jsonl",
+      "sha256": "b66065cbc31b6b3f7dbbc35775a9ab26db8134be6bc54bbfd8de7c825f0dc998",
+      "top_level_pass": 2,
+      "test_pass_events": 4
+    }
+  ],
+  "current_unique_passing_scope": {
+    "top_level_tests": 19,
+    "test_pass_events": 32,
+    "includes": "HTTP 1/3、WS 2/4、当前行为对照16/25；旧对照和race重复案例不重复计数",
+    "does_not_include": "额外native后续turn换号probe失败，故不代表S3.5整体通过"
+  },
+  "known_existing_failure": {
+    "severity": "P1",
+    "classification": "pre-S3 existing defect, source comparison; current runtime reproduced",
+    "trigger": "native 连接 turn1 已完成，turn2 在下游尚未输出时收到429并换号",
+    "actual_send_sequence": [
+      "93501/session-1-turn-1 completed",
+      "93501/session-1-turn-2 429",
+      "93502/session-1-turn-1 replayed"
+    ],
+    "expected_response_id": "resp_session-1-turn-2",
+    "actual_response_id": "resp_session-1-turn-1",
+    "ops_observation": {
+      "logical_turn": 2,
+      "account_id": 93502,
+      "message": "s35-visible-session-1-turn-1",
+      "routing_turn": 2,
+      "selection_attempt": 1
+    },
+    "locations": [
+      "backend/internal/service/openai_ws_forwarder_ingress.go:1221",
+      "backend/internal/service/openai_ws_forwarder_ingress.go:1918",
+      "backend/internal/handler/openai_gateway_handler.go:3260",
+      "backend/internal/handler/openai_gateway_handler.go:4039"
+    ],
+    "probe_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-02.jsonl",
+    "probe_exit_code": 1,
+    "baseline_evidence": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/baseline-native-retry-comparison.json",
+    "old_runtime_reproduction_executed": false,
+    "safe_direction": "另立修复任务：native失败出口返回安全重放的当前turn载荷，沿用HTTP bridge判断；不能安全重放时显式终止。",
+    "production_changes_in_this_task": false,
+    "delivery_risk_open": true
+  },
+  "ws_evidence": {
+    "origin": "personal 应用；所有操作使用 plus-routing-storage-s33 worktree，未使用 main 维护应用源码。",
+    "baseline": "e3140a68d245d6bb4bddbff509b30395ecaeeb19",
+    "current_parent_commit": "3101cb41636a658dbac47e882ebdc37f34e84641",
+    "owned_file": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend/internal/handler/s35_ws_routing_behavior_test.go",
+    "owned_file_sha256": "a073d22424f0138942b33b7fd55e1a8030b4d17aa1a519d4e67b3e8d48a6ee07",
+    "production_behavior_changed": false,
+    "producer_chain": [
+      "实际客户端 socket → ResponsesWebSocket → 真实 legacy scheduler / capability selection / 账号认证",
+      "native ProxyResponsesWebSocketFromClient 或 passthrough relay → 真实限流冷却与 handler 换号 / native 同账号重建",
+      "真实终止帧 → OpsStreamError producer / AfterTurn RecordUsage → OpsErrorLoggerMiddleware → enqueueOpsErrorLog / 生产 queue"
+    ],
+    "candidate_coverage": [
+      "dedicated 与 passthrough 各 2 条实际连接、每条 3 个实际 turn：首连接 turn 1 实际 A→B 换号后失败，turn 2 成功，turn 3 失败；第二连接保持已排队行并产生自身 3 turn。",
+      "失败 snapshot 的账号、model、message、SLA 与诊断经过后续 turn 后进入真实 Ops 日志；首 turn 选择诊断 turn=1、selection_attempt=1，第 3 turn 无重新选择、诊断 null；第二连接失败诊断不借用前连接。",
+      "native 上游未输出时断连，真实同账号 socket 重建恢复；发送及 6 条 usage 归属不变，没有附加选择查询或额外 usage / request error 行。",
+      "真实限流账号只冷却一次；完整选择评估次数通过正常与恢复连接对照，后续 turn 无额外账号列表查询。"
+    ],
+    "coverage_limits": [
+      "Ops 在连接结束才排队，无法声称同连接已经排队再推进 turn；本测试覆盖同连接失败 snapshot 经后续 turn 后排队，旧连接已排队行经下一连接全部 turn 后再消费。",
+      "native/passthrough 帧内隐藏 429 没有 appendOpsUpstreamError producer，本测试无法证明恢复 provider telemetry 的 UpstreamErrors 不可变或 failure-request 分类；仅证明恢复尝试没有新增客户端 request error / usage 行。",
+      "新候选未包含 native 后续 turn 换号，因为外部 probe 确认既有错误；passthrough 后续 turn 换号与后续 turn 同账号重建没有完整 socket E2E 证据。",
+      "不覆盖数据库落地、Ops 后台 worker 消费与付费余额扣账；队列与真实 usage owner 使用既有测试 repo，RunModeSimple 无付费请求。"
+    ],
+    "known_legacy_defect": {
+      "trigger": "native dedicated 首 turn 成功，第 2 turn 收 semantic 429 后 handler 更换账号。",
+      "actual_sends": [
+        {
+          "account_id": 93501,
+          "input": "session-1-turn-1"
+        },
+        {
+          "account_id": 93501,
+          "input": "session-1-turn-2"
+        },
+        {
+          "account_id": 93502,
+          "input": "session-1-turn-1"
+        }
+      ],
+      "expected_turn": 2,
+      "expected_response_id": "resp_session-1-turn-2",
+      "actual_response_id": "resp_session-1-turn-1",
+      "ops_stream_error": {
+        "Turn": 2,
+        "AccountID": 93502,
+        "Message": "s35-visible-session-1-turn-1",
+        "IntendedStatus": 400,
+        "RoutingDiagnostics": {
+          "turn": 2,
+          "selection_attempt": 1
+        }
+      },
+      "queue_row": {
+        "status": 400,
+        "phase": "request",
+        "owner": "client",
+        "account_id": 93502,
+        "message": "s35-visible-session-1-turn-1",
+        "routing_turn": 2
+      },
+      "locations": [
+        "backend/internal/service/openai_ws_forwarder_ingress.go:1910",
+        "backend/internal/service/openai_ws_forwarder_ingress.go:1919",
+        "backend/internal/handler/openai_gateway_handler.go:3260",
+        "backend/internal/handler/openai_gateway_handler.go:4039"
+      ],
+      "provenance": "pre-S3 基线 88156f09 中整个 forwarder 文件与当前 hash 相同；关键 handler 分支逐字相同，因此非 S3/本轮引入。仅旧源码核对，未运行旧基线运行时。",
+      "candidate_mutated": false,
+      "overlay_files": [
+        "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-overlay.go",
+        "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-overlay.json"
+      ],
+      "probe_01_source_reconstruction": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-overlay-01.go",
+      "source_comparison": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/baseline-native-retry-comparison.json"
+    },
+    "missing_references": "docs 与 Git 搜索均未找到 docs/conventions/codex-outbound-identity.md 及 docs/tasks；仅有 personal-maintenance.md；不阻塞本任务，无出站身份或 extra 生产行为改动。",
+    "go_toolchain": "go version go1.27.2 darwin/arm64",
+    "checks": [
+      {
+        "name": "unit-01",
+        "command": "go test -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 1,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/unit-01.jsonl",
+        "original_log_sha256": "a3d0d8a2648af5748683fd8a0378cd7d6e4eb7a525213088d212fa6df5c112b7",
+        "test_events": [
+          {
+            "action": "fail",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+            "elapsed": 0.01
+          },
+          {
+            "action": "fail",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+            "elapsed": 2.41
+          },
+          {
+            "action": "fail",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+            "elapsed": 2.41
+          },
+          {
+            "action": "fail",
+            "test": "TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+            "elapsed": 0
+          },
+          {
+            "action": "fail",
+            "test": null,
+            "elapsed": 3.229
+          }
+        ],
+        "classification": "夹具预期不正确：误将建连握手选择计入逻辑 turn 1，且误认为同账号 socket 重建产生 turn 选择诊断；修正测试预期。"
+      },
+      {
+        "name": "unit-02",
+        "command": "go test -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 1,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/unit-02.jsonl",
+        "original_log_sha256": "cdafa6bc6890cc6161f13d5e8d15f5ff18b7c38c7cd93fe4ad2c7d7256397ab6",
+        "test_events": [
+          {
+            "action": "fail",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+            "elapsed": 0.01
+          },
+          {
+            "action": "fail",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+            "elapsed": 2.41
+          },
+          {
+            "action": "fail",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+            "elapsed": 2.42
+          },
+          {
+            "action": "fail",
+            "test": "TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+            "elapsed": 0.01
+          },
+          {
+            "action": "fail",
+            "test": null,
+            "elapsed": 3.266
+          }
+        ],
+        "classification": "夹具预期不正确：账号列表次数未计入 gwpool 偏好预检查；改为恢复连接与正常连接相对次数，并保护后续 turn 无新增查询。"
+      },
+      {
+        "name": "unit-03",
+        "command": "go test -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 0,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/unit-03.jsonl",
+        "original_log_sha256": "113716fcd1491413120cfe3befbc09ecfa451eb8d33ee1c07f92f46d9c689116",
+        "test_events": [
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+            "elapsed": 0.01
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+            "elapsed": 2.41
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+            "elapsed": 2.42
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+            "elapsed": 0.01
+          },
+          {
+            "action": "pass",
+            "test": null,
+            "elapsed": 3.6710000000000003
+          }
+        ],
+        "classification": "候选通过；尚未加入认证头精确识别。"
+      },
+      {
+        "name": "race-01",
+        "command": "go test -race -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 0,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/race-01.jsonl",
+        "original_log_sha256": "0ca7fccbf8d298ffcbd7b44ae010c9b62540556eeecd94eb9f5bcac0be7d57cc",
+        "test_events": [
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+            "elapsed": 0.02
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+            "elapsed": 2.42
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+            "elapsed": 2.44
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+            "elapsed": 0.02
+          },
+          {
+            "action": "pass",
+            "test": null,
+            "elapsed": 4.541
+          }
+        ],
+        "classification": "候选通过且没有 data race；尚未加入认证头精确识别。"
+      },
+      {
+        "name": "unit-04",
+        "command": "go test -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 0,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/unit-04.jsonl",
+        "original_log_sha256": "c4817a72112965a78946930cba9327a0338f04ee872b4068730923104c1303c9",
+        "test_events": [
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+            "elapsed": 0.01
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+            "elapsed": 2.41
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+            "elapsed": 2.42
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+            "elapsed": 0
+          },
+          {
+            "action": "pass",
+            "test": null,
+            "elapsed": 3.669
+          }
+        ],
+        "classification": "最终固定候选通过，认证头只接受两个测试账号。"
+      },
+      {
+        "name": "race-02",
+        "command": "go test -race -tags=unit -json ./internal/handler -run '^TestS35WS' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 0,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/race-02.jsonl",
+        "original_log_sha256": "b66065cbc31b6b3f7dbbc35775a9ab26db8134be6bc54bbfd8de7c825f0dc998",
+        "test_events": [
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/dedicated",
+            "elapsed": 0.02
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs/passthrough",
+            "elapsed": 2.42
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSMultiTurnFailureDiagnosticsAndQueuedLogs",
+            "elapsed": 2.44
+          },
+          {
+            "action": "pass",
+            "test": "TestS35WSNativeSameAccountRetryKeepsRoutingSelection",
+            "elapsed": 0.02
+          },
+          {
+            "action": "pass",
+            "test": null,
+            "elapsed": 5.118
+          }
+        ],
+        "classification": "最终固定候选通过且没有 data race。"
+      },
+      {
+        "name": "native-later-probe-01",
+        "command": "go test -tags=unit -json -overlay /Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-overlay.json ./internal/handler -run '^TestS35WSNativeLaterTurnFailoverProbe$' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 1,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-01.jsonl",
+        "original_log_sha256": "7272187d9074c96d5fd5f48f6f0388941bf1aa041486e62feb23e0b3ec89d761",
+        "test_events": [
+          {
+            "action": "fail",
+            "test": null,
+            "elapsed": 37.345
+          }
+        ],
+        "classification": "外部 probe 已观察错误重放，但收尾夹具使用原子队列指标作循环条件，手动消费不扣该指标而阻塞；仅终止该 test 子进程，go 返回 1。本次不是自然完成的合同检查。"
+      },
+      {
+        "name": "native-later-probe-02",
+        "command": "go test -tags=unit -json -overlay /Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-overlay.json ./internal/handler -run '^TestS35WSNativeLaterTurnFailoverProbe$' -count=1",
+        "cwd": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+        "exit": 1,
+        "original_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-02.jsonl",
+        "original_log_sha256": "f0d6b0395c0d80823e33fcea8b23cdb24a9cd5fcbe7ba3dd4f810c022a755ac3",
+        "test_events": [
+          {
+            "action": "fail",
+            "test": "TestS35WSNativeLaterTurnFailoverProbe",
+            "elapsed": 0.01
+          },
+          {
+            "action": "fail",
+            "test": null,
+            "elapsed": 1.2690000000000001
+          }
+        ],
+        "classification": "外部收尾修正为采样后有界消费，检查自然完成，因真实 native 第 2 turn 换号重放第 1 turn 而退出 1；精确响应 ID 断言失败。"
+      }
+    ],
+    "working_tree": "最终 git status --short 为空；父代理将两份新测试固定在 3101cb416，子代理未执行提交。git diff --check exit 0。",
+    "completion_boundary": "新增通过候选已交付；native 第 2 turn 换号仍有确认的旧缺陷，完整 WS 后续换号目标不能报通过。"
+  },
+  "reused_evidence": {
+    "s33_all_17_inputs_unchanged": {
+      "backend/internal/handler/admin/ops_handler.go": true,
+      "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": true,
+      "backend/internal/handler/grok_audio.go": true,
+      "backend/internal/handler/ops_error_logger.go": true,
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": true,
+      "backend/internal/handler/ops_routing_diagnostics_log_test.go": true,
+      "backend/internal/repository/ops_repo.go": true,
+      "backend/internal/repository/ops_repo_args_test.go": true,
+      "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": true,
+      "backend/internal/service/ops_models.go": true,
+      "backend/internal/service/ops_port.go": true,
+      "backend/internal/service/ops_routing_diagnostics_dto_test.go": true,
+      "backend/internal/service/ops_routing_diagnostics_log_test.go": true,
+      "backend/internal/service/ops_service.go": true,
+      "backend/internal/service/ops_upstream_context.go": true,
+      "backend/internal/service/routing_diagnostics_validation.go": true,
+      "backend/migrations/252_add_ops_routing_diagnostics.sql": true
+    },
+    "s32_service_inputs": {
+      "backend/internal/service/openai_routing_diagnostics_test.go": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "backend/internal/service/routing_diagnostics.go": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "backend/internal/service/openai_gateway_scheduling.go": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+      "backend/internal/service/openai_account_scheduler.go": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "backend/internal/service/gateway_service.go": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "backend/internal/service/openai_account_scheduler_test.go": "960da7cdd62b986c99e9babb575363ae3a0287bc0179d6d4a5f2581793195d9a"
+    },
+    "checks": [
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-final.jsonl",
+        "sha256": "00b76b525e8333b3d25d8ac63da028a9059f5dfb5ecec839395f4d2ab3538ee8",
+        "command": "go test -tags=unit ./internal/service ./internal/handler -run '^TestOpsRoutingDiagnostics' -count=1 -json",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/handler-regression.jsonl",
+        "sha256": "41e11e94eb520ca18b151de0bcecef95b745b879c4927ffc59f2b7ef3aba11b5",
+        "command": "go test -tags=unit -json ./internal/handler -run '^(TestOpsErrorLoggerMiddleware|TestEnqueueOpsErrorLog|TestLogOpsStreamError|TestOpsRecovered|TestOpsWebSocketCredential|TestClassifyOps|TestSetOps|TestOpsStreamTurn|TestWSSelection|TestWSRoutingTurn|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner|TestOpenAIResponsesWebSocket_(PassthroughTracksModelPerTurn|PassthroughKeepsTurnMappingSnapshot|CtxPoolAppliesPerTurnMappingAndPreservesRequestedModel)|TestEstimateOpsErrorLogJobBytes)' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/service-regression.jsonl",
+        "sha256": "2494fa16fb89926fbca36b5a817232fdad873883e33df80369dbdae6684e92c4",
+        "command": "go test -tags=unit -json ./internal/service -run '^(TestOpsStream|TestOpsUpstream|TestOpsService(RecordError|GetErrorLogByID|GetUserError)|TestToUserError|TestSanitizeOpsUpstreamErrorsForQueue|TestNormalizeOpsUpstream|TestParseOpsUpstream|TestOpsRoutingDiagnostics)' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/admin-detail.jsonl",
+        "sha256": "997f627afb35e0d988909828199c8a464cf5f02443e22a25331bf5bd65a3b914",
+        "command": "go test -tags=unit -json ./internal/handler/admin -run '^TestOpsRoutingDiagnosticsAdmin' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/user-ownership.jsonl",
+        "sha256": "6e43a7fa5e6bf5da3edf04be98018b1013340e41150082bf810ad70d365d97bb",
+        "command": "go test -tags=unit -json ./internal/service -run '^(TestListUserErrorRequests|TestGetUserErrorRequestDetail)' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-final.jsonl",
+        "sha256": "d70ada0f85f923b54984ac10b0c19bfc9fd7f07d61f6e929f1e51fff136906b9",
+        "command": "go test -tags=unit -json ./internal/service ./internal/handler -run '^(TestOpsRoutingDiagnostics|TestOpsStreamTurnClearsRoutingProducerState|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner)' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-race.log",
+        "sha256": "9290caf3ed56a46a3d6969ddf76e175f0a6a6eb75072ba524bb9eb4d489897e5",
+        "command": "go test -race -tags=unit ./internal/service ./internal/handler -run '^TestOpsRoutingDiagnostics' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-race.log",
+        "sha256": "bb1a99acc787cac3f7581c425d23e80d2a2a7ee1b04a546aa8cbb4f6c38c6fed",
+        "command": "go test -race -tags=unit ./internal/handler -run '^TestGrokAudioSelectionRetriesShareRequestRoutingOwner$' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.3",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-race.log",
+        "sha256": "8eb2feb701fdf3a027ad55578b2f90067090f674cd17a87218c79d4c29763f15",
+        "command": "go test -race -tags=unit ./internal/service ./internal/handler -run '^(TestOpsRoutingDiagnostics|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner)' -count=1",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.2",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/service-final.jsonl",
+        "sha256": "98f4aa3e49ac69de26e7d78775458fe06c77d1ccbfc9e6e9cb604150f8c42e27",
+        "command": "go test -tags=unit -json ./internal/service -run '^(TestRoutingDiagnostics|TestOpenAIRoutingDiagnostics)' -count=1",
+        "original_result": "passed",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.2",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/service-regression-final.log",
+        "sha256": "71f1b5b18a44108fb66abdbd0215eb3af83827aa25d004e1b39cc48f13084fef",
+        "command": "go test -tags=unit ./internal/service -run '^(TestOpenAIGatewayService_SelectAccountWithScheduler|TestOpenAIGatewayService_SelectAccountWithLoadAwareness_DBFreshGroupRecheckWaitsOnValidAccount$|TestLegacySchedulerDecision_|TestOpenAIScheduler|TestGatewayPoolSelection(RechecksConcurrentExhaustionBySelectingRemainingAccount|WeightedSessionKeepsVerifiedWindow)$|TestProfitControlSchedulerFiltersCandidates$)' -count=1",
+        "original_result": "passed",
+        "exit_code": 0
+      },
+      {
+        "stage": "S3.2",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/core-race-final.log",
+        "sha256": "249b402975f219efcda628e7f540aa17b8da1c44d65a07eb587901e229e09856",
+        "command": "go test -race ./internal/service -run '^TestRoutingDiagnostics' -count=1",
+        "original_result": "passed",
+        "exit_code": 0
+      }
+    ],
+    "storage_permission_and_frontend": "S3.3/S3.4 原范围保留，没有修改数据库、管理员/用户可见性、前端和依赖输入；历史完整 JWT/native/passthrough 覆盖限制不得据此消除。"
+  },
+  "billing_boundary": "HTTP/WS为simple模式；WS实际6条用量经过RecordUsage/Create，HTTP没有usage repository。标准余额/订阅与atomic/legacy费用/去重由相同service owner oracle旧/新对照验证，未作真实数据库扣费。",
+  "convergence": [
+    "HTTP首轮手动取队列后原子QueueLength不减，改断言实际channel为空后通过",
+    "WS前两轮夹具误算握手/turn归属及忽略gwpool预检查查询，修正自有测试后通过",
+    "外部probe-01收尾队列阻塞已终止，改有界消费后probe-02自然退出1，确认真实响应ID错配",
+    "differential顶层统计元数据按Test字段更正为两边16，原日志未改、不重跑"
+  ],
+  "uncovered": [
+    "passthrough后续turn换号",
+    "后续turn同账号重建",
+    "native/passthrough帧内隐藏429没有恢复event入口",
+    "新完整JWT服务器/数据库后台worker消费/本次SLA聚合查询",
+    "旧native动态复现",
+    "其他平台、独立旧入口、TokenCount与无新选择连接复用原未知范围"
+  ],
+  "not_executed": [
+    "全量Go/远端CI或workflow dispatch",
+    "前端重新构建/浏览器（生产前端未变，S3.4按原边界保留）",
+    "付费上游/生产请求",
+    "push/PR修改/合并/镜像发布/生产部署"
+  ],
+  "next_action": "先另行修复既有native后续turn换号payload错误，再复验S3.5；S3.6未开始",
+  "next_stage_started": false,
+  "missing_references": "docs/conventions/codex-outbound-identity.md、account-extra-freshness.md及docs/tasks在所选personal源码缺失，docs/Git搜索已确认；本轮未改生产身份、账号extra或相关协议行为。",
+  "pr5_at_close": {
+    "baseRefName": "personal",
+    "headRefOid": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "isDraft": true,
+    "mergedAt": null,
+    "state": "OPEN",
+    "url": "https://github.com/ccisnoxx/sub2api/pull/5"
+  },
+  "audit": {
+    "audit_id": "20261010T011828Z-kin-plus-routing-behavior-s35-f88db7ec",
+    "audit_dir": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-49a15fec/20261010T011828Z-kin-plus-routing-behavior-s35-f88db7ec",
+    "closed_and_verified": true,
+    "subtask_acceptance_is_stage_acceptance": false
+  },
+  "preservation_external_state": {
+    "observed": "5个历史树在运行中移出磁盘/Git worktree列表；本轮没有删除/归档调用，来源未由本轮确认",
+    "recovery": [
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+        "original_head": "aeead84a68545ed8ee6697345f42aa00e59f1cef",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/2da1ec5a43179a9684ceeca7e71a33e5d15342dc",
+        "recovery_sha": "f97802c8512e1d6391c702b4f8f6fd09530feac7",
+        "compared_files": 4277,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+        "original_head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/0b8ced9760b757037aadfa8ac3debfbebad1f871",
+        "recovery_sha": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+        "compared_files": 4547,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin",
+        "original_head": "d9b06f4fe78a8588282958783d91e9966ff05231",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/e04a4d0205783f64bf5d114b35d58962cf152816",
+        "recovery_sha": "d9b06f4fe78a8588282958783d91e9966ff05231",
+        "compared_files": 4591,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+        "original_head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/5992c06d8249c2de8b09fddc3ec18226b02ca87f",
+        "recovery_sha": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+        "compared_files": 4535,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+        "original_head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/f52f380bdd3a879876a64b5967d5f7a85e0ec605",
+        "recovery_sha": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+        "compared_files": 4577,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      }
+    ]
+  },
+  "document_locations_updated": [
+    "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin"
+  ],
+  "missing_document_location": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin"
+}

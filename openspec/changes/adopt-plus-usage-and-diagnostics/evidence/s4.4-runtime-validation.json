@@ -1,0 +1,4348 @@
+{
+  "task": "S4.4.2–S4.4.4",
+  "status": "complete_final_personal_CI_release_production_deployed_and_S4_enabled_observed",
+  "candidate_sha": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+  "isolated_application_revision": "9db7bfc10e02bec13a75eb07655f97ded7d057f3",
+  "candidate_after_isolated_app_changed_paths": [
+    "backend/cmd/s44-ws-fixture/driver.go",
+    "backend/cmd/s44-ws-fixture/fixture_test.go",
+    "backend/cmd/s44-ws-fixture/server.go",
+    "backend/cmd/server/wire_gen_test.go",
+    "backend/internal/repository/service_status_repo_integration_test.go",
+    "backend/internal/repository/service_status_source_integration_test.go",
+    "backend/internal/repository/usage_log_timing_integration_test.go",
+    "backend/internal/service/openai_ws_http_bridge.go",
+    "backend/internal/service/service_status_aggregator_test.go",
+    "backend/internal/service/service_status_source_reporter_test.go"
+  ],
+  "raw_directory": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release",
+  "source_reuse": {
+    "unchanged_count": 71,
+    "changed_paths": [
+      "backend/internal/repository/service_status_repo_integration_test.go",
+      "backend/internal/repository/service_status_source_integration_test.go",
+      "backend/internal/service/openai_ws_http_bridge.go",
+      "backend/internal/service/service_status_aggregator_test.go",
+      "backend/internal/service/service_status_observation.go",
+      "backend/internal/service/service_status_observation_test.go",
+      "backend/internal/service/service_status_source_reporter_test.go",
+      "backend/internal/service/stream_output_timing.go"
+    ],
+    "changed_boundary_evidence": [
+      "source-all-terminal-final-green.log",
+      "csp-final-web-green.log"
+    ]
+  },
+  "fixed_old_application": {
+    "http_client_exit": 0,
+    "count": 5,
+    "dto_read_status": 200,
+    "dto_ids": [
+      14,
+      13,
+      12,
+      11,
+      10
+    ],
+    "dto_costs": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "internal_metadata_exposed": false,
+    "db_rows": [
+      {
+        "id": 10,
+        "request_id": "client:69ace910-3e2d-4b73-9a8c-bba3c2bbea48",
+        "request_type": 1,
+        "completion_status": "unknown",
+        "timing_version": 0,
+        "cost": 0.0,
+        "metadata_null": true
+      },
+      {
+        "id": 11,
+        "request_id": "client:50d52a28-5afd-4c56-adbb-cd5f698dec3d",
+        "request_type": 1,
+        "completion_status": "unknown",
+        "timing_version": 0,
+        "cost": 0.0,
+        "metadata_null": true
+      },
+      {
+        "id": 12,
+        "request_id": "client:5b324279-ea1b-4d97-9cb8-1ff2d26d471a",
+        "request_type": 1,
+        "completion_status": "unknown",
+        "timing_version": 0,
+        "cost": 0.0,
+        "metadata_null": true
+      },
+      {
+        "id": 13,
+        "request_id": "client:631e751a-e613-4de2-b08e-2e482c6d4fc9",
+        "request_type": 1,
+        "completion_status": "unknown",
+        "timing_version": 0,
+        "cost": 0.0,
+        "metadata_null": true
+      },
+      {
+        "id": 14,
+        "request_id": "client:3de5eaa2-51bc-45a3-bc4f-35d657f43d7d",
+        "request_type": 1,
+        "completion_status": "unknown",
+        "timing_version": 0,
+        "cost": 0.0,
+        "metadata_null": true
+      }
+    ]
+  },
+  "http_retry_and_raw_json": {
+    "httpretry1": {
+      "link_method": "api_key_id=3 + 独占实际请求时间窗口 + source observed_at；HTTP计费request_id保持client UUID，未按fixture响应ID猜测",
+      "usage": {
+        "id": 37,
+        "request_id": "client:fd32e240-f5a2-4877-9926-8589bff0b286",
+        "api_key_id": 3,
+        "group_id": 3,
+        "model": "gpt-5.1",
+        "request_type": 1,
+        "completion_status": "completed",
+        "is_complete": true,
+        "actual_cost": 0.0,
+        "created_at": "2026-10-10T07:50:06.082407+00:00",
+        "service_status_observation": {
+          "event_role": "terminal",
+          "observed_at": "2026-10-10T07:50:06.079396411Z",
+          "reason_code": null,
+          "logical_turn": null,
+          "terminal_kind": "completed",
+          "schema_version": 1,
+          "observation_key": "d0103439-e7c6-405c-b4d5-7ac31d60d2ec"
+        }
+      },
+      "ops": [
+        {
+          "id": 10,
+          "request_id": "d8c5be86-ce45-42c6-89e2-14987cb89f8d",
+          "group_id": 3,
+          "model": "gpt-5.1",
+          "created_at": "2026-10-10T07:50:06.083533+00:00",
+          "service_status_observation": {
+            "event_role": "attempt",
+            "observed_at": "2026-10-10T07:50:06.036Z",
+            "reason_code": "provider_capacity",
+            "logical_turn": null,
+            "terminal_kind": null,
+            "schema_version": 1,
+            "observation_key": "d0103439-e7c6-405c-b4d5-7ac31d60d2ec"
+          }
+        }
+      ],
+      "upstream": {
+        "events": [
+          {
+            "sequence": 88,
+            "at": "2026-10-10T07:50:06.036583357Z",
+            "kind": "request_received",
+            "transport": "http",
+            "attempt": 1,
+            "run": "httpretry1",
+            "case": "retry_429",
+            "index": "1",
+            "upstream_model": "gpt-5.1"
+          },
+          {
+            "sequence": 89,
+            "at": "2026-10-10T07:50:06.036585722Z",
+            "kind": "http_response",
+            "transport": "http",
+            "attempt": 1,
+            "run": "httpretry1",
+            "case": "retry_429",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "status": 429
+          },
+          {
+            "sequence": 90,
+            "at": "2026-10-10T07:50:06.072430764Z",
+            "kind": "request_received",
+            "transport": "http",
+            "attempt": 2,
+            "run": "httpretry1",
+            "case": "retry_429",
+            "index": "1",
+            "upstream_model": "gpt-5.1"
+          },
+          {
+            "sequence": 91,
+            "at": "2026-10-10T07:50:06.072474045Z",
+            "kind": "http_response",
+            "transport": "http",
+            "attempt": 2,
+            "run": "httpretry1",
+            "case": "retry_429",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.completed",
+            "status": 200,
+            "written": true
+          }
+        ],
+        "evidence_complete": true,
+        "schema_version": 1
+      }
+    },
+    "jsonbeforefix1": {
+      "link_method": "api_key_id=3 + 独占实际请求时间窗口 + source observed_at；HTTP计费request_id保持client UUID，未按fixture响应ID猜测",
+      "usage": {
+        "id": 65,
+        "request_id": "client:d5edb7c6-5566-4ff3-b794-e3ee8a0dbc60",
+        "api_key_id": 3,
+        "group_id": 3,
+        "model": "gpt-5.1",
+        "request_type": 1,
+        "completion_status": "upstream_error",
+        "is_complete": false,
+        "actual_cost": 1.375e-05,
+        "created_at": "2026-10-10T08:03:31.026289+00:00",
+        "service_status_observation": {
+          "event_role": "terminal",
+          "observed_at": "2026-10-10T08:03:31.025247627Z",
+          "reason_code": "unclassified",
+          "logical_turn": null,
+          "terminal_kind": "upstream_error",
+          "schema_version": 1,
+          "observation_key": "a5321e90-3898-44db-89af-96a194b0b561"
+        }
+      },
+      "ops": [],
+      "upstream": {
+        "events": [
+          {
+            "sequence": 177,
+            "at": "2026-10-10T08:03:31.025050066Z",
+            "kind": "request_received",
+            "transport": "http",
+            "attempt": 1,
+            "run": "jsonbeforefix1",
+            "case": "provider_failure",
+            "index": "1",
+            "upstream_model": "gpt-5.1"
+          },
+          {
+            "sequence": 178,
+            "at": "2026-10-10T08:03:31.025093668Z",
+            "kind": "http_response",
+            "transport": "http",
+            "attempt": 1,
+            "run": "jsonbeforefix1",
+            "case": "provider_failure",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.failed",
+            "status": 200,
+            "written": true
+          }
+        ],
+        "evidence_complete": true,
+        "schema_version": 1
+      }
+    },
+    "jsonafterfix1": {
+      "link_method": "api_key_id=3 + 独占实际请求时间窗口 + source observed_at；HTTP计费request_id保持client UUID，未按fixture响应ID猜测",
+      "usage": {
+        "id": 66,
+        "request_id": "client:7629605c-5818-4d18-9e2a-b4fa6719cabd",
+        "api_key_id": 3,
+        "group_id": 3,
+        "model": "gpt-5.1",
+        "request_type": 1,
+        "completion_status": "upstream_error",
+        "is_complete": false,
+        "actual_cost": 1.375e-05,
+        "created_at": "2026-10-10T08:05:08.199899+00:00",
+        "service_status_observation": {
+          "event_role": "terminal",
+          "observed_at": "2026-10-10T08:05:08.187379559Z",
+          "reason_code": "provider_5xx",
+          "logical_turn": null,
+          "terminal_kind": "upstream_error",
+          "schema_version": 1,
+          "observation_key": "716fc11c-4f04-4240-8275-afd8946227dc"
+        }
+      },
+      "ops": [],
+      "upstream": {
+        "events": [
+          {
+            "sequence": 179,
+            "at": "2026-10-10T08:05:08.186875052Z",
+            "kind": "request_received",
+            "transport": "http",
+            "attempt": 1,
+            "run": "jsonafterfix1",
+            "case": "provider_failure",
+            "index": "1",
+            "upstream_model": "gpt-5.1"
+          },
+          {
+            "sequence": 180,
+            "at": "2026-10-10T08:05:08.186941417Z",
+            "kind": "http_response",
+            "transport": "http",
+            "attempt": 1,
+            "run": "jsonafterfix1",
+            "case": "provider_failure",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.failed",
+            "status": 200,
+            "written": true
+          }
+        ],
+        "evidence_complete": true,
+        "schema_version": 1
+      }
+    }
+  },
+  "ws_final_cancel": {
+    "ctxdirect1": {
+      "usage": {
+        "id": 73,
+        "request_id": "resp_s44_ctxdirect1_cancel_probe_drain_1",
+        "api_key_id": 3,
+        "completion_status": "client_disconnected",
+        "is_complete": false,
+        "service_status_observation": {
+          "event_role": "terminal",
+          "observed_at": "2026-10-10T08:21:30.145784979Z",
+          "reason_code": null,
+          "logical_turn": 1,
+          "terminal_kind": "client_disconnected",
+          "schema_version": 1,
+          "observation_key": "c928ff55-2dfe-4c9a-a9e9-f96109b44962"
+        }
+      },
+      "upstream": {
+        "events": [
+          {
+            "sequence": 17,
+            "at": "2026-10-10T08:21:29.340537342Z",
+            "kind": "request_received",
+            "transport": "ws",
+            "session": 2,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.1"
+          },
+          {
+            "sequence": 18,
+            "at": "2026-10-10T08:21:29.342076242Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 2,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.created",
+            "written": true
+          },
+          {
+            "sequence": 19,
+            "at": "2026-10-10T08:21:30.094242376Z",
+            "kind": "probe_released",
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1"
+          },
+          {
+            "sequence": 20,
+            "at": "2026-10-10T08:21:30.094994258Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 2,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.output_text.delta",
+            "written": true
+          },
+          {
+            "sequence": 21,
+            "at": "2026-10-10T08:21:30.145526805Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 2,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.output_text.delta",
+            "written": true
+          },
+          {
+            "sequence": 22,
+            "at": "2026-10-10T08:21:30.196109344Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 2,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.output_text.delta",
+            "written": true
+          },
+          {
+            "sequence": 23,
+            "at": "2026-10-10T08:21:30.845803342Z",
+            "kind": "gate_released",
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1"
+          },
+          {
+            "sequence": 24,
+            "at": "2026-10-10T08:21:30.846085302Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 2,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "ctxdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.1",
+            "event_type": "response.completed",
+            "written": true
+          }
+        ],
+        "evidence_complete": true,
+        "schema_version": 1
+      },
+      "transport": "internal-network-direct",
+      "cancel_frozen_before_drain_completed": true
+    },
+    "oauthdirect1": {
+      "usage": {
+        "id": 74,
+        "request_id": "resp_s44_oauthdirect1_cancel_probe_drain_1",
+        "api_key_id": 5,
+        "completion_status": "client_disconnected",
+        "is_complete": false,
+        "service_status_observation": {
+          "event_role": "terminal",
+          "observed_at": "2026-10-10T08:21:32.338155794Z",
+          "reason_code": null,
+          "logical_turn": 1,
+          "terminal_kind": "client_disconnected",
+          "schema_version": 1,
+          "observation_key": "44474624-a501-4b8c-a1a9-5f1184c00e97"
+        }
+      },
+      "upstream": {
+        "events": [
+          {
+            "sequence": 25,
+            "at": "2026-10-10T08:21:31.533376149Z",
+            "kind": "request_received",
+            "transport": "ws",
+            "session": 6,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.4"
+          },
+          {
+            "sequence": 26,
+            "at": "2026-10-10T08:21:31.533541329Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 6,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.4",
+            "event_type": "response.created",
+            "written": true
+          },
+          {
+            "sequence": 27,
+            "at": "2026-10-10T08:21:32.286948301Z",
+            "kind": "probe_released",
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1"
+          },
+          {
+            "sequence": 28,
+            "at": "2026-10-10T08:21:32.287179866Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 6,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.4",
+            "event_type": "response.output_text.delta",
+            "written": true
+          },
+          {
+            "sequence": 29,
+            "at": "2026-10-10T08:21:32.337805035Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 6,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.4",
+            "event_type": "response.output_text.delta",
+            "written": true
+          },
+          {
+            "sequence": 30,
+            "at": "2026-10-10T08:21:32.388304521Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 6,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.4",
+            "event_type": "response.output_text.delta",
+            "written": true
+          },
+          {
+            "sequence": 31,
+            "at": "2026-10-10T08:21:33.03982575Z",
+            "kind": "gate_released",
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1"
+          },
+          {
+            "sequence": 32,
+            "at": "2026-10-10T08:21:33.040192489Z",
+            "kind": "frame_written",
+            "transport": "ws",
+            "session": 6,
+            "local_turn": 1,
+            "attempt": 1,
+            "run": "oauthdirect1",
+            "case": "cancel_probe_drain",
+            "index": "1",
+            "upstream_model": "gpt-5.4",
+            "event_type": "response.completed",
+            "written": true
+          }
+        ],
+        "evidence_complete": true,
+        "schema_version": 1
+      },
+      "transport": "internal-network-direct",
+      "cancel_frozen_before_drain_completed": true
+    }
+  },
+  "aggregate_cancel": {
+    "watermark": "2026-10-10T08:22:00Z",
+    "scopes": [
+      {
+        "platform": "openai",
+        "group_id": 3,
+        "group_name": "s44-ctx",
+        "requested_model": "gpt-5.1",
+        "success": 1,
+        "failure": 0,
+        "excluded": 1,
+        "unknown": 0,
+        "qualified": 1,
+        "error_rate": null,
+        "success_rate": null,
+        "health": "unknown",
+        "unknown_reason": "insufficient_samples",
+        "last_evidence_at": "2026-10-10T08:20:04.707219Z",
+        "incident_id": "3d94018b-5b8a-4133-826c-46417599608a",
+        "incident_phase": "awaiting_data"
+      },
+      {
+        "platform": "openai",
+        "group_id": 5,
+        "group_name": "s44-oauth",
+        "requested_model": "gpt-5.1",
+        "success": 1,
+        "failure": 0,
+        "excluded": 1,
+        "unknown": 0,
+        "qualified": 1,
+        "error_rate": null,
+        "success_rate": null,
+        "health": "unknown",
+        "unknown_reason": "insufficient_samples",
+        "last_evidence_at": "2026-10-10T08:20:07.13475Z",
+        "incident_id": null,
+        "incident_phase": null
+      }
+    ]
+  },
+  "recovery": {
+    "incident_id": "ee022ddf-07c9-4d66-9af5-415475b23fbf",
+    "without_new_requests": "awaiting_data",
+    "first_new_batch": "recovering/count1",
+    "restart_same_evidence": "count1 unchanged",
+    "three_new_periods": "resolved",
+    "logs": [
+      "snapshot-no-new-requests.json",
+      "recovery1-state-after-restart.jsonl",
+      "snapshot-recovery2.json",
+      "snapshot-recovery3-after-final-switch.json"
+    ]
+  },
+  "PR": "https://github.com/ccisnoxx/sub2api/pull/7",
+  "PR_CI": {
+    "conclusion": "success",
+    "event": "pull_request",
+    "headSha": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+    "jobs": [
+      {
+        "completedAt": "2026-10-10T11:19:07Z",
+        "conclusion": "success",
+        "databaseId": 114201209590,
+        "name": "binding",
+        "startedAt": "2026-10-10T11:18:54Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:18:55Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:18:54Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:04Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:18:55Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:05Z",
+            "conclusion": "success",
+            "name": "Verify candidate and latest personal",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:04Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:05Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:05Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 7,
+            "startedAt": "2026-10-10T11:19:05Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201209590"
+      },
+      {
+        "completedAt": "2026-10-10T11:21:14Z",
+        "conclusion": "success",
+        "databaseId": 114201254752,
+        "name": "tps",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:12Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:16Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:20Z",
+            "conclusion": "success",
+            "name": "Run pnpm/action-setup@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:30Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v6",
+            "number": 4,
+            "startedAt": "2026-10-10T11:19:20Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:34Z",
+            "conclusion": "success",
+            "name": "Run pnpm --dir frontend install --frozen-lockfile",
+            "number": 5,
+            "startedAt": "2026-10-10T11:19:30Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:21:11Z",
+            "conclusion": "success",
+            "name": "TPS contracts and frontend build",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:34Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:21:11Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v6",
+            "number": 10,
+            "startedAt": "2026-10-10T11:21:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:21:11Z",
+            "conclusion": "success",
+            "name": "Post Run pnpm/action-setup@v6",
+            "number": 11,
+            "startedAt": "2026-10-10T11:21:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:21:11Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 12,
+            "startedAt": "2026-10-10T11:21:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:21:11Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-10T11:21:11Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254752"
+      },
+      {
+        "completedAt": "2026-10-10T11:19:20Z",
+        "conclusion": "success",
+        "databaseId": 114201254787,
+        "name": "sync-contracts",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:12Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:15Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:17Z",
+            "conclusion": "success",
+            "name": "Run python3 -m unittest discover -s .github/personal-sync -p 'test_*.py'",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:15Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:18Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:18Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 7,
+            "startedAt": "2026-10-10T11:19:18Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254787"
+      },
+      {
+        "completedAt": "2026-10-10T11:23:48Z",
+        "conclusion": "success",
+        "databaseId": 114201254867,
+        "name": "existing-ci / golangci-lint",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:13Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:15Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:28Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-go@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:15Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:28Z",
+            "conclusion": "success",
+            "name": "Verify Go version",
+            "number": 4,
+            "startedAt": "2026-10-10T11:19:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:23:45Z",
+            "conclusion": "success",
+            "name": "golangci-lint",
+            "number": 5,
+            "startedAt": "2026-10-10T11:19:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:23:45Z",
+            "conclusion": "success",
+            "name": "Post golangci-lint",
+            "number": 8,
+            "startedAt": "2026-10-10T11:23:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:23:46Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-go@v6",
+            "number": 9,
+            "startedAt": "2026-10-10T11:23:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:23:46Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 10,
+            "startedAt": "2026-10-10T11:23:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:23:46Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 11,
+            "startedAt": "2026-10-10T11:23:46Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254867"
+      },
+      {
+        "completedAt": "2026-10-10T11:36:37Z",
+        "conclusion": "success",
+        "databaseId": 114201254870,
+        "name": "existing-ci / test",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:12Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:16Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:17Z",
+            "conclusion": "success",
+            "name": "Check Docker Compose simple mode environment",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-go@v6",
+            "number": 4,
+            "startedAt": "2026-10-10T11:19:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Verify Go version",
+            "number": 5,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:28:27Z",
+            "conclusion": "success",
+            "name": "Unit tests",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:33:00Z",
+            "conclusion": "success",
+            "name": "Integration tests",
+            "number": 7,
+            "startedAt": "2026-10-10T11:28:27Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:33Z",
+            "conclusion": "success",
+            "name": "OpenAI recording concurrency checks",
+            "number": 8,
+            "startedAt": "2026-10-10T11:33:00Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:33Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-go@v6",
+            "number": 15,
+            "startedAt": "2026-10-10T11:36:33Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:33Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 16,
+            "startedAt": "2026-10-10T11:36:33Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:33Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "startedAt": "2026-10-10T11:36:33Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254870"
+      },
+      {
+        "completedAt": "2026-10-10T11:19:31Z",
+        "conclusion": "success",
+        "databaseId": 114201254895,
+        "name": "existing-security / frontend-security",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:11Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:14Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:17Z",
+            "conclusion": "success",
+            "name": "Set up pnpm",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:24Z",
+            "conclusion": "success",
+            "name": "Set up Node.js",
+            "number": 4,
+            "startedAt": "2026-10-10T11:19:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:27Z",
+            "conclusion": "success",
+            "name": "Install dependencies",
+            "number": 5,
+            "startedAt": "2026-10-10T11:19:24Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Run pnpm audit",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:27Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Check audit exceptions",
+            "number": 7,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Post Set up Node.js",
+            "number": 12,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Post Set up pnpm",
+            "number": 13,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 14,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 15,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254895"
+      },
+      {
+        "completedAt": "2026-10-10T11:19:34Z",
+        "conclusion": "success",
+        "databaseId": 114201254900,
+        "name": "existing-security / backend-security",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:11Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:14Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:24Z",
+            "conclusion": "success",
+            "name": "Set up Go",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:24Z",
+            "conclusion": "success",
+            "name": "Verify Go version",
+            "number": 4,
+            "startedAt": "2026-10-10T11:19:24Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:32Z",
+            "conclusion": "success",
+            "name": "Run govulncheck",
+            "number": 5,
+            "startedAt": "2026-10-10T11:19:24Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:32Z",
+            "conclusion": "success",
+            "name": "Post Set up Go",
+            "number": 9,
+            "startedAt": "2026-10-10T11:19:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:32Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 10,
+            "startedAt": "2026-10-10T11:19:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:32Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 11,
+            "startedAt": "2026-10-10T11:19:32Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254900"
+      },
+      {
+        "completedAt": "2026-10-10T11:19:20Z",
+        "conclusion": "success",
+        "databaseId": 114201254934,
+        "name": "existing-ci / release-helpers",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:12Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:15Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:15Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:15Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:16Z",
+            "conclusion": "success",
+            "name": "Run python -m pip install -r .github/release-tools/requirements-release.txt",
+            "number": 4,
+            "startedAt": "2026-10-10T11:19:15Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:18Z",
+            "conclusion": "success",
+            "name": "Run python -m unittest discover -s .github/release-tools -p 'test_*.py'",
+            "number": 5,
+            "startedAt": "2026-10-10T11:19:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:18Z",
+            "conclusion": "success",
+            "name": "Run bash -n .github/release-tools/release-images.sh",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:18Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v6",
+            "number": 11,
+            "startedAt": "2026-10-10T11:19:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:18Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 12,
+            "startedAt": "2026-10-10T11:19:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:18Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-10T11:19:18Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254934"
+      },
+      {
+        "completedAt": "2026-10-10T11:19:27Z",
+        "conclusion": "success",
+        "databaseId": 114201254961,
+        "name": "existing-ci / shell",
+        "startedAt": "2026-10-10T11:19:14Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:15Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:19Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:15Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:24Z",
+            "conclusion": "success",
+            "name": "Check deployment scripts",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:19Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:25Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:24Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:25Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 7,
+            "startedAt": "2026-10-10T11:19:25Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254961"
+      },
+      {
+        "completedAt": "2026-10-10T11:20:43Z",
+        "conclusion": "success",
+        "databaseId": 114201254970,
+        "name": "existing-ci / frontend",
+        "startedAt": "2026-10-10T11:19:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:19:11Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:14Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:19:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:17Z",
+            "conclusion": "success",
+            "name": "Setup pnpm",
+            "number": 3,
+            "startedAt": "2026-10-10T11:19:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:25Z",
+            "conclusion": "success",
+            "name": "Setup Node.js",
+            "number": 4,
+            "startedAt": "2026-10-10T11:19:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:19:29Z",
+            "conclusion": "success",
+            "name": "Install frontend dependencies",
+            "number": 5,
+            "startedAt": "2026-10-10T11:19:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:20:40Z",
+            "conclusion": "success",
+            "name": "Frontend typecheck and critical vitest",
+            "number": 6,
+            "startedAt": "2026-10-10T11:19:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:20:40Z",
+            "conclusion": "success",
+            "name": "Post Setup Node.js",
+            "number": 10,
+            "startedAt": "2026-10-10T11:20:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:20:41Z",
+            "conclusion": "success",
+            "name": "Post Setup pnpm",
+            "number": 11,
+            "startedAt": "2026-10-10T11:20:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:20:41Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 12,
+            "startedAt": "2026-10-10T11:20:41Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:20:41Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-10T11:20:41Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114201254970"
+      },
+      {
+        "completedAt": "2026-10-10T11:36:52Z",
+        "conclusion": "success",
+        "databaseId": 114204204233,
+        "name": "personal-ready",
+        "startedAt": "2026-10-10T11:36:40Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:36:41Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:36:41Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:41Z",
+            "conclusion": "success",
+            "name": "Require every selected check",
+            "number": 2,
+            "startedAt": "2026-10-10T11:36:41Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:49Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:36:41Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:50Z",
+            "conclusion": "success",
+            "name": "Recheck candidate and current base after CI",
+            "number": 4,
+            "startedAt": "2026-10-10T11:36:49Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:50Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 8,
+            "startedAt": "2026-10-10T11:36:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:36:50Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 9,
+            "startedAt": "2026-10-10T11:36:50Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118/job/114204204233"
+      }
+    ],
+    "status": "completed",
+    "updatedAt": "2026-10-10T11:36:52Z",
+    "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38047961118"
+  },
+  "limitations": [
+    "S1.5 Chat Completions/Anthropic/Gemini/Antigravity及未接入入口仍未实现；本次实际生产声明限OpenAI Responses已观察样本。",
+    "生产无近期请求分组及平台保持unknown，不声明全站/全部模型正常；五分钟滚动样本减少不代表故障。",
+    "完整repository既有ConcurrencyCache TODO skip未验证；真实生产故障/回滚及数据库恢复未演练。",
+    "前一中断review的精确终态及execution/summary缺失，未计验收；完整执行Digest生成及audit-finalize失败，统计不可用。"
+  ],
+  "ci_convergence": {
+    "first_run": "38037686631",
+    "first_failure": "server清理测试缺参数，lint被typecheck阻断；后续定向lint11项已修正",
+    "corrections": [
+      "846fd327125b0326a10533f0b500233550765428",
+      "8c580bb972bf1f54e3ddc8683efbd61127ddf4cb"
+    ],
+    "target_race_top_level": 15,
+    "lint": "6个相关包，0 issues",
+    "logs": [
+      "s44-ci-correction-target-green.log",
+      "s44-ci-failed-scope-lint-green.log",
+      "ws-bridge-nil-context-green.log"
+    ],
+    "application_behavior_owner_unchanged": false,
+    "second_run": "38038296698",
+    "second_failure": "WS HTTP bridge允许nil Gin调用，新增owner读取panic；只恢复这个已存在可选上下文合同",
+    "bridge_fix": "17418811eec3362a038bafac230468f949708bdd",
+    "runtime_reuse_scope": "原生HTTP/ctx_pool/透传/OAuth真实流程owner未改；WS HTTP bridge兼容用相关race回归与最终必要CI补证。"
+  },
+  "S4.3_reuse_receipt": {
+    "checked_at": "2026-10-10T11:23:14.552050+00:00",
+    "source": {
+      "backend/cmd/server/wire.go": {
+        "match": true,
+        "sha256": "4b8ad97f5130dc844be9abb04e81b4d3e76b36c37344484fc013b6f5d3e7f93f",
+        "current_sha256": "4b8ad97f5130dc844be9abb04e81b4d3e76b36c37344484fc013b6f5d3e7f93f",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/cmd/server/wire_gen.go": {
+        "match": true,
+        "sha256": "65e5c2f31aa5a1d7a9c929024c98aff1729299422b3665895e0f9e8314ff7a8a",
+        "current_sha256": "65e5c2f31aa5a1d7a9c929024c98aff1729299422b3665895e0f9e8314ff7a8a",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/migrate/schema.go": {
+        "match": true,
+        "sha256": "2d885cea3e744c3bc0396faa5e84dc626a3b835449c2e636810e6983d6bb8ddb",
+        "current_sha256": "2d885cea3e744c3bc0396faa5e84dc626a3b835449c2e636810e6983d6bb8ddb",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/mutation.go": {
+        "match": true,
+        "sha256": "e64406ee163385e3b25445437d1bcd8af5f9ee9ef7107e416b6cf2d10faee6e5",
+        "current_sha256": "e64406ee163385e3b25445437d1bcd8af5f9ee9ef7107e416b6cf2d10faee6e5",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/runtime/runtime.go": {
+        "match": true,
+        "sha256": "433e4030c46d22de655b67eb4227d0665543ef002ff7d69b0a6daeca2269dffb",
+        "current_sha256": "433e4030c46d22de655b67eb4227d0665543ef002ff7d69b0a6daeca2269dffb",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/schema/usage_log.go": {
+        "match": true,
+        "sha256": "69d21f77926ef6b678a7b44a7fe02207aa6a4c4cc801ba4a7b6ee973144aec4b",
+        "current_sha256": "69d21f77926ef6b678a7b44a7fe02207aa6a4c4cc801ba4a7b6ee973144aec4b",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/usagelog.go": {
+        "match": true,
+        "sha256": "e1f9d5d255e798a5663e23230d7e0428d4181de3c566f495bfb6175b246be03a",
+        "current_sha256": "e1f9d5d255e798a5663e23230d7e0428d4181de3c566f495bfb6175b246be03a",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/usagelog/usagelog.go": {
+        "match": true,
+        "sha256": "be5804e72ec93525a20a8510218f05c042cdec98b9fbda34931b886e77b9112f",
+        "current_sha256": "be5804e72ec93525a20a8510218f05c042cdec98b9fbda34931b886e77b9112f",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/usagelog/where.go": {
+        "match": true,
+        "sha256": "d241c7a151a67f0bfca66613ef0c125ac9ac70e3d5939d4a99c905d7d7754274",
+        "current_sha256": "d241c7a151a67f0bfca66613ef0c125ac9ac70e3d5939d4a99c905d7d7754274",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/usagelog_create.go": {
+        "match": true,
+        "sha256": "cb942b7ba5bdf6a84574cede804ff58a034cab4436f6c7a66139a9f318acfb70",
+        "current_sha256": "cb942b7ba5bdf6a84574cede804ff58a034cab4436f6c7a66139a9f318acfb70",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/ent/usagelog_update.go": {
+        "match": true,
+        "sha256": "e894dd83782226c914e736487706631b282c8fdb2fa4ecfc68542e8a3be9c60e",
+        "current_sha256": "e894dd83782226c914e736487706631b282c8fdb2fa4ecfc68542e8a3be9c60e",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/handler.go": {
+        "match": true,
+        "sha256": "c1af651a64cfa7c6933c917271d9d662bf71065575a99bf4d4a90dc50501be86",
+        "current_sha256": "c1af651a64cfa7c6933c917271d9d662bf71065575a99bf4d4a90dc50501be86",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/openai_gateway_handler.go": {
+        "match": true,
+        "sha256": "8cac1b809e848c92178845c877ff6c097319f5c2dd76b7d732a383486aba5e36",
+        "current_sha256": "8cac1b809e848c92178845c877ff6c097319f5c2dd76b7d732a383486aba5e36",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/openai_ws_routing_diagnostics.go": {
+        "match": true,
+        "sha256": "739a06a75bf681cc9c22cf71b7eaa62abf581ba1fe2098ab572a92d3797189d6",
+        "current_sha256": "739a06a75bf681cc9c22cf71b7eaa62abf581ba1fe2098ab572a92d3797189d6",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/ops_error_logger.go": {
+        "match": true,
+        "sha256": "4b011b35f12f1a104e78abb4456d3d03e0773fdab5d1a5c67eb9f5f06b4e197c",
+        "current_sha256": "4b011b35f12f1a104e78abb4456d3d03e0773fdab5d1a5c67eb9f5f06b4e197c",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/service_status_handler.go": {
+        "match": true,
+        "sha256": "a086edc877b0b58b2f1e0d44a8de6f2e02f407968715c11a7093ca60802e86b7",
+        "current_sha256": "a086edc877b0b58b2f1e0d44a8de6f2e02f407968715c11a7093ca60802e86b7",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/service_status_handler_test.go": {
+        "match": true,
+        "sha256": "aba5e132486a673e87b8a82a25e898b37ae5747643220aca607f0a2ac8eec63a",
+        "current_sha256": "aba5e132486a673e87b8a82a25e898b37ae5747643220aca607f0a2ac8eec63a",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/service_status_observation_test.go": {
+        "match": true,
+        "sha256": "5fb23d33389398193d92a0f67bc9a0e07cf64c4407a9259db3f890092aee13ff",
+        "current_sha256": "5fb23d33389398193d92a0f67bc9a0e07cf64c4407a9259db3f890092aee13ff",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/handler/wire.go": {
+        "match": true,
+        "sha256": "78011e737f06b8e66882f5f33f4de1772c50d48d842094f96b49a9831faa49e8",
+        "current_sha256": "78011e737f06b8e66882f5f33f4de1772c50d48d842094f96b49a9831faa49e8",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/ops_repo.go": {
+        "match": true,
+        "sha256": "7b6c35a2aa1f4f15a939b8056192120f059e159d5a84aa1fc415bdfb9bf1fef0",
+        "current_sha256": "7b6c35a2aa1f4f15a939b8056192120f059e159d5a84aa1fc415bdfb9bf1fef0",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/ops_repo_args_test.go": {
+        "match": true,
+        "sha256": "9403a37c4882d6880314f7726201f451303db01db50ab0ae26970704a0bacbf4",
+        "current_sha256": "9403a37c4882d6880314f7726201f451303db01db50ab0ae26970704a0bacbf4",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/service_status_incidents.go": {
+        "match": true,
+        "sha256": "4845012c6461929d822005898a0a1fc53aa192dfa5664c838bf9f0c2ae02ac45",
+        "current_sha256": "4845012c6461929d822005898a0a1fc53aa192dfa5664c838bf9f0c2ae02ac45",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/service_status_normalize.go": {
+        "match": true,
+        "sha256": "bf5594c797b0c123dd950840cc9a8f6765957bf2372b8b4488eed88603389706",
+        "current_sha256": "bf5594c797b0c123dd950840cc9a8f6765957bf2372b8b4488eed88603389706",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/service_status_normalize_test.go": {
+        "match": true,
+        "sha256": "befd5f4f2820c98ba5892d421bd167f48e4f5919e51f7c1e312e99d3577a0979",
+        "current_sha256": "befd5f4f2820c98ba5892d421bd167f48e4f5919e51f7c1e312e99d3577a0979",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/service_status_repo.go": {
+        "match": true,
+        "sha256": "d20abc0a6fc4fb5d83f33f40ff702db0f582a47343c019f1936fe41f0ea15058",
+        "current_sha256": "d20abc0a6fc4fb5d83f33f40ff702db0f582a47343c019f1936fe41f0ea15058",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/service_status_repo_integration_test.go": {
+        "match": true,
+        "sha256": "c7cb409c2d31fbaacb8dd4dbf449f6f35204c9e080c1964d62d4e5fe480223a5",
+        "current_sha256": "4b05ac70bd162fe3ba970878baa1a3d4151338b905771eecd886b7e0cb53ded6",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/repository/service_status_source_integration_test.go": {
+        "match": true,
+        "sha256": "25aaa05b5a86f2cdf9b9a03b78e5ec5c5d177ca81655b79102018c10f0f4175a",
+        "current_sha256": "600a9d63e5e26be8099fcf07cdf3097aa6d53712e9c3d6a60ae2cece81601348",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/repository/usage_log_repo_insert.go": {
+        "match": true,
+        "sha256": "a46eb617cc3dd0f36d4ca47c0f781a02cf9407570e21a3b4460ac83c48133e18",
+        "current_sha256": "a46eb617cc3dd0f36d4ca47c0f781a02cf9407570e21a3b4460ac83c48133e18",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/usage_log_repo_insert_shape_unit_test.go": {
+        "match": true,
+        "sha256": "cb61e555b72dcc6d066e5c9257cd7e8941915f006a5cd06392cd77167ae8b54c",
+        "current_sha256": "cb61e555b72dcc6d066e5c9257cd7e8941915f006a5cd06392cd77167ae8b54c",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/usage_log_repo_query.go": {
+        "match": true,
+        "sha256": "fbf59d76d12490db9dff370556b32add5de88f239c1d81823460bc29424ead88",
+        "current_sha256": "fbf59d76d12490db9dff370556b32add5de88f239c1d81823460bc29424ead88",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/usage_log_repo_request_type_test.go": {
+        "match": true,
+        "sha256": "e796b195dec84065d49b2f5e42541962ea90f8e2caf052b4d5ffcc1ef9bb859e",
+        "current_sha256": "e796b195dec84065d49b2f5e42541962ea90f8e2caf052b4d5ffcc1ef9bb859e",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/usage_log_repo_safety_buffering_unit_test.go": {
+        "match": true,
+        "sha256": "b71eebfc3ac5e6d8783da81e66bde0da2d252238ac0ccf994b6cd029cdb0fec0",
+        "current_sha256": "b71eebfc3ac5e6d8783da81e66bde0da2d252238ac0ccf994b6cd029cdb0fec0",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/usage_log_session_id_unit_test.go": {
+        "match": true,
+        "sha256": "7b5a47e7c41703192ef1ad94190cb143b0fdaac4139a0d5a9a12882aa6f468c5",
+        "current_sha256": "7b5a47e7c41703192ef1ad94190cb143b0fdaac4139a0d5a9a12882aa6f468c5",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/repository/wire.go": {
+        "match": true,
+        "sha256": "be2d93ceedbe7cb0da54b6733b88432bf3d2267a01d5f749b983641b025e28e4",
+        "current_sha256": "be2d93ceedbe7cb0da54b6733b88432bf3d2267a01d5f749b983641b025e28e4",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/server/middleware/middleware.go": {
+        "match": true,
+        "sha256": "1d0baa81dbe6ab6a810b9e90aa1a3d3c89562ee0719d5e48732ffe107f8845cd",
+        "current_sha256": "1d0baa81dbe6ab6a810b9e90aa1a3d3c89562ee0719d5e48732ffe107f8845cd",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/server/routes/admin.go": {
+        "match": true,
+        "sha256": "7386b4ca6e0ec3788575f7700404c4c525ec3031743499391ff531a09409111d",
+        "current_sha256": "7386b4ca6e0ec3788575f7700404c4c525ec3031743499391ff531a09409111d",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/server/routes/service_status_routes_test.go": {
+        "match": true,
+        "sha256": "dc84c85699328d76e1dd9681ef329e195b3355e4be7128467ea554e64d584841",
+        "current_sha256": "dc84c85699328d76e1dd9681ef329e195b3355e4be7128467ea554e64d584841",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/openai_gateway_forward.go": {
+        "match": true,
+        "sha256": "fb54e49c47af38ca0c2fa035ba4cb9d968f1aa06e6d2ca082b479e547abc80af",
+        "current_sha256": "fb54e49c47af38ca0c2fa035ba4cb9d968f1aa06e6d2ca082b479e547abc80af",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/openai_gateway_passthrough.go": {
+        "match": true,
+        "sha256": "c2485e6cf6828831128a108641805c9b6319c628e88fd5f5c3f117775d99ad2e",
+        "current_sha256": "c2485e6cf6828831128a108641805c9b6319c628e88fd5f5c3f117775d99ad2e",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/openai_gateway_usage.go": {
+        "match": true,
+        "sha256": "9cd03ab3efdb00b7e132e7b1f83ad63bb0486bb012f0644c64c94ee1e85759e1",
+        "current_sha256": "9cd03ab3efdb00b7e132e7b1f83ad63bb0486bb012f0644c64c94ee1e85759e1",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/openai_ws_forwarder_ingress.go": {
+        "match": true,
+        "sha256": "8340810476fd317e08afe9dc734d14cbaa9fda1669ec3c03c6f2e0aef118ff3c",
+        "current_sha256": "8340810476fd317e08afe9dc734d14cbaa9fda1669ec3c03c6f2e0aef118ff3c",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/openai_ws_http_bridge.go": {
+        "match": true,
+        "sha256": "92f8b8d36c59bd8a572a6fce373c21f38181b77c2a7de32bafdd04cec7c7894c",
+        "current_sha256": "8f566230cabe5166e6119be26e7c22565f09b4921dfbfad564187d8dfd5cf6be",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/service/openai_ws_v2_passthrough_adapter.go": {
+        "match": true,
+        "sha256": "2ffc6ac2051c045d47d5d75b17bc85de2d2bd0519e54618ebb7c83167310929b",
+        "current_sha256": "2ffc6ac2051c045d47d5d75b17bc85de2d2bd0519e54618ebb7c83167310929b",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/ops_models.go": {
+        "match": true,
+        "sha256": "f5fc36ebe946b94bde3903168048453984f758ef63355483fad9f7ced4118da3",
+        "current_sha256": "f5fc36ebe946b94bde3903168048453984f758ef63355483fad9f7ced4118da3",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/ops_port.go": {
+        "match": true,
+        "sha256": "01945eb81251617bcb8a7030e6f166ac28c3750ccbc1d86b9218d23b968fb417",
+        "current_sha256": "01945eb81251617bcb8a7030e6f166ac28c3750ccbc1d86b9218d23b968fb417",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/ops_service.go": {
+        "match": true,
+        "sha256": "916b86e64c4b25c5bc7bfbb4f20465fff5cfdfd216da5332e60a9b0308db5a24",
+        "current_sha256": "916b86e64c4b25c5bc7bfbb4f20465fff5cfdfd216da5332e60a9b0308db5a24",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/ops_upstream_context.go": {
+        "match": true,
+        "sha256": "8cee7b36bde883524ef8cf1e3c9b57ab5facd5b9542c5e8ce2f50a0736e05d82",
+        "current_sha256": "8cee7b36bde883524ef8cf1e3c9b57ab5facd5b9542c5e8ce2f50a0736e05d82",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/service_status.go": {
+        "match": true,
+        "sha256": "ce58991f2cc1189873a0308cb0855cb6d4bb4cd2b185c7e903ca07446547e733",
+        "current_sha256": "ce58991f2cc1189873a0308cb0855cb6d4bb4cd2b185c7e903ca07446547e733",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/service_status_aggregator.go": {
+        "match": true,
+        "sha256": "d0b2d14b3fe840db65bd8edbe3fdaf7e7529af3c64e53510d60b6ac43eea8186",
+        "current_sha256": "d0b2d14b3fe840db65bd8edbe3fdaf7e7529af3c64e53510d60b6ac43eea8186",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/service_status_aggregator_test.go": {
+        "match": true,
+        "sha256": "fddbc713b4dce033f8cb516e0b17e74b717f266f21ba00e2f96324c2633596fe",
+        "current_sha256": "b09d6c711dbfb97de5088880c09df7bd96934329a7ca80d8c9f6a7050e8cb238",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/service/service_status_observation.go": {
+        "match": true,
+        "sha256": "375f8b77be27d182af3b64d57a17536277ec240242982ecfa76e3d3b4a93615b",
+        "current_sha256": "41b3ed72eeb83ae4db3119bbf6b78a5b08186614c8a2a0f55ce1eaf2cd1c85cb",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/service/service_status_observation_test.go": {
+        "match": true,
+        "sha256": "95776b9c8236ec7f1c313450b8188f9aacbc09be1069c3c776ae35fb3cd780bc",
+        "current_sha256": "85d15ff2d72ef0610de66cbf4d87533677b969edb88e7007d226486df45e9dbe",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/service/service_status_source_integrity.go": {
+        "match": true,
+        "sha256": "bdf3c74ed8b54dedef46c4b732f93f3e69b640511ba71dc525d39b3dfcb47b16",
+        "current_sha256": "bdf3c74ed8b54dedef46c4b732f93f3e69b640511ba71dc525d39b3dfcb47b16",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/service_status_source_integrity_test.go": {
+        "match": true,
+        "sha256": "e0df8745507d25f26c8fa3c2e2ae70a89f7fde393166d5e8524428e79b8b1d9a",
+        "current_sha256": "e0df8745507d25f26c8fa3c2e2ae70a89f7fde393166d5e8524428e79b8b1d9a",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/service_status_source_reporter.go": {
+        "match": true,
+        "sha256": "5041e084e595106ec13a757426e95b30a6bcba49a35efeb928178544809754fc",
+        "current_sha256": "5041e084e595106ec13a757426e95b30a6bcba49a35efeb928178544809754fc",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/service_status_source_reporter_test.go": {
+        "match": true,
+        "sha256": "e0cd05891fe9055a49216c9dbc67eb74164e51a075e96a410468b38d514662ee",
+        "current_sha256": "5e06afe20e413dd6bd74b016ab86b005fc4147b53caf4468f3c35b9ff60945dd",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/service/service_status_test.go": {
+        "match": true,
+        "sha256": "37f37cc857680289647947c598a6b8a834a88298cce75d74e8ef32060b2a8cd6",
+        "current_sha256": "37f37cc857680289647947c598a6b8a834a88298cce75d74e8ef32060b2a8cd6",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/service_status_types.go": {
+        "match": true,
+        "sha256": "484b9348142cb871914e37fa7a95ee472b26ea356a011f1e9f40a8d5f6ca1012",
+        "current_sha256": "484b9348142cb871914e37fa7a95ee472b26ea356a011f1e9f40a8d5f6ca1012",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/stream_output_timing.go": {
+        "match": true,
+        "sha256": "3d46b9506e4214bf761a121e64e381519c4386f5896def420f80dddeace2fb65",
+        "current_sha256": "6424f1364fe7da0f566dff466a190ee773c8f4e46a1df9a65ba86df5e549c7f9",
+        "unchanged_on_final_candidate": false
+      },
+      "backend/internal/service/usage_timing.go": {
+        "match": true,
+        "sha256": "d64c3cb3f403cf405b517683a37cd665ae584d182c51043d8639a53a191759b5",
+        "current_sha256": "d64c3cb3f403cf405b517683a37cd665ae584d182c51043d8639a53a191759b5",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/internal/service/wire.go": {
+        "match": true,
+        "sha256": "f987879e73e316b51073c4053aa627ce525a54b93087d59fb08a27897875b7c9",
+        "current_sha256": "f987879e73e316b51073c4053aa627ce525a54b93087d59fb08a27897875b7c9",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/migrations/253_service_status_observation.sql": {
+        "match": true,
+        "sha256": "8440c2da7a92dd5b70da653a7c02a485bca4337ae76868ef5b0ccd7996b897c2",
+        "current_sha256": "8440c2da7a92dd5b70da653a7c02a485bca4337ae76868ef5b0ccd7996b897c2",
+        "unchanged_on_final_candidate": true
+      },
+      "backend/migrations/254_service_status.sql": {
+        "match": true,
+        "sha256": "3e8deac13622490588c61dc5cc9411653c05631009c19380e83e289e17251b8b",
+        "current_sha256": "3e8deac13622490588c61dc5cc9411653c05631009c19380e83e289e17251b8b",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/api/__tests__/admin.serviceStatus.spec.ts": {
+        "match": true,
+        "sha256": "315dec3a4f766ccdbab1229b78700fcf5ffb812ac3983ed84a9799771ecc2cfe",
+        "current_sha256": "315dec3a4f766ccdbab1229b78700fcf5ffb812ac3983ed84a9799771ecc2cfe",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/api/admin/index.ts": {
+        "match": true,
+        "sha256": "9a90fed93eb7f663936e5b7a70747c181dd0f4532424f989cc0d1ce80f49cef8",
+        "current_sha256": "9a90fed93eb7f663936e5b7a70747c181dd0f4532424f989cc0d1ce80f49cef8",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/api/admin/serviceStatus.ts": {
+        "match": true,
+        "sha256": "db1a401284eacfd8d865d542489553a40befed51ddfc540c7ca5895b0aecd290",
+        "current_sha256": "db1a401284eacfd8d865d542489553a40befed51ddfc540c7ca5895b0aecd290",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/api/client.ts": {
+        "match": true,
+        "sha256": "658cd3d76bbe8f887c2f05f22518df7bd5632ba589a5d01ef414a364a526651f",
+        "current_sha256": "658cd3d76bbe8f887c2f05f22518df7bd5632ba589a5d01ef414a364a526651f",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/components/layout/AppSidebar.vue": {
+        "match": true,
+        "sha256": "ec64dade705be6a0b5a2ffca6054f59aac4754e871dbf645a199d1362b4e39cd",
+        "current_sha256": "ec64dade705be6a0b5a2ffca6054f59aac4754e871dbf645a199d1362b4e39cd",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/components/service-status/ServiceStatusMetrics.vue": {
+        "match": true,
+        "sha256": "9215e3be111a4203a1d3e578adfe646182eb46013175f7c182f92bef90eca3b0",
+        "current_sha256": "9215e3be111a4203a1d3e578adfe646182eb46013175f7c182f92bef90eca3b0",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/i18n/locales/en/admin/index.ts": {
+        "match": true,
+        "sha256": "4ac8d851fb02309a20fcbf7c9ca68b8d70297e37bcd6693b0fc69b8b50155699",
+        "current_sha256": "4ac8d851fb02309a20fcbf7c9ca68b8d70297e37bcd6693b0fc69b8b50155699",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/i18n/locales/en/admin/serviceStatus.ts": {
+        "match": true,
+        "sha256": "c08020351d07dbd73244f68122deb5b132cd79e273f04f920755e2c6a3889a84",
+        "current_sha256": "c08020351d07dbd73244f68122deb5b132cd79e273f04f920755e2c6a3889a84",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/i18n/locales/en/common.ts": {
+        "match": true,
+        "sha256": "e3e92bc2d333dc0c60c170f090ac8163d25eb02cbe83f7110780fcd22e1185b8",
+        "current_sha256": "e3e92bc2d333dc0c60c170f090ac8163d25eb02cbe83f7110780fcd22e1185b8",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/i18n/locales/zh/admin/index.ts": {
+        "match": true,
+        "sha256": "4ac8d851fb02309a20fcbf7c9ca68b8d70297e37bcd6693b0fc69b8b50155699",
+        "current_sha256": "4ac8d851fb02309a20fcbf7c9ca68b8d70297e37bcd6693b0fc69b8b50155699",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/i18n/locales/zh/admin/serviceStatus.ts": {
+        "match": true,
+        "sha256": "1be358716e0291c0fb6cf6d54bedd89eae3705bb754515a6663ffd0bf258d86a",
+        "current_sha256": "1be358716e0291c0fb6cf6d54bedd89eae3705bb754515a6663ffd0bf258d86a",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/i18n/locales/zh/common.ts": {
+        "match": true,
+        "sha256": "3ced3092dd927fb12b1b4148036f8f6585d60b5797465dd8ea2108d3e95e4a4d",
+        "current_sha256": "3ced3092dd927fb12b1b4148036f8f6585d60b5797465dd8ea2108d3e95e4a4d",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/router/__tests__/feature-access.spec.ts": {
+        "match": true,
+        "sha256": "01d71425656a19e5ba1953b952153c09e7eb0b21ada801094219fcf46f3690cf",
+        "current_sha256": "01d71425656a19e5ba1953b952153c09e7eb0b21ada801094219fcf46f3690cf",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/router/index.ts": {
+        "match": true,
+        "sha256": "30bf08cbc4898f7013bc8023d2836dc2e806a9601351504969d8df856d6aa161",
+        "current_sha256": "30bf08cbc4898f7013bc8023d2836dc2e806a9601351504969d8df856d6aa161",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/views/admin/ServiceStatusView.vue": {
+        "match": true,
+        "sha256": "379f0d7a406981f807b779170f0a49e3d7940ef56d63e213084a15c179f43538",
+        "current_sha256": "379f0d7a406981f807b779170f0a49e3d7940ef56d63e213084a15c179f43538",
+        "unchanged_on_final_candidate": true
+      },
+      "frontend/src/views/admin/__tests__/ServiceStatusView.spec.ts": {
+        "match": true,
+        "sha256": "59e6571c6c6032fd14c4f5a2f8e7d32a47fb4d07b40baddd2f28d409f14a0471",
+        "current_sha256": "59e6571c6c6032fd14c4f5a2f8e7d32a47fb4d07b40baddd2f28d409f14a0471",
+        "unchanged_on_final_candidate": true
+      }
+    },
+    "logs": {
+      "source-final-targeted.log": {
+        "match": true,
+        "sha256": "fa3a23e540b76c737f886ac6665e07cb28614515d4822eb15a29a89bce983787"
+      },
+      "source-final-race.log": {
+        "match": true,
+        "sha256": "b9946ed4a49b0c805ae57ff7e07102af3a2cf66278c74b51881b432200e5f26d"
+      },
+      "source-postgres-integration-final.log": {
+        "match": true,
+        "sha256": "3fa392989580b4ad26ac9c30875e36addef9ee35023ef7050a4cb729a8b9f766"
+      },
+      "source-final-prepersistence.log": {
+        "match": true,
+        "sha256": "f2e837c3bb5fcbde079c536167dcdc100be17533c3635c54e2373bc68eedc221"
+      },
+      "aggregate-unit-final.log": {
+        "match": true,
+        "sha256": "7523a46b2624b1bd61e269114e47f553e0733da7064105d71d011f21701f0d74"
+      },
+      "aggregate-race-final.log": {
+        "match": true,
+        "sha256": "324989c95f3d80c6e6bbe7e24bfd5813ce7595dd05c3cd1085eeca4719e322b6"
+      },
+      "aggregate-pg16-frozen.log": {
+        "match": true,
+        "sha256": "fe7e22ced9f23cb137509c0fe983da3b4be093bf798aead6e27abb748eee030d"
+      },
+      "frontend-tests-final.log": {
+        "match": true,
+        "sha256": "f85d012085b1c3c3423462d5e7db34d1c2cad71324297bd6b08cbe210956844b"
+      },
+      "frontend-typecheck-final.log": {
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "frontend-lint-final.log": {
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "frontend-build.log": {
+        "match": true,
+        "sha256": "9d4879d4dfe993e0acce88cedb67d0514c6e57c244d9247a77446940e6b87376"
+      },
+      "backend-build-final.log": {
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "wire-generate.log": {
+        "match": true,
+        "sha256": "9c87f6828e9a7349dab8d0d597b2408323cee10cc3e57fb6ff264be4a31b59e3"
+      },
+      "browser-qa.log": {
+        "match": true,
+        "sha256": "41d2d0148ccb596f9718bd2d8a53fa96f1c83ad0296c926fc6ed789351b9dd9b"
+      },
+      "browser-mobile-layout-final.log": {
+        "match": true,
+        "sha256": "29c66a4a4f3e5a7932158a1c879279d1c3ff8f7bddc5a55a68479f4fe1a6620a"
+      },
+      "root-repository-unit-final.jsonl": {
+        "match": true,
+        "sha256": "4873c06276f30dedacd860a4731979606926f87f3c85272d31e3fe399454b6f4"
+      },
+      "root-source-reporter-race.jsonl": {
+        "match": true,
+        "sha256": "09e18f50d8610225e82e9a8fdbe7bb890f6c0f48168ebf39056ba6e3af48cffc"
+      },
+      "review-source-red.log": {
+        "match": true,
+        "sha256": "2829d1a2978b696baa31fa9a2a0e25c803fbaee25d08d162f536c03f3648bba9"
+      },
+      "review-source-green.log": {
+        "match": true,
+        "sha256": "6cff59c5add919dd2d87860ef35be7e5ae597f41c5afed58b84ec94cb83961ac"
+      },
+      "review-status-red.log": {
+        "match": true,
+        "sha256": "31c79492af0ea85b865ae7e42dc30c2bd1294395fde86fc5ccf35cbcffa92190"
+      },
+      "review-status-empty-platform-red.log": {
+        "match": true,
+        "sha256": "cc434443c1705c836f753df3b616198174d4b7a315489d2a355599bcb4c1f4bf"
+      },
+      "review-status-green.log": {
+        "match": true,
+        "sha256": "9b9ce7c064f5365804fa9b6dbde2542c36b010596c535f129da25ba469341e42"
+      },
+      "review-status-final-boundaries-red.log": {
+        "match": true,
+        "sha256": "978f297f3609f60af5037666b92c9a52fd7e2ea9f8947648096549481029a961"
+      },
+      "review-status-final-boundaries-green.log": {
+        "match": true,
+        "sha256": "1b3d47b4cb5a6e56d8b02c72086b22d9e46a8bcdab236d8f3377a04245840e7b"
+      },
+      "service-status-pg16-final.log": {
+        "match": true,
+        "sha256": "0dceda68cf6a9b4438bc50af740b23d83c67830735f0833d57dee44285dafb04"
+      },
+      "service-status-lifecycle-race-final.log": {
+        "match": true,
+        "sha256": "cf616f4e14116b854ede0aac51d9dee77a9fd4286bbd0ba4c9e17727e445e209"
+      },
+      "backend-build-review-final.log": {
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "wire-generate-review-fix.log": {
+        "match": true,
+        "sha256": "9c87f6828e9a7349dab8d0d597b2408323cee10cc3e57fb6ff264be4a31b59e3"
+      },
+      "root-integration-unit.jsonl": {
+        "match": true,
+        "sha256": "d8cc5dfc32cf4a2a0be3d43ce032bc8cad6de3c780bf2e584d26f14d578021cd"
+      }
+    },
+    "result": "passed_with_changed_owner_checks",
+    "candidate_sha": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+    "changed_source_paths": [
+      "backend/internal/repository/service_status_repo_integration_test.go",
+      "backend/internal/repository/service_status_source_integration_test.go",
+      "backend/internal/service/openai_ws_http_bridge.go",
+      "backend/internal/service/service_status_aggregator_test.go",
+      "backend/internal/service/service_status_observation.go",
+      "backend/internal/service/service_status_observation_test.go",
+      "backend/internal/service/service_status_source_reporter_test.go",
+      "backend/internal/service/stream_output_timing.go"
+    ],
+    "unchanged_source_count": 71
+  },
+  "repository_fixture_ci_correction": {
+    "commit": "53eee7fe03079929de015b2d46b73e9e790dba4e",
+    "failed_ci": "https://github.com/ccisnoxx/sub2api/actions/runs/38039087470",
+    "production_semantics_changed": false,
+    "summary": {
+      "base_head": "17418811eec3362a038bafac230468f949708bdd",
+      "workdir": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "changed_files": [
+        {
+          "path": "backend/internal/repository/service_status_repo_integration_test.go",
+          "sha256": "924940018513fb84645655b7052635eb32cd7c8509cddfafa6a69e76d59a1c35"
+        },
+        {
+          "path": "backend/internal/repository/service_status_source_integration_test.go",
+          "sha256": "600a9d63e5e26be8099fcf07cdf3097aa6d53712e9c3d6a60ae2cece81601348"
+        },
+        {
+          "path": "backend/internal/repository/usage_log_timing_integration_test.go",
+          "sha256": "187b2bd6172839c99cd90674340e4fc1db122287c11c5ca35cd495c657710d9d"
+        }
+      ],
+      "checks": [
+        {
+          "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/repository-fixture-before.log",
+          "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags integration ./internal/repository -count=1 -v",
+          "exit_code": 1,
+          "pass_entries_including_suites_and_subtests": 1591,
+          "fail_entries_including_suites_and_subtests": 4,
+          "skip_entries": 1,
+          "sha256": "b289680d9081eabef37afd483b52cbdbfa198e0a95d8e4facd317c360ce3a2ff"
+        },
+        {
+          "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/repository-fixture-group-gap-before.log",
+          "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags integration ./internal/repository -run '^(TestGetErrorLogByID_APIKeyPrefixAndUpstreamStatus|TestServiceStatusRepositoryGroupVisibilityRestartsRecovery)$' -count=1 -v",
+          "exit_code": 1,
+          "pass_entries_including_suites_and_subtests": 1,
+          "fail_entries_including_suites_and_subtests": 1,
+          "skip_entries": 0,
+          "sha256": "caa6614818354cebc5338e071cb34ad262ca34570fb06e696097e942541bb1c7"
+        },
+        {
+          "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/repository-fixture-targeted-after.log",
+          "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags integration ./internal/repository -run '^(TestGetErrorLogByID_APIKeyPrefixAndUpstreamStatus|TestServiceStatus|TestUsageLogTiming_|TestMigration251_|TestUsageLogRepoSuite)' -count=1 -v",
+          "exit_code": 0,
+          "pass_entries_including_suites_and_subtests": 72,
+          "fail_entries_including_suites_and_subtests": 0,
+          "skip_entries": 0,
+          "sha256": "c3d7596dfc2951b2a806df5685644de81c5413433fd9a12b48ba80357ce31421"
+        },
+        {
+          "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/repository-fixture-full-after.log",
+          "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags integration ./internal/repository -count=1 -v",
+          "exit_code": 0,
+          "pass_entries_including_suites_and_subtests": 1595,
+          "fail_entries_including_suites_and_subtests": 0,
+          "skip_entries": 1,
+          "sha256": "98be6ae1e66d063518504c40403fb357161e574d7628c56dbbc6dd8d9fbb6ddc"
+        }
+      ],
+      "existing_unverified_case": "TestConcurrencyCacheSuite/TestGetAccountsLoadBatch: existing unconditional TODO skip, unchanged; not counted as passed",
+      "environment": "Colima default restored to Stopped; Docker context remains default",
+      "new_tests_added": false,
+      "production_or_dashboard_assertions_changed": false,
+      "committed_or_pushed": false
+    },
+    "fresh_review": "accepted_no_confirmed_blocker",
+    "new_ci": "failure"
+  },
+  "deployment_tool_ci": {
+    "revision": "e3b3e8e284e2d9b0ff8f972650807c4d40863c64",
+    "run_id": 38047957139,
+    "result": "success",
+    "tests": 60
+  },
+  "latest_ci_failure": {
+    "run_id": 38040893627,
+    "candidate_sha": "53eee7fe03079929de015b2d46b73e9e790dba4e",
+    "unit": "success",
+    "integration": "failure",
+    "lint": "success",
+    "failures": [
+      "TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes facts expected0 actual1",
+      "TestServiceStatusRepositoryFrozenIncidentHasNullRates reason expectedawaiting_data actualscope_unavailable"
+    ],
+    "diagnosis_status": "受控旧源重现并修复；冻结NULL比例覆盖由独立复核补齐，最终候选CI进行中"
+  },
+  "repository_clock_ci_correction": {
+    "commit": "74508aa0e1c2d61e9e269fbe73e3eb8ce515a9da",
+    "failed_ci": "https://github.com/ccisnoxx/sub2api/actions/runs/38040893627",
+    "production_semantics_changed": false,
+    "summary": {
+      "base_head": "53eee7fe03079929de015b2d46b73e9e790dba4e",
+      "workdir": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "changed_files": [
+        {
+          "path": "backend/internal/repository/service_status_repo_integration_test.go",
+          "sha256": "6b97845585f2d936e8dbd7f5ea9c4e9e9250d1d1be5e4d92b56eb86c7baa4915"
+        }
+      ],
+      "checked_files": [
+        {
+          "path": "backend/internal/repository/service_status_repo_integration_test.go",
+          "sha256": "6b97845585f2d936e8dbd7f5ea9c4e9e9250d1d1be5e4d92b56eb86c7baa4915"
+        },
+        {
+          "path": "backend/internal/repository/service_status_source_integration_test.go",
+          "sha256": "600a9d63e5e26be8099fcf07cdf3097aa6d53712e9c3d6a60ae2cece81601348"
+        },
+        {
+          "path": "backend/internal/repository/usage_log_timing_integration_test.go",
+          "sha256": "187b2bd6172839c99cd90674340e4fc1db122287c11c5ca35cd495c657710d9d"
+        }
+      ],
+      "checks": [
+        {
+          "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/repository-clock-controlled-before.log",
+          "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags integration ./internal/repository -run '^TestServiceStatusRepository(LimitRollsBackAndLeaderConfigSerializes|FrozenIncidentHasNullRates)$' -count=1 -v",
+          "exit_code": 1,
+          "pass_entries_including_suites_and_subtests": 0,
+          "fail_entries_including_suites_and_subtests": 2,
+          "skip_entries": 0,
+          "sha256": "8a1b73b71a6eb316494b5ca1a6498b067b6b0180af11edfcf6f1e072914f093e"
+        },
+        {
+          "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/repository-clock-targeted-after.log",
+          "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags integration ./internal/repository -run '^(TestGetErrorLogByID_APIKeyPrefixAndUpstreamStatus|TestServiceStatusRepository)' -count=1 -v",
+          "exit_code": 0,
+          "pass_entries_including_suites_and_subtests": 12,
+          "fail_entries_including_suites_and_subtests": 0,
+          "skip_entries": 0,
+          "sha256": "8dd4f91e320cc70c0e242204787c2d9e5cd8bb3ac36c776c51bcb816e03fca9e"
+        },
+        {
+          "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/repository-clock-full-after.log",
+          "command": "DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags integration ./internal/repository -count=1 -v",
+          "exit_code": 0,
+          "pass_entries_including_suites_and_subtests": 1595,
+          "fail_entries_including_suites_and_subtests": 0,
+          "skip_entries": 1,
+          "sha256": "5d69cb874eac4f8fcf0217d4d739e3c923750cad2f5df1fd2e18197fbf8cc881"
+        }
+      ],
+      "controlled_fixture": "Each affected existing test inserts its own unscoped legacy Ops row at truncated DB minute minus 30 seconds and deletes only returned row ID.",
+      "existing_unverified_case": "TestConcurrencyCacheSuite/TestGetAccountsLoadBatch: existing unconditional TODO skip; not counted as passed",
+      "environment": "Colima default restored to Stopped; Docker context remains default",
+      "production_or_dashboard_assertions_changed": false,
+      "committed_or_pushed": false
+    },
+    "fresh_review": "pending",
+    "new_ci": "cancelled_after_independent_review_P2",
+    "new_ci_run": 38042366636,
+    "review_result": "P2_frozen_rate_coverage_gap_found"
+  },
+  "frozen_rate_coverage_correction": {
+    "candidate": "4babebff68ff5e39fbf24b808c275cc9e8270339",
+    "change": "只改测试，保留全站缺口；新增完整覆盖/当前版本/无缺口的冻结快照，recovery_count 初值2检测重置",
+    "tests": {
+      "green": "真实 PG18.1/Redis8.4，两顶层用例通过3.378s",
+      "red": "Go overlay 仅移除生产冻结时清空比例一行，NULL断言预期失败3.138s",
+      "CI": true,
+      "unrelated_group_visibility": "沿用未变合同的上轮完整 repository 成功证据；本次过滤实际只运行冻结/超限两个用例"
+    },
+    "files": {
+      "backend/internal/repository/service_status_repo_integration_test.go": "a62d81976944fb39e581df3743a7c344eed34376cf09de13834641fdbc3faee1",
+      "backend/internal/repository/service_status_repo.go": "d20abc0a6fc4fb5d83f33f40ff702db0f582a47343c019f1936fe41f0ea15058"
+    },
+    "logs": {
+      "frozen-no-gap-green.log": "f80802f3fc8fe6c4522876209853e71ce252f4593f4d6f88c1fb70e844382037",
+      "frozen-null-rate-mutant-red.log": "02f577576d9ea3dc1f9d198fdaab5e343164004fd39f0eea48a5a5e9e3f139b8",
+      "frozen-no-gap-targeted-green.log": "820f2da3959f68c752d871c537857aee754c0bab1d4fdd1608fb69472880b472"
+    },
+    "source_overlay": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/frozen-null-rate-overlay.json",
+    "production_source_mutated": false,
+    "cancelled_superseded_ci": 38042366636
+  },
+  "unrelated_scheduled_sync": {
+    "run_id": 38042678125,
+    "result": "failure",
+    "reason": "上游目标不是记录来源的后代，可能回退或改写历史；需要人工差异审查",
+    "action": "没有重跑或更改固定来源；当前S4候选仍来自记录的v0.2.14-klno.5"
+  },
+  "candidate_ci_result": "success",
+  "candidate_ci_receipt": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/pr-ci-d72-success.json",
+  "previous_candidate_CI_4bab": {
+    "run_id": 38043068585,
+    "head_sha": "4babebff68ff5e39fbf24b808c275cc9e8270339",
+    "result": "success",
+    "jobs": [
+      {
+        "name": "binding",
+        "conclusion": "success"
+      },
+      {
+        "name": "tps",
+        "conclusion": "success"
+      },
+      {
+        "name": "sync-contracts",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / frontend",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / golangci-lint",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / test",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / release-helpers",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-security / frontend-security",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-security / backend-security",
+        "conclusion": "success"
+      },
+      {
+        "name": "existing-ci / shell",
+        "conclusion": "success"
+      },
+      {
+        "name": "personal-ready",
+        "conclusion": "success"
+      }
+    ],
+    "completed_at": "2026-10-10T10:10:07Z"
+  },
+  "PR_CI_result": "success",
+  "frozen_minute_closure": {
+    "candidate": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+    "reviewed_candidate": "4babebff68ff5e39fbf24b808c275cc9e8270339",
+    "control_reviewed": "c04c24ee69ee7e52118f80672963c2f698f413ff",
+    "independent_review_result": "原NULL比例P2关闭；新增分钟P2按只读复核的一行建议修复并完成受控红绿",
+    "production_source_changed": false,
+    "patch": "仅Aggregate(ctx, now) → Aggregate(ctx, snapshotMinute)",
+    "controlled_counterexample": "Go overlay仅让statusSQLFixture最初now比实际分钟落后1分钟；旧调用报SERVICE_STATUS_UNAVAILABLE，新调用通过",
+    "red": {
+      "exit": 1,
+      "seconds": 3.447
+    },
+    "green": {
+      "exit": 0,
+      "seconds": 3.32
+    },
+    "logs": {
+      "frozen-minute-controlled-red.log": "db50324c66fc0721b96a1d904ef4db71f44a6e91bf7ca8f620a206f50d8b4fb5",
+      "frozen-minute-controlled-green.log": "7dffdd93013520db7a0c07ea9ac49d98b57cd6579dd65574fa1dee488d8061d2"
+    },
+    "test_source_hash": "4b05ac70bd162fe3ba970878baa1a3d4151338b905771eecd886b7e0cb53ded6",
+    "unexecuted_at_fix": [
+      "new candidate CI",
+      "final personal SHA CI",
+      "OCI/version",
+      "production"
+    ],
+    "subsequent_delivery_verified_by_parent": true
+  },
+  "final_personal_binding": {
+    "candidate_sha": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+    "final_personal_sha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "same_full_git_tree": true,
+    "runtime_sha256": "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747",
+    "proof": {
+      "id": "klno.5-tps.1-to-s0-s4",
+      "direction": "upgrade",
+      "old_source": {
+        "upstream_repository": "KlN-4096/sub2api",
+        "upstream_tag": "v0.2.14-klno.5",
+        "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+      },
+      "new_source": {
+        "upstream_repository": "KlN-4096/sub2api",
+        "upstream_tag": "v0.2.14-klno.5",
+        "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+      },
+      "old_runtime_revision": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "new_runtime_revision": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+      "old_runtime_sha256": "928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d",
+      "new_runtime_sha256": "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747",
+      "image_rollback_compatible": true,
+      "schema_rollback": "retain",
+      "migrations": {
+        "251_add_usage_log_timing.sql": "99562d6463ffa0477e2760c02c3251109e1f7142cf0b86ea4394f871e7a48faf",
+        "252_add_ops_routing_diagnostics.sql": "863bd7e74c5fcc5f425e43dcdbfb52691a9fd77e1a00cb2dd8251ea4bde24d0f",
+        "253_service_status_observation.sql": "0709bb5a752147c14740d199c9fd84cc9875f3823a79111624a92afe83821c44",
+        "254_service_status.sql": "21522e3ef19e18bbe00bef39d48b153b61e0eee3e33b4047b7d045c5edaf0102"
+      }
+    },
+    "PR": 7,
+    "candidate_ci": 38047961118,
+    "final_personal_ci": 38049101726
+  },
+  "deployment_connection_boundary": {
+    "captured_at": "2026-10-10T11:51:18.792756+00:00",
+    "alias": "hostdzire",
+    "read_only_probe_exit": 255,
+    "diagnostic": "SSH TCP port 2222 connection timed out",
+    "public_health_http": 200,
+    "remote_mutation_attempted": false,
+    "production_container_identity_currently_unverified": false,
+    "recovered_at": "2026-10-10T11:56:42.289735+00:00",
+    "recovery_probe_exit": 0,
+    "diagnosis": "短时连接超时；用户确认入口未改后，一次有界重试成功",
+    "restored_baseline_receipt": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/production-baseline-pre-deploy.json",
+    "pending_at_initial_probe": [
+      "official image isolation check",
+      "native production deployment",
+      "S4 off/on production observation"
+    ],
+    "pending_now": []
+  },
+  "production_pre_deploy_baseline": {
+    "captured_at": "2026-10-10T11:56:42.288927+00:00",
+    "mode": "baseline-pre-deploy",
+    "containers": [
+      {
+        "name": "sub2api-kin",
+        "id": "22dc9a93c0657d377f8f68be783ea44797671fe260836de10e100c1f8dd751be",
+        "image_id": "sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6",
+        "image_ref": "ghcr.io/ccisnoxx/sub2api@sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6",
+        "revision": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+        "version": "0.2.14-klno.5-tps.1",
+        "source": "https://github.com/ccisnoxx/sub2api",
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-10-09T03:55:39.941022269Z"
+      },
+      {
+        "name": "sub2api-kin-postgres",
+        "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+        "image_id": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+        "image_ref": "postgres:18-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.196019009Z"
+      },
+      {
+        "name": "sub2api-kin-redis",
+        "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+        "image_id": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+        "image_ref": "redis:8-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.19357992Z"
+      }
+    ],
+    "db": [
+      {
+        "kind": "baseline",
+        "db_time": "2026-10-10T19:56:42.217382+08:00",
+        "pg_version": "18.6",
+        "usage_max_id": 157447,
+        "ops_max_id": 4323,
+        "s4_tables": false,
+        "recent_requests": 0
+      }
+    ]
+  },
+  "final_personal_CI": {
+    "conclusion": "success",
+    "event": "push",
+    "headSha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "jobs": [
+      {
+        "completedAt": "2026-10-10T11:38:21Z",
+        "conclusion": "success",
+        "databaseId": 114204455406,
+        "name": "binding",
+        "startedAt": "2026-10-10T11:38:10Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:11Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:18Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:19Z",
+            "conclusion": "success",
+            "name": "Verify candidate and latest personal",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:19Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:19Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:19Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 7,
+            "startedAt": "2026-10-10T11:38:19Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204455406"
+      },
+      {
+        "completedAt": "2026-10-10T11:40:21Z",
+        "conclusion": "success",
+        "databaseId": 114204495746,
+        "name": "tps",
+        "startedAt": "2026-10-10T11:38:24Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:25Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:24Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:28Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:32Z",
+            "conclusion": "success",
+            "name": "Run pnpm/action-setup@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:40Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v6",
+            "number": 4,
+            "startedAt": "2026-10-10T11:38:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:43Z",
+            "conclusion": "success",
+            "name": "Run pnpm --dir frontend install --frozen-lockfile",
+            "number": 5,
+            "startedAt": "2026-10-10T11:38:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:18Z",
+            "conclusion": "success",
+            "name": "TPS contracts and frontend build",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:43Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:18Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v6",
+            "number": 10,
+            "startedAt": "2026-10-10T11:40:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:18Z",
+            "conclusion": "success",
+            "name": "Post Run pnpm/action-setup@v6",
+            "number": 11,
+            "startedAt": "2026-10-10T11:40:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:18Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 12,
+            "startedAt": "2026-10-10T11:40:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:18Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-10T11:40:18Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204495746"
+      },
+      {
+        "completedAt": "2026-10-10T11:38:35Z",
+        "conclusion": "success",
+        "databaseId": 114204495845,
+        "name": "sync-contracts",
+        "startedAt": "2026-10-10T11:38:24Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:26Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:29Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:26Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:32Z",
+            "conclusion": "success",
+            "name": "Run python3 -m unittest discover -s .github/personal-sync -p 'test_*.py'",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:33Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:33Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 7,
+            "startedAt": "2026-10-10T11:38:33Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204495845"
+      },
+      {
+        "completedAt": "2026-10-10T11:56:56Z",
+        "conclusion": "success",
+        "databaseId": 114204496052,
+        "name": "existing-ci / test",
+        "startedAt": "2026-10-10T11:38:24Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:26Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:29Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:26Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:31Z",
+            "conclusion": "success",
+            "name": "Check Docker Compose simple mode environment",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:42Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-go@v6",
+            "number": 4,
+            "startedAt": "2026-10-10T11:38:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:42Z",
+            "conclusion": "success",
+            "name": "Verify Go version",
+            "number": 5,
+            "startedAt": "2026-10-10T11:38:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:48:22Z",
+            "conclusion": "success",
+            "name": "Unit tests",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:52:58Z",
+            "conclusion": "success",
+            "name": "Integration tests",
+            "number": 7,
+            "startedAt": "2026-10-10T11:48:22Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:56:42Z",
+            "conclusion": "success",
+            "name": "OpenAI recording concurrency checks",
+            "number": 8,
+            "startedAt": "2026-10-10T11:52:58Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:56:53Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-go@v6",
+            "number": 15,
+            "startedAt": "2026-10-10T11:56:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:56:53Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 16,
+            "startedAt": "2026-10-10T11:56:53Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:56:53Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "startedAt": "2026-10-10T11:56:53Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204496052"
+      },
+      {
+        "completedAt": "2026-10-10T11:38:34Z",
+        "conclusion": "success",
+        "databaseId": 114204496054,
+        "name": "existing-ci / release-helpers",
+        "startedAt": "2026-10-10T11:38:24Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:26Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:29Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:26Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:29Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:30Z",
+            "conclusion": "success",
+            "name": "Run python -m pip install -r .github/release-tools/requirements-release.txt",
+            "number": 4,
+            "startedAt": "2026-10-10T11:38:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:31Z",
+            "conclusion": "success",
+            "name": "Run python -m unittest discover -s .github/release-tools -p 'test_*.py'",
+            "number": 5,
+            "startedAt": "2026-10-10T11:38:30Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:31Z",
+            "conclusion": "success",
+            "name": "Run bash -n .github/release-tools/release-images.sh",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:32Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v6",
+            "number": 11,
+            "startedAt": "2026-10-10T11:38:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:32Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 12,
+            "startedAt": "2026-10-10T11:38:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:32Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-10T11:38:32Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204496054"
+      },
+      {
+        "completedAt": "2026-10-10T11:38:54Z",
+        "conclusion": "success",
+        "databaseId": 114204496076,
+        "name": "existing-security / frontend-security",
+        "startedAt": "2026-10-10T11:38:24Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:26Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:29Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:26Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:33Z",
+            "conclusion": "success",
+            "name": "Set up pnpm",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:44Z",
+            "conclusion": "success",
+            "name": "Set up Node.js",
+            "number": 4,
+            "startedAt": "2026-10-10T11:38:33Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:48Z",
+            "conclusion": "success",
+            "name": "Install dependencies",
+            "number": 5,
+            "startedAt": "2026-10-10T11:38:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:50Z",
+            "conclusion": "success",
+            "name": "Run pnpm audit",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:48Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:50Z",
+            "conclusion": "success",
+            "name": "Check audit exceptions",
+            "number": 7,
+            "startedAt": "2026-10-10T11:38:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:50Z",
+            "conclusion": "success",
+            "name": "Post Set up Node.js",
+            "number": 12,
+            "startedAt": "2026-10-10T11:38:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:50Z",
+            "conclusion": "success",
+            "name": "Post Set up pnpm",
+            "number": 13,
+            "startedAt": "2026-10-10T11:38:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:51Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 14,
+            "startedAt": "2026-10-10T11:38:50Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:51Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 15,
+            "startedAt": "2026-10-10T11:38:51Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204496076"
+      },
+      {
+        "completedAt": "2026-10-10T11:40:13Z",
+        "conclusion": "success",
+        "databaseId": 114204496094,
+        "name": "existing-ci / frontend",
+        "startedAt": "2026-10-10T11:38:24Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:26Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:28Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:26Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:32Z",
+            "conclusion": "success",
+            "name": "Setup pnpm",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:28Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:40Z",
+            "conclusion": "success",
+            "name": "Setup Node.js",
+            "number": 4,
+            "startedAt": "2026-10-10T11:38:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:46Z",
+            "conclusion": "success",
+            "name": "Install frontend dependencies",
+            "number": 5,
+            "startedAt": "2026-10-10T11:38:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:10Z",
+            "conclusion": "success",
+            "name": "Frontend typecheck and critical vitest",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:46Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:10Z",
+            "conclusion": "success",
+            "name": "Post Setup Node.js",
+            "number": 10,
+            "startedAt": "2026-10-10T11:40:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:11Z",
+            "conclusion": "success",
+            "name": "Post Setup pnpm",
+            "number": 11,
+            "startedAt": "2026-10-10T11:40:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:11Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 12,
+            "startedAt": "2026-10-10T11:40:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:40:11Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 13,
+            "startedAt": "2026-10-10T11:40:11Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204496094"
+      },
+      {
+        "completedAt": "2026-10-10T11:43:34Z",
+        "conclusion": "success",
+        "databaseId": 114204496103,
+        "name": "existing-ci / golangci-lint",
+        "startedAt": "2026-10-10T11:38:24Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:26Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:29Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:26Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:38Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-go@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:39Z",
+            "conclusion": "success",
+            "name": "Verify Go version",
+            "number": 4,
+            "startedAt": "2026-10-10T11:38:38Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:43:25Z",
+            "conclusion": "success",
+            "name": "golangci-lint",
+            "number": 5,
+            "startedAt": "2026-10-10T11:38:39Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:43:25Z",
+            "conclusion": "success",
+            "name": "Post golangci-lint",
+            "number": 8,
+            "startedAt": "2026-10-10T11:43:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:43:31Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-go@v6",
+            "number": 9,
+            "startedAt": "2026-10-10T11:43:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:43:31Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 10,
+            "startedAt": "2026-10-10T11:43:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:43:31Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 11,
+            "startedAt": "2026-10-10T11:43:31Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204496103"
+      },
+      {
+        "completedAt": "2026-10-10T11:39:20Z",
+        "conclusion": "success",
+        "databaseId": 114204496105,
+        "name": "existing-security / backend-security",
+        "startedAt": "2026-10-10T11:38:29Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:31Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:30Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:33Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:42Z",
+            "conclusion": "success",
+            "name": "Set up Go",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:33Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:42Z",
+            "conclusion": "success",
+            "name": "Verify Go version",
+            "number": 4,
+            "startedAt": "2026-10-10T11:38:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:39:13Z",
+            "conclusion": "success",
+            "name": "Run govulncheck",
+            "number": 5,
+            "startedAt": "2026-10-10T11:38:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:39:17Z",
+            "conclusion": "success",
+            "name": "Post Set up Go",
+            "number": 9,
+            "startedAt": "2026-10-10T11:39:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:39:17Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 10,
+            "startedAt": "2026-10-10T11:39:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:39:17Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 11,
+            "startedAt": "2026-10-10T11:39:17Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204496105"
+      },
+      {
+        "completedAt": "2026-10-10T11:38:46Z",
+        "conclusion": "success",
+        "databaseId": 114204496113,
+        "name": "existing-ci / shell",
+        "startedAt": "2026-10-10T11:38:30Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:38:32Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:38:31Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:36Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 2,
+            "startedAt": "2026-10-10T11:38:32Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:44Z",
+            "conclusion": "success",
+            "name": "Check deployment scripts",
+            "number": 3,
+            "startedAt": "2026-10-10T11:38:36Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:44Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 6,
+            "startedAt": "2026-10-10T11:38:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:38:45Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 7,
+            "startedAt": "2026-10-10T11:38:44Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114204496113"
+      },
+      {
+        "completedAt": "2026-10-10T11:57:10Z",
+        "conclusion": "success",
+        "databaseId": 114207610765,
+        "name": "personal-ready",
+        "startedAt": "2026-10-10T11:56:59Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-10-10T11:57:00Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-10-10T11:57:00Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:57:00Z",
+            "conclusion": "success",
+            "name": "Require every selected check",
+            "number": 2,
+            "startedAt": "2026-10-10T11:57:00Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:57:08Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v6",
+            "number": 3,
+            "startedAt": "2026-10-10T11:57:00Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:57:08Z",
+            "conclusion": "success",
+            "name": "Recheck candidate and current base after CI",
+            "number": 4,
+            "startedAt": "2026-10-10T11:57:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:57:08Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v6",
+            "number": 8,
+            "startedAt": "2026-10-10T11:57:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-10-10T11:57:08Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 9,
+            "startedAt": "2026-10-10T11:57:08Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726/job/114207610765"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/ccisnoxx/sub2api/actions/runs/38049101726"
+  },
+  "formal_release_run": "https://github.com/ccisnoxx/sub2api/actions/runs/38050231176",
+  "formal_release_binding": {
+    "tag": "v0.2.14-klno.5-tps.2",
+    "version": "0.2.14-klno.5-tps.2",
+    "source_sha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "source_ci_run_id": 38049101726,
+    "prepare_run_id": 38050213038,
+    "prepare_control_sha": "e3b3e8e284e2d9b0ff8f972650807c4d40863c64",
+    "formal_release_run_id": 38050231176,
+    "digest": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+    "status": "published",
+    "image": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530"
+  },
+  "production_observation_plan": {
+    "source_before_enable": "新镜像S4默认关闭，用户以原有Responses/Codex客户端发送正常请求后核对实际DB终态",
+    "after_enable": "仅启用S4，默认阈值不变；观察水位、样本、未知原因",
+    "user_confirmed_normal_requests": true,
+    "production_failure_injection": false
+  },
+  "formal_release_result": "success",
+  "published_image_isolation": {
+    "image": {
+      "image_ref": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+      "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+      "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+      "version": "0.2.14-klno.5-tps.2",
+      "source": "https://github.com/ccisnoxx/sub2api",
+      "platform": "linux/amd64",
+      "anonymous_full_pull": true,
+      "overlay": "compose.published-3d5e1fde8270.yaml",
+      "app_id": "6cdd8b75c95421fc32a7b898196c9495200420f0caee2410ad9b0527a594482e",
+      "app_health": "healthy",
+      "started_at": "2026-10-10T12:05:10.590582436Z",
+      "app_ip": "172.28.0.5",
+      "postgres_id": "3f32daad3f424c5859c2fb716db65b6b58d0ab0dbe5aca62465acc02e6166a54",
+      "redis_id": "0dd5538c283a7b384e3ad1df96ae9ddf12bdf1fd285aca07a9396c25b3e783de",
+      "dependencies_preserved": true,
+      "captured_at": "2026-10-10T12:05:17.047253+00:00"
+    },
+    "JWT_checks": {
+      "admin_config": 200,
+      "admin_snapshot": 200,
+      "user_denied": 403,
+      "anonymous_denied": 401
+    },
+    "runtime": {
+      "usage_count": 10,
+      "terminal_counts": {
+        "completed": 8,
+        "upstream_error": 1,
+        "client_disconnected": 1
+      },
+      "request_type_counts": {
+        "1": 1,
+        "3": 9
+      },
+      "distinct_terminal_keys": 10,
+      "aggregate": {
+        "success": 8,
+        "failure": 1,
+        "excluded": 1,
+        "unknown": 0,
+        "qualified": 9,
+        "error_rate": 0.1111111111111111,
+        "success_rate": 0.8888888888888888
+      },
+      "watermark": "2026-10-10T12:07:00Z",
+      "gaps": []
+    },
+    "browser": {
+      "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+      "version": "0.2.14-klno.5-tps.2",
+      "real_admin_login": true,
+      "authenticated_reload": true,
+      "panel": "openai\n服务异常\n成功\n8\n服务失败\n1\n用户侧 / 不适用排除\n1\n未知\n0\n合格样本: 9\n成功率: —（无法判定）\n失败率: —（无法判定）",
+      "CSP_errors": 0,
+      "application_errors": 0,
+      "extension_errors": 2,
+      "reloaded_at": "2026-10-10T12:08:34.950Z"
+    },
+    "raw_directory": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release"
+  },
+  "production_deployment": {
+    "receipt": {
+      "id": "20261010T120908Z-b497b80ee8a6",
+      "action": "deploy",
+      "status": "success",
+      "exit_code": 0,
+      "old": {
+        "image": "ghcr.io/ccisnoxx/sub2api@sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6",
+        "revision": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+        "version": "0.2.14-klno.5-tps.1",
+        "source": "https://github.com/ccisnoxx/sub2api",
+        "image_id": "sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6",
+        "health": "healthy",
+        "running": true
+      },
+      "target": {
+        "image": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "version": "0.2.14-klno.5-tps.2",
+        "source": "https://github.com/ccisnoxx/sub2api",
+        "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530"
+      },
+      "observed_running": {
+        "image": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "version": "0.2.14-klno.5-tps.2",
+        "source": "https://github.com/ccisnoxx/sub2api",
+        "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "health": "healthy",
+        "running": true
+      }
+    },
+    "proof": {
+      "id": "20261010T120908Z-b497b80ee8a6",
+      "action": "deploy",
+      "status": "success",
+      "exit_code": 0,
+      "started_at": "2026-10-10T12:09:08.553211+00:00",
+      "completed_at": "2026-10-10T12:09:30.557599+00:00",
+      "tool_revision": "e3b3e8e284e2d9b0ff8f972650807c4d40863c64",
+      "tool_sha256": "71900518bbce1a52f7e17aef2465b5f52a0e2eea24273999d76f5ec84441fe75",
+      "health_verified": true,
+      "compatibility": {
+        "changed_paths": [
+          "backend/cmd/s44-ws-fixture/driver.go",
+          "backend/cmd/s44-ws-fixture/fixture_test.go",
+          "backend/cmd/s44-ws-fixture/main.go",
+          "backend/cmd/s44-ws-fixture/server.go",
+          "backend/cmd/server/wire.go",
+          "backend/cmd/server/wire_gen.go",
+          "backend/cmd/server/wire_gen_test.go",
+          "backend/ent/migrate/schema.go",
+          "backend/ent/mutation.go",
+          "backend/ent/runtime/runtime.go",
+          "backend/ent/schema/usage_log.go",
+          "backend/ent/usagelog.go",
+          "backend/ent/usagelog/usagelog.go",
+          "backend/ent/usagelog/where.go",
+          "backend/ent/usagelog_create.go",
+          "backend/ent/usagelog_update.go",
+          "backend/go.sum",
+          "backend/internal/handler/admin/ops_handler.go",
+          "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go",
+          "backend/internal/handler/admin/system_handler.go",
+          "backend/internal/handler/admin/system_handler_test.go",
+          "backend/internal/handler/available_channel_handler.go",
+          "backend/internal/handler/available_model_catalog.go",
+          "backend/internal/handler/available_model_catalog_test.go",
+          "backend/internal/handler/dto/mappers.go",
+          "backend/internal/handler/dto/mappers_usage_test.go",
+          "backend/internal/handler/dto/types.go",
+          "backend/internal/handler/grok_audio.go",
+          "backend/internal/handler/handler.go",
+          "backend/internal/handler/openai_gateway_credential_failover_loop_test.go",
+          "backend/internal/handler/openai_gateway_handler.go",
+          "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go",
+          "backend/internal/handler/openai_ws_routing_diagnostics.go",
+          "backend/internal/handler/ops_error_logger.go",
+          "backend/internal/handler/ops_routing_diagnostics_context_test.go",
+          "backend/internal/handler/ops_routing_diagnostics_log_test.go",
+          "backend/internal/handler/s35_http_routing_behavior_test.go",
+          "backend/internal/handler/s35_ws_routing_behavior_test.go",
+          "backend/internal/handler/service_status_handler.go",
+          "backend/internal/handler/service_status_handler_test.go",
+          "backend/internal/handler/service_status_observation_test.go",
+          "backend/internal/handler/wire.go",
+          "backend/internal/repository/available_catalog_contract_integration_test.go",
+          "backend/internal/repository/ops_repo.go",
+          "backend/internal/repository/ops_repo_args_test.go",
+          "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go",
+          "backend/internal/repository/service_status_incidents.go",
+          "backend/internal/repository/service_status_normalize.go",
+          "backend/internal/repository/service_status_normalize_test.go",
+          "backend/internal/repository/service_status_repo.go",
+          "backend/internal/repository/service_status_repo_integration_test.go",
+          "backend/internal/repository/service_status_source_integration_test.go",
+          "backend/internal/repository/usage_log_repo_insert.go",
+          "backend/internal/repository/usage_log_repo_insert_shape_unit_test.go",
+          "backend/internal/repository/usage_log_repo_query.go",
+          "backend/internal/repository/usage_log_repo_request_type_test.go",
+          "backend/internal/repository/usage_log_repo_safety_buffering_unit_test.go",
+          "backend/internal/repository/usage_log_session_id_unit_test.go",
+          "backend/internal/repository/usage_log_timing_integration_test.go",
+          "backend/internal/repository/wire.go",
+          "backend/internal/server/api_contract_test.go",
+          "backend/internal/server/middleware/middleware.go",
+          "backend/internal/server/routes/admin.go",
+          "backend/internal/server/routes/service_status_routes_test.go",
+          "backend/internal/service/billing_context_schedule.go",
+          "backend/internal/service/billing_service.go",
+          "backend/internal/service/catalog_pricing.go",
+          "backend/internal/service/catalog_pricing_test.go",
+          "backend/internal/service/channel_catalog.go",
+          "backend/internal/service/gateway_service.go",
+          "backend/internal/service/model_pricing_resolver.go",
+          "backend/internal/service/openai_account_scheduler.go",
+          "backend/internal/service/openai_gateway_forward.go",
+          "backend/internal/service/openai_gateway_passthrough.go",
+          "backend/internal/service/openai_gateway_passthrough_function_args_test.go",
+          "backend/internal/service/openai_gateway_response_handling.go",
+          "backend/internal/service/openai_gateway_scheduling.go",
+          "backend/internal/service/openai_gateway_service.go",
+          "backend/internal/service/openai_gateway_usage.go",
+          "backend/internal/service/openai_routing_diagnostics_test.go",
+          "backend/internal/service/openai_usage_timing_billing_test.go",
+          "backend/internal/service/openai_usage_timing_test.go",
+          "backend/internal/service/openai_ws_forwarder_client_cancel_test.go",
+          "backend/internal/service/openai_ws_forwarder_ingress.go",
+          "backend/internal/service/openai_ws_forwarder_ingress_session_test.go",
+          "backend/internal/service/openai_ws_forwarder_success_test.go",
+          "backend/internal/service/openai_ws_forwarder_v2.go",
+          "backend/internal/service/openai_ws_http_bridge.go",
+          "backend/internal/service/openai_ws_native_resume_test.go",
+          "backend/internal/service/openai_ws_v2/passthrough_relay.go",
+          "backend/internal/service/openai_ws_v2/usage_timing_callback_test.go",
+          "backend/internal/service/openai_ws_v2_passthrough_adapter.go",
+          "backend/internal/service/ops_models.go",
+          "backend/internal/service/ops_port.go",
+          "backend/internal/service/ops_routing_diagnostics_dto_test.go",
+          "backend/internal/service/ops_routing_diagnostics_log_test.go",
+          "backend/internal/service/ops_service.go",
+          "backend/internal/service/ops_stream_turn_ownership_test.go",
+          "backend/internal/service/ops_upstream_context.go",
+          "backend/internal/service/pricing_service.go",
+          "backend/internal/service/routing_diagnostics.go",
+          "backend/internal/service/routing_diagnostics_test.go",
+          "backend/internal/service/routing_diagnostics_validation.go",
+          "backend/internal/service/service_status.go",
+          "backend/internal/service/service_status_aggregator.go",
+          "backend/internal/service/service_status_aggregator_test.go",
+          "backend/internal/service/service_status_observation.go",
+          "backend/internal/service/service_status_observation_test.go",
+          "backend/internal/service/service_status_source_integrity.go",
+          "backend/internal/service/service_status_source_integrity_test.go",
+          "backend/internal/service/service_status_source_reporter.go",
+          "backend/internal/service/service_status_source_reporter_test.go",
+          "backend/internal/service/service_status_test.go",
+          "backend/internal/service/service_status_types.go",
+          "backend/internal/service/stream_output_timing.go",
+          "backend/internal/service/stream_output_timing_test.go",
+          "backend/internal/service/update_service.go",
+          "backend/internal/service/update_service_test.go",
+          "backend/internal/service/usage_log.go",
+          "backend/internal/service/usage_timing.go",
+          "backend/internal/service/wire.go",
+          "backend/internal/web/embed_on.go",
+          "backend/internal/web/embed_test.go",
+          "backend/internal/web/static_cache.go",
+          "backend/migrations/251_add_usage_log_timing.sql",
+          "backend/migrations/252_add_ops_routing_diagnostics.sql",
+          "backend/migrations/253_service_status_observation.sql",
+          "backend/migrations/254_service_status.sql"
+        ],
+        "compatible": true,
+        "cumulative_upgrade": {
+          "direction": "upgrade",
+          "id": "klno.5-tps.1-to-s0-s4",
+          "image_rollback_compatible": true,
+          "migrations": {
+            "251_add_usage_log_timing.sql": "99562d6463ffa0477e2760c02c3251109e1f7142cf0b86ea4394f871e7a48faf",
+            "252_add_ops_routing_diagnostics.sql": "863bd7e74c5fcc5f425e43dcdbfb52691a9fd77e1a00cb2dd8251ea4bde24d0f",
+            "253_service_status_observation.sql": "0709bb5a752147c14740d199c9fd84cc9875f3823a79111624a92afe83821c44",
+            "254_service_status.sql": "21522e3ef19e18bbe00bef39d48b153b61e0eee3e33b4047b7d045c5edaf0102"
+          },
+          "new_runtime_revision": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+          "new_runtime_sha256": "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747",
+          "new_source": {
+            "upstream_repository": "KlN-4096/sub2api",
+            "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d",
+            "upstream_tag": "v0.2.14-klno.5"
+          },
+          "old_runtime_revision": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+          "old_runtime_sha256": "928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d",
+          "old_source": {
+            "upstream_repository": "KlN-4096/sub2api",
+            "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d",
+            "upstream_tag": "v0.2.14-klno.5"
+          },
+          "schema_rollback": "retain"
+        },
+        "excludes": [
+          "deploy/personal",
+          "deploy/personal-source.json"
+        ],
+        "new_revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "old_revision": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+        "paths": [
+          "backend",
+          "Dockerfile",
+          "Dockerfile.goreleaser",
+          ".dockerignore",
+          "deploy"
+        ],
+        "sha256": "37241ab29391e7986f64f1f1b2ee3dc1854e8fc5995e8300faabde5655eb8064",
+        "upstream": {
+          "upstream_repository": "KlN-4096/sub2api",
+          "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d",
+          "upstream_tag": "v0.2.14-klno.5"
+        }
+      },
+      "migration_state_before": {
+        "filename_checksum_sha256": "d2765fa67306539751aab2ddc4147ef2f9c340d31745dbed686f3a5f66bb0a5a",
+        "rows": 303
+      },
+      "migration_state": {
+        "filename_checksum_sha256": "d96e2af9dccac1570317feebfe5fd0c0443340a8e07a722c4a6b9ff22277ef4a",
+        "rows": 307
+      },
+      "backups": {
+        "app_data": {
+          "bytes": 14412182,
+          "file": "app-data.tar.gz",
+          "sha256": "085a5c1940a9db6f9d61c16b81acc5c171d985d3d72d194bd36ab3dbbe52dc8c"
+        },
+        "configuration": "docker-compose.yml",
+        "environment": "environment.env",
+        "postgres": {
+          "bytes": 62648300,
+          "file": "postgres.dump",
+          "sha256": "3ba12590a42816188841f27617213b10b4f9da2fa9b2b54aad91d04ecc28fbcd"
+        }
+      }
+    },
+    "off": {
+      "captured_at": "2026-10-10T12:10:16.093586+00:00",
+      "mode": "off",
+      "containers": [
+        {
+          "name": "sub2api-kin",
+          "id": "511b4687acbcf1bb1843b2eb1f649155d5108a423eb1f6624ab15daa02562a59",
+          "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+          "image_ref": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+          "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+          "version": "0.2.14-klno.5-tps.2",
+          "source": "https://github.com/ccisnoxx/sub2api",
+          "health": "healthy",
+          "restart_count": 0,
+          "started_at": "2026-10-10T12:09:24.02215151Z"
+        },
+        {
+          "name": "sub2api-kin-postgres",
+          "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+          "image_id": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+          "image_ref": "postgres:18-alpine",
+          "revision": null,
+          "version": null,
+          "source": null,
+          "health": "healthy",
+          "restart_count": 0,
+          "started_at": "2026-09-18T08:29:52.196019009Z"
+        },
+        {
+          "name": "sub2api-kin-redis",
+          "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+          "image_id": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+          "image_ref": "redis:8-alpine",
+          "revision": null,
+          "version": null,
+          "source": null,
+          "health": "healthy",
+          "restart_count": 0,
+          "started_at": "2026-09-18T08:29:52.19357992Z"
+        }
+      ],
+      "db": [
+        {
+          "kind": "baseline",
+          "db_time": "2026-10-10T20:10:16.010919+08:00",
+          "pg_version": "18.6",
+          "usage_max_id": 157448,
+          "ops_max_id": 4323,
+          "s4_tables": true,
+          "recent_requests": 1
+        },
+        {
+          "kind": "s4_config",
+          "version": 1,
+          "enabled": false,
+          "platforms": [
+            "openai"
+          ],
+          "minimum_samples": 5,
+          "warning_error_rate": 0.05,
+          "outage_error_rate": 0.9,
+          "abnormal_windows": 2,
+          "recovery_windows": 3,
+          "observation_starts": {}
+        },
+        {
+          "kind": "s4_watermark",
+          "observed_through": null,
+          "config_version": 1,
+          "coverage": [],
+          "gap_code": "",
+          "last_error_code": "",
+          "source_error_at": null,
+          "lag_seconds": null
+        }
+      ]
+    },
+    "off_real_traffic": {
+      "captured_at": "2026-10-10T12:13:28.572180+00:00",
+      "mode": "off-traffic",
+      "containers": [
+        {
+          "name": "sub2api-kin",
+          "id": "511b4687acbcf1bb1843b2eb1f649155d5108a423eb1f6624ab15daa02562a59",
+          "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+          "image_ref": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+          "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+          "version": "0.2.14-klno.5-tps.2",
+          "source": "https://github.com/ccisnoxx/sub2api",
+          "health": "healthy",
+          "restart_count": 0,
+          "started_at": "2026-10-10T12:09:24.02215151Z"
+        },
+        {
+          "name": "sub2api-kin-postgres",
+          "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+          "image_id": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+          "image_ref": "postgres:18-alpine",
+          "revision": null,
+          "version": null,
+          "source": null,
+          "health": "healthy",
+          "restart_count": 0,
+          "started_at": "2026-09-18T08:29:52.196019009Z"
+        },
+        {
+          "name": "sub2api-kin-redis",
+          "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+          "image_id": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+          "image_ref": "redis:8-alpine",
+          "revision": null,
+          "version": null,
+          "source": null,
+          "health": "healthy",
+          "restart_count": 0,
+          "started_at": "2026-09-18T08:29:52.19357992Z"
+        }
+      ],
+      "db": [
+        {
+          "kind": "baseline",
+          "db_time": "2026-10-10T20:13:28.490834+08:00",
+          "pg_version": "18.6",
+          "usage_max_id": 157456,
+          "ops_max_id": 4323,
+          "s4_tables": true,
+          "recent_requests": 9
+        },
+        {
+          "kind": "s4_config",
+          "version": 1,
+          "enabled": false,
+          "platforms": [
+            "openai"
+          ],
+          "minimum_samples": 5,
+          "warning_error_rate": 0.05,
+          "outage_error_rate": 0.9,
+          "abnormal_windows": 2,
+          "recovery_windows": 3,
+          "observation_starts": {}
+        },
+        {
+          "kind": "s4_watermark",
+          "observed_through": null,
+          "config_version": 1,
+          "coverage": [],
+          "gap_code": "",
+          "last_error_code": "",
+          "source_error_at": null,
+          "lag_seconds": null
+        },
+        {
+          "kind": "usage_source",
+          "model": "gpt-6.1-sol",
+          "request_type": 3,
+          "completion_status": "completed",
+          "terminal_kind": "completed",
+          "event_role": "terminal",
+          "reason_code": null,
+          "rows": 8,
+          "first_at": "2026-10-10T20:11:54.873903+08:00",
+          "last_at": "2026-10-10T20:13:18.717332+08:00",
+          "distinct_keys": 8,
+          "timing_versions": [
+            1
+          ]
+        }
+      ]
+    }
+  },
+  "production_observation_initial": {
+    "captured_at": "2026-10-10T12:15:47.453127+00:00",
+    "mode": "on-initial",
+    "containers": [
+      {
+        "name": "sub2api-kin",
+        "id": "511b4687acbcf1bb1843b2eb1f649155d5108a423eb1f6624ab15daa02562a59",
+        "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "image_ref": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "version": "0.2.14-klno.5-tps.2",
+        "source": "https://github.com/ccisnoxx/sub2api",
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-10-10T12:09:24.02215151Z"
+      },
+      {
+        "name": "sub2api-kin-postgres",
+        "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+        "image_id": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+        "image_ref": "postgres:18-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.196019009Z"
+      },
+      {
+        "name": "sub2api-kin-redis",
+        "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+        "image_id": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+        "image_ref": "redis:8-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.19357992Z"
+      }
+    ],
+    "db": [
+      {
+        "kind": "baseline",
+        "db_time": "2026-10-10T20:15:47.366729+08:00",
+        "pg_version": "18.6",
+        "usage_max_id": 157465,
+        "ops_max_id": 4323,
+        "s4_tables": true,
+        "recent_requests": 18
+      },
+      {
+        "kind": "s4_config",
+        "version": 2,
+        "enabled": true,
+        "platforms": [
+          "openai"
+        ],
+        "minimum_samples": 5,
+        "warning_error_rate": 0.05,
+        "outage_error_rate": 0.9,
+        "abnormal_windows": 2,
+        "recovery_windows": 3,
+        "observation_starts": {
+          "openai": "2026-10-10T12:15:00Z"
+        }
+      },
+      {
+        "kind": "s4_watermark",
+        "observed_through": null,
+        "config_version": 1,
+        "coverage": [],
+        "gap_code": "",
+        "last_error_code": "",
+        "source_error_at": null,
+        "lag_seconds": null
+      },
+      {
+        "kind": "usage_source",
+        "model": "gpt-6.1-sol",
+        "request_type": 2,
+        "completion_status": "completed",
+        "terminal_kind": "completed",
+        "event_role": "terminal",
+        "reason_code": null,
+        "rows": 2,
+        "first_at": "2026-10-10T20:15:34.254576+08:00",
+        "last_at": "2026-10-10T20:15:38.755641+08:00",
+        "distinct_keys": 2,
+        "timing_versions": [
+          1
+        ]
+      },
+      {
+        "kind": "usage_source",
+        "model": "gpt-6.1-sol",
+        "request_type": 3,
+        "completion_status": "completed",
+        "terminal_kind": "completed",
+        "event_role": "terminal",
+        "reason_code": null,
+        "rows": 15,
+        "first_at": "2026-10-10T20:11:54.873903+08:00",
+        "last_at": "2026-10-10T20:14:35.443609+08:00",
+        "distinct_keys": 15,
+        "timing_versions": [
+          1
+        ]
+      }
+    ]
+  },
+  "production_observation_first": {
+    "captured_at": "2026-10-10T12:17:58.438009+00:00",
+    "mode": "on-first",
+    "containers": [
+      {
+        "name": "sub2api-kin",
+        "id": "511b4687acbcf1bb1843b2eb1f649155d5108a423eb1f6624ab15daa02562a59",
+        "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "image_ref": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "version": "0.2.14-klno.5-tps.2",
+        "source": "https://github.com/ccisnoxx/sub2api",
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-10-10T12:09:24.02215151Z"
+      },
+      {
+        "name": "sub2api-kin-postgres",
+        "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+        "image_id": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+        "image_ref": "postgres:18-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.196019009Z"
+      },
+      {
+        "name": "sub2api-kin-redis",
+        "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+        "image_id": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+        "image_ref": "redis:8-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.19357992Z"
+      }
+    ],
+    "db": [
+      {
+        "kind": "baseline",
+        "db_time": "2026-10-10T20:17:58.341006+08:00",
+        "pg_version": "18.6",
+        "usage_max_id": 157469,
+        "ops_max_id": 4323,
+        "s4_tables": true,
+        "recent_requests": 22
+      },
+      {
+        "kind": "s4_config",
+        "version": 2,
+        "enabled": true,
+        "platforms": [
+          "openai"
+        ],
+        "minimum_samples": 5,
+        "warning_error_rate": 0.05,
+        "outage_error_rate": 0.9,
+        "abnormal_windows": 2,
+        "recovery_windows": 3,
+        "observation_starts": {
+          "openai": "2026-10-10T12:15:00Z"
+        }
+      },
+      {
+        "kind": "s4_watermark",
+        "observed_through": "2026-10-10T20:17:00+08:00",
+        "config_version": 2,
+        "coverage": [
+          {
+            "end": "2026-10-10T12:17:00Z",
+            "start": "2026-10-10T12:15:00Z",
+            "platform": "openai"
+          }
+        ],
+        "gap_code": "",
+        "last_error_code": "",
+        "source_error_at": null,
+        "lag_seconds": 58.345921
+      },
+      {
+        "kind": "usage_source",
+        "model": "gpt-6.1-sol",
+        "request_type": 2,
+        "completion_status": "completed",
+        "terminal_kind": "completed",
+        "event_role": "terminal",
+        "reason_code": null,
+        "rows": 6,
+        "first_at": "2026-10-10T20:15:34.254576+08:00",
+        "last_at": "2026-10-10T20:17:26.84814+08:00",
+        "distinct_keys": 6,
+        "timing_versions": [
+          1
+        ]
+      },
+      {
+        "kind": "usage_source",
+        "model": "gpt-6.1-sol",
+        "request_type": 3,
+        "completion_status": "completed",
+        "terminal_kind": "completed",
+        "event_role": "terminal",
+        "reason_code": null,
+        "rows": 15,
+        "first_at": "2026-10-10T20:11:54.873903+08:00",
+        "last_at": "2026-10-10T20:14:35.443609+08:00",
+        "distinct_keys": 15,
+        "timing_versions": [
+          1
+        ]
+      },
+      {
+        "kind": "s4_facts",
+        "model": "gpt-6.1-sol",
+        "success": 5,
+        "failure": 0,
+        "excluded": 0,
+        "unknown": 0,
+        "first_bucket": "2026-10-10T20:15:00+08:00",
+        "last_bucket": "2026-10-10T20:16:00+08:00",
+        "gap_codes": [
+          ""
+        ]
+      },
+      {
+        "kind": "s4_scopes",
+        "health": "unknown",
+        "rows": 1,
+        "abnormal_max": 0,
+        "recovery_max": 0
+      }
+    ]
+  },
+  "production_basic_browser": {
+    "version": "0.2.14-klno.5-tps.2",
+    "personal_update_status": "已是最新版本",
+    "admin_authenticated_reload": true,
+    "admin_usage_TPS_help": "平均输出 TPS =（输出 Token − 图片输出 Token − 音频输出 Token）× 1000 ÷ 总耗时（ms），包含首 Token 等待时间。首/末 Token 时点不改变分母。输出统计可能包含推理或工具 Token；该值不能单独证明 Fast 生效，也不代表可见文字的纯生成速度。",
+    "personal_usage_TPS_help": "平均输出 TPS =（输出 Token − 图片输出 Token − 音频输出 Token）× 1000 ÷ 总耗时（ms），包含首 Token 等待时间。首/末 Token 时点不改变分母。输出统计可能包含推理或工具 Token；该值不能单独证明 Fast 生效，也不代表可见文字的纯生成速度。",
+    "personal_usage_first_token_help": "本次转发或回合开始到首个非空文本、推理或工具输出之间的等待时间。元数据、心跳、usage、空 delta 和媒体字节不形成首 Token。首次输出可能早于首 Token；两者与总耗时使用同一起点。\n\n非流式响应记录的是观察到完整响应内容的时点，不代表测到了上游生成首个 Token 的时刻。\n\n严格首 Token\n9.51s\n末次 Token\n33.29s\n首次输出\n9.51s\n首次输出类型\n推理\n首字（旧口径）\n2.48s\n总耗时\n33.43s\n完成状态\n已完成\n是否完整\n是\n用量来源\n上游最终用量",
+    "keyboard_escape_closed": true,
+    "personal_page_identity": "既有管理员会话的个人页面，未切换为其他用户",
+    "checked_at": "2026-10-10T12:18:25.546Z"
+  },
+  "completed_at": "2026-10-10T12:30:06.615730+00:00",
+  "production_observation_final": {
+    "captured_at": "2026-10-10T12:24:30.920217+00:00",
+    "mode": "final",
+    "containers": [
+      {
+        "name": "sub2api-kin",
+        "id": "511b4687acbcf1bb1843b2eb1f649155d5108a423eb1f6624ab15daa02562a59",
+        "image_id": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "image_ref": "ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+        "revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "version": "0.2.14-klno.5-tps.2",
+        "source": "https://github.com/ccisnoxx/sub2api",
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-10-10T12:09:24.02215151Z"
+      },
+      {
+        "name": "sub2api-kin-postgres",
+        "id": "c98be88c92274954da5270fc801f16f8dc266299bdff0892427b19eb3b60a0ea",
+        "image_id": "sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd",
+        "image_ref": "postgres:18-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.196019009Z"
+      },
+      {
+        "name": "sub2api-kin-redis",
+        "id": "21ee6e287dbc786215a00d7265508bf644c792ca1132e6692d8d18c37a5857b9",
+        "image_id": "sha256:bd999b5cfee25fb24b8320a31fddbd69f462df44c8138c66e369582937beebc0",
+        "image_ref": "redis:8-alpine",
+        "revision": null,
+        "version": null,
+        "source": null,
+        "health": "healthy",
+        "restart_count": 0,
+        "started_at": "2026-09-18T08:29:52.19357992Z"
+      }
+    ],
+    "db": [
+      {
+        "kind": "baseline",
+        "db_time": "2026-10-10T20:24:30.834237+08:00",
+        "pg_version": "18.6",
+        "usage_max_id": 157481,
+        "ops_max_id": 4323,
+        "s4_tables": true,
+        "recent_requests": 19
+      },
+      {
+        "kind": "s4_config",
+        "version": 2,
+        "enabled": true,
+        "platforms": [
+          "openai"
+        ],
+        "minimum_samples": 5,
+        "warning_error_rate": 0.05,
+        "outage_error_rate": 0.9,
+        "abnormal_windows": 2,
+        "recovery_windows": 3,
+        "observation_starts": {
+          "openai": "2026-10-10T12:15:00Z"
+        }
+      },
+      {
+        "kind": "s4_watermark",
+        "observed_through": "2026-10-10T20:24:00+08:00",
+        "config_version": 2,
+        "coverage": [
+          {
+            "end": "2026-10-10T12:24:00Z",
+            "start": "2026-10-10T12:15:00Z",
+            "platform": "openai"
+          }
+        ],
+        "gap_code": "",
+        "last_error_code": "",
+        "source_error_at": null,
+        "lag_seconds": 30.839766
+      },
+      {
+        "kind": "usage_source",
+        "model": "gpt-6.1-sol",
+        "request_type": 2,
+        "completion_status": "completed",
+        "terminal_kind": "completed",
+        "event_role": "terminal",
+        "reason_code": null,
+        "rows": 8,
+        "first_at": "2026-10-10T20:15:34.254576+08:00",
+        "last_at": "2026-10-10T20:18:56.93978+08:00",
+        "distinct_keys": 8,
+        "timing_versions": [
+          1
+        ]
+      },
+      {
+        "kind": "usage_source",
+        "model": "gpt-6.1-sol",
+        "request_type": 3,
+        "completion_status": "completed",
+        "terminal_kind": "completed",
+        "event_role": "terminal",
+        "reason_code": null,
+        "rows": 25,
+        "first_at": "2026-10-10T20:11:54.873903+08:00",
+        "last_at": "2026-10-10T20:21:56.120006+08:00",
+        "distinct_keys": 25,
+        "timing_versions": [
+          1
+        ]
+      },
+      {
+        "kind": "s4_facts",
+        "model": "gpt-6.1-sol",
+        "success": 18,
+        "failure": 0,
+        "excluded": 0,
+        "unknown": 0,
+        "first_bucket": "2026-10-10T20:15:00+08:00",
+        "last_bucket": "2026-10-10T20:21:00+08:00",
+        "gap_codes": [
+          ""
+        ]
+      },
+      {
+        "kind": "s4_scopes",
+        "health": "operational",
+        "rows": 1,
+        "abnormal_max": 0,
+        "recovery_max": 0
+      }
+    ]
+  },
+  "production_final_window": {
+    "captured_at": "2026-10-10T12:25:43.423723+00:00",
+    "window_basis": "与12:24:39浏览器快照相同的固定UTC五分钟区间",
+    "rows": [
+      {
+        "window_start": "2026-10-10T12:19:00Z",
+        "window_end": "2026-10-10T12:24:00Z",
+        "group_id": 2,
+        "model": "gpt-6.1-sol",
+        "success": 10,
+        "failure": 0,
+        "excluded": 0,
+        "unknown": 0,
+        "gap_codes": [
+          ""
+        ]
+      }
+    ]
+  },
+  "production_final_browser": {
+    "captured_at": "2026-10-10T12:24:46.035Z",
+    "platform": "openai\n未知\n\n缺少可判定的请求证据。\n\n成功\n10\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 10\n成功率: —（无法判定）\n失败率: —（无法判定）",
+    "table": "分组 / 请求模型\t状态 / 证据\t样本计数与比例\n\npro 拼车 (#2)\nopenai\ngpt-6.1-sol\n\t已观察样本正常\n\n最新请求证据: 2026-10-10 12:21:56\n\n\t\n成功\n10\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 10\n成功率: 100.0%\n失败率: 0.0%\n\n\n5.3 (#3)\nopenai\n—\n\t未知\n\n当前窗口没有近期请求证据。\n\n最新请求证据: —\n\n\t\n成功\n0\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 0\n成功率: —（无法判定）\n失败率: —（无法判定）\n\n\nplus (#4)\nopenai\n—\n\t未知\n\n当前窗口没有近期请求证据。\n\n最新请求证据: —\n\n\t\n成功\n0\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 0\n成功率: —（无法判定）\n失败率: —（无法判定）\n\n\npro余额 (#5)\nopenai\n—\n\t未知\n\n当前窗口没有近期请求证据。\n\n最新请求证据: —\n\n\t\n成功\n0\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 0\n成功率: —（无法判定）\n失败率: —（无法判定）",
+    "enabled_attribute": null,
+    "url": "https://api.962850.xyz/admin/service-status",
+    "enabled": true
+  },
+  "production_followup_window": {
+    "captured_at": "2026-10-10T12:28:03.761893+00:00",
+    "window_basis": "与保存截图及后续浏览器显示相同的固定UTC五分钟区间",
+    "rows": [
+      {
+        "window_start": "2026-10-10T12:20:00Z",
+        "window_end": "2026-10-10T12:25:00Z",
+        "group_id": 2,
+        "model": "gpt-6.1-sol",
+        "success": 7,
+        "failure": 0,
+        "excluded": 0,
+        "unknown": 0,
+        "gap_codes": [
+          ""
+        ]
+      }
+    ]
+  },
+  "production_followup_browser": {
+    "captured_at": "2026-10-10T12:27:04.223Z",
+    "platform": "openai\n未知\n\n缺少可判定的请求证据。\n\n成功\n7\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 7\n成功率: —（无法判定）\n失败率: —（无法判定）",
+    "table": "分组 / 请求模型\t状态 / 证据\t样本计数与比例\n\npro 拼车 (#2)\nopenai\ngpt-6.1-sol\n\t已观察样本正常\n\n最新请求证据: 2026-10-10 12:21:56\n\n\t\n成功\n7\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 7\n成功率: 100.0%\n失败率: 0.0%\n\n\n5.3 (#3)\nopenai\n—\n\t未知\n\n当前窗口没有近期请求证据。\n\n最新请求证据: —\n\n\t\n成功\n0\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 0\n成功率: —（无法判定）\n失败率: —（无法判定）\n\n\nplus (#4)\nopenai\n—\n\t未知\n\n当前窗口没有近期请求证据。\n\n最新请求证据: —\n\n\t\n成功\n0\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 0\n成功率: —（无法判定）\n失败率: —（无法判定）\n\n\npro余额 (#5)\nopenai\n—\n\t未知\n\n当前窗口没有近期请求证据。\n\n最新请求证据: —\n\n\t\n成功\n0\n服务失败\n0\n用户侧 / 不适用排除\n0\n未知\n0\n合格样本: 0\n成功率: —（无法判定）\n失败率: —（无法判定）",
+    "window_text": "当前 5 分钟 (UTC)\n2026-10-10 12:20:00 → 2026-10-10 12:25:00",
+    "url": "https://api.962850.xyz/admin/service-status"
+  },
+  "production_observation_result": {
+    "config_version": 2,
+    "enabled": true,
+    "observation_starts": "2026-10-10T12:15:00Z",
+    "observed_through": "2026-10-10T12:24:00Z",
+    "coverage_complete_for_checked_windows": true,
+    "gap_code": "",
+    "last_error_code": "",
+    "source_error_at": null,
+    "cumulative_success": 18,
+    "cumulative_failure": 0,
+    "cumulative_excluded": 0,
+    "cumulative_unknown": 0,
+    "rolling_window_12_19_to_12_24": {
+      "success": 10,
+      "failure": 0,
+      "excluded": 0,
+      "unknown": 0,
+      "health": "operational"
+    },
+    "rolling_window_12_20_to_12_25": {
+      "success": 7,
+      "failure": 0,
+      "excluded": 0,
+      "unknown": 0,
+      "health": "operational"
+    },
+    "idle_groups": [
+      3,
+      4,
+      5
+    ],
+    "idle_reason": "no_recent_requests",
+    "platform_summary": "unknown",
+    "production_failure_injection": false,
+    "thresholds_changed": false,
+    "scope": "仅有近期真实请求的group2/gpt-6.1-sol；不代表全站正常"
+  },
+  "audit_execution_digest": {
+    "checked_at": "2026-10-10T11:28:01.536845+00:00",
+    "validated": false,
+    "audit_id": "20261010T071229Z-kin-s44-runtime-release-production-5760e4bf",
+    "missing_execution": [
+      "10-frozen-rate-review.execution.json"
+    ],
+    "reason": "中断复核的精确运行终态未知；没有伪造审计状态。现行stage11执行summary独立校验通过，旧stage10未计验收。历史SUBAGENT_EXECUTION_DIGEST仅涵盖旧阶段，不能作为本任务完整汇总。",
+    "execution_counts": "unavailable"
+  },
+  "audit_finalization": {
+    "checked_at": "2026-10-10T12:27:23.677743+00:00",
+    "audit_id": "20261010T071229Z-kin-s44-runtime-release-production-5760e4bf",
+    "exit_code": 2,
+    "finalized": false,
+    "execution_digest_validated": false,
+    "known_gap": "10-frozen-rate-review.execution.json缺失，精确运行终态未知，不补造报告",
+    "log": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/subagent-finalize.log"
+  },
+  "next_task": {
+    "id": "S1.5.1",
+    "status": "not_started",
+    "automatic_continuation": false
+  },
+  "screenshot_receipts": {
+    "production-service-status.jpg": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/production-service-status.jpg",
+      "sha256": "2d889bdc46b29ed6bd4f6003a321b4f7e6597db220c35516954b6fb477684efa"
+    },
+    "production-service-status-samples.jpg": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261010-s44-release/production-service-status-samples.jpg",
+      "sha256": "84e6c207e5595cf5bf795d887a3cb9db600d9be1763200cd9738bbededf4a149"
+    }
+  },
+  "production_browser_errors": {
+    "checked_at": "2026-10-10T12:33:15.478Z",
+    "since_application_started": "2026-10-10T12:09:24.02215151Z",
+    "application_errors": 0,
+    "extension_errors": 0,
+    "scope": "当前真实生产管理员服务状态及用量页浏览器会话，自应用启动后的已记录error；不包含历史旧应用日志"
+  }
+}

@@ -1,0 +1,409 @@
+{
+  "task": "S3.4",
+  "status": "passed",
+  "application_sha": "d23474171035320eda06a35d76d455d7f8d7aae4",
+  "commands": [
+    {
+      "command": "node node_modules/vitest/vitest.mjs run OpsErrorDetailModal.spec.ts (first minimal counterexample)",
+      "log": "detail-owner-red.actual.log",
+      "exit_code": 1,
+      "expected_failure": true,
+      "result": "基线原根因用例通过；旧请求晚到覆盖新ID详情的反例按预期失败"
+    },
+    {
+      "command": "node node_modules/vitest/vitest.mjs run src/views/admin/ops/components/__tests__/OpsRoutingDiagnosticsPanel.spec.ts src/i18n/__tests__/localesMessageCompile.spec.ts src/i18n/__tests__/localeKeyCompleteness.spec.ts",
+      "log": "panel-and-i18n-final.log",
+      "exit_code": 0,
+      "tests": 20
+    },
+    {
+      "command": "node node_modules/vitest/vitest.mjs run src/views/admin/ops/components/__tests__/OpsErrorDetailModal.spec.ts src/views/admin/ops/components/__tests__/OpsErrorLogTable.spec.ts src/views/admin/ops/components/__tests__/OpsErrorScopeCharts.spec.ts src/views/admin/__tests__/UsageView.spec.ts src/i18n/__tests__/opsLocaleKeys.spec.ts",
+      "log": "detail-regression-final.log",
+      "exit_code": 0,
+      "tests": 58
+    },
+    {
+      "command": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit",
+      "log": "typecheck.log",
+      "exit_code": 0
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js [candidate exact 8 changed files]",
+      "log": "lint-final.log",
+      "exit_code": 0
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build --outDir /Users/sc/.codex/validation/sub2api-kin/20261009-s34/app-dist",
+      "log": "build.log",
+      "exit_code": 0
+    },
+    {
+      "command": "node qa.cjs",
+      "log": "browser-final.log",
+      "exit_code": 0
+    },
+    {
+      "command": "S34_SCREENSHOTS_ONLY=1 node qa.cjs",
+      "log": "browser-screens-final.log",
+      "exit_code": 0,
+      "result": "仅等待现有弹窗动画完成重新截图；不重复已通过的完整流程"
+    }
+  ],
+  "unique_tests": 78,
+  "browser": {
+    "driver": "Playwright 1.62.1 / Chromium 1228",
+    "Browser_availability": "Browser plugin not available; regular Playwright fallback",
+    "url": "http://127.0.0.1:4194",
+    "fixtures": "实际生产构建前端＋合成管理员/GET API数据；Airwallex外部脚本使用空本地夹具，不读取外部或生产",
+    "results": [
+      {
+        "name": "zh-light-1440",
+        "url": "http://127.0.0.1:4194/admin/ops",
+        "title": "运维监控 - KIN · S3.4",
+        "viewport": {
+          "locale": "zh",
+          "theme": "light",
+          "width": 1440,
+          "height": 1100
+        },
+        "steps": [
+          "实际管理员使用记录→错误列表→四种诊断详情→Escape关闭；保留phase/owner/source；无横向溢出",
+          "关闭未完成详情并打开新错误后，旧API晚到不覆盖当前诊断",
+          "实际Ops上游错误列表→单记录诊断→返回原列表"
+        ],
+        "screens": [
+          "zh-light-1440-zero.png",
+          "zh-light-1440-partial.png"
+        ],
+        "requests": [
+          "GET /auth/me?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /subscriptions/active?timezone=America%2FLos_Angeles",
+          "GET /announcements?timezone=America%2FLos_Angeles",
+          "GET /admin/settings?timezone=America%2FLos_Angeles",
+          "GET /admin/payment/config?timezone=America%2FLos_Angeles",
+          "GET /admin/system/check-updates?timezone=America%2FLos_Angeles",
+          "GET /keys?page=1&page_size=100&status=active&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/groups?page=1&page_size=1000&timezone=America%2FLos_Angeles",
+          "GET /admin/usage?page=1&page_size=20&exact_total=false&start_date=2026-10-08&end_date=2026-10-09&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/usage/stats?start_date=2026-10-08&end_date=2026-10-09&timezone=America%2FLos_Angeles",
+          "GET /admin/dashboard/models?start_date=2026-10-08&end_date=2026-10-09&model_source=requested&timezone=America%2FLos_Angeles",
+          "GET /settings/public?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/errors?page=1&page_size=20&view=all&start_time=2026-10-08T07:00:00.000Z&end_time=2026-10-10T06:59:59.999Z&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/dashboard/snapshot-v2?start_date=2026-10-08&end_date=2026-10-09&granularity=hour&include_stats=false&include_trend=true&include_model_stats=false&include_group_stats=true&include_users_trend=false&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/2?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/2/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/4?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/4/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /auth/me?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /subscriptions/active?timezone=America%2FLos_Angeles",
+          "GET /announcements?timezone=America%2FLos_Angeles",
+          "GET /admin/settings?timezone=America%2FLos_Angeles",
+          "GET /admin/payment/config?timezone=America%2FLos_Angeles",
+          "GET /admin/system/check-updates?timezone=America%2FLos_Angeles",
+          "GET /keys?page=1&page_size=100&status=active&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/settings/metric-thresholds?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/advanced-settings?timezone=America%2FLos_Angeles",
+          "GET /settings/public?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/snapshot-v2?mode=auto&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/throughput-trend?mode=auto&start_time=2026-10-09T19:16:20.787Z&end_time=2026-10-10T00:16:20.787Z&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/latency-histogram?mode=auto&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/error-distribution?mode=auto&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/realtime-traffic?window=1min&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/concurrency?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/account-availability?timezone=America%2FLos_Angeles",
+          "GET /admin/groups/all?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/system-logs?page=1&page_size=20&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/system-logs/health?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/runtime/logging?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/upstream-errors?page=1&page_size=10&view=errors&sort_by=created_at&sort_order=desc&time_range=1h&phase=upstream&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/upstream-errors?page=1&page_size=10&view=errors&sort_by=created_at&sort_order=desc&time_range=1h&phase=upstream&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/upstream-errors/3?timezone=America%2FLos_Angeles"
+        ],
+        "errors": [],
+        "warnings": [],
+        "unexpected": [],
+        "status": "passed"
+      },
+      {
+        "name": "en-dark-390",
+        "url": "http://127.0.0.1:4194/admin/ops",
+        "title": "Ops Monitoring - KIN · S3.4",
+        "viewport": {
+          "locale": "en",
+          "theme": "dark",
+          "width": 390,
+          "height": 844
+        },
+        "steps": [
+          "实际管理员使用记录→错误列表→四种诊断详情→Escape关闭；保留phase/owner/source；无横向溢出",
+          "关闭未完成详情并打开新错误后，旧API晚到不覆盖当前诊断",
+          "实际Ops上游错误列表→单记录诊断→返回原列表"
+        ],
+        "screens": [
+          "en-dark-390-zero.png",
+          "en-dark-390-partial.png"
+        ],
+        "requests": [
+          "GET /auth/me?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /subscriptions/active?timezone=America%2FLos_Angeles",
+          "GET /announcements?timezone=America%2FLos_Angeles",
+          "GET /admin/settings?timezone=America%2FLos_Angeles",
+          "GET /admin/payment/config?timezone=America%2FLos_Angeles",
+          "GET /admin/system/check-updates?timezone=America%2FLos_Angeles",
+          "GET /keys?page=1&page_size=100&status=active&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/groups?page=1&page_size=1000&timezone=America%2FLos_Angeles",
+          "GET /admin/usage?page=1&page_size=20&exact_total=false&start_date=2026-10-08&end_date=2026-10-09&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/usage/stats?start_date=2026-10-08&end_date=2026-10-09&timezone=America%2FLos_Angeles",
+          "GET /admin/dashboard/models?start_date=2026-10-08&end_date=2026-10-09&model_source=requested&timezone=America%2FLos_Angeles",
+          "GET /settings/public?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/errors?page=1&page_size=20&view=all&start_time=2026-10-08T07:00:00.000Z&end_time=2026-10-10T06:59:59.999Z&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/dashboard/snapshot-v2?start_date=2026-10-08&end_date=2026-10-09&granularity=hour&include_stats=false&include_trend=true&include_model_stats=false&include_group_stats=true&include_users_trend=false&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/2?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/2/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/4?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/4/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/1/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/request-errors/3/upstream-errors?page=1&page_size=100&view=all&include_detail=1&timezone=America%2FLos_Angeles",
+          "GET /auth/me?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /admin/compliance?timezone=America%2FLos_Angeles",
+          "GET /subscriptions/active?timezone=America%2FLos_Angeles",
+          "GET /announcements?timezone=America%2FLos_Angeles",
+          "GET /admin/settings?timezone=America%2FLos_Angeles",
+          "GET /admin/payment/config?timezone=America%2FLos_Angeles",
+          "GET /admin/system/check-updates?timezone=America%2FLos_Angeles",
+          "GET /keys?page=1&page_size=100&status=active&sort_by=created_at&sort_order=desc&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/settings/metric-thresholds?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/advanced-settings?timezone=America%2FLos_Angeles",
+          "GET /settings/public?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/snapshot-v2?mode=auto&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/throughput-trend?mode=auto&start_time=2026-10-09T19:16:23.611Z&end_time=2026-10-10T00:16:23.611Z&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/latency-histogram?mode=auto&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/dashboard/error-distribution?mode=auto&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/realtime-traffic?window=1min&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/concurrency?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/account-availability?timezone=America%2FLos_Angeles",
+          "GET /admin/groups/all?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/system-logs?page=1&page_size=20&time_range=1h&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/system-logs/health?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/runtime/logging?timezone=America%2FLos_Angeles",
+          "GET /admin/ops/upstream-errors?page=1&page_size=10&view=errors&sort_by=created_at&sort_order=desc&time_range=1h&phase=upstream&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/upstream-errors?page=1&page_size=10&view=errors&sort_by=created_at&sort_order=desc&time_range=1h&phase=upstream&timezone=America%2FLos_Angeles",
+          "GET /admin/ops/upstream-errors/3?timezone=America%2FLos_Angeles"
+        ],
+        "errors": [],
+        "warnings": [],
+        "unexpected": [],
+        "status": "passed"
+      }
+    ],
+    "visual_inspection": "中文1440x1100亮色、英文390x844暗色；检查首屏及滚动后部分统计面板；最终截图等待弹窗动画完成，文本可读、无新增溢出",
+    "checks": {
+      "page_identity": "passed",
+      "nonblank": "passed",
+      "framework_overlay_absent": "passed",
+      "console_no_error_or_warning": "passed",
+      "interaction": "passed",
+      "screenshots": "passed"
+    },
+    "screenshot_results": [
+      {
+        "name": "zh-light-1440",
+        "status": "screenshots-only",
+        "screens": [
+          "zh-light-1440-partial.png"
+        ]
+      },
+      {
+        "name": "en-dark-390",
+        "status": "screenshots-only",
+        "screens": [
+          "en-dark-390-partial.png"
+        ]
+      }
+    ]
+  },
+  "regression_contracts": [
+    "0/null/缺失/v1未知版本/partial已知下界",
+    "35过滤码与双语标签，额外属性和原始未知码不输出",
+    "selection evaluation不等于发送或切换；WS turn只在已知时展示",
+    "show/errorId/errorType请求generation隔离，关闭及旧关联列表不串记录",
+    "原phase/owner/source、根因及诊断载荷保留"
+  ],
+  "reused_backend": {
+    "task": "S3.4",
+    "source_s33_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+    "source_files": {
+      "backend/internal/handler/admin/ops_handler.go": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "backend/internal/handler/grok_audio.go": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "backend/internal/handler/ops_error_logger.go": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "backend/internal/handler/ops_routing_diagnostics_log_test.go": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "backend/internal/repository/ops_repo.go": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "backend/internal/repository/ops_repo_args_test.go": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "backend/internal/service/ops_models.go": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "backend/internal/service/ops_port.go": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "backend/internal/service/ops_routing_diagnostics_dto_test.go": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "backend/internal/service/ops_service.go": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "backend/internal/service/ops_upstream_context.go": "de6efd7080915abc0c03ec9a9aa5392092b81110cd8a84c2e9d07eacfacb0397",
+      "backend/internal/service/routing_diagnostics_validation.go": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "backend/migrations/252_add_ops_routing_diagnostics.sql": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac"
+    },
+    "all17_backend_inputs_match": true,
+    "validation_manifest_sha256": "8c3859d50380ab23afe4ef4bf99b47a7a95926a7f5fe9a8fd48747327399251e",
+    "reused_boundaries": [
+      "发送/终态/队列快照及预算、用户归属/DTO白名单、SQL/真实PG16迁移与固定旧应用往返、受影响Go race",
+      "S3.3只读复核的后端边界；不是新前端复核"
+    ],
+    "not_reused": [
+      "S3.3未验证页面；本轮重新执行前端测试/静态检查/build及实际浏览器",
+      "旧S2.7 CI不能证明新S3.4候选"
+    ]
+  },
+  "warnings": [
+    "既有Node废弃/Browserslist旧数据、Vite动态与静态导入及500KB chunk提示；构建成功，未改依赖",
+    "单元测试自定义messageCompiler实验提示仅来自既有runtime-only测试方式；实际浏览器无warning"
+  ],
+  "convergence": [
+    {
+      "cause": "pnpm全局11对现有symlink node_modules尝试自动安装并拒绝ERR_PNPM_UNSAFE_MODULES_DIR",
+      "action": "未改依赖；按已安装版本直接调用Node工具入口",
+      "evidence": "detail-owner-red.log"
+    },
+    {
+      "cause": "runtime-only vue-i18n测试缺messageCompiler，12项失败",
+      "action": "沿用已有AvailableChannels测试编译器方式，20项定向重跑通过",
+      "evidence": "targeted-tests.log"
+    },
+    {
+      "cause": "浏览器缺后台接口夹具及错误引导层localStorage键",
+      "action": "读真实API/引导源码补齐对应GET数据和正确key后重跑",
+      "evidence": [
+        "browser-initial.log",
+        "browser-fixture-adjusted.log",
+        "browser-ops-fixture.log"
+      ]
+    },
+    {
+      "cause": "返回列表后CSS离场过渡尚未完成即断言DOM数量",
+      "action": "等待诊断面板移除再断言，完整两组流程通过",
+      "evidence": "browser-back-transition.log"
+    },
+    {
+      "cause": "截图采样处于入场透明度动画中间态；截图专用输出分支仍读取不存在的requests.length",
+      "action": "仅等待弹窗过渡完成重新截图，修正专用输出字段；生产源码不变",
+      "evidence": [
+        "browser-screens-logging.log",
+        "browser-screens-final.log"
+      ]
+    }
+  ],
+  "known_preexisting_issue": {
+    "trigger": "直接导航/admin/ops?open_error_details=1&error_type=upstream",
+    "observed": "列表弹窗打开但首次未发列表GET，显示空列表；普通卡片入口会加载并可查看/返回",
+    "owner": "OpsDashboard.vue initial applyRouteQueryToState + OpsErrorDetailsModal.vue non-immediate show watcher",
+    "unchanged_from_baseline": true,
+    "scope": "S3.4不扩展修改；保留失败DOM/请求证据，不宣称深链接通过",
+    "evidence": "qa-failure-ops-fixture.json"
+  },
+  "not_executed": [
+    "新完整JWT后端浏览器E2E",
+    "native/passthrough多turn日志E2E",
+    "S3.5综合调度/冷却/切换/扣费验收",
+    "全量Go/前端测试、浏览器矩阵",
+    "新远端CI/push/PR更新/合并/镜像发布/生产部署"
+  ],
+  "next_task": "S3.5 未开始",
+  "log_manifest": {
+    "detail-owner-red.actual.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/detail-owner-red.actual.log",
+      "sha256": "fce1d6b2ed2f229dcbe1b0de33e568e094889118c3b86b88c45eca8596e764e2",
+      "bytes": 1925
+    },
+    "panel-and-i18n-final.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/panel-and-i18n-final.log",
+      "sha256": "ebcbbc050978f4bc0070c1600e2ec280cf0a5e3f90e310420f5a8c7115523e08",
+      "bytes": 829
+    },
+    "detail-regression-final.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/detail-regression-final.log",
+      "sha256": "00c004e0df2e475c179c8cb599362d8efe51bd16fa0f96410d27f82f8a03e130",
+      "bytes": 862
+    },
+    "typecheck.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint-final.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/lint-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/build.log",
+      "sha256": "f20c539c4d477186edc4fabc7f6947f616825e752f3a4af1cea1cc095e2d1607",
+      "bytes": 50717
+    },
+    "browser-final.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/browser-final.log",
+      "sha256": "256360af36f2afa192e66c3713a89647aff49c23d88d500035d5b2606b19648b",
+      "bytes": 1502
+    },
+    "browser-screens-final.log": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/browser-screens-final.log",
+      "sha256": "d5f5045fabd0b8b8459a278e82bdfba8576a59a7ca33a90f2756b7704570aa6a",
+      "bytes": 305
+    }
+  },
+  "qa_script_sha256": "3c66f4c621961fa8bd4aecf6e69db8cc31499bcc95eec8186f95dfda1cc5392e",
+  "artifacts": {
+    "qa-results.json": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/qa-results.json",
+      "sha256": "f4309d99af1793706afa93cd994163e092080345c1b13d081aca50d1925a1deb"
+    },
+    "qa-screen-results.json": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/qa-screen-results.json",
+      "sha256": "2db56ff5b04c0654debdf9f5220112108d19c6f0683fef2ca58fd34a8a0e5681"
+    },
+    "zh-light-1440-initial.png": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/zh-light-1440-initial.png",
+      "sha256": "fae6813e87de626dc2e703621879ee56aa2d0164d40cae5d58edacc4dc0081b9"
+    },
+    "zh-light-1440-partial.png": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/zh-light-1440-partial.png",
+      "sha256": "fae6813e87de626dc2e703621879ee56aa2d0164d40cae5d58edacc4dc0081b9"
+    },
+    "en-dark-390-initial.png": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/en-dark-390-initial.png",
+      "sha256": "912f3424798a10b2e886e2ca9009bca6c569a8ec1349629341db9bc03a03663d"
+    },
+    "en-dark-390-partial.png": {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s34/en-dark-390-partial.png",
+      "sha256": "a15d9f0805945db99a0c63f56ecc203c37de4bb16f21b9048420afceafd6a040"
+    }
+  }
+}
