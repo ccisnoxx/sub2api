@@ -1,5 +1,13 @@
 # 开发日志
 
+## 2026-10-10：S1.5.5 第二批本地交付记录完成
+
+- 沿用personal应用 `1ae266791d0ab324cd13a63ab344019c79102176` / 基础3d5e1fde，main从a64ecfb6e只增量登记；核对8工作树/未提交改动并保留旧源码、证据和日志。
+- 汇总原生Responses继承范围、raw CC/双向转换/复用Grok桥；Anthropic、Gemini/Antigravity及独立媒体保持不适用，其他未支持入口保持未知。现行Personal CI、候选完整SHA与最新基础绑定、合入后personal自身门禁及回退边界已登记。
+- 14既有证据/12最终输入/11原日志及下游核验后复用；最终音频race9/69有效，较早124/271、20/115、3/9仅未受影响边界。没有新跑测试/build/完整CI或fresh复核。只读远端查询无当前候选PR/运行，check-runs422 No commit found，门禁仍未取得。
+- 无新增迁移，但运行树425f3f55…不同于已审定ecbf079c…；12新路径正反向被本机兼容owner按合同拒绝E_COMPATIBILITY，旧S4.4证明/rollback ID不覆盖本候选。未修改工具或连接生产。
+- [交付与回退](../openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md#s155-第二批本地交付记录)、[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s155-第二批交付记录)及[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-validation.json)已更新，文档/保留检查通过。只勾选S1.5.5的本地记录完成，合并/镜像发布/生产部署未执行；可选S5.1未排期，不自动继续。
+
 ## 2026-10-10：S1.5.4 第二批差异验证与不适用范围登记
 
 - 按用户决定，Anthropic（S1.5.2）、Gemini/Antigravity及独立媒体入口（S1.5.3）为不适用，不当作实现完成；本轮只执行S1.5.4，S1.5.5待执行。

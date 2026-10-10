@@ -68,3 +68,22 @@
 | Cyber独立入账、probe/gwpool/Live及不复用本轮owner的其他入口 | 本轮未支持，保留原覆盖限制 | 不登记为新采集完成；本次范围决定不删除已有功能 |
 
 修正后受影响链复用最终race9顶层/69含子例通过证据；较早124/271、20/115、3/9仅用于未受音频修正影响的边界，计数不相加。本轮没有新跑测试、供应商付费请求、新数据库/JWT/浏览器或完整CI。S1.5.5尚未执行，不宣称第二批交付完成。见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)、[复用清单](evidence/s1.5.4-reused-evidence.json)、[验证](evidence/s1.5.4-validation.json)和[复核](evidence/s1.5.4-reviews.json)。
+
+## S1.5.5 当前所选入口与交付状态
+
+固定应用 `1ae266791d0ab324cd13a63ab344019c79102176`，personal基础 `3d5e1fde82707900a21f2b5538b112c7bab3c04a`。下表汇总累计覆盖及本轮交付边界；旧第一批/S1.5.1/S1.5.4表格保留其当轮事实。当前候选尚未合入personal、未发布或部署，S4.4生产记录不能证明新增CC链路线上生效。
+
+| 实际入口 / owner | 当前采集覆盖 | 验证与交付状态 |
+|---|---|---|
+| 原生OpenAI Responses HTTP/SSE、WS逻辑turn | 第一批UsageTiming v1；当前候选继承 | 原S1/S4.4有效证据按未变边界复用；生产仅有已登记的原Responses范围，本轮未重查生产 |
+| raw CC JSON/SSE：streamRawChatCompletions / bufferRawChatCompletions | UsageTiming v1，真实内容/choice终态/接受usage；JSON为完整内容观察时点 | S1.5.1实现、S1.5.4验证复核完成；本地HTTP upstream fixture，未取得本候选新远端CI或付费供应商验收 |
+| Responses→CC→Responses：streamChatCompletionsAsResponses / bufferChatCompletionsAsResponses | 观察原CC事件，合成completed不替代原终态 | S1.5.1/S1.5.4有效协议/取消/drain/用量归属证据复用 |
+| CC→Responses→CC：handleChatStreamingResponse / handleChatBufferedStreamingResponse | 观察真实Responses事件；buffer以最终重建完整内容时点采集 | 音频修正后受影响范围race9顶层/69含子例通过证据复用，最终缺拆分保持NULL |
+| 复用上述owner的Grok桥 | 跟随所复用owner采集；Composer多上游聚合source unknown、audio NULL | 实际桥测试与独立复核有效；不扩大为独立Grok Responses/媒体producer完成 |
+| 所选CC链路内部已可识别的媒体内容及audio拆分 | 按既有首次媒体输出和可信usage合同；未知不填零 | 包含在所选协议测试边界，独立媒体入口未接入 |
+| handler→异步Clone→RecordUsage→SQL/DTO→页面/导出 | 复用第一批下游合同和历史行未知语义 | 相关输入不变、原证据复用；本轮无新增CC到SQL/页面完整E2E |
+| Anthropic原生/直连/透传/转换（S1.5.2） | **不适用**，保留旧计时或未知 | 用户明确不需要；共享reader兼容测试不表示新采集已接入 |
+| Gemini/Antigravity与独立媒体入口（S1.5.3） | **不适用**，保留旧计时或未知 | 用户明确不需要，不记作实现通过 |
+| Cyber独立入账、probe/gwpool/Live、不复用本轮owner的其他producer | 本轮未支持，原覆盖限制保持 | 不升级为v1声明，不混入所选文本TPS/真实完成状态的覆盖结论 |
+
+S1.5所选入口本地实现/验证/交付记录完成；远端候选门禁、镜像与生产状态仍独立待取得。新候选没有新增迁移，但现有部署工具对12个新运行路径正反向均按合同拒绝，不能沿用S4.4证明或旧rollback ID。详见[交付与回退](delivery.md#s155-第二批本地交付记录)、[门禁与回退检查](evidence/s1.5.5-gates-and-rollback.json)、[验证](evidence/s1.5.5-validation.json)。

@@ -1,0 +1,143 @@
+{
+  "task": "S1.5.5",
+  "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "personal_base": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+  "remote_readback": {
+    "task": "S1.5.5",
+    "read_only": true,
+    "personal": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "main": "f5c4c3304106040a01a32c5e6d4ff18f3ec49930",
+    "queries": [
+      {
+        "endpoint": "actions/runs?head_sha=1ae266791d0ab324cd13a63ab344019c79102176&per_page=100",
+        "exit_code": 0,
+        "total_count": 0,
+        "runs": []
+      },
+      {
+        "endpoint": "pulls?state=all&head=ccisnoxx:codex/plus-chat-timing-s151&base=personal&per_page=100",
+        "exit_code": 0,
+        "pull_requests": []
+      },
+      {
+        "endpoint": "commits/1ae266791d0ab324cd13a63ab344019c79102176/check-runs",
+        "exit_code": 1,
+        "http_status": 422,
+        "message": "No commit found for SHA: 1ae266791d0ab324cd13a63ab344019c79102176",
+        "classification": "候选尚未在远端仓库可解析，不是CI运行失败，也不是通过"
+      }
+    ]
+  },
+  "current_gate_definition": {
+    "owner": ".github/workflows/personal-ci.yml",
+    "input_sha_matches_personal_base": true,
+    "required_jobs": [
+      "binding",
+      "existing-ci",
+      "existing-security",
+      "tps",
+      "sync-contracts",
+      "personal-ready"
+    ],
+    "reusable_workflows": {
+      "existing-ci": ".github/workflows/backend-ci.yml",
+      "existing-security": ".github/workflows/security-scan.yml"
+    },
+    "dispatch_binding": "candidate_sha必须等于dispatch ref；非personal候选必须绑定实际同仓库、open、base=personal、head/base完整SHA一致的PR；开始/结束核对最新personal基础与来源祖先",
+    "frontend": "pnpm9、Node20、frozen lockfile；沿用当前tps检查与build",
+    "not_used": "当前cwd未合入的CI选择优化，不替代personal现行定义"
+  },
+  "candidate_status": {
+    "local_protocol_validation": "passed_and_reused_from_S1.5.4",
+    "independent_review": "accepted_S1.5.4_reused_unchanged_candidate",
+    "source_and_ancestry": "passed_read_only_current_check",
+    "remote_PR": "none_for_candidate_branch",
+    "remote_CI": "not_run_for_current_candidate",
+    "personal_ready": "not_available_for_current_candidate",
+    "merge": "not_executed",
+    "image_release": "not_executed",
+    "production_deploy": "not_executed"
+  },
+  "future_requirements": [
+    "取得对应远端交付授权后，对稳定实际完整SHA和最新personal基础执行当前必要门禁，不为文档登记额外触发完整gate",
+    "同一候选/分支/基础且所有required检查成功才复用；任一绑定变化重新评估，禁止旧CI冒充",
+    "合入personal后最终merge SHA需自身完整Personal CI及可信App15368 personal-ready，PR检查不替代正式发布门禁",
+    "个人版本、simple/linux/amd64、OCI source/revision、唯一固定digest及当前部署成功记录按既有合同另行绑定；文档提交不分配新版本",
+    "S1.5新运行树须先由main部署owner另行审定实际旧新完整运行树、迁移/配置/依赖及回退兼容；禁止force/ignore或旧证明绕过"
+  ],
+  "old_production_reference": {
+    "classification": "最近已登记S4.4历史生产基线，本轮未SSH重新核验",
+    "application_sha": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "version": "0.2.14-klno.5-tps.2",
+    "digest": "sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530",
+    "deployment_record": "20261010T120908Z-b497b80ee8a6",
+    "not_current_candidate_gate": true
+  },
+  "rollback": {
+    "task": "S1.5.5",
+    "personal_base": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+    "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+    "no_new_migrations": true,
+    "migrations_ent_schema_deps_and_deployment_config_unchanged": true,
+    "retained_migrations": [
+      "251_add_usage_log_timing.sql",
+      "252_add_ops_routing_diagnostics.sql",
+      "253_service_status_observation.sql",
+      "254_service_status.sql"
+    ],
+    "runtime_paths": [
+      "backend",
+      "Dockerfile",
+      "Dockerfile.goreleaser",
+      ".dockerignore",
+      "deploy"
+    ],
+    "runtime_excludes": [
+      "deploy/personal",
+      "deploy/personal-source.json"
+    ],
+    "base_runtime_sha256": "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747",
+    "candidate_runtime_sha256": "425f3f552915e414959213925b3819bab2a93852c3eec49e93dab3af83f5fdf8",
+    "approved_s0_s4_runtime_sha256": "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747",
+    "changed_runtime_paths": [
+      "backend/internal/service/chat_output_timing.go",
+      "backend/internal/service/chat_output_timing_test.go",
+      "backend/internal/service/chat_usage_timing_test.go",
+      "backend/internal/service/openai_gateway_cc_pipeline.go",
+      "backend/internal/service/openai_gateway_chat_completions.go",
+      "backend/internal/service/openai_gateway_chat_completions_raw.go",
+      "backend/internal/service/openai_gateway_grok_chat_bridge_test.go",
+      "backend/internal/service/openai_gateway_grok_test.go",
+      "backend/internal/service/openai_gateway_messages.go",
+      "backend/internal/service/openai_gateway_passthrough_function_args_test.go",
+      "backend/internal/service/openai_gateway_responses_chat_fallback.go",
+      "backend/internal/service/stream_output_timing.go"
+    ],
+    "control_worktree": "/Users/sc/.codex/worktrees/kin-s44-release-control/sub2api-kin",
+    "control_head": "f5c4c3304106040a01a32c5e6d4ff18f3ec49930",
+    "control_owner_sha256": "71900518bbce1a52f7e17aef2465b5f52a0e2eea24273999d76f5ec84441fe75",
+    "current_tool_new_candidate_compatibility": "not_approved",
+    "local_owner_rejections": [
+      {
+        "old_revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "new_revision": "1ae266791d0ab324cd13a63ab344019c79102176",
+        "owner": "GitEvidence.security_patch",
+        "expected_rejection": true,
+        "error_code": "E_COMPATIBILITY",
+        "message": "运行差异超出已审定的安全补丁"
+      },
+      {
+        "old_revision": "1ae266791d0ab324cd13a63ab344019c79102176",
+        "new_revision": "3d5e1fde82707900a21f2b5538b112c7bab3c04a",
+        "owner": "GitEvidence.security_patch",
+        "expected_rejection": true,
+        "error_code": "E_COMPATIBILITY",
+        "message": "运行差异超出已审定的安全补丁"
+      }
+    ],
+    "no_ssh_docker_deployment_or_image_creation": true,
+    "future_rollback": "另行审定真实旧新完整revision/运行树、固定镜像digest及实际部署记录；仅回退应用，保留扩展schema/ledger/历史用量/配置/PG/Redis；不删除计时字段或监控表，不恢复数据库",
+    "old_s4_record_not_for_new_candidate": "20261010T120908Z-b497b80ee8a6只绑定当时tps.2→tps.1，不是本候选的rollback ID"
+  },
+  "no_external_write_or_production_operation": true
+}

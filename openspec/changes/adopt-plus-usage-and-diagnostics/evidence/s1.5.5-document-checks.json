@@ -1,0 +1,224 @@
+{
+  "task": "S1.5.5",
+  "status": "passed",
+  "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "checks": {
+    "main": {
+      "only_task_transition": {
+        "S1.5.5": [
+          "pending",
+          "completed"
+        ]
+      },
+      "not_applicable_preserved": true,
+      "S5_all_pending": true,
+      "journal_title_and_old_entries_preserved_exact": true,
+      "historical_coverage_delivery_and_implementation_evidence_preserved": true,
+      "added_links_and_anchors_checked": 27,
+      "new_evidence_json_count": 5,
+      "diff_check_exit_code": 0,
+      "document_hashes": {
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": "e775905b53512b16486d59adc104229a0d8533a3c73dbc89339d8e121e02e923",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": "90f3bbff6177eee60464d8934617807bd4e850552cb59a8efae3469266b871be",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md": "0198c93df26eb3a430657c97141605eb12f8a9b42ecd3104e2eca076aff55e51",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": "e5beb25d8eaf1cbf33328209ce0961e0d8af9ec9c5ce6563f1b07e838807505d",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": "dcc63cd554f0dc58275cf09501e6ced6da42dd2ad72b93a9aa38063d56dd69f7",
+        "docs/dev-journal.md": "ab68d81dc7eb4ad7ca924abda18883815d3a672bbec9eab6bb647d138dfb8f96"
+      },
+      "new_evidence_matches_authoritative_copy": true
+    },
+    "application": {
+      "only_task_transition": {
+        "S1.5.5": [
+          "pending",
+          "completed"
+        ]
+      },
+      "not_applicable_preserved": true,
+      "S5_all_pending": true,
+      "journal_title_and_old_entries_preserved_exact": true,
+      "historical_coverage_delivery_and_implementation_evidence_preserved": true,
+      "added_links_and_anchors_checked": 27,
+      "new_evidence_json_count": 5,
+      "diff_check_exit_code": 0,
+      "document_hashes": {
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": "42a8a783d4582bc20941e38803749d5d6610bcca5c2e21ece7223824bb6e668d",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": "b887ce9923a62f5f1b1388c83851036abe731580a0a733d4152f9a988cc76b18",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md": "0198c93df26eb3a430657c97141605eb12f8a9b42ecd3104e2eca076aff55e51",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": "545e7a98491689ca287d9bc5ec4e69bfb0c421863f7df60599f53921cea370aa",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": "a5b4e82e9655e4a660150c20b7a04aef70fa89e40ccba767d61d0c6eec34b6c0",
+        "docs/dev-journal.md": "8c1e288a91f640aa436292846c44a154829f8556e72cc19e2040c002824b702e"
+      },
+      "new_evidence_matches_authoritative_copy": true
+    },
+    "original": {
+      "only_task_transition": {
+        "S1.5.5": [
+          "pending",
+          "completed"
+        ]
+      },
+      "not_applicable_preserved": true,
+      "S5_all_pending": true,
+      "journal_title_and_old_entries_preserved_exact": true,
+      "historical_coverage_delivery_and_implementation_evidence_preserved": true,
+      "added_links_and_anchors_checked": 27,
+      "new_evidence_json_count": 5,
+      "diff_check_exit_code": 0,
+      "document_hashes": {
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": "582caad1958ca4b9ad09663303259801a8322fb17e75067fb52de2e71cb42f59",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": "7d1e43c08fb72ffef09b1b48158929421482fb8d05310d8ebd582c4b58cc5b17",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md": "0198c93df26eb3a430657c97141605eb12f8a9b42ecd3104e2eca076aff55e51",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": "545e7a98491689ca287d9bc5ec4e69bfb0c421863f7df60599f53921cea370aa",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": "c570c75699aed41dbfe0827785a2fb725d706358515913db1dc48c60e228442d",
+        "docs/dev-journal.md": "2362b9ca4db946aaf87bc44bbee0371973878192c732aa95f1fee1ad87be4c5a"
+      },
+      "new_evidence_matches_authoritative_copy": true
+    }
+  },
+  "worktree_preservation": [
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "branch": "codex/ci-validation-scope",
+      "previous_dirty_entries": 0,
+      "current_dirty_entries": 0,
+      "unchanged_previous_files": 0,
+      "authorized_documents_updated": [],
+      "authorized_new_dirty_paths": [],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "branch": "codex/fix-version-usage-help",
+      "previous_dirty_entries": 131,
+      "current_dirty_entries": 136,
+      "unchanged_previous_files": 125,
+      "authorized_documents_updated": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "authorized_new_dirty_paths": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-gates-and-rollback.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-reused-evidence.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-validation.json"
+      ],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/kin-s44-release-control/sub2api-kin",
+      "head": "f5c4c3304106040a01a32c5e6d4ff18f3ec49930",
+      "branch": "codex/kin-s44-production-delivery",
+      "previous_dirty_entries": 0,
+      "current_dirty_entries": 0,
+      "unchanged_previous_files": 0,
+      "authorized_documents_updated": [],
+      "authorized_new_dirty_paths": [],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin",
+      "head": "a64ecfb6e279c01eef317cfc9321d32694652ddc",
+      "branch": "codex/plus-chat-timing-s151-evidence",
+      "previous_dirty_entries": 0,
+      "current_dirty_entries": 11,
+      "unchanged_previous_files": 0,
+      "authorized_documents_updated": [],
+      "authorized_new_dirty_paths": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-gates-and-rollback.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-reused-evidence.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-validation.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-chat-timing-s151/sub2api-kin",
+      "head": "1ae266791d0ab324cd13a63ab344019c79102176",
+      "branch": "codex/plus-chat-timing-s151",
+      "previous_dirty_entries": 19,
+      "current_dirty_entries": 25,
+      "unchanged_previous_files": 14,
+      "authorized_documents_updated": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "authorized_new_dirty_paths": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-gates-and-rollback.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-reused-evidence.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.5-validation.json"
+      ],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "head": "dbb46705b7dd9e933355ff186df7214c4a9b7723",
+      "branch": "codex/plus-status-demand-s41",
+      "previous_dirty_entries": 23,
+      "current_dirty_entries": 23,
+      "unchanged_previous_files": 23,
+      "authorized_documents_updated": [],
+      "authorized_new_dirty_paths": [],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "head": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+      "branch": "codex/plus-routing-delivery-s36",
+      "previous_dirty_entries": 20,
+      "current_dirty_entries": 20,
+      "unchanged_previous_files": 20,
+      "authorized_documents_updated": [],
+      "authorized_new_dirty_paths": [],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "head": "d72a3dafbdcb1edb642fca8dcfb29a803eaa97af",
+      "branch": "codex/plus-service-status-s43",
+      "previous_dirty_entries": 13,
+      "current_dirty_entries": 13,
+      "unchanged_previous_files": 13,
+      "authorized_documents_updated": [],
+      "authorized_new_dirty_paths": [],
+      "unrelated_changes_preserved": true,
+      "head_and_branch_unchanged": true
+    }
+  ],
+  "previous_source_and_14_evidence_artifacts_unchanged": true,
+  "diff_inspection": "主代理检查main6文件实际diff及5份新证据结构/内容，无越界改动、源码覆盖、凭据或生成物改变",
+  "only_local_delivery_record_complete": true,
+  "remote_candidate_gate_not_passed": true,
+  "current_deployment_compatibility_not_approved": true,
+  "next_task": "S5.1 可选需求确认，未排期",
+  "next_task_started": false,
+  "no_external_writes_merge_release_or_deploy": true,
+  "pre_commit_heads_snapshot": true
+}

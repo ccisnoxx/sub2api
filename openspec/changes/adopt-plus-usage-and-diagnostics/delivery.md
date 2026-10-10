@@ -1,6 +1,6 @@
 # KIN 借鉴 Plus候选交付与回退
 
-本文件保留S1/S2历史准备与门禁，当前S3.6阶段交付候选/门禁与回退边界见文末；旧段落的“本会话/下一项”指当时准备轮。
+本文件保留S1–S4历史准备、门禁与交付记录；当前第二批候选/门禁/回退状态见文末S1.5.5。旧段落的“本会话/当前/下一项”仅指当时记录轮，不代替最新候选状态。
 
 本文件准备后续交付操作；本会话不推送、不合并、不发布镜像、不连接生产。已验证应用提交为 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`；实际覆盖、检查与独立复核结果登记在 [执行证据](implementation-evidence.md)。文档归档会推进本地HEAD；后续远端门禁必须绑定届时的真实完整候选，不能将本地结果称作远端通过。
 
@@ -103,3 +103,42 @@ S4.4真实JWT/数据库/浏览器贯通、固定旧应用扩展schema兼容及�
 生产备份及专属记录保留在`/root/sub2api-kin/.personal-deploy/records/20261010T120908Z-b497b80ee8a6`。应用回退仅使用该成功记录绑定的旧9397/tps.1镜像并保留扩展schema/ledger及PG/Redis；专属工具入口为`bash deploy/personal/deploy-hostdzire.sh --rollback 20261010T120908Z-b497b80ee8a6`。此处登记入口，不执行回退；不会恢复数据库、覆盖私密配置或删除监控表。实际生产回滚/数据库恢复未演练，隔离旧应用兼容及60项部署工具合同不改称实机回滚。
 
 S4.4、S0.2/S0.3完成；S1.5.1为下一项，未自动开始。PR #5/#6保持原状态。先前中断worker审计终态缺失、完整执行Digest无法闭合，失败明示并保留原始日志；有效独立复核与两项P2修复红绿、最终CI另行记录。
+
+## S1.5.5 第二批本地交付记录
+
+### 固定候选与实际覆盖
+
+应用仍为 `1ae266791d0ab324cd13a63ab344019c79102176`，分支 `codex/plus-chat-timing-s151`，基础personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；KlN来源 `v0.2.14-klno.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。main仅增量登记文档，不替代personal应用源码；本轮不追加应用提交。相对personal仅12个backend service源码/测试路径变化，原Token/费用/倍率/幂等/异步行创建/调度合同保持。
+
+所选raw CC JSON/SSE、CC ↔ Responses双向转换及复用Grok桥已在S1.5.1实现、S1.5.4验证复核；原生Responses HTTP/SSE/WS继承第一批覆盖。Anthropic（S1.5.2）、Gemini/Antigravity及独立媒体（S1.5.3）不适用；其他未支持producer保持旧口径/未知。实际owner、协议与限制以[当前覆盖表](coverage.md#s155-当前所选入口与交付状态)为准。
+
+### 候选门禁与状态
+
+| 门禁 | 当前状态 | 后续绑定要求 |
+|---|---|---|
+| 本地协议/用量/终态/音频与独立复核 | 已通过，S1.5.4有效证据按未变输入复用 | 音频修正后race9/69；较早124/271、20/115、3/9仅用于未受影响边界，不算最终完整重跑 |
+| personal来源与祖先、当前实际diff | 本轮只读核对通过，12源输入及依赖不变 | 基础或候选变化时重新评估，不能复用旧绑定 |
+| 当前候选PR / Personal CI / personal-ready | **未取得**：只读查询无该分支PR、无该SHA运行；check-runs HTTP422 No commit found | 稳定完整候选、dispatch ref、实际PR和最新personal基础一致；开始/结束重核对 |
+| 合并后最终personal SHA门禁 | **未执行** | 最终merge SHA自身完整Personal CI及可信App15368 personal-ready，不以PR/旧基线结果替代 |
+| 镜像发布与生产更新 | **未执行**；没有新版本、digest或部署记录 | 沿用既有版本分配、simple/linux/amd64、OCI/source/revision/固定digest和实际部署记录合同 |
+| 新运行树部署/回退兼容证明 | **未审定，现有owner拒绝** | main部署owner另行审定实际完整运行树、数据与配置保证，不改成force/ignore放行 |
+
+当前personal的 `.github/workflows/personal-ci.yml` 仍要求binding、existing-ci（backend-ci）、existing-security（security-scan）、tps、sync-contracts，最后personal-ready汇总全部成功并重核对绑定；pnpm9/Node20/frozen lockfile及现行检查保持。没有采用当前cwd未合入的CI选择优化。非personal候选必须有实际同仓库open且base=personal的PR，head/base完整SHA与检查一致。当前源SHA未在远端可解析，因此“无检查”不是通过。
+
+本轮只完成交付记录，不创建PR、不push、不dispatch完整CI。按已有文档的后续交付授权边界，取得对应远端操作授权后才对稳定候选执行必要门禁；同候选/分支/基础的成功结果有效时复用，不重复中间全套gate。若日后把文档另行提交到应用分支，实际HEAD变化也必须重新绑定真实完整SHA。发布前必须使用合入后的personal SHA自身门禁。
+
+### 数据与回退边界
+
+本批相对personal没有新增迁移、Ent/schema、依赖、镜像配置或部署资源变化，继承251–254及原扩展schema。回退源码的方向是撤回本批应用提交的12路径变化，恢复到基础应用行为；需要在独立候选中处理并重新验证，保留已有未提交改动，不在当前工作树reset/覆盖文件。旧行、已写新计时、音频NULL与未知完成状态不回填或清除；回退后这些CC入口恢复旧计时/未知，不能继续宣称新采集覆盖。
+
+本机部署GitEvidence使用的完整运行树指纹：基础 `ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747`，当前候选 `425f3f552915e414959213925b3819bab2a93852c3eec49e93dab3af83f5fdf8`。新树与固定S0–S4树不同，真实12路径不属于已审定的五文件安全补丁；对正反方向调用本机兼容owner均返回预期 `E_COMPATIBILITY`。这只是只读Git/owner检查，没有SSH、Docker、镜像构建或部署调用，也没有新增兼容放行。
+
+即使schema相同，也不能宣布现有部署工具已支持该候选。后续部署/故障恢复必须先审定真实旧/新完整revision、运行树、已发布固定digest及实际部署记录；只有证明和现场配置/依赖/账本保持条件成立时，才可仅回退应用。保留扩展schema、migration ledger、旧/新用量、服务状态表、配置和PG/Redis，不删列/表/触发器，不用旧schema覆盖数据库。备份须可读；数据库恢复及可能丢失备份后写入另行授权并在隔离环境验证。
+
+最近已登记生产基线是personal `3d5e1fde...` / `0.2.14-klno.5-tps.2` / digest `sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`；本轮未连接生产重新核验。历史记录 `20261010T120908Z-b497b80ee8a6` 只绑定当时tps.2→tps.1回退，不是本候选的新rollback ID，不得用于声称新候选可恢复。本轮没有新部署记录，也没有可执行的新候选回退命令。
+
+### 证据、限制与停止位置
+
+14份S1.5.1/S1.5.4证据、12最终源输入、11原日志、6第一批产物及未变下游/DTO/前端输入核验后复用。没有新跑行为测试、构建、fresh复核或完整CI；相同候选既有复核有效，本轮文档不修改门禁/部署工具行为。真实供应商付费、新增CC→worker→SQL→页面整体执行、无typed usage零终态/data包装的行为覆盖及生产回滚/数据库恢复限制仍如原证据登记。
+
+[候选](evidence/s1.5.5-candidate.json)、[门禁与回退](evidence/s1.5.5-gates-and-rollback.json)、[复用清单](evidence/s1.5.5-reused-evidence.json)、[验证](evidence/s1.5.5-validation.json)、[执行证据](implementation-evidence.md#s155-第二批交付记录)。S1.5.5勾选表示**本地交付记录完成**；合并/发布/部署独立未执行。可选下一项S5.1用户支持需求确认仍未排期，本会话到此停止，不自动进入。

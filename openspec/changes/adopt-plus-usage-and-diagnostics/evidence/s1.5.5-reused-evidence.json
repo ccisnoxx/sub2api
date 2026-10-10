@@ -1,0 +1,168 @@
+{
+  "task": "S1.5.5",
+  "application_head": "1ae266791d0ab324cd13a63ab344019c79102176",
+  "application_files": {
+    "backend/internal/service/openai_gateway_cc_pipeline.go": "e319290fdc0e7ca60c502213d660519bbf3e4d240a6cc43bdb452feba804f53f",
+    "backend/internal/service/openai_gateway_chat_completions.go": "56f14abf89f9a9eec73d6b47ed2cdeefc156f5ceb2abd34d1b5fbbf1c3d32f7a",
+    "backend/internal/service/openai_gateway_chat_completions_raw.go": "a2120da74ba8ae24571e5b5ff317641ff4107a647ae778851ba06baa93e29f54",
+    "backend/internal/service/openai_gateway_grok_chat_bridge_test.go": "871754285bdbcc64ebf0f25862aa5b549d7a55bbebb2e1f549753025d9d5cbd5",
+    "backend/internal/service/openai_gateway_grok_test.go": "800fbf229f31ed837d36df2061f8aec7ff92c66dc19e9a68c6bbff88e42aa667",
+    "backend/internal/service/openai_gateway_messages.go": "8dc0ad6b64048989a6e79ba50f8f06a8d8dc677b75f14f71fb56ef4ed919aeea",
+    "backend/internal/service/openai_gateway_passthrough_function_args_test.go": "9b9de35a144a73c2a3dbb43ae133ec9069282e7cd2ee91f945ace58f10215cf0",
+    "backend/internal/service/openai_gateway_responses_chat_fallback.go": "5c7c6cf2304f39f611468d0c4c369931a11a980ee0e72fa6424e302d02cefe7c",
+    "backend/internal/service/stream_output_timing.go": "b4b2881c60cdfacd498b0164a7491addd3a668f9e23c40ca46d562d9a6d936b2",
+    "backend/internal/service/chat_output_timing.go": "a07a400f40ff12f6aa2e04be98344aa58a31cac7ecfa7b21a6257812662800dc",
+    "backend/internal/service/chat_output_timing_test.go": "1526ffaf13c8365a932b464a0b97337df1cd6c5e0e55fc66e8edbdd0b1addaa5",
+    "backend/internal/service/chat_usage_timing_test.go": "044bf1dc3ba197959bb3a48d35a6d9997b920d15b23749f27d86b6be34f15939"
+  },
+  "previous_task_evidence": [
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-candidate.json",
+      "sha256": "16c22287c6c6cdad9f580c7db3c93ae42b3b83bd5e90922582a0eb648d7c3689",
+      "bytes": 2857
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-document-checks.json",
+      "sha256": "afd01d00e703e5a422524aa439ded71eb6bc5304d8e08382e41c10d3e5a6a7ed",
+      "bytes": 7286
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-reused-evidence.json",
+      "sha256": "c987aad67541ff8dd5612eda821281d017b4fd95b62a6ea6a57db3f5b4a6444a",
+      "bytes": 11185
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-reviews.json",
+      "sha256": "da70ab07fb2a843dc8bfc199c4e9a7ec3a9be6544a2aa113ee40c1932681aeac",
+      "bytes": 2724
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-subagent-digest.json",
+      "sha256": "5025ce1aae614d694edbacbcc0146fd1e2ce44e808fe56c6703b91010d638a93",
+      "bytes": 2426
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-subagent-digest.md",
+      "sha256": "45846f55d769a65a3415bc12082126f7c81788c461d4194902d9429ad2493f74",
+      "bytes": 924
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.1-validation.json",
+      "sha256": "200f47e7de4bb2c87e9a9c0c30e67dfeeca44307878482d2deebf3e7025371be",
+      "bytes": 15378
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-candidate.json",
+      "sha256": "81bbb5bdfee5954017d1d9f25a8626e8ba3a2c3dcc1469636f3efaa90ef28f72",
+      "bytes": 3348
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-document-checks.json",
+      "sha256": "64fb565bc17137f122ff769dee499224b863193dd6945b4a71548bdd899f56fa",
+      "bytes": 11740
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-reused-evidence.json",
+      "sha256": "2096650221ff433182a83aa3d882fc5b17061bffb4ad82a9d55e93bf77c9d4c0",
+      "bytes": 22564
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-reviews.json",
+      "sha256": "46c3dc345656aa7325c083e58c4db4e18267ecfcf721a91938a21f8e53268fb5",
+      "bytes": 4068
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-subagent-digest.json",
+      "sha256": "6ab735f6ce3a2ea2e3401e8b0efabd58a8eb6b281e3ef7c494d21d2bce644787",
+      "bytes": 1758
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-subagent-digest.md",
+      "sha256": "3c2f0f3867390328344b137d5f694a4181ed1067cf1e970505ff71e354db3fa7",
+      "bytes": 865
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-chat-timing-s151-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s1.5.4-validation.json",
+      "sha256": "27348ae86fbcbfa5530f1f96ca1d85f55abbc7a76b759fa753342996614cd7f6",
+      "bytes": 4003
+    }
+  ],
+  "verified_raw_logs": 11,
+  "verified_first_batch_artifacts": 6,
+  "verified_downstream_inputs": 12,
+  "verified_DTO_frontend_inputs": 18,
+  "pipeline_and_dependency_inputs": [
+    {
+      "path": ".github/workflows/personal-ci.yml",
+      "sha256": "2fcfa996612f1697f2325cdab141094876f1f8c3b793ab613b5a1546798e2c61",
+      "blob": "54c420d8eda4248e395d8b7f5445ef7b29d4b162",
+      "same_as_personal_base": true
+    },
+    {
+      "path": ".github/workflows/backend-ci.yml",
+      "sha256": "691a8c3cdc92ce543c924d8a2a6553f883c13292bc2e83dc70c1baf4a1747680",
+      "blob": "f7cf63e4986506493a28534294a43ccb16d04f42",
+      "same_as_personal_base": true
+    },
+    {
+      "path": ".github/workflows/security-scan.yml",
+      "sha256": "faf7ca83f1cf803b7048d47f0fc4d4ca4c6be1e9c630f5701b345e645a0cfd0d",
+      "blob": "ece8d76f892cc9bca92bfd865d01d772074b8355",
+      "same_as_personal_base": true
+    },
+    {
+      "path": ".github/workflows/personal-release.yml",
+      "sha256": "f91f4592bfd1991f23f36d8d7bc1c4529c417237113a82fabf509d2d41c1ad52",
+      "blob": "71918daf40eb8c9033b1e4fe498e98a474aaec78",
+      "same_as_personal_base": true
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "00ac7240b2b6c2e946143cdebf04ccc2c3901c74cda29e26b89db026199fca3d",
+      "blob": "f0d4e3a127af648782d243f25e230933db10529a",
+      "same_as_personal_base": true
+    },
+    {
+      "path": ".github/personal-sync/check_binding.py",
+      "sha256": "c4101867ee197a5323f6387573c750881915879b79f1b35010f496f8ed4d0e20",
+      "blob": "8d94f88d7f31e05403db93e470e37586116a877a",
+      "same_as_personal_base": true
+    },
+    {
+      "path": ".github/personal-sync/sync.py",
+      "sha256": "53cd733c2c04b87c8842e1d9ca7748c838ffc9c9b98e91b9e8f3597f4c98bb1f",
+      "blob": "412a072d3c4f8db898cdb4b3c2168aa1020fdc42",
+      "same_as_personal_base": true
+    },
+    {
+      "path": ".github/release-tools/personal_release.py",
+      "sha256": "b492885845377f93ae0f98f3e65aad98b802877724abba0c3aa3c16df35895e1",
+      "blob": "0aaf9652925804b9fbe666bca38c7f1652f2b5dc",
+      "same_as_personal_base": true
+    },
+    {
+      "path": "backend/go.mod",
+      "sha256": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+      "blob": "1690d136cc7e5032689aac28e69dd516665cc823",
+      "same_as_personal_base": true
+    },
+    {
+      "path": "backend/go.sum",
+      "sha256": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b",
+      "blob": "845fdc249d6c127aa6ed2d2a38838c00090aa9d7",
+      "same_as_personal_base": true
+    },
+    {
+      "path": "frontend/pnpm-lock.yaml",
+      "sha256": "1d8e54cc8e1f1bd3e7593805f607d9314ff81dab98ab5a9a6396475e148b26ce",
+      "blob": "1e36493ef0e6f29a79e021a16d46cf1856e1de98",
+      "same_as_personal_base": true
+    }
+  ],
+  "behavior_test_results_reused_from": "s1.5.4-validation.json",
+  "new_behavior_tests_executed": false,
+  "new_independent_review": false,
+  "reused_independent_review": "s1.5.4-reviews.json，最终候选及输入未变",
+  "reuse_boundary": "修复前124/271、20/115、3/9只复用未受P2两文件修正影响的owner；最终受影响链复用修复后9/69，不能声称最终完整重跑",
+  "source_and_contracts_unchanged": true
+}

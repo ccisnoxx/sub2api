@@ -1,7 +1,9 @@
 # KIN 借鉴 Plus 功能的实施计划
 
-- 本轮状态（2026-10-10，S1.5.4）：第二批所选入口的差异验证与独立复核完成，沿用应用 `1ae266791d0ab324cd13a63ab344019c79102176`，没有新增应用源码改动。S1.5.2（Anthropic）、S1.5.3（Gemini/Antigravity及独立媒体入口）按用户决定登记为不适用；已核验复用所选CC/转换/Grok桥和未变下游的有效证据。下一项S1.5.5保持待执行，不自动进入；本轮未push/新CI/合并/镜像发布/生产部署。详见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)。
-- 本轮工作位置：续用personal应用候选 `codex/plus-chat-timing-s151`；main证据分支 `codex/plus-chat-timing-s151-evidence` 从S1.5.1证据提交 `a6454d3c079882aab58c320ac8d87df427637355` 增量登记。已核对远端personal/main及相关工作树，保留全部已有应用和文档改动。
+- 本轮状态（2026-10-10，S1.5.5）：第二批所选入口的本地交付记录完成，应用仍为 `1ae266791d0ab324cd13a63ab344019c79102176`。S1.5.1/S1.5.4有效证据复用；S1.5.2、S1.5.3保持不适用。实际覆盖、当前Personal CI门禁与回退边界已登记；当前候选无远端PR/CI，新运行树不受现有部署兼容证明覆盖。勾选S1.5.5只表示本地交付记录完成，不表示合并/镜像发布/生产部署。可选S5.1未排期，不自动继续。详见[执行证据](implementation-evidence.md#s155-第二批交付记录)。
+- 本轮工作位置：续用personal应用 `codex/plus-chat-timing-s151`，应用HEAD不变；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于文档提交 `a64ecfb6e279c01eef317cfc9321d32694652ddc` 增量记录。相关工作树及原未提交源码/文档改动保留。
+- 历史状态（2026-10-10，S1.5.4完成时）：第二批所选入口的差异验证与独立复核完成，沿用应用 `1ae266791d0ab324cd13a63ab344019c79102176`，没有新增应用源码改动。S1.5.2（Anthropic）、S1.5.3（Gemini/Antigravity及独立媒体入口）按用户决定登记为不适用；已核验复用所选CC/转换/Grok桥和未变下游的有效证据。下一项S1.5.5保持待执行，不自动进入；本轮未push/新CI/合并/镜像发布/生产部署。详见[执行证据](implementation-evidence.md#s154-第二批差异验证与独立复核)。
+- S1.5.4工作位置：续用personal应用候选 `codex/plus-chat-timing-s151`；main证据分支 `codex/plus-chat-timing-s151-evidence` 从S1.5.1证据提交 `a6454d3c079882aab58c320ac8d87df427637355` 增量登记。已核对远端personal/main及相关工作树，保留全部已有应用和文档改动。
 - 历史状态（2026-10-10，S1.5.1完成时）：Chat Completions 与 CC ↔ Responses 转换本地完成，应用 `1ae266791d0ab324cd13a63ab344019c79102176` 基于 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a`；初版定向回归124顶层/271含子用例、race20/115及追加边界3/9通过；首轮音频P2修正后受影响范围race9/69通过，fresh独立只读复核完成。仅勾选S1.5.1，下一项S1.5.2不自动执行；本轮无push、新CI、合并、镜像发布或生产部署。详见[执行证据](implementation-evidence.md#s151-chat-completions-与转换链路)。
 - S1.5.1工作位置：应用 `codex/plus-chat-timing-s151`，仅使用personal应用源码；main证据分支 `codex/plus-chat-timing-s151-evidence` 基于 `f5c4c3304106040a01a32c5e6d4ff18f3ec49930`。旧快照及原未提交应用改动保留；既往S4.4完成状态以本轮main证据树的记录为准。
 - 编制日期：2026-10-09（America/Los_Angeles）。
