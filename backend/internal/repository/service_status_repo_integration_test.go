@@ -44,6 +44,18 @@ func statusInsertOps(t *testing.T, gid int64, at time.Time, n int, kind, reason 
 		require.NoError(t, err)
 	}
 }
+
+// 固定在已完成分钟的旧源，复现共享库全站缺口；只清理本次插入的行。
+func statusInsertUnscopedLegacyOps(t *testing.T, at time.Time) {
+	t.Helper()
+	ctx := context.Background()
+	var id int64
+	require.NoError(t, integrationDB.QueryRowContext(ctx, `INSERT INTO ops_error_logs(model,error_phase,error_type,created_at) VALUES('legacy-ambient','upstream','test',$1) RETURNING id`, at).Scan(&id))
+	t.Cleanup(func() {
+		_, err := integrationDB.ExecContext(ctx, `DELETE FROM ops_error_logs WHERE id=$1`, id)
+		require.NoError(t, err)
+	})
+}
 func statusInsertSuccess(t *testing.T, gid int64, at time.Time, n int) {
 	t.Helper()
 	ctx := context.Background()
@@ -143,10 +155,15 @@ func TestServiceStatusRepositoryAtomicEventsRepeatAndRecovery(t *testing.T) {
 func TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes(t *testing.T) {
 	r, gid, now := statusSQLFixture(t)
 	statusEnableSQL(t, now)
+	statusInsertUnscopedLegacyOps(t, now.Add(-time.Minute+30*time.Second))
 	ctx := context.Background()
 	require.NoError(t, r.Aggregate(ctx, now))
 	var through time.Time
 	require.NoError(t, integrationDB.QueryRow(`SELECT observed_through FROM service_status_watermark`).Scan(&through))
+	const factsQuery = `SELECT COALESCE(jsonb_agg(to_jsonb(f) ORDER BY bucket_start,platform,group_id,requested_model),'[]'::jsonb)::text FROM service_status_facts_1m f`
+	var factsBefore string
+	require.NoError(t, integrationDB.QueryRow(factsQuery).Scan(&factsBefore))
+	require.NotEqual(t, "[]", factsBefore, "受控旧源必须使扫描前已有事实")
 	_, err := integrationDB.Exec(`INSERT INTO ops_error_logs(group_id,model,error_phase,error_type,created_at) SELECT $1,'overflow','upstream','test',$2 FROM generate_series(1,50001)`, gid, now.Add(-time.Minute))
 	require.NoError(t, err)
 	err = r.Aggregate(ctx, now)
@@ -156,9 +173,9 @@ func TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes(t *testi
 	require.NoError(t, integrationDB.QueryRow(`SELECT observed_through,last_error_code FROM service_status_watermark`).Scan(&after, &code))
 	require.Equal(t, through, after)
 	require.Equal(t, "SERVICE_STATUS_OBSERVATION_LIMIT", code)
-	var facts int
-	require.NoError(t, integrationDB.QueryRow(`SELECT count(*) FROM service_status_facts_1m`).Scan(&facts))
-	require.Zero(t, facts)
+	var factsAfter string
+	require.NoError(t, integrationDB.QueryRow(factsQuery).Scan(&factsAfter))
+	require.Equal(t, factsBefore, factsAfter, "失败聚合必须完整保留已提交事实")
 	_, err = integrationDB.Exec(`DELETE FROM ops_error_logs WHERE group_id=$1`, gid)
 	require.NoError(t, err)
 	lock, err := integrationDB.BeginTx(ctx, nil)
@@ -335,6 +352,7 @@ func TestServiceStatusRepositoryFrozenIncidentHasNullRates(t *testing.T) {
 	r, gid, now := statusSQLFixture(t)
 	ctx := context.Background()
 	statusEnableSQL(t, now)
+	statusInsertUnscopedLegacyOps(t, now.Add(-time.Minute+30*time.Second))
 	statusInsertSuccess(t, gid, now.Add(-time.Minute), 4)
 	statusInsertOps(t, gid, now.Add(-time.Minute), 1, "upstream_error", "provider_5xx")
 	_, err := integrationDB.ExecContext(ctx, `INSERT INTO service_status_scope_states(platform,group_id,requested_model,last_evidence_at,last_observation_at,abnormal_count,recovery_count,config_version,observation_start,last_health) VALUES('openai',$1,'gpt',$2,$2,2,0,1,$3,'degraded')`, gid, now.Add(-time.Minute), now.Add(-30*time.Minute))
@@ -346,15 +364,22 @@ func TestServiceStatusRepositoryFrozenIncidentHasNullRates(t *testing.T) {
 	cfg.WarningErrorRate = .5
 	_, err = r.UpdateConfig(ctx, cfg)
 	require.NoError(t, err)
+	// 在聚合之前检查配置 owner 的立即冻结，避免全站缺口替它完成冻结而掩盖回归。
+	phase, recovery := statusIncidentPhaseSQL(t)
+	require.Equal(t, "awaiting_data", phase)
+	require.Zero(t, recovery)
 	require.NoError(t, r.Aggregate(ctx, now))
 	snap, err := r.Snapshot(ctx, "24h", "openai")
 	require.NoError(t, err)
+	require.Contains(t, snap.Gaps, "scope_unavailable", "旧源的全站缺口不得被事件冻结掩盖")
 	found := false
 	for _, leaf := range snap.Scopes {
 		if leaf.GroupID == gid && leaf.RequestedModel == "gpt" {
 			found = true
 			require.Equal(t, "unknown", leaf.Health)
-			require.Equal(t, "awaiting_data", leaf.UnknownReason)
+			require.Equal(t, "scope_unavailable", leaf.UnknownReason)
+			require.NotNil(t, leaf.IncidentPhase)
+			require.Equal(t, "awaiting_data", *leaf.IncidentPhase)
 			require.Nil(t, leaf.ErrorRate)
 			require.Nil(t, leaf.SuccessRate)
 		}
