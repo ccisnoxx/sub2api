@@ -82,13 +82,19 @@ func TestServiceStatusSourcePersistenceOpsSingleBatchAndInternalPrivacy(t *testi
 		{RequestID: uuid.NewString(), StatusCode: 502, Severity: "error", ErrorType: "upstream_error", ErrorPhase: "upstream", ErrorOwner: "provider", ErrorSource: "upstream_http", ServiceStatusObservation: terminal},
 		{RequestID: uuid.NewString(), StatusCode: 200, Severity: "warning", ErrorType: "upstream_error", ErrorPhase: "upstream", ErrorOwner: "provider", ErrorSource: "upstream_http", ServiceStatusObservation: attempt},
 	}
-	require.NoError(t, ops.RecordError(ctx, entries[0]))
-	require.NoError(t, ops.RecordErrorBatch(ctx, entries[1:]))
 	// 实际BatchInsert路径另用两条，避免RecordErrorBatch的单条快捷路径代替batch证据。
 	third := *entries[0]
 	third.RequestID = uuid.NewString()
 	fourth := *entries[1]
 	fourth.RequestID = uuid.NewString()
+	for _, entry := range append(entries, &third, &fourth) {
+		t.Cleanup(func() {
+			_, err := integrationDB.ExecContext(ctx, `DELETE FROM ops_error_logs WHERE request_id=$1`, entry.RequestID)
+			require.NoError(t, err)
+		})
+	}
+	require.NoError(t, ops.RecordError(ctx, entries[0]))
+	require.NoError(t, ops.RecordErrorBatch(ctx, entries[1:]))
 	require.NoError(t, ops.RecordErrorBatch(ctx, []*service.OpsInsertErrorLogInput{&third, &fourth}))
 	for _, entry := range append(entries, &third, &fourth) {
 		var id int64

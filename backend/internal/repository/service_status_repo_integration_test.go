@@ -24,8 +24,10 @@ func statusSQLFixture(t *testing.T) (*serviceStatusRepository, int64, time.Time)
 	var now time.Time
 	require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT date_trunc('minute',clock_timestamp())`).Scan(&now))
 	t.Cleanup(func() {
-		_, _ = integrationDB.ExecContext(ctx, `DELETE FROM ops_error_logs WHERE group_id=$1`, gid)
-		_, _ = integrationDB.ExecContext(ctx, `DELETE FROM groups WHERE id=$1`, gid)
+		_, err := integrationDB.ExecContext(ctx, `DELETE FROM ops_error_logs WHERE group_id=$1`, gid)
+		require.NoError(t, err)
+		_, err = integrationDB.ExecContext(ctx, `DELETE FROM groups WHERE id=$1`, gid)
+		require.NoError(t, err)
 	})
 	return &serviceStatusRepository{db: integrationDB}, gid, now.UTC()
 }
@@ -45,16 +47,12 @@ func statusInsertOps(t *testing.T, gid int64, at time.Time, n int, kind, reason 
 func statusInsertSuccess(t *testing.T, gid int64, at time.Time, n int) {
 	t.Helper()
 	ctx := context.Background()
-	client := testEntClient(t)
-	user := mustCreateUser(t, client, &service.User{Email: "status-" + uuid.NewString() + "@example.test"})
-	key := mustCreateApiKey(t, client, &service.APIKey{UserID: user.ID, Key: "sk-status-" + uuid.NewString(), Name: "status"})
-	account := mustCreateAccount(t, client, &service.Account{Name: "status-" + uuid.NewString(), Platform: "openai"})
+	user, key, account := committedUsageLogTestResources(t, service.PlatformOpenAI)
 	for j := 0; j < n; j++ {
 		r := statusRow(uuid.NewString(), "completed", "", at)
 		_, err := integrationDB.ExecContext(ctx, `INSERT INTO usage_logs(user_id,api_key_id,account_id,group_id,request_id,model,requested_model,completion_status,is_complete,actual_cost,created_at,service_status_observation) VALUES($1,$2,$3,$4,$5,'gpt','gpt','completed',true,0,$6,$7)`, user.ID, key.ID, account.ID, gid, uuid.NewString(), at, string(r.metadata))
 		require.NoError(t, err)
 	}
-	t.Cleanup(func() { _, _ = integrationDB.ExecContext(ctx, `DELETE FROM usage_logs WHERE api_key_id=$1`, key.ID) })
 }
 func statusIncidentPhaseSQL(t *testing.T) (string, int) {
 	t.Helper()
@@ -275,9 +273,14 @@ func TestServiceStatusRepositoryGroupVisibilityRestartsRecovery(t *testing.T) {
 	require.NoError(t, r.Aggregate(ctx, now.Add(time.Minute)))
 	_, err = integrationDB.ExecContext(ctx, `UPDATE groups SET status='active' WHERE id=$1`, gid)
 	require.NoError(t, err)
+	var visibleAt time.Time
+	require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT last_evidence_at FROM service_status_scope_states WHERE group_id=$1`, gid).Scan(&visibleAt))
+	// 保留其他测试的历史源；从重新可见基线推进完整十分钟重算区间后再提供新恢复证据。
+	recoveryStart := visibleAt.UTC().Truncate(time.Minute).Add(10 * time.Minute)
 	for j := 1; j <= 3; j++ {
-		statusInsertSuccess(t, gid, now.Add(time.Duration(j)*time.Minute+time.Second), 5)
-		require.NoError(t, r.Aggregate(ctx, now.Add(time.Duration(j+1)*time.Minute)))
+		at := recoveryStart.Add(time.Duration(j-1)*time.Minute + time.Second)
+		statusInsertSuccess(t, gid, at, 5)
+		require.NoError(t, r.Aggregate(ctx, at.Add(time.Minute)))
 		phase, count = statusIncidentPhaseSQL(t)
 		if j < 3 {
 			require.Equal(t, "recovering", phase)

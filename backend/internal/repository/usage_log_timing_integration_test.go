@@ -16,12 +16,36 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func timingTestLog(t *testing.T, timing service.UsageTiming) *service.UsageLog {
+// 真实 SQL/批量写入需要已提交依赖；按本 fixture 的 ID 清理，避免污染全站统计。
+func committedUsageLogTestResources(t *testing.T, platform string) (*service.User, *service.APIKey, *service.Account) {
 	t.Helper()
+	ctx := context.Background()
 	client := testEntClient(t)
 	user := mustCreateUser(t, client, &service.User{Email: "timing-" + uuid.NewString() + "@example.com"})
+	t.Cleanup(func() {
+		_, err := integrationDB.ExecContext(ctx, `DELETE FROM users WHERE id=$1`, user.ID)
+		require.NoError(t, err)
+	})
 	apiKey := mustCreateApiKey(t, client, &service.APIKey{UserID: user.ID, Key: "sk-timing-" + uuid.NewString(), Name: "k"})
-	account := mustCreateAccount(t, client, &service.Account{Name: "timing-" + uuid.NewString()})
+	t.Cleanup(func() {
+		_, err := integrationDB.ExecContext(ctx, `DELETE FROM usage_logs WHERE api_key_id=$1`, apiKey.ID)
+		require.NoError(t, err)
+		_, err = integrationDB.ExecContext(ctx, `DELETE FROM api_keys WHERE id=$1`, apiKey.ID)
+		require.NoError(t, err)
+		_, err = integrationDB.ExecContext(ctx, `DELETE FROM auth_cache_invalidation_outbox WHERE cache_key=encode(sha256(convert_to($1,'UTF8')),'hex')`, apiKey.Key)
+		require.NoError(t, err)
+	})
+	account := mustCreateAccount(t, client, &service.Account{Name: "timing-" + uuid.NewString(), Platform: platform})
+	t.Cleanup(func() {
+		_, err := integrationDB.ExecContext(ctx, `DELETE FROM accounts WHERE id=$1`, account.ID)
+		require.NoError(t, err)
+	})
+	return user, apiKey, account
+}
+
+func timingTestLog(t *testing.T, timing service.UsageTiming) *service.UsageLog {
+	t.Helper()
+	user, apiKey, account := committedUsageLogTestResources(t, service.PlatformAnthropic)
 	legacy, duration := 77, 640
 	return &service.UsageLog{
 		UsageTiming: timing, UserID: user.ID, APIKeyID: apiKey.ID, AccountID: account.ID,
