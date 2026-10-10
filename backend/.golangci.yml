@@ -131,6 +131,19 @@ linters:
         linters: [ gosec ]
         text: 'G70[34]'
 
+      # x/net v0.60.0 的安全升级将下列既有 HTTP/2 接口标记为弃用。
+      # 本轮保留 PING、H2C 和 GoAway 分类行为；迁移到标准库 HTTP/2 时删除这三项。
+      # 只豁免固定文件中的列举接口；其他 SA1019、staticcheck 与安全检查继续执行。
+      - path: '^internal/repository/(http_upstream|http_upstream_http2_keepalive_test)\.go$'
+        linters: [ staticcheck ]
+        text: '^SA1019: (\(golang\.org/x/net/http2\.Transport\)\.(ReadIdleTimeout|PingTimeout)|golang\.org/x/net/http2\.(Transport|ConfigureTransports)) is deprecated:'
+      - path: '^internal/server/http\.go$'
+        linters: [ staticcheck ]
+        text: '^SA1019: (\(golang\.org/x/net/http2\.Server\)\.(MaxConcurrentStreams|IdleTimeout|MaxReadFrameSize|MaxUploadBufferPerConnection|MaxUploadBufferPerStream)|golang\.org/x/net/http2\.(ConfigureServer|Server)) is deprecated:'
+      - path: '^internal/service/openai_codex_models_service(_test)?\.go$'
+        linters: [ staticcheck ]
+        text: '^SA1019: golang\.org/x/net/http2\.GoAwayError is deprecated:'
+
 formatters:
   enable:
     - gofmt
