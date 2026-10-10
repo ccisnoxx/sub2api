@@ -2,7 +2,7 @@
 
 - 对应方案：[plan.md](plan.md)。
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 当前状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.5完成；S1.5、S3.6及其余阶段未开始。S3.5安全重放修复应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`关闭首包误重放、逻辑轮次去重、跨模型选号/请求价及字符串input重放形态问题，定向验证与fresh只读复核通过。旧Personal CI仅证明原候选；本轮无push、PR更新、新CI、合并、发布或部署。
+- 当前状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.6完成；S4.1–S4.3本地完成；S1.5、S4.4和S5未开始。S4.3基于personal累计候选afcc7852，在独立分支codex/plus-service-status-s43固定应用`35962a802fdc499639c9c861072f25774ccba50b`，默认关闭，尚未启用。原S3.6 Personal CI 38020112510仅证明afcc7852，草稿PR #6/#5保持原样；本次无push、PR更新、新CI、合并、镜像发布或生产部署。
 - `[x]` 表示本任务的交付与验证已经完成；`[ ]` 表示待执行。已具备的旧候选不等于本计划的新功能完成。
 - 每项勾选时记录最终候选 SHA、验证结果、覆盖入口及限制；涉及线上动作时另记真实版本和 digest。
 
@@ -91,16 +91,16 @@
 - [x] **S3.2 接入实际决策 producer。**从实际OpenAI advanced/legacy调度及限制owner生成完整快照；同ID池/过滤只计一次，保持0/NULL、partial、错误链及深副本，新评估清空旧数量。应用`cee1e908261c68880040b740aae8054410e03070`；HTTP/SSE请求、WS建连/逻辑turn及Grok音频重选归属接入，其他平台/独立旧入口/TokenCount未知。服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归及两组race通过；fresh只读复核四项确认问题全部关闭。见[覆盖](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)、[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)与[验证清单](evidence/s3.2-validation.json)。发送/终态及日志队列绑定、存储/DTO/页面留后续；下一项S3.3未自动开始。
 - [x] **S3.3 贯通错误存储与 DTO。**发送/终态按request/turn owner绑定不可变快照；日志队列校验及字节预算、nullable JSONB迁移252、单条/批量SQL与严格DTO读回贯通。仅管理员单记录可见，列表及用户白名单保持。应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`；定向14顶层/36 PASS、相关归因/用户回归、真实PG16/固定旧d9b06f4往返及race通过，fresh只读复核首turn P2已关闭。见[执行证据](implementation-evidence.md#s33-贯通错误存储与-dto)、[验证](evidence/s3.3-validation.json)与[复核](evidence/s3.3-reviews.json)。无新完整JWT服务器/页面或远端CI，S3.4–S3.6未自动执行。
 - [x] **S3.4 扩展现有错误详情。**共用管理员详情展示入口池、已知过滤及35原因、完整/部分/未知、层/原因和选择评估/WS轮次；保留原阶段、来源、责任方及根因/载荷。应用`d23474171035320eda06a35d76d455d7f8d7aae4`；78项定向、lint/类型/build和中文桌面/英文窄屏两组实际页面流程通过，旧响应覆盖反例关闭，fresh只读复核无确认阻断。合成API不作为真实JWT证明，既有运维深链接首次列表加载问题已登记且未扩展修改。见[执行证据](implementation-evidence.md#s34-扩展现有错误详情)、[验证](evidence/s3.4-validation.json)及[复核](evidence/s3.4-reviews.json)。下一项S3.5未自动开始。
-- [x] **S3.5 验证归属与行为保持。**账号选择前拒绝、空池、筛选后耗尽和真实HTTP重试成功按未变证据复用；native/passthrough首轮换号后的多turn、native首轮同账号重建与native后续轮次换号/当前模型归属完成验证。最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`关闭native首包误重放、Ops逻辑turn去重、A→B重选/请求价及字符串input形态问题；native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断；实际覆盖、simple模式费用计算及未运行范围见[执行证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)、[验证](evidence/s3.5-native-fix-validation.json)和[复核](evidence/s3.5-native-fix-reviews.json)。历史部分完成记录保留；S3.6未开始。
-- [ ] **S3.6 完成独立复核与交付。**复核快照归属、日志字段和数据可见范围；执行相关检查并登记实际发布/部署状态。
+- [x] **S3.5 验证归属与行为保持。**账号选择前拒绝、空池、筛选后耗尽和真实HTTP重试成功按未变证据复用；native/passthrough首轮换号后的多turn、native首轮同账号重建与native后续轮次换号/当前模型归属完成验证。最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`关闭native首包误重放、Ops逻辑turn去重、A→B重选/请求价及字符串input形态问题；native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断；实际覆盖、simple模式费用计算及未运行范围见[执行证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)、[验证](evidence/s3.5-native-fix-validation.json)和[复核](evidence/s3.5-native-fix-reviews.json)。历史部分完成记录保留；S3.5完成时S3.6未开始，当前结果见下一项。
+- [x] **S3.6 完成独立复核与交付。**基于personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`续接累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`（应用修复`da581c6846d1bf89926ca9730abf2290ea8b65ea`）；初始cc068ceb9的fresh只读复核覆盖快照/发送/终态/WS逻辑turn、队列/JSONB及管理员/用户/列表边界，无确认阻断。开工53份原产物/28个producer存储权限输入核验通过；CI先后八项lint以5文件等价修正及35顶层/114 PASS、S3四包不限输出lint 0 issues关闭，最终25/28输入直接匹配、3项由35/114及追加并发1/1验证补充；按原可观察范围复用，未把历史全局输入变化的Ops日志当新整体证明。[草稿PR #6](https://github.com/ccisnoxx/sub2api/pull/6)的[现行Personal CI `38020112510`](https://github.com/ccisnoxx/sub2api/actions/runs/38020112510)全部必要job及App15368 personal-ready通过，开始/结束候选与基础一致；详见[执行证据](implementation-evidence.md#s36-独立复核与阶段交付)、[门禁清单](evidence/s3.6-validation.json)及[交付说明](delivery.md#s3-阶段交付s36)。继承迁移251/252及固定旧源码兼容限制，原未提交应用改动保留；未合并/发布/部署。S3主线结束，下一顺序项S4.1仅确认启用需求且未排期；S1.5与S0.2/S0.3按独立需求/授权另行选择，本会话不继续。
 
 完成条件：能用真实选择事实解释错误，不改变原故障处理决策。
 
-## S4：真实请求服务状态（暂不排入首期）
+## S4：真实请求服务状态（S4.1–S4.3本地完成，S4.4未开始）
 
-- [ ] **S4.1 确认启用需求。**根据实际流量与状态查看需要决定是否实施，记录全站/授权分组可见范围及隐私边界。
-- [ ] **S4.2 编制独立规格。**定义终态优先、用户侧原因排除、未知/样本不足/水位过期、故障与恢复证据、保留策略和开关。
-- [ ] **S4.3 实现独立聚合与展示。**使用独立配置/表，保留 V1/V2；不用额外付费探测替代真实请求事实。
+- [x] **S4.1 确认启用需求。**根据实际流量与状态查看需要决定是否实施，记录全站/授权分组可见范围及隐私边界。用户确认持续真实请求并选择仅管理员全站状态；既有线上仪表盘显示今日2,516请求、当前7 RPM，近24小时模型榜以GPT系列为主，窗口不同且不证明S4终态/恢复。已选择推进后续规格与实现，普通用户/匿名不新增S4入口，敏感原始数据不进入状态视图；见[需求记录](service-status-demand.md)、[执行证据](implementation-evidence.md#s41-需求确认完成)及[验证清单](evidence/s4.1-validation.json)。personal应用候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`未改；需求确认时S4.2未开始；当前独立规格见下一项，尚未启用。
+- [x] **S4.2 编制独立规格。**已冻结终态优先、用户侧排除、未知/样本不足/水位过期、故障与新请求恢复、31天匿名保留、独立默认关闭开关和管理员白名单；按KIN计费ID/WS逻辑turn合同要求S4.3新增可空源关联元数据，不改变原计费键。5分钟窗口、10分钟重算、180秒过期、5样本、2次异常/3次恢复观测及21个后续验收场景明确；第一批不引入TTFT/TPS性能判定。仅文档，应用候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`未改；22个来源文件、12个S4.1指纹与原S3.6门禁按未变边界复用，链接/状态/历史与改动保留检查通过。见[规格](service-status-contract.md)、[执行证据](implementation-evidence.md#s42-独立规格编制)、[来源](evidence/s4.2-candidate.json)及[文档检查](evidence/s4.2-document-checks.json)。S4.2完成时S4.3/S4.4未开始；当前S4.3结果见下一项，尚未启用/发布/部署。
+- [x] **S4.3 实现独立聚合与展示。**应用`35962a802fdc499639c9c861072f25774ccba50b`；HTTP/WS逻辑turn源关联、253 nullable内部JSONB/254五表、原子聚合/事件/水位、默认关闭配置、仅管理员API及中英窄屏/键盘页面完成，V1/V2、调度和计费保持。PG16 13集成+7逻辑、race21、后端构建、前端34用例/类型/lint/build/合成API浏览器及2次fresh只读复核通过，7项确认问题关闭。见[执行证据](implementation-evidence.md#s43-独立聚合与展示实现)、[验证](evidence/s4.3-validation.json)及[复核](evidence/s4.3-reviews.json)。真实JWT/旧应用兼容/真实多轮WS及完整阶段验收留S4.4；未启用/新CI/发布/部署，不自动继续。
 - [ ] **S4.4 完成验证与独立复核。**覆盖重试去重、取消排除、无数据不报正常、旧样本不能证明恢复、持久化与可见范围；再决定发布与启用。
 
 启动条件：S1/S3 能提供可靠终态，且存在明确运营需要。未选择实施时保持未勾选，登记“未排期”，不算 S1–S3 的欠缺。
@@ -134,6 +134,10 @@
 | S3.2 | 实际producer本地实现与验证完成 | 应用`cee1e908261c68880040b740aae8054410e03070`；personal来源S2.7 `88156f09`；OpenAI主调度及请求/WS owner | 服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归、core/handler race及格式/diff检查通过 | 1次fresh只读复核，4项问题关闭；未接入平台未知，发送/日志/DB/DTO留S3.3；[清单](evidence/s3.2-validation.json) | 未执行；无push/PR更新/新CI |
 | S3.3 | 错误存储/DTO本地完成 | 应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`；personal来源S3.2 d9b06f4 | owner14顶层/36 PASS、归因/队列/用户、PG16/固定旧源码往返及race通过 | fresh只读复核首turn P2关闭；完整JWT服务器/多turn日志E2E/页面留后续；[证据](evidence/s3.3-validation.json) | 未执行 |
 | S3.4 | 管理员错误详情本地完成 | 应用`d23474171035320eda06a35d76d455d7f8d7aae4`；personal来源S3.3 032db7982；Usage/Ops共用组件 | 78项定向、lint/类型/build；中文1440亮/英文390暗四种状态、关闭/晚到/返回流程通过 | fresh只读复核无确认阻断；合成API、既有深链接加载限制及S3.5/S3.6边界保留；[证据](evidence/s3.4-validation.json) | 未执行；无push/PR更新/新CI |
-| S3.5 | 本地修复与行为复验完成 | 应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`；personal来源0129d38696 | native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用；旧/新16同oracle各25 PASS及未变证据复用 | 三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断；首包、Ops去重、跨模型及字符串形态问题已关闭；simple费用/未运行范围保留；[证据](evidence/s3.5-native-fix-validation.json) | 未执行；S3.6未开始；无push/PR更新/新CI |
+| S3.5 | 本地修复与行为复验完成 | 应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`；personal来源0129d38696 | native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用；旧/新16同oracle各25 PASS及未变证据复用 | 三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断；首包、Ops去重、跨模型及字符串形态问题已关闭；simple费用/未运行范围保留；[证据](evidence/s3.5-native-fix-validation.json) | 当轮未执行；当时S3.6未开始；无push/PR更新/新CI |
+| S3.6 | 独立复核与阶段交付完成 | 累计personal候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`；草稿PR #6 | 开工53产物/28输入核验复用；5文件lint修正35/114及0 issues；现行Personal CI `38020112510`全部必要job与personal-ready通过 | fresh只读复核无确认阻断；完整JWT/付费上游/生产及其他已登记运行缺口保留；[清单](evidence/s3.6-validation.json) | 合并/发布/部署未执行 |
+| S4.1 | 需求确认完成，已勾选 | personal候选`afcc7852b`未改；main文档分支`codex/plus-status-demand-s41` | 用户需求回复、既有线上看板只读摘要、源码指纹/文档保留/链接/状态核对；未运行应用测试/CI | [需求记录](service-status-demand.md)；仅管理员全站；持续流量不等于可信新终态，平台入口/阈值与运行覆盖留后续 | 已选择推进，未实现/启用；S4.2未开始，未合并/发布/部署 |
+| S4.2 | 独立规格文档完成，已勾选 | personal候选`afcc7852b`未改；复用main来源`codex/plus-status-demand-s41`文档树 | 22个源合同定位；12个S4.1指纹/5份既有证据与现行S3.6门禁按原边界复用；21场景规格、链接/状态/diff/四树保留检查 | [规格](service-status-contract.md)；可空源关联元数据/独立表/API/权限待S4.3实现，真实SQL/运行/独立代码复核留S4.4 | S4.2完成时S4.3/S4.4未开始；当前S4.3见下一行；未启用/发布/部署 |
+| S4.3 | 独立聚合与展示本地完成 | personal afcc7852来源；应用`35962a802fdc499639c9c861072f25774ccba50b` | PG16 13集成+7逻辑、race21、构建；前端34/类型/lint/build与中英桌面/窄屏合成API；源未变证据按边界复用 | 2次fresh只读复核、7项修正关闭；真实JWT/固定旧应用/真实多轮WS及完整验收留S4.4；[清单](evidence/s4.3-validation.json) | 默认关闭；未push/新CI/合并/发布/部署 |
 
 发布和部署栏在真实发生前保持“未执行”。运行进程、空输出、计划中的命令或已有其他候选的成功结果，都不作为本任务完成证据。

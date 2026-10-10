@@ -1,0 +1,211 @@
+{
+  "task": "S4.2",
+  "status": "passed",
+  "recorded_utc": "2026-10-10T05:16:04.447768+00:00",
+  "documentation_only": true,
+  "preservation": {
+    "/Users/sc/PycharmProjects/sub2api-kin": {
+      "checked_files": 4219,
+      "changed_existing_files": [],
+      "new_files": [],
+      "unrelated_changes": [],
+      "missing_files": [],
+      "head_unchanged": true,
+      "branch_unchanged": true,
+      "application_source_unchanged": true
+    },
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin": {
+      "checked_files": 4592,
+      "changed_existing_files": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "new_files": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-validation.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ],
+      "unrelated_changes": [],
+      "missing_files": [],
+      "head_unchanged": true,
+      "branch_unchanged": true,
+      "application_source_unchanged": true
+    },
+    "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin": {
+      "checked_files": 4636,
+      "changed_existing_files": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "new_files": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-validation.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ],
+      "unrelated_changes": [],
+      "missing_files": [],
+      "head_unchanged": true,
+      "branch_unchanged": true,
+      "application_source_unchanged": true
+    },
+    "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin": {
+      "checked_files": 4298,
+      "changed_existing_files": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "new_files": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-candidate.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-document-checks.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-validation.json",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ],
+      "unrelated_changes": [],
+      "missing_files": [],
+      "head_unchanged": true,
+      "branch_unchanged": true,
+      "application_source_unchanged": true
+    }
+  },
+  "document_checks": {
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin": {
+      "new_or_changed_relative_links_checked": 25,
+      "broken": [],
+      "task_ids_unique": true,
+      "task_checkbox_changes": {
+        "S4.2": [
+          " ",
+          "x"
+        ]
+      },
+      "s43_s44_not_started": true,
+      "scenario_ids_unique_and_complete": [
+        "SS01",
+        "SS02",
+        "SS03",
+        "SS04",
+        "SS05",
+        "SS06",
+        "SS07",
+        "SS08",
+        "SS09",
+        "SS10",
+        "SS11",
+        "SS12",
+        "SS13",
+        "SS14",
+        "SS15",
+        "SS16",
+        "SS17",
+        "SS18",
+        "SS19",
+        "SS20",
+        "SS21"
+      ],
+      "thresholds_ranges_consistent": true,
+      "json_valid": true,
+      "diff_whitespace_passed": true,
+      "old_journal_and_evidence_preserved": true
+    },
+    "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin": {
+      "new_or_changed_relative_links_checked": 25,
+      "broken": [],
+      "task_ids_unique": true,
+      "task_checkbox_changes": {
+        "S4.2": [
+          " ",
+          "x"
+        ]
+      },
+      "s43_s44_not_started": true,
+      "scenario_ids_unique_and_complete": [
+        "SS01",
+        "SS02",
+        "SS03",
+        "SS04",
+        "SS05",
+        "SS06",
+        "SS07",
+        "SS08",
+        "SS09",
+        "SS10",
+        "SS11",
+        "SS12",
+        "SS13",
+        "SS14",
+        "SS15",
+        "SS16",
+        "SS17",
+        "SS18",
+        "SS19",
+        "SS20",
+        "SS21"
+      ],
+      "thresholds_ranges_consistent": true,
+      "json_valid": true,
+      "diff_whitespace_passed": true,
+      "old_journal_and_evidence_preserved": true
+    },
+    "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin": {
+      "new_or_changed_relative_links_checked": 25,
+      "broken": [],
+      "task_ids_unique": true,
+      "task_checkbox_changes": {
+        "S4.2": [
+          " ",
+          "x"
+        ]
+      },
+      "s43_s44_not_started": true,
+      "scenario_ids_unique_and_complete": [
+        "SS01",
+        "SS02",
+        "SS03",
+        "SS04",
+        "SS05",
+        "SS06",
+        "SS07",
+        "SS08",
+        "SS09",
+        "SS10",
+        "SS11",
+        "SS12",
+        "SS13",
+        "SS14",
+        "SS15",
+        "SS16",
+        "SS17",
+        "SS18",
+        "SS19",
+        "SS20",
+        "SS21"
+      ],
+      "thresholds_ranges_consistent": true,
+      "json_valid": true,
+      "diff_whitespace_passed": true,
+      "old_journal_and_evidence_preserved": true
+    }
+  },
+  "existing_gap_retained": "S3.1任务锚点在开工前不匹配；新增/修改链接与本规格全部链接单独核对",
+  "application_tests_executed": false,
+  "independent_code_review_executed": false,
+  "openspec_cli": "未安装，未执行CLI validate；沿用本change独立合同格式并做定向文档检查",
+  "check_harness_correction": "首轮把git diff --no-index --check表示文件有差异的退出1误判为失败；定向诊断确认三树新文件均无空白诊断，现按退出0/1且stdout/stderr为空判断。规格/应用无需修复。",
+  "synchronized_stage_documents": true,
+  "source_fingerprint_checks": {
+    "s42_files": 22,
+    "s41_reused_files": 12,
+    "preserved_existing_evidence": 5,
+    "all_match": true
+  },
+  "checker_path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s42/check-documents.py",
+  "checker_sha256": "e1030a59c4c35501911d1106504f94e64d8497f75b070ca47f0cce13cfed3459"
+}

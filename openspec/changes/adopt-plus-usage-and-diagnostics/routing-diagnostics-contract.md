@@ -1,9 +1,9 @@
 # S3.1 结构化路由诊断合同
 
-- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1–S3.5本地完成，S3.6未开始。第1–7节保留冻结来源，第8–11节保留历史，第12节登记native安全重放修复与S3.5复验；v1语义未改。
+- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1–S3.6完成，草稿候选门禁通过，未合并/发布/部署。第1–7节保留冻结来源，第8–12节保留各轮历史，第13节登记S3.6阶段交付；v1语义未改。
 - 应用来源：personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；只读累计候选 `88156f09fcf980a771a8aab570f0dbaec5de25fb`，工作树 `/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin`。
 - KIN 来源：`v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`；[草稿 PR #5](https://github.com/ccisnoxx/sub2api/pull/5) 未合并。
-- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)。第1–7节的“当前候选/未来”均指S3.1冻结候选；最新验证及覆盖限制以第12节为准。
+- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s36-独立复核与阶段交付)。第1–7节的“当前候选/未来”均指S3.1冻结候选，第8–12节保留历史时点；最新验证及覆盖限制以第13节为准。
 
 ## 1. 已核实的事实与 owner
 
@@ -214,3 +214,8 @@ Ops按逻辑turn owner去重，同turn代理重启不重复，下一turn局部�
 native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。旧HTTP恢复/调度/标准费用对照、未变存储/权限/前端证据按原边界复用，三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断。新增native后续轮次换号、独立输入/完整工具上下文及跨模型映射和实际费用计算验证；WS使用simple模式的真实RecordUsage和仓库夹具，不证明实际余额扣款。标准扣费/幂等与调度对照按未变owner复用。完整JWT服务器、付费上游、生产、passthrough后续轮次换号及后续轮次同账号重建未新增运行时覆盖；隐藏WS 429未增加恢复telemetry producer，历史未知入口仍未知。
 
 S3.5本地完成；[执行证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)、[验证](evidence/s3.5-native-fix-validation.json)、[复核](evidence/s3.5-native-fix-reviews.json)。S3.6未开始，发布/生产未执行。
+
+
+## 13. S3.6 阶段复核与交付
+
+阶段fresh只读复核覆盖初始cc068ceb9完整S3，后续5文件等价lint修正按未改合同复用；最终累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`的现行Personal CI `38020112510`/personal-ready通过；v1冻结语义及各历史时点记录保持。当前覆盖、未验证范围、迁移251/252及发布/部署状态以[S3.6执行证据](implementation-evidence.md#s36-独立复核与阶段交付)和[交付说明](delivery.md#s3-阶段交付s36)为准；本候选未合并或上线，S4/S5未排期。

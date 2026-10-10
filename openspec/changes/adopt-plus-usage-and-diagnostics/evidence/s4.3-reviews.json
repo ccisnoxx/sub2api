@@ -1,0 +1,126 @@
+{
+  "task": "S4.3",
+  "application_sha": "35962a802fdc499639c9c861072f25774ccba50b",
+  "independent_read_only_reviews": 2,
+  "final_confirmed_blockers": 0,
+  "scope": "源HTTP/WS/S1/async/SQL/DTO/停止；聚合/事件/迁移/权限/匿名API/前端取消与NULL",
+  "closed_findings": [
+    {
+      "id": "source_stop",
+      "priority": "P1",
+      "trigger": "停止丢失最新缺口",
+      "fix": "reporter独立2秒最终写入；源队列先停，reporter后停，DB最后关闭",
+      "green_log": "review-source-green.log",
+      "status": "closed"
+    },
+    {
+      "id": "source_panic",
+      "priority": "P1",
+      "trigger": "Ops批量panic未标源缺口",
+      "fix": "原recover owner按批内S4对象标记，worker持有私有queue排空",
+      "green_log": "review-source-green.log",
+      "status": "closed"
+    },
+    {
+      "id": "group_resume",
+      "priority": "P1",
+      "trigger": "重新启用沿用旧恢复计数",
+      "fix": "分组可见性事务冻结计数/基线/事件，重新积累3次成功",
+      "green_log": "review-status-green.log",
+      "status": "closed"
+    },
+    {
+      "id": "lock_time",
+      "priority": "P1",
+      "trigger": "恢复基线先于获锁",
+      "fix": "FOR SHARE后clock_timestamp",
+      "green_log": "review-status-final-boundaries-green.log",
+      "status": "closed"
+    },
+    {
+      "id": "lock_order",
+      "priority": "P2",
+      "trigger": "不同组冻结反向等待",
+      "fix": "共享配置锁兼容不同组，仍与聚合/配置FOR UPDATE互斥",
+      "green_log": "review-status-final-boundaries-green.log",
+      "status": "closed"
+    },
+    {
+      "id": "empty_platform",
+      "priority": "P2",
+      "trigger": "无叶平台被全站忽略",
+      "fix": "摘要合并未知平台叶子",
+      "green_log": "review-status-green.log",
+      "status": "closed"
+    },
+    {
+      "id": "unknown_ratios",
+      "priority": "P2",
+      "trigger": "等待数据未知仍有精确比例",
+      "fix": "覆盖为unknown/awaiting_data时双比例nil",
+      "green_log": "review-status-final-boundaries-green.log",
+      "status": "closed"
+    }
+  ],
+  "binding": {
+    "final_manifest_sha256": "e2e1797ad993ec7b863ac4d35a09eafb012a530111f1860535747a4f1795fa47",
+    "source_repair_scoped_digest": "33598cc17dc0b7de1328c831bd3edfc0877d11bb210c7a61c502808d7f3247fc",
+    "source_green_sha256": "6cff59c5add919dd2d87860ef35be7e5ae597f41c5afed58b84ec94cb83961ac"
+  },
+  "reviewers_executed_tests": false,
+  "parent_confirmed_final_pg_race_build": true,
+  "coverage_gaps": [
+    "真实JWT/DB/浏览器贯通",
+    "固定旧应用兼容",
+    "真实多轮WS/部署终态覆盖",
+    "数据库不可用或强制进程退出时，最终源缺口只明确失败，不证明跨进程重建"
+  ],
+  "audit_id": "20261010T052406Z-kin-plus-service-status-s43-9b4f5515",
+  "audit_verified": "passed",
+  "config_drift": {
+    "cause": "全局 config.toml 在异步任务执行期间变化；原 dispatch 校验快照完整保留，闭包仅重算配置证据，不改任务、角色、容量或运行事实。",
+    "stages": [
+      {
+        "stage": "01-implementation",
+        "changed_fields": [
+          "codex_config_evidence"
+        ],
+        "dispatch_validated_config": {
+          "config_file": "config.toml",
+          "config_sha256": "97b7697e4a2ad2ba2c519249168bb9762cc14c4f87b6d866d757d9974ed9e3ec",
+          "configured_max_concurrent_threads_per_session": 4,
+          "capacity_source": "codex_config"
+        },
+        "close_validated_config": {
+          "config_file": "config.toml",
+          "config_sha256": "e16a2aae80f3eb57b2a03dd15212d5f8927c045887140f98c17c5f9f78b57f73",
+          "configured_max_concurrent_threads_per_session": 4,
+          "capacity_source": "codex_config"
+        },
+        "dispatch_validated_plan": "/Users/sc/.codex/validation/sub2api-kin/20261009-s43/01-implementation-dispatch-validated-plan.json",
+        "tasks_roles_profiles_and_capacity_unchanged": true
+      },
+      {
+        "stage": "02-review",
+        "changed_fields": [
+          "codex_config_evidence"
+        ],
+        "dispatch_validated_config": {
+          "config_file": "config.toml",
+          "config_sha256": "97b7697e4a2ad2ba2c519249168bb9762cc14c4f87b6d866d757d9974ed9e3ec",
+          "configured_max_concurrent_threads_per_session": 4,
+          "capacity_source": "codex_config"
+        },
+        "close_validated_config": {
+          "config_file": "config.toml",
+          "config_sha256": "e16a2aae80f3eb57b2a03dd15212d5f8927c045887140f98c17c5f9f78b57f73",
+          "configured_max_concurrent_threads_per_session": 4,
+          "capacity_source": "codex_config"
+        },
+        "dispatch_validated_plan": "/Users/sc/.codex/validation/sub2api-kin/20261009-s43/02-review-dispatch-validated-plan.json",
+        "tasks_roles_profiles_and_capacity_unchanged": true
+      }
+    ]
+  },
+  "next_task": "S4.4未开始"
+}

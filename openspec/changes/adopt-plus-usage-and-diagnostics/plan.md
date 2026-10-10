@@ -1,10 +1,10 @@
 # KIN 借鉴 Plus 功能的实施计划
 
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.5完成；S1.5、S3.6及其余阶段未开始。S3.5安全重放修复应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`关闭首包误重放、逻辑轮次去重、跨模型选号/请求价及字符串input重放形态问题，定向验证与fresh只读复核通过。旧Personal CI仅证明原候选；本轮无push、PR更新、新CI、合并、发布或部署。
+- 状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.6完成；S4.1–S4.3本地完成；S1.5、S4.4和S5未开始。S4.3基于personal累计候选afcc7852，在独立分支codex/plus-service-status-s43固定应用`35962a802fdc499639c9c861072f25774ccba50b`，默认关闭，尚未启用。原S3.6 Personal CI 38020112510仅证明afcc7852，草稿PR #6/#5保持原样；本次无push、PR更新、新CI、合并、镜像发布或生产部署。
 - 执行入口：[任务清单](tasks.md)；当前结果见[执行证据](implementation-evidence.md)。
 - 推荐顺序：S0 现有修复交付 → S1 用量计时和请求完成状态 → S2 模型价格展示 → S3 错误诊断；S4 服务状态、S5 用户协助视图按使用规模另行排期。
-- 计划编制轮仅授权文档；历次结果保留在执行证据。本轮仅执行native安全重放修复与S3.5复验，personal来源基线0129d38696，最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`。S3.5已完成，S3.6未开始。无push/PR更新/合并、镜像发布或生产部署。
+- 本轮仅完成S4.3：源关联/独立聚合/管理员API与展示已实现，应用`35962a802fdc499639c9c861072f25774ccba50b`；默认关闭。检查与边界见[执行证据](implementation-evidence.md#s43-独立聚合与展示实现)。下一项S4.4未开始，不自动执行。
 
 ## 1. 目标与范围
 
@@ -141,7 +141,7 @@ S2.1 已完成，查询选择、权限矩阵、目录外层、空值及个人倍
 
 ## 6. S3：错误诊断增强
 
-S3.1 [冻结合同](routing-diagnostics-contract.md)的v1语义保持。S3.2应用`cee1e908261c68880040b740aae8054410e03070`已接入OpenAI主调度advanced/legacy、渠道限制、Grok/阈值/compact、gwpool及图片fallback，并建立HTTP/SSE请求与WS逻辑turn owner、完整不可变结果/错误快照。公开OpenAI `SelectAccountWithLoadAwareness`纳入legacy；其他平台、独立旧入口与TokenCount未接入时保持未知。实际覆盖、验证和独立复核见[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)及[覆盖补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。S3.3应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`已贯通发送/终态、Ops队列、nullable JSONB及管理员单记录DTO；列表和用户白名单不扩展。[本轮证据](implementation-evidence.md#s33-贯通错误存储与-dto)记录真实PG、固定旧源码往返和独立复核边界。S3.4应用`d23474171035320eda06a35d76d455d7f8d7aae4`已扩展共用管理员详情。S3.5最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`完成native安全重放、Ops逻辑turn去重及跨模型选号/请求价修复与复验；历史P1及新复核问题均已关闭，S3.6未开始；见[本轮证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)。
+S3.1 [冻结合同](routing-diagnostics-contract.md)的v1语义保持。S3.2应用`cee1e908261c68880040b740aae8054410e03070`已接入OpenAI主调度advanced/legacy、渠道限制、Grok/阈值/compact、gwpool及图片fallback，并建立HTTP/SSE请求与WS逻辑turn owner、完整不可变结果/错误快照。公开OpenAI `SelectAccountWithLoadAwareness`纳入legacy；其他平台、独立旧入口与TokenCount未接入时保持未知。实际覆盖、验证和独立复核见[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)及[覆盖补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。S3.3应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`已贯通发送/终态、Ops队列、nullable JSONB及管理员单记录DTO；列表和用户白名单不扩展。[本轮证据](implementation-evidence.md#s33-贯通错误存储与-dto)记录真实PG、固定旧源码往返和独立复核边界。S3.4应用`d23474171035320eda06a35d76d455d7f8d7aae4`已扩展共用管理员详情。S3.5最终应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`完成native安全重放、Ops逻辑turn去重及跨模型选号/请求价修复与复验；历史P1及新复核问题均已关闭，S3.6已完成独立复核与阶段交付，见[阶段证据](implementation-evidence.md#s36-独立复核与阶段交付)；见[本轮证据](implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)。
 
 在既有错误详情内增加可选 `routing_diagnostics`，由调度决策 owner 提供一次完整快照。拟记录选择层、选择原因、已观察的候选池数量、已知过滤数量及稳定过滤原因，不从自然语言错误信息推测。
 
@@ -153,7 +153,9 @@ S3.1 [冻结合同](routing-diagnostics-contract.md)的v1语义保持。S3.2应�
 
 ## 7. S4/S5：按需求排期
 
-S4 适用于持续有请求、需要查看全站服务状态的部署。参考 Plus V3，以真实请求终态关联用量和错误；终态成功覆盖中间重试错误，排除客户端取消和用户输入/权限问题。无近期请求、样本不足、聚合水位过期显示未知；故障恢复必须有新请求证据。独立表与配置保留原 V1/V2。全站可见范围和匿名 DTO 在实施前明确，不直接复制 Plus 对所有登录用户开放全站状态的权限设计。
+S4.1已确认持续真实请求与仅管理员全站需求；S4.2已完成[独立规格](service-status-contract.md)，定义终态/归属、排除与未知、水位/样本、故障/恢复、保留/开关及管理员可见范围。旧看板只佐证流量；KIN两表计费/错误ID差异要求S4.3增加可空监控关联元数据，不能直接套用Plus按request_id归并。S4.3已在独立personal候选`35962a802fdc499639c9c861072f25774ccba50b`实现，[执行证据](implementation-evidence.md#s43-独立聚合与展示实现)登记；默认关闭，S4.4未开始。
+
+S4 适用于持续有请求、需要查看全站服务状态的部署。参考 Plus V3，以真实请求终态关联用量和错误；终态成功覆盖中间重试错误，排除客户端取消和用户输入/权限问题。无近期请求、样本不足、聚合水位过期显示未知；故障恢复必须有新请求证据。独立表与配置保留原 V1/V2。S4.1已选定仅认证管理员全站可见，普通用户/匿名不新增S4入口；后续规格和实现须服务端落实该边界，不直接复制 Plus 对所有登录用户开放全站状态的权限设计。
 
 S5 适用于需要帮助其他用户排查问题的部署。管理员保留自己的身份，在专用 GET 路由读取指定用户的受限数据；后端无对应写入入口，前端隐藏修改操作。审计记录真实管理员、目标用户、路径与结果；切换目标用户时取消或忽略旧响应。不仅复制用户页入口，不默认暴露完整 API Key 或其他非排障必需数据。
 

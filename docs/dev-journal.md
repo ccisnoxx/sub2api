@@ -1,5 +1,45 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S4.3 独立聚合与展示完成
+
+- 本轮仅S4.3。核对personal9397eb8af、KlN .5/c7aacf5d与累计afcc7852后，建立独立personal工作树`plus-service-status-s43`/分支`codex/plus-service-status-s43`；应用固定`35962a802fdc499639c9c861072f25774ccba50b`。原17项未提交改动、main维护源码与旧候选保留，旧日志全文保持。
+- HTTP/WS逻辑turn源关联与冻结终态、两表nullable内部JSONB、五张独立聚合表/配置/事件/水位及管理员API/双语页面贯通。真实请求终态优先，未知/样本不足/过期不报正常，恢复要求新证据；默认关闭，V1/V2、出站身份、调度/重试与计费保持。
+- 最终PG16 13集成及同包7逻辑、相关race21、backend build通过；前端34用例/类型/16文件lint/build与中文1440/英文390合成API页面通过，未变源与计费边界证据复用。2次fresh只读复核确认7项问题，反例先红后绿关闭；最终79文件hash与审计闭包通过。
+- [任务执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s43-独立聚合与展示实现)、[候选](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.3-candidate.json)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.3-validation.json)与[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.3-reviews.json)增量登记。真实JWT/PG/浏览器E2E、固定旧应用兼容、真实多轮WS与部署终态覆盖仍属S4.4，原S3.6 CI不证明新候选。任务服务/临时依赖已清理，Colima恢复Stopped。
+- S4.3勾选；下一项S4.4保持未开始，不自动推进。未启用、push/PR更新、新CI、合并、发布镜像或部署生产。
+
+## 2026-10-09：KIN 借鉴 Plus S4.2 独立服务状态规格完成
+
+- 本轮仅S4.2。personal仍9397eb8af、KlN .5/c7aacf5d；草稿PR #6及累计应用候选afcc7852b未变，现行Personal CI 38020112510/personal-ready成功只按原应用边界复用。复用main来源codex/plus-status-demand-s41文档树编制，应用事实只读取personal候选；原17项改动、四树HEAD/源码及各处旧日志保留。
+- [独立规格](../openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md)冻结终态优先、用户排除/服务失败/未知、5分钟窗口/10分钟重算/180秒过期、5样本及2次异常/3次新请求恢复、31天匿名保留、独立默认关闭开关与仅管理员全站白名单。21个后续验收场景已列明；第一批可用性不加入TTFT/TPS性能判定。
+- KIN用量计费ID与错误ID不同义，WS归属又需逻辑turn；规格要求S4.3新增可空监控关联元数据，不修改原计费键或制造用量行。历史、未接入、责任/终态冲突保持未知；旧样本移窗、重复扫描和阈值放宽不能证明恢复，V1/V2保持原职责。
+- 22个源文件指纹固定，12个S4.1来源指纹一致，5份既有证据保留；新增链接/状态/JSON/diff和四树保留检查通过，旧S3.1锚点问题原样保留。文档场景不是已运行的应用测试；没有新测试/build、SQL/浏览器/CI、独立代码复核或线上读取，运行覆盖/权限/兼容与实际复核留后续。
+- [任务证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s42-独立规格编制)、[来源](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-candidate.json)及[检查](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-document-checks.json)增量同步三处。S4.2勾选；下一项S4.3未开始，不自动推进；S4未实现/启用，未push/PR更新、合并、发布镜像或部署生产。
+
+## 2026-10-09：KIN 借鉴 Plus S4.1 管理员服务状态需求确认完成
+
+- 用户明确选择仅管理员查看全站状态，确认部署持续有真实请求，并授权查看线上情况；选择推进后续S4规格与实现。普通用户/匿名不新增S4入口，状态只展示必要聚合事实，排除凭据、敏感原文、账号、身份、请求ID、费用/余额等；具体字段和样本门槛留S4.2。
+- 复用既有管理员浏览器会话，只读线上仪表盘：版本标签`v0.2.14-klno.5-tps.1`、今日2,516请求、当前7 RPM；近24小时模型榜以GPT系列为主。两个流量窗口不同，旧看板只能佐证真实流量，不能证明S4终态成功率、恢复、平台/协议入口或新采集已部署；未保存完整页面或敏感数据，未访问数据库/VPS、发起模型请求或修改设置。
+- [需求记录](../openspec/changes/adopt-plus-usage-and-diagnostics/service-status-demand.md)、[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s41-需求确认完成)、计划与任务清单已更新，S4.1勾选；personal基础9397eb8af与应用候选afcc7852b保持原样，main来源`codex/plus-status-demand-s41`仅登记文档，原17项应用改动及旧日志保留。
+- 文档/指纹/保留/S4.1链接/任务状态检查通过；扩展检查发现既有S3.1锚点不匹配，作为历史文档问题原样保留。S3.6成功门禁只按未改应用候选复用。无应用行为变更，未运行测试/build、新CI或独立代码复核。下一项S4.2编制独立规格未开始，不自动继续；尚未启用S4，未push/PR更新、合并、镜像发布或生产部署。
+
+## 2026-10-09：KIN 借鉴 Plus S4.1 启用需求核对进行中
+
+- 本轮仅S4.1；personal仍9397eb8af、应用候选afcc7852b及草稿PR #6未变，main来源文档提交53332c432续接`codex/plus-status-demand-s41`仅登记文档；原源码、未提交改动及各处旧日志保留。
+- 已核对既有V1/V2：V2被动聚合真实记录但成功计数沿用`actual_cost > 0`，不等于新终态服务状态；已有JWT/管理员认证、分组授权和用户脱敏。代码默认不证明生产模式，S1/S3本地完成不证明当前线上采集或全平台覆盖。
+- 已整理[需求记录](../openspec/changes/adopt-plus-usage-and-diagnostics/service-status-demand.md)和[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s41-启用需求核对待确认)，向用户询问实际流量/运营目的及可见范围；尚未收到输入，管理员全站仅为待选建议。S4.1保持未勾选，实施未排期；S4.2–S4.4未启动，不修改线上开关。
+- 文档阶段只检查来源、文件保留、链接和任务状态，复用未改S3.6候选证据但不声称S4运行验证；未运行应用测试/CI、独立代码复核、生产流量读取、付费探测、push/PR更新、合并、发布或部署。
+
+
+## 2026-10-09：KIN 借鉴 Plus S3.6 独立复核与阶段交付完成
+
+- 本轮仅S3.6。personal仍9397eb8af、KlN .5/c7aacf5d；从干净personal来源S3.5完整cc068ceb9续接`codex/plus-routing-delivery-s36`，累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`（应用修复`da581c6846d1bf89926ca9730abf2290ea8b65ea`）。main来源独立树只登记文档，原17项应用改动、旧候选/PR #5及各处旧日志保留。
+- fresh只读critical_reviewer复核快照/发送/终态/WS逻辑turn、队列/JSONB及管理员/用户/列表边界，无确认阻断；未独立执行测试。开工53份原产物/28输入与原日志核验通过；CI先后八项lint经5文件等价修正、35顶层/114 PASS及S3四包不限输出lint 0 issues关闭，最终25/28输入直接匹配、3项由35/114及追加并发1/1验证补充；未新增fresh最终全文复核，原独立复核按未改合同边界保留。旧Ops全局清单中的变化项只按未变owner复用，前端/PG16/固定旧源码兼容与行为对照按原边界保留。
+- [草稿PR #6](https://github.com/ccisnoxx/sub2api/pull/6)的[现行Personal CI `38020112510`](https://github.com/ccisnoxx/sub2api/actions/runs/38020112510)全部必要job及App15368 personal-ready通过，开始/结束候选和最新基础一致；未采用未合入CI选择优化，也未本地重复完整gate。实际触发/诊断/重跑次数见[门禁清单](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.6-validation.json)。
+- 累计候选继承迁移251/252，应用回退保留schema/ledger；固定旧repository/migration runner往返不证明生产运行树。完整JWT后端浏览器、付费上游、生产扣款/运行树及既有WS覆盖/深链接限制保留，没有补造线上证据。
+- [S3.6执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s36-独立复核与阶段交付)、任务与交付说明增量登记main来源文档树、应用树和原指定目录；审计`20261010T025433Z-kin-plus-routing-s36-db5630b7` closed/verify passed。S3.6已勾选，S3主线结束；下一顺序项S4.1仅确认启用需求且未排期，S1.5/S0.2/S0.3继续独立安排，本轮不进入下一任务。未合并、更新personal、发布镜像或部署生产。
+
+
 ## 2026-10-09：KIN 借鉴 Plus native 当前轮次安全重放修复与 S3.5 复验完成
 
 - 本轮执行用户授权的native安全重放修复及S3.5复验；从personal应用来源`0129d38696b1467768687aef9d8233092d4c1d7c`续接于`codex/plus-native-turn-replay-s35`，修复应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`。personal核对仍为9397eb8af，草稿PR #5仍旧88156f09且未合并；main应用源码未替代personal，原17项应用改动保留。

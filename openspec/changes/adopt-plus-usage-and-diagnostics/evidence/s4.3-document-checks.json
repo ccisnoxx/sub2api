@@ -1,0 +1,279 @@
+{
+  "task": "S4.3",
+  "application_sha": "35962a802fdc499639c9c861072f25774ccba50b",
+  "result": "passed",
+  "application_files_unchanged_since_independent_review": 79,
+  "preservation": [
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head_unchanged": true,
+      "previous_files_checked": 4241,
+      "application_and_unrelated_existing_files_unchanged": true,
+      "changed_existing_documentation": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head_unchanged": true,
+      "previous_files_checked": 4600,
+      "application_and_unrelated_existing_files_unchanged": true,
+      "changed_existing_documentation": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ]
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "head_unchanged": true,
+      "previous_files_checked": 4640,
+      "application_and_unrelated_existing_files_unchanged": true,
+      "changed_existing_documentation": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "head_unchanged": true,
+      "previous_files_checked": 4302,
+      "application_and_unrelated_existing_files_unchanged": true,
+      "changed_existing_documentation": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md"
+      ]
+    }
+  ],
+  "journals": [
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "previous_journal_sha256": "21ff8c851d085c6221c00636fb47a669f29728bbdc8b2a926a514852b4e210ac",
+      "previous_journal_body_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "previous_journal_sha256": "2089b87063261e790a5da73fc322e897e7bffeb26b8c32a9cb7eae290fbf1f71",
+      "previous_journal_body_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "previous_journal_sha256": "67aa77411ff51dbd8cd110185d0e3b2e9177958ada11d4ed657ca8da0494055c",
+      "previous_journal_body_preserved": true
+    }
+  ],
+  "task_state": {
+    "S4.3": "checked",
+    "S4.4": "unchecked",
+    "S1.5": "unchecked",
+    "S5": "unchecked"
+  },
+  "checks": [
+    "JSON解析",
+    "git diff --check",
+    "既有四树逐文件哈希/HEAD",
+    "最终应用79文件SHA",
+    "各树旧journal正文完整保留"
+  ],
+  "historical_anchor_limitation": "S3.1旧锚点问题保持，不声称全历史链接无缺陷",
+  "new_phase_links_checked": 39,
+  "new_phase_links": [
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "plan.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "plan.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "tasks.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-reviews.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-subagent-digest.md"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-candidate.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-reviews.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-document-checks.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "service-status-contract.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-service-status-s43/sub2api-kin",
+      "file": "delivery.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "plan.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "plan.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "tasks.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-reviews.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-subagent-digest.md"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-candidate.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-reviews.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-document-checks.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "service-status-contract.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "file": "delivery.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "plan.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "plan.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "tasks.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-reviews.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "tasks.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-subagent-digest.md"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-candidate.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-validation.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-reviews.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "implementation-evidence.md",
+      "target": "evidence/s4.3-document-checks.json"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "service-status-contract.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+      "file": "delivery.md",
+      "target": "implementation-evidence.md#s43-独立聚合与展示实现"
+    }
+  ]
+}

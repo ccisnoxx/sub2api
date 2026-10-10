@@ -1,6 +1,6 @@
 # KIN 借鉴 Plus候选交付与回退
 
-本文件保留S1/S2历史准备与门禁，当前S3.4本地页面候选/回退边界见文末；旧段落的“本会话/下一项”指当时准备轮。
+本文件保留S1/S2历史准备与门禁，当前S3.6阶段交付候选/门禁与回退边界见文末；旧段落的“本会话/下一项”指当时准备轮。
 
 本文件准备后续交付操作；本会话不推送、不合并、不发布镜像、不连接生产。已验证应用提交为 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`；实际覆盖、检查与独立复核结果登记在 [执行证据](implementation-evidence.md)。文档归档会推进本地HEAD；后续远端门禁必须绑定届时的真实完整候选，不能将本地结果称作远端通过。
 
@@ -63,3 +63,23 @@ pg_restore --list usage-s1-before.dump > usage-s1-before.list
 本轮仅S3.4，应用`d23474171035320eda06a35d76d455d7f8d7aae4`在干净S3.3完整032db7982上续接，分支`codex/plus-routing-details-s34`复用已附加的personal工作树；原`codex/plus-routing-storage-s33`仍固定032db7982。8文件仅前端与测试，共用管理员单详情展示诊断并修复晚到响应归属；没有新增迁移、依赖、调度或扣费改变。候选依然继承S1迁移251和S3.3迁移252，上述数据备份/固定旧源码兼容及保留扩展schema的回退要求继续适用；不将前端回退描述为整个累计候选无数据变化。
 
 78项定向、lint/类型/build、两组实际前端/合成API流程及fresh只读源码复核通过；S3.3后端原证据经17输入校验后复用。浏览器夹具不作为真实JWT或生产证明；既有Ops深链接列表加载限制、完整多turn日志及综合调度/扣费边界见[验证](evidence/s3.4-validation.json)。旧草稿PR #5/Personal CI仅绑定S2.7候选，本轮无push/PR更新/新CI、合并、镜像发布或生产部署。后续门禁必须绑定届时真实完整候选，不能称本地构建为远端通过。下一项S3.5未开始，本会话到此停止。
+
+
+## S3 阶段交付（S3.6）
+
+最终累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`位于personal来源`codex/plus-routing-delivery-s36`，应用修复`da581c6846d1bf89926ca9730abf2290ea8b65ea`。personal基础9397eb8af、KlN .5/c7aacf5d保持；原草稿PR #5及固定S3.5分支保留。新增[草稿PR #6](https://github.com/ccisnoxx/sub2api/pull/6)的[Personal CI `38020112510`](https://github.com/ccisnoxx/sub2api/actions/runs/38020112510)全部必要job与App15368 personal-ready通过，绑定相同最终候选/最新基础；fresh只读阶段复核无确认阻断。实际检查、复用边界、门禁触发次数与未覆盖项见[执行证据](implementation-evidence.md#s36-独立复核与阶段交付)和[验证清单](evidence/s3.6-validation.json)。
+
+候选累计包含S0修复、S1第一批、S2目录及S3诊断/native安全修复。v1对象只含白名单事实，管理员单详情可见；用户/列表及公开错误帧范围保持。S3.5的native当前轮次安全重放/当前模型选号和请求价/逻辑turn去重为明确行为修复，其他调度与扣费owner证据按原范围复用。本轮只追加5文件等价lint修正（22新增/24删除），定向35顶层/114 PASS与本地同版本S3四包不限输出lint 0 issues通过；S3.4页面与S3.3数据边界未变，旧证据按未改owner边界复用。
+
+迁移251/252及前述备份/回退合同继续适用：历史未知不回填，应用回退保留扩展schema和migration ledger。固定旧源码的repository/migration runner兼容不等于完整生产运行树证明，不能沿用S0无迁移声明；实际部署前准备并验证可读备份、隔离恢复及真实运行树兼容，按另行授权执行。
+
+状态：草稿待审；未合并/更新personal、未发布镜像/执行Release dry run、未生成新镜像digest、未SSH或部署生产。PR门禁只证明本候选，正式发布要求合并后最终personal SHA自身门禁。完整JWT后端浏览器、生产扣款/运行树、付费上游以及已登记的WS运行覆盖限制仍未验证；既有Ops深链接问题不在本轮扩展范围。
+
+S3阶段结束，下一顺序项S4.1仅确认启用需求，S4/S5未排期；S1.5和S0.2/S0.3按实际需求与独立授权另选。本会话到此停止，不进入下一阶段。
+
+
+## S4.3 本地实现登记
+
+独立personal分支`codex/plus-service-status-s43`的应用候选`35962a802fdc499639c9c861072f25774ccba50b`完成S4.3，默认关闭；新迁移253/254追加nullable内部字段和独立表/分组可见性触发器，不回填旧数据，不修改旧ledger。原S3.6 CI/草稿PR只绑定afcc候选，没有更新为S4结果。最终定向检查和独立复核见[执行证据](implementation-evidence.md#s43-独立聚合与展示实现)。
+
+S4.4真实JWT/数据库/浏览器贯通、固定旧应用扩展schema兼容及实际终态覆盖未执行，不能直接宣布应用镜像回退兼容。回退保留新列/表/ledger与触发器，关闭S4；强制退出前未持久源缺口不保证重建，最终写入失败会明确返回。生产操作前仍按实际授权准备备份、必要CI与固定digest，不自动触发发布/部署或开启配置。
