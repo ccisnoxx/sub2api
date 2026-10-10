@@ -355,19 +355,46 @@ func TestServiceStatusRepositoryFrozenIncidentHasNullRates(t *testing.T) {
 	statusInsertUnscopedLegacyOps(t, now.Add(-time.Minute+30*time.Second))
 	statusInsertSuccess(t, gid, now.Add(-time.Minute), 4)
 	statusInsertOps(t, gid, now.Add(-time.Minute), 1, "upstream_error", "provider_5xx")
-	_, err := integrationDB.ExecContext(ctx, `INSERT INTO service_status_scope_states(platform,group_id,requested_model,last_evidence_at,last_observation_at,abnormal_count,recovery_count,config_version,observation_start,last_health) VALUES('openai',$1,'gpt',$2,$2,2,0,1,$3,'degraded')`, gid, now.Add(-time.Minute), now.Add(-30*time.Minute))
+	_, err := integrationDB.ExecContext(ctx, `INSERT INTO service_status_scope_states(platform,group_id,requested_model,last_evidence_at,last_observation_at,abnormal_count,recovery_count,config_version,observation_start,last_health) VALUES('openai',$1,'gpt',$2,$2,2,2,1,$3,'degraded')`, gid, now.Add(-time.Minute), now.Add(-30*time.Minute))
 	require.NoError(t, err)
 	_, err = integrationDB.ExecContext(ctx, `INSERT INTO service_status_incidents(id,platform,group_id,requested_model,phase,detected_at,last_evidence_at,last_abnormal_at) VALUES($1,'openai',$2,'gpt','ongoing',$3,$4,$4)`, uuid.NewString(), gid, now.Add(-10*time.Minute), now.Add(-time.Minute))
 	require.NoError(t, err)
 	cfg, err := r.GetConfig(ctx)
 	require.NoError(t, err)
 	cfg.WarningErrorRate = .5
-	_, err = r.UpdateConfig(ctx, cfg)
+	updated, err := r.UpdateConfig(ctx, cfg)
 	require.NoError(t, err)
 	// 在聚合之前检查配置 owner 的立即冻结，避免全站缺口替它完成冻结而掩盖回归。
 	phase, recovery := statusIncidentPhaseSQL(t)
 	require.Equal(t, "awaiting_data", phase)
 	require.Zero(t, recovery)
+	// 显式提交无缺口、足量正常统计，单独保护冻结事件清空比例的 DTO 合同。
+	var snapshotMinute time.Time
+	require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT date_trunc('minute',clock_timestamp())`).Scan(&snapshotMinute))
+	bucket := snapshotMinute.Add(-time.Minute)
+	_, err = integrationDB.ExecContext(ctx, `INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_model,success,failure,last_qualified_at,last_success_at) VALUES($1,'openai',$2,'gpt',4,1,$1,$1)`, bucket, gid)
+	require.NoError(t, err)
+	coverage, err := json.Marshal([]service.ServiceStatusCoverage{{Platform: "openai", ServiceStatusInterval: service.ServiceStatusInterval{Start: snapshotMinute.Add(-5 * time.Minute), End: snapshotMinute}}})
+	require.NoError(t, err)
+	_, err = integrationDB.ExecContext(ctx, `UPDATE service_status_watermark SET observed_through=$1,config_version=$2,coverage=$3,gap_code='',last_error_code='',source_error_at=NULL`, snapshotMinute, updated.Version, string(coverage))
+	require.NoError(t, err)
+	frozen, err := r.Snapshot(ctx, "24h", "openai")
+	require.NoError(t, err)
+	require.Empty(t, frozen.Gaps)
+	foundFrozen := false
+	for _, leaf := range frozen.Scopes {
+		if leaf.GroupID == gid && leaf.RequestedModel == "gpt" {
+			foundFrozen = true
+			require.Equal(t, int64(5), leaf.Qualified)
+			require.Equal(t, "unknown", leaf.Health)
+			require.Equal(t, "awaiting_data", leaf.UnknownReason)
+			require.NotNil(t, leaf.IncidentPhase)
+			require.Equal(t, "awaiting_data", *leaf.IncidentPhase)
+			require.Nil(t, leaf.ErrorRate)
+			require.Nil(t, leaf.SuccessRate)
+		}
+	}
+	require.True(t, foundFrozen)
 	require.NoError(t, r.Aggregate(ctx, now))
 	snap, err := r.Snapshot(ctx, "24h", "openai")
 	require.NoError(t, err)
