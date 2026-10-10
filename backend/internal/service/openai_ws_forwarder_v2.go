@@ -39,6 +39,9 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 		return nil, wrapOpenAIWSFallback("invalid_state", errors.New("service or account is nil"))
 	}
 	responseModelObserver := &upstreamResponseModelObserver{}
+	timing := newResponsesOutputTiming(ctx, startTime, account)
+	defer timing.stop()
+	timingResponseID := ""
 
 	wsURL, err := s.buildOpenAIResponsesWSURL(account)
 	if err != nil {
@@ -423,6 +426,7 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 			return
 		}
 		clientDisconnected = true
+		timing.clientDisconnected()
 		clientDisconnectDrainStartedAt = time.Now()
 		if !upstreamReadDetached {
 			upstreamReadCtx = context.WithoutCancel(ctx)
@@ -447,6 +451,7 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 			RequestID:                     responseID,
 			ResponseID:                    responseID,
 			Usage:                         *usage,
+			UsageTiming:                   timing.snapshot(clientDisconnected),
 			Model:                         originalModel,
 			UpstreamModel:                 mappedModel,
 			UpstreamResponseModel:         responseModelObserver.Model(),
@@ -639,6 +644,17 @@ readLoop:
 		if eventType == "" {
 			continue
 		}
+		if responsesTimingMatchesID(&timingResponseID, message, eventType) {
+			if reqStream || isOpenAIWSTerminalEvent(eventType) {
+				timing.observeEvent(message, eventType, time.Now())
+			}
+			if !reqStream && isOpenAIWSTerminalEvent(eventType) && responseField.Exists() {
+				timing.observeJSON([]byte(responseField.Raw), time.Now())
+			}
+			if eventType == "response.completed" || eventType == "response.done" {
+				timing.confirmNoAudio(message)
+			}
+		}
 		responseModelObserver.ObserveOpenAI(message, eventType)
 		eventCount++
 		if firstEventType == "" {
@@ -688,6 +704,9 @@ readLoop:
 			message = restoreCodexToolNamesFromContext(c, message)
 		}
 		if openAIWSMessageShouldParseUsage(eventType, message) {
+			if responsesTimingMatchesID(&timingResponseID, message, eventType) {
+				timing.observeUsage(message, eventType, *usage)
+			}
 			parseOpenAIWSResponseUsageFromCompletedEvent(message, usage)
 		}
 		imageCounter.AddSSEData(message)

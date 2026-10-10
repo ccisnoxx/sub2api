@@ -690,6 +690,7 @@ func AccountSummaryFromService(a *service.Account) *AccountSummary {
 }
 
 func usageLogFromServiceUser(l *service.UsageLog) UsageLog {
+	timing := l.CanonicalUsageTiming()
 	// 普通用户 DTO：严禁包含管理员字段（例如 account_rate_multiplier、account、upstream_model）。
 	requestType := l.EffectiveRequestType()
 	stream, openAIWSMode := service.ApplyLegacyRequestFields(requestType, l.Stream, l.OpenAIWSMode)
@@ -730,6 +731,15 @@ func usageLogFromServiceUser(l *service.UsageLog) UsageLog {
 		NativeCompactionV2:        l.NativeCompactionV2,
 		DurationMs:                l.DurationMs,
 		FirstTokenMs:              l.FirstTokenMs,
+		TimingVersion:             timing.TimingVersion,
+		StrictFirstTokenMs:        timing.StrictFirstTokenMs,
+		LastTokenMs:               timing.LastTokenMs,
+		FirstOutputMs:             timing.FirstOutputMs,
+		FirstOutputKind:           timing.FirstOutputKind,
+		AudioOutputTokens:         timing.AudioOutputTokens,
+		CompletionStatus:          timing.CompletionStatus,
+		IsComplete:                timing.IsComplete,
+		UsageSource:               timing.UsageSource,
 		ImageCount:                l.ImageCount,
 		ImageSize:                 l.ImageSize,
 		ImageInputSize:            l.ImageInputSize,

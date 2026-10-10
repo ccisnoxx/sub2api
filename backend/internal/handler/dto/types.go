@@ -634,6 +634,16 @@ type UsageLog struct {
 	NativeCompactionV2 bool `json:"native_compaction_v2"`
 	DurationMs         *int `json:"duration_ms"`
 	FirstTokenMs       *int `json:"first_token_ms"`
+	// 新字段显式输出 NULL；未知不能被编码为零或成功。
+	TimingVersion      int16   `json:"timing_version"`
+	StrictFirstTokenMs *int    `json:"strict_first_token_ms"`
+	LastTokenMs        *int    `json:"last_token_ms"`
+	FirstOutputMs      *int    `json:"first_output_ms"`
+	FirstOutputKind    *string `json:"first_output_kind"`
+	AudioOutputTokens  *int    `json:"audio_output_tokens"`
+	CompletionStatus   string  `json:"completion_status"`
+	IsComplete         *bool   `json:"is_complete"`
+	UsageSource        string  `json:"usage_source"`
 
 	// 图片生成字段
 	ImageCount         int            `json:"image_count"`

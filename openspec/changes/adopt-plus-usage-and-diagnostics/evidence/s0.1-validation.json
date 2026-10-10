@@ -1,0 +1,414 @@
+{
+  "task": "S0.1",
+  "current_checks": [
+    {
+      "name": "版本 store 定向测试",
+      "command": "/tmp/sub2api-tps-tools/pnpm test:run src/stores/__tests__/app.spec.ts",
+      "chunk_id": "b2ff9c",
+      "wall_time_seconds": 0.955639375,
+      "exit_code": 0,
+      "original_token_count": 120,
+      "output": "\n> sub2api-frontend@1.0.0 test:run /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/frontend\n> vitest run src/stores/__tests__/app.spec.ts\n\n\n RUN  v2.1.9 /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/frontend\n\n ✓ src/stores/__tests__/app.spec.ts (28 tests) 10ms\n\n Test Files  1 passed (1)\n      Tests  28 passed (28)\n   Start at  02:13:00\n   Duration  633ms (transform 45ms, setup 33ms, collect 49ms, tests 10ms, environment 245ms, prepare 33ms)\n\n"
+    },
+    {
+      "name": "13 个改动前端文件定向 ESLint",
+      "command": "/tmp/sub2api-tps-tools/pnpm exec eslint <13 个改动前端文件>",
+      "chunk_id": "45b7ae",
+      "wall_time_seconds": 1.020350833,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ],
+  "environment_failure": {
+    "cause": "默认 pnpm 11.25.0 与现有 pnpm 9.15.9 依赖布局不匹配；在实际检查启动前触发依赖重建并被非 TTY 拒绝。",
+    "resolved_by": "使用本机已有 /tmp/sub2api-tps-tools/pnpm（9.15.9），没有安装或重建依赖。",
+    "initial_test_result": {
+      "chunk_id": "901bb7",
+      "wall_time_seconds": 0.452447792,
+      "exit_code": 1,
+      "original_token_count": 616,
+      "output": "[WARN] The \"pnpm\" field in package.json is no longer read by pnpm. The following keys were ignored: \"pnpm.overrides\". See https://pnpm.io/settings for the new home of each setting.\n[WARN] The \"pnpm\" field in package.json is no longer read by pnpm. The following keys were ignored: \"pnpm.overrides\". See https://pnpm.io/settings for the new home of each setting.\n[ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY] Aborted removal of modules directory due to no TTY\n\nIf you are running pnpm in CI, set the CI environment variable to \"true\", or set \"confirmModulesPurge\" to \"false\".\n[ERROR] Command failed with exit code 1: /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install\n\npnpm: Command failed with exit code 1: /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install\n    at getFinalError (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:89986:14)\n    at makeError (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:92293:21)\n    at getSyncResult (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94137:10)\n    at spawnSubprocessSync (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94097:14)\n    at execaCoreSync (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94027:23)\n    at callBoundExeca (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96555:23)\n    at boundExeca (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96532:49)\n    at sync2 (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96691:10)\n    at runPnpmCli (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:276904:5)\n    at runDepsStatusCheck (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:278122:7)\n"
+    },
+    "initial_lint_result": {
+      "chunk_id": "5f1116",
+      "wall_time_seconds": 0.451114208,
+      "exit_code": 1,
+      "original_token_count": 616,
+      "output": "[WARN] The \"pnpm\" field in package.json is no longer read by pnpm. The following keys were ignored: \"pnpm.overrides\". See https://pnpm.io/settings for the new home of each setting.\n[WARN] The \"pnpm\" field in package.json is no longer read by pnpm. The following keys were ignored: \"pnpm.overrides\". See https://pnpm.io/settings for the new home of each setting.\n[ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY] Aborted removal of modules directory due to no TTY\n\nIf you are running pnpm in CI, set the CI environment variable to \"true\", or set \"confirmModulesPurge\" to \"false\".\n[ERROR] Command failed with exit code 1: /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install\n\npnpm: Command failed with exit code 1: /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node /Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.mjs install\n    at getFinalError (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:89986:14)\n    at makeError (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:92293:21)\n    at getSyncResult (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94137:10)\n    at spawnSubprocessSync (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94097:14)\n    at execaCoreSync (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:94027:23)\n    at callBoundExeca (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96555:23)\n    at boundExeca (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96532:49)\n    at sync2 (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:96691:10)\n    at runPnpmCli (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:276904:5)\n    at runDepsStatusCheck (file:///Users/sc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/dist/pnpm.mjs:278122:7)\n"
+    }
+  },
+  "recorded_at": "2026-10-09T09:19:53.599568+00:00",
+  "reused_checks": [
+    {
+      "name": "版本 service/handler 定向 Go 测试",
+      "source": "/tmp/sub2api-version-final-go-tests.log",
+      "sha256": "e6d36f0befbe19765a08f45851be1f03016c63c35880a624fbf157a364b5168d",
+      "result": "passed",
+      "output": "ok  \tgithub.com/Wei-Shaw/sub2api/internal/service\t1.831s\nok  \tgithub.com/Wei-Shaw/sub2api/internal/handler/admin\t1.189s\n",
+      "output_is_excerpt": false
+    },
+    {
+      "name": "用量/表格/提示组件 97 个用例",
+      "source": "/tmp/sub2api-usage-tooltip-tests.log",
+      "sha256": "78fc558ba1e5096ebe4ffe64c2e73a418cd5115189b9c88e07aed334d82a154d",
+      "result": "passed",
+      "output": "\n RUN  v2.1.9 /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/frontend\n\n ✓ src/components/common/__tests__/HelpTooltip.spec.ts (5 tests) 22ms\nBrowserslist: browsers data (caniuse-lite) is 10 months old. Please run:\n  npx update-browserslist-db@latest\n  Why you should do it regularly: https://github.com/browserslist/update-db#readme\n ✓ src/components/admin/usage/__tests__/UsageTps.spec.ts (51 tests) 83ms\n ✓ src/components/admin/usage/__tests__/UsageTable.spec.ts (41 tests) 147ms\n\n Test Files  3 passed (3)\n      Tests  97 passed (97)\n   Start at  23:24:56\n   Duration  821ms (transform 374ms, setup 94ms, collect 520ms, tests 251ms, environment 415ms, prepare 79ms)\n\n",
+      "output_is_excerpt": false
+    },
+    {
+      "name": "最终 VersionBadge 10 个用例",
+      "source": "/tmp/sub2api-version-final-ui-tests.log",
+      "sha256": "5e8c687db8137d89ac3a208191da8e1d874a9980fa6ab56ad30dcc4dbe042217",
+      "result": "passed",
+      "output": "\n RUN  v2.1.9 /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/frontend\n\nBrowserslist: browsers data (caniuse-lite) is 10 months old. Please run:\n  npx update-browserslist-db@latest\n  Why you should do it regularly: https://github.com/browserslist/update-db#readme\n ✓ src/components/common/__tests__/VersionBadge.spec.ts (10 tests) 45ms\n\n Test Files  1 passed (1)\n      Tests  10 passed (10)\n   Start at  23:43:04\n   Duration  828ms (transform 136ms, setup 31ms, collect 137ms, tests 45ms, environment 208ms, prepare 42ms)\n\n",
+      "output_is_excerpt": false
+    },
+    {
+      "name": "最终 UpdateService 匿名 GitHub 查询",
+      "source": "/tmp/sub2api-version-live-check.log",
+      "sha256": "19b0ed3a47ee73f1eb5f02f78951127fead902ec4e8c19a4c0fdec5091d91303",
+      "result": "passed",
+      "output": "{\"Current\":\"0.2.14-klno.5-tps.1\",\"Latest\":\"0.2.14-klno.5-tps.1\",\"Repository\":\"ccisnoxx/sub2api\",\"Mode\":\"container\",\"Build\":\"release\",\"HasUpdate\":false,\"Cached\":false}\n{\"Current\":\"0.2.14-klno.5-tps.1\",\"Latest\":\"0.2.14-klno.5-tps.1\",\"Repository\":\"ccisnoxx/sub2api\",\"Mode\":\"manual\",\"Build\":\"source\",\"HasUpdate\":false,\"Cached\":true}\n",
+      "output_is_excerpt": false
+    },
+    {
+      "name": "前端 i18n/类型/Vite 构建",
+      "source": "/tmp/sub2api-version-usage-build.log",
+      "sha256": "2e15ef21ef824f0980c7212d34bfb4cb5a7581e1ba9d2050d70426be24a9c972",
+      "result": "passed",
+      "output": "\n> sub2api-frontend@1.0.0 build /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/frontend\n> pnpm run check:i18n && vue-tsc -b && vite build\n\n\n> sub2api-frontend@1.0.0 check:i18n /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/frontend\n> vitest run src/i18n/__tests__/localeKeyCompleteness.spec.ts\n\n\n RUN  v2.1.9 /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/frontend\n\n ✓ src/i18n/__tests__/localeKeyCompleteness.spec.ts (3 tests) 13ms\n\n Test Files  1 passed (1)\n      Tests  3 passed (3)\n   Start at  23:33:02\n   Duration  2.27s (transform 1.19s, setup 29ms, collect 1.76s, tests 13ms, environment 199ms, prepare 33ms)\n\n../backend/internal/web/dist/assets/index-D9CSkrt6.js                                                           278.67 kB │ gzip: 149.11 kB\n../backend/internal/web/dist/assets/vendor-misc-CuW1-m0x.js                                                     279.02 kB │ gzip:  95.30 kB\n../backend/internal/web/dist/assets/SettingsView-DuQvFn4U.js                                                    423.70 kB │ gzip:  84.41 kB\n../backend/internal/web/dist/assets/vendor-ui-Dm24aMYS.js                                                       432.46 kB │ gzip: 144.82 kB\n../backend/internal/web/dist/assets/index-CN3BgH3F.js                                                           452.95 kB │ gzip: 139.44 kB\n../backend/internal/web/dist/assets/AccountsView-CSXup1o-.js                                                    867.46 kB │ gzip: 182.82 kB\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n✓ built in 10.35s",
+      "output_is_excerpt": true
+    }
+  ],
+  "reused_browser_checks": [
+    {
+      "source": "/Users/sc/.codex/visualizations/2026/10/09/01a11f4f-51e2-7811-b23c-eae853613872/usage-help-fix/results.json",
+      "sha256": "e6f635bab3f04c6342f54f70f4dbbbd68a16c3fee11daf14d6fb4416296fb0d9",
+      "results": [
+        {
+          "name": "admin-zh-light-1440",
+          "url": "http://127.0.0.1:4173/admin/usage",
+          "title": "使用记录 - Sub2API · Local TPS QA",
+          "viewport": {
+            "role": "admin",
+            "locale": "zh",
+            "theme": "light",
+            "width": 1440,
+            "height": 1100
+          },
+          "requests": [
+            "GET /auth/me",
+            "GET /admin/compliance",
+            "GET /subscriptions/active",
+            "GET /announcements",
+            "GET /admin/settings",
+            "GET /admin/payment/config",
+            "GET /admin/system/check-updates",
+            "GET /keys",
+            "GET /admin/groups",
+            "GET /admin/usage",
+            "GET /admin/usage/stats",
+            "GET /admin/dashboard/models",
+            "GET /settings/public",
+            "GET /admin/dashboard/snapshot-v2"
+          ],
+          "warnings": [
+            "[intlify] Not found 'version.checkPending' key in 'zh' locale messages.",
+            "[intlify] Fall back to translate 'version.checkPending' key with 'en' locale.",
+            "[intlify] Not found 'version.checkPending' key in 'en' locale messages.",
+            "[intlify] Not found 'version.checkPending' key in 'zh' locale messages.",
+            "[intlify] Fall back to translate 'version.checkPending' key with 'en' locale.",
+            "[intlify] Not found 'version.checkPending' key in 'en' locale messages."
+          ],
+          "errors": [],
+          "tooltipBox": {
+            "x": 1176,
+            "y": 412.5,
+            "width": 256,
+            "height": 121.5
+          },
+          "status": "passed"
+        },
+        {
+          "name": "user-en-dark-1440",
+          "url": "http://127.0.0.1:4173/usage",
+          "title": "Usage Records - Sub2API · Local TPS QA",
+          "viewport": {
+            "role": "user",
+            "locale": "en",
+            "theme": "dark",
+            "width": 1440,
+            "height": 1100
+          },
+          "requests": [
+            "GET /auth/me",
+            "GET /subscriptions/active",
+            "GET /announcements",
+            "GET /keys",
+            "GET /groups/available",
+            "GET /usage",
+            "GET /usage/stats",
+            "GET /usage/dashboard/models",
+            "GET /usage/dashboard/snapshot-v2",
+            "GET /settings/public"
+          ],
+          "warnings": [],
+          "errors": [],
+          "tooltipBox": {
+            "x": 1029.59375,
+            "y": 373.5,
+            "width": 256,
+            "height": 160.5
+          },
+          "status": "passed"
+        },
+        {
+          "name": "admin-zh-dark-390",
+          "url": "http://127.0.0.1:4173/admin/usage",
+          "title": "使用记录 - Sub2API · Local TPS QA",
+          "viewport": {
+            "role": "admin",
+            "locale": "zh",
+            "theme": "dark",
+            "width": 390,
+            "height": 844
+          },
+          "requests": [
+            "GET /auth/me",
+            "GET /admin/compliance",
+            "GET /subscriptions/active",
+            "GET /announcements",
+            "GET /admin/settings",
+            "GET /admin/payment/config",
+            "GET /admin/system/check-updates",
+            "GET /keys",
+            "GET /admin/groups",
+            "GET /admin/usage",
+            "GET /admin/usage/stats",
+            "GET /admin/dashboard/models",
+            "GET /settings/public",
+            "GET /admin/dashboard/snapshot-v2"
+          ],
+          "warnings": [
+            "[intlify] Not found 'version.checkPending' key in 'zh' locale messages.",
+            "[intlify] Fall back to translate 'version.checkPending' key with 'en' locale.",
+            "[intlify] Not found 'version.checkPending' key in 'en' locale messages.",
+            "[intlify] Not found 'version.checkPending' key in 'zh' locale messages.",
+            "[intlify] Fall back to translate 'version.checkPending' key with 'en' locale.",
+            "[intlify] Not found 'version.checkPending' key in 'en' locale messages."
+          ],
+          "errors": [],
+          "tooltipBox": {
+            "x": 126,
+            "y": 284.5,
+            "width": 256,
+            "height": 121.5
+          },
+          "status": "passed"
+        },
+        {
+          "name": "user-zh-light-390",
+          "url": "http://127.0.0.1:4173/usage",
+          "title": "使用记录 - Sub2API · Local TPS QA",
+          "viewport": {
+            "role": "user",
+            "locale": "zh",
+            "theme": "light",
+            "width": 390,
+            "height": 844
+          },
+          "requests": [
+            "GET /auth/me",
+            "GET /subscriptions/active",
+            "GET /announcements",
+            "GET /keys",
+            "GET /groups/available",
+            "GET /usage",
+            "GET /usage/stats",
+            "GET /usage/dashboard/models",
+            "GET /usage/dashboard/snapshot-v2",
+            "GET /settings/public"
+          ],
+          "warnings": [],
+          "errors": [],
+          "tooltipBox": {
+            "x": 126,
+            "y": 284.5,
+            "width": 256,
+            "height": 121.5
+          },
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "source": "/Users/sc/.codex/visualizations/2026/10/09/01a11f4f-51e2-7811-b23c-eae853613872/usage-help-fix/version-results.json",
+      "sha256": "cb2791b5ff9a1a979f7ff2e18aae07f7659a873476934734c329bbf30e651b64",
+      "results": [
+        {
+          "name": "version-update-zh",
+          "url": "http://127.0.0.1:4173/admin/usage",
+          "title": "使用记录 - Sub2API · Local TPS QA",
+          "viewport": {
+            "role": "admin",
+            "locale": "zh",
+            "theme": "light",
+            "width": 1440,
+            "height": 1000,
+            "state": "update"
+          },
+          "requests": [
+            "GET /auth/me",
+            "GET /admin/compliance",
+            "GET /subscriptions/active",
+            "GET /announcements",
+            "GET /admin/settings",
+            "GET /admin/payment/config",
+            "GET /admin/system/check-updates",
+            "GET /keys",
+            "GET /admin/groups",
+            "GET /admin/usage",
+            "GET /admin/usage/stats",
+            "GET /admin/dashboard/models",
+            "GET /settings/public",
+            "GET /admin/dashboard/snapshot-v2"
+          ],
+          "warnings": [],
+          "errors": [],
+          "tooltipBox": {
+            "x": 72,
+            "y": 79.5,
+            "width": 256,
+            "height": 297
+          },
+          "status": "passed"
+        },
+        {
+          "name": "version-current-en",
+          "url": "http://127.0.0.1:4173/admin/usage",
+          "title": "Usage Records - Sub2API · Local TPS QA",
+          "viewport": {
+            "role": "admin",
+            "locale": "en",
+            "theme": "dark",
+            "width": 1440,
+            "height": 1000,
+            "state": "current"
+          },
+          "requests": [
+            "GET /auth/me",
+            "GET /admin/compliance",
+            "GET /subscriptions/active",
+            "GET /announcements",
+            "GET /admin/settings",
+            "GET /admin/payment/config",
+            "GET /admin/system/check-updates",
+            "GET /keys",
+            "GET /admin/groups",
+            "GET /admin/usage",
+            "GET /admin/usage/stats",
+            "GET /admin/dashboard/models",
+            "GET /settings/public",
+            "GET /admin/dashboard/snapshot-v2"
+          ],
+          "warnings": [],
+          "errors": [],
+          "tooltipBox": {
+            "x": 72,
+            "y": 79.5,
+            "width": 256,
+            "height": 357
+          },
+          "status": "passed"
+        },
+        {
+          "name": "version-error-zh",
+          "url": "http://127.0.0.1:4173/admin/usage",
+          "title": "使用记录 - Sub2API · Local TPS QA",
+          "viewport": {
+            "role": "admin",
+            "locale": "zh",
+            "theme": "light",
+            "width": 1440,
+            "height": 1000,
+            "state": "error"
+          },
+          "requests": [
+            "GET /auth/me",
+            "GET /admin/compliance",
+            "GET /subscriptions/active",
+            "GET /announcements",
+            "GET /admin/settings",
+            "GET /admin/payment/config",
+            "GET /admin/system/check-updates",
+            "GET /keys",
+            "GET /admin/groups",
+            "GET /admin/usage",
+            "GET /admin/usage/stats",
+            "GET /admin/dashboard/models",
+            "GET /settings/public",
+            "GET /admin/dashboard/snapshot-v2"
+          ],
+          "warnings": [],
+          "errors": [],
+          "tooltipBox": {
+            "x": 72,
+            "y": 65.5,
+            "width": 256,
+            "height": 229
+          },
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "reused_independent_review": {
+    "bundle": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-758b7ab7/20261009T061925Z-fix-version-tps-tooltips-06d9f2b5",
+    "manifest_sha256": "5ccf771366108ce0916cbc4458214ad7fe1c7fa2f5e333104cc4d195ea56aa7e",
+    "artifact_hashes_verified": 20,
+    "status": "closed",
+    "verification": {
+      "status": "passed",
+      "verified_at": "2026-10-09T06:49:14Z",
+      "errors": [],
+      "warnings": []
+    },
+    "historical_review_count": 2,
+    "new_review_count": 0,
+    "result_source": "原候选 docs/dev-journal.md 的最终复核记录；审计执行记录 task_outcome=accepted、无写入。"
+  },
+  "evidence_reuse_basis": {
+    "application_files_matched": 17,
+    "application_tree": "27d96087e53a97386fd86935afa4ccc3dcd991e3",
+    "application_patch_sha256": "dc20cf45f0f4c904c11a792dc2b77f3abdb3bd8ea98ba22b3a54d6fa8e1a4639",
+    "installed_package_manager": "pnpm@9.15.9",
+    "note": "逐文件哈希与计划编制时的最终修复清单一致；实际相关配置/锁文件相对 personal HEAD 无变更。",
+    "changes_since_preservation_manifest": false,
+    "baseline_configuration_and_lockfile_changes": false
+  },
+  "not_run": [
+    "完整本地回归/浏览器矩阵",
+    "新的 Personal CI/Release gate",
+    "迁移/数据库验证",
+    "生产访问或线上验收",
+    "合并、发布、部署"
+  ],
+  "final_document_checks": {
+    "result": {
+      "chunk_id": "09a954",
+      "wall_time_seconds": 6.75e-06,
+      "exit_code": 0,
+      "original_token_count": 101,
+      "output": "最终校验通过：17 个应用文件与 8 个输入哈希不变；应用补丁/树一致；原 index 不变；5 份计划/任务/证据文件两处一致；仅 D.1–D.3、S0.1 勾选；本地链接、唯一任务编号、JSON 和新文档空白检查通过。\n维护文档分支没有 backend/frontend 改动，原聊天 checkout 保持干净。\nnode_modules 元数据: packageManager: pnpm@9.15.9\n"
+    },
+    "checker_correction": "首轮将 git diff --no-index --check 的差异退出码 1 错当作空白失败；确认输出为空后修正 checker 以接受有差异但无空白错误的结果，再运行通过。没有为该检查改动应用或文档内容。"
+  },
+  "final_remote_baseline": {
+    "personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "main": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+    "method": "git ls-remote origin，完成前再次读取，refs 均未变化",
+    "personal_commit_difference": "0 left / 0 right",
+    "upstream_source_is_ancestor": true
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "task": "S4.2",
+  "documentation_only": true,
+  "recorded_utc": "2026-10-10T05:10:59.896236+00:00",
+  "application_root": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+  "application_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "upstream_source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "plus_reference_sha": "90da415c62b94c9417d9ce2b72b1507ed22f0303",
+  "plus_reference_url": "https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/CHANNEL_MONITOR.md",
+  "plus_reference_method": "本轮读取固定提交的公开文档，不跟随移动main；未引入其源码",
+  "documentation_root": "/Users/sc/.codex/worktrees/plus-routing-delivery-evidence-s36/sub2api-kin",
+  "documentation_branch": "codex/plus-status-demand-s41",
+  "documentation_base_sha": "dbb46705b7dd9e933355ff186df7214c4a9b7723",
+  "workspace_choice": "复用干净main来源S4.1文档树，仅编制规格/登记；应用事实只读取personal候选，保留全部原未提交内容",
+  "source_files": [
+    {
+      "path": "deploy/personal-source.json",
+      "sha256": "a0fc1fa8344ef7ca0c897cb999e76da629c9e55c54cb88dd3dd399508054240e"
+    },
+    {
+      "path": "docs/conventions/personal-maintenance.md",
+      "sha256": "7564f5260a99c75c61ba36cf2233efc08ef18727ee9f477d867294ed3e7b49c8"
+    },
+    {
+      "path": "docs/channel-monitor-v2-safe-defaults.md",
+      "sha256": "f0f6487928e1d9ed79a4f6058cdb8aa56dd43d05c0ad69034bd4937d158099ef"
+    },
+    {
+      "path": "backend/internal/service/setting_public.go",
+      "sha256": "2d829f10c09b0ac952e2b71c2d434da6ddcdc1230f3b71178edaa9827622ae84"
+    },
+    {
+      "path": "backend/internal/service/channel_monitor_v2.go",
+      "sha256": "a48e0fa20ead31c1768725f3932a963d0a681938396bd567814af0942c2cddb6"
+    },
+    {
+      "path": "backend/internal/service/channel_monitor_v2_aggregator.go",
+      "sha256": "673bd8799e52649144b56679cd451d2410b3f2975ee2dfe23878a7850130feba"
+    },
+    {
+      "path": "backend/internal/service/channel_monitor_v2_error_taxonomy.go",
+      "sha256": "7ab090db16948465ea827f7606f3758414877ca2da7ee0f33bbc420b1926684a"
+    },
+    {
+      "path": "backend/internal/repository/channel_monitor_v2_aggregation.go",
+      "sha256": "f0c6c8829f188064361ac26922484a04ce2b44aef66286539ebbeeed74084e86"
+    },
+    {
+      "path": "backend/internal/service/gateway_usage_billing.go",
+      "sha256": "70847eca1cdf0fd98b64722114e6775524668441f605bf6da3f6ca996be7bd26"
+    },
+    {
+      "path": "backend/internal/service/openai_gateway_usage.go",
+      "sha256": "aae5f690b8c8a6ffe48ac0a2bff8e28dfbe9d0b710811a87599b2043607e2c22"
+    },
+    {
+      "path": "backend/internal/service/usage_log.go",
+      "sha256": "db1641c3949688ba95e682a139b682384af6b612341fe48731d53635910b2fe4"
+    },
+    {
+      "path": "backend/internal/service/stream_output_timing.go",
+      "sha256": "f78f1b9f4d92f3d984dbfb8b575612d32acc5353ce7102e8f239261d7279876d"
+    },
+    {
+      "path": "backend/internal/service/routing_diagnostics.go",
+      "sha256": "01a33968033c5b9d9c704c22259d5a331e6ce5f6aec4915fd59299541b82c33b"
+    },
+    {
+      "path": "backend/internal/handler/openai_ws_routing_diagnostics.go",
+      "sha256": "9c9c75ae0855e251c1f88b2004b54b4dfe714c69d8aababfad63eae97c727d0e"
+    },
+    {
+      "path": "backend/internal/handler/ops_error_logger.go",
+      "sha256": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21"
+    },
+    {
+      "path": "backend/internal/server/middleware/client_request_id.go",
+      "sha256": "18677149e9a3b86b1429af0a6ded145089f589ad36df02abb474dd7f2668b867"
+    },
+    {
+      "path": "backend/internal/server/routes/admin.go",
+      "sha256": "548b84e60b1c6faa18164af34986067743e755ae1993782267448e6ea5ab780d"
+    },
+    {
+      "path": "backend/internal/server/routes/user.go",
+      "sha256": "77bdb755320cd6a95e9caaab4716c3fb5cedbdde6f75fbbe8d847e53adee25a0"
+    },
+    {
+      "path": "backend/internal/handler/channel_monitor_v2_handler.go",
+      "sha256": "6c578ae2ae32ac2435926791cc9625a3d6c18c350ad5bac93fbdd3f89ee2d479"
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/spec.md",
+      "sha256": "eef0741488dd8b159dd0b7624a68be823ac28da587418577bed2ead22e2cd4a8"
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md",
+      "sha256": "c20334f094c81b061e93d574569dc2b3887f5bee00154c772a52de6a51c6db48"
+    },
+    {
+      "path": "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md",
+      "sha256": "f76dbd6f38baeca440a926e90f6d467cbe0d04ddf8078ef4bccda8b438b89197"
+    }
+  ],
+  "existing_worktrees_snapshot": "/Users/sc/.codex/validation/sub2api-kin/20261009-s42/before-worktrees.json",
+  "remote_baseline": {
+    "personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "main": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+    "pr6_state": "OPEN",
+    "pr6_is_draft": true,
+    "pr6_head": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+    "pr6_base": "personal"
+  },
+  "document_candidate": {
+    "path": "service-status-contract.md",
+    "sha256": "316924bb26fd5036878b09b0c41d03d06d8c49361dcf73d87fd1fb5c26ba7c86",
+    "committed": false
+  },
+  "independent_review": {
+    "performed": false,
+    "reason": "仅未来规格文档，未改变当前应用公开合同/权限/持久化实现；S4.4对实际候选取得独立复核"
+  },
+  "next_task": "S4.3 实现独立聚合与展示",
+  "next_task_started": false
+}

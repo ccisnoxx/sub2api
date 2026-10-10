@@ -1,0 +1,31 @@
+{
+  "task": "S2.2",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "candidate_base": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+  "application_tree": "92495e27c0f49fa0a2456e9a327a7d42ecb23958",
+  "candidate_commit": "e82287300d1b7cc625295c5307ebaa83c707c019",
+  "application_branch": "codex/plus-pricing-s22",
+  "application_worktree": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+  "source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "files_sha256": {
+    "backend/internal/service/catalog_pricing.go": "42b7512d567289b04ad6bcd7fc8d94a57783c7be10a12721ab65d1c051e06fe3",
+    "backend/internal/service/catalog_pricing_test.go": "f7960ba60e5c2777f42398495e748337ea4854267c51d5cbd7c6ba7a28bbdbf3",
+    "backend/internal/service/billing_context_schedule.go": "3afae45aec153d7b1078fc469582531bc080eda45cee2569311b3618bd02f107",
+    "backend/internal/service/billing_service.go": "84a9064388c96cae66bc91c3dd2c926fc152a4f078167dd847fc75ce9a49a4fb",
+    "backend/internal/service/model_pricing_resolver.go": "9c4ce451ebff28e59898d8006c505bca9aafee32a1e706020058d4a90db18cca",
+    "backend/internal/service/pricing_service.go": "526cb2dcb7733c0f87fc673b1a7932d1e95a3fea6f8edcfa7d283d594eada580"
+  },
+  "build_inputs_sha256": {
+    "backend/go.mod": "a1b6b1568eaed08d6395f4cc8ec61a0354c0ba0788a029e035858f89e066e78c",
+    "backend/go.sum": "62867609b39172d4b966a49d01afa31f84db27d588e10b4025de0f4b788f311b"
+  },
+  "review_status": "two_fresh_reviews_completed_four_findings_fixed_with_red_green_evidence",
+  "external_actions": "not_executed",
+  "recorded_utc": "2026-10-09T15:37:07.516548+00:00",
+  "maintenance_branch": "codex/plus-pricing-s22-evidence",
+  "review_limit": "第二轮明确认可零标签的回退表示；最终小修由主代理按该方向实施并完成先红后绿对账，没有第三次 fresh 全文复核。"
+}

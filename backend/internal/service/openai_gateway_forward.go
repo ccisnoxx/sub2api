@@ -25,6 +25,10 @@ func (s *OpenAIGatewayService) Forward(
 	account *Account,
 	body []byte,
 ) (result *OpenAIForwardResult, err error) {
+	if c != nil && c.Request != nil {
+		ctx = WithServiceStatusOwner(ctx, c.Request.Context())
+	}
+	beginServiceStatusAttempt(ctx)
 	// 网关池的 per-request 标记（openai_gwpool.go）：AttachRoute 往 sink 写，这里 publish 到结果上。
 	// 新增一条能打到 chatgpt.com 的转发入口时要照抄这两行。
 	ctx, gwpoolSink := withOpenAIGatewayPoolSink(ctx, c)
@@ -1098,6 +1102,7 @@ func (s *OpenAIGatewayService) Forward(
 		}
 
 		// Send request
+		beginServiceStatusAttempt(ctx)
 		upstreamStart := time.Now()
 		resp, err := s.doOpenAIUpstream(upstreamReq, proxyURL, account)
 		SetOpsLatencyMs(c, OpsUpstreamLatencyMsKey, time.Since(upstreamStart).Milliseconds())
@@ -1122,6 +1127,7 @@ func (s *OpenAIGatewayService) Forward(
 			// Transport-level failure (proxy/DNS/TCP/TLS — no HTTP response). Convert to
 			// a failover so the handler switches to a healthy account, and temporarily
 			// unschedule the account on durable faults (e.g. rejected proxy credentials).
+			observeServiceStatusTransportError(ctx, err)
 			return nil, s.handleOpenAIUpstreamTransportError(ctx, c, account, err, false)
 		}
 		if headerGuard != nil {
@@ -1137,6 +1143,7 @@ func (s *OpenAIGatewayService) Forward(
 			upstreamMsg := strings.TrimSpace(extractUpstreamErrorMessage(respBody))
 			upstreamMsg = sanitizeUpstreamErrorMessage(upstreamMsg)
 			upstreamCode := extractUpstreamErrorCode(respBody)
+			SetServiceStatusAttemptFailure(ctx, CompletionStatusUpstreamError, ServiceStatusProviderReason(resp.StatusCode, upstreamCode), time.Now())
 			if !agentTaskRecoveryTried && s.isAgentIdentityAccount(ctx, account) && isAgentIdentityTaskInvalidHTTPResponse(resp.StatusCode, respBody) {
 				agentTaskRecoveryTried = true
 				expectedTaskID := account.GetCredential("task_id")
@@ -1261,6 +1268,7 @@ func (s *OpenAIGatewayService) Forward(
 		// Handle normal response
 		var usage *OpenAIUsage
 		var firstTokenMs *int
+		var usageTiming UsageTiming
 		responseID := ""
 		imageCount := 0
 		searchCount := 0
@@ -1310,13 +1318,14 @@ func (s *OpenAIGatewayService) Forward(
 				return nil, err
 			}
 			usage = streamResult.usage
+			usageTiming = streamResult.usageTiming
 			firstTokenMs = streamResult.firstTokenMs
 			responseID = strings.TrimSpace(streamResult.responseID)
 			imageCount = streamResult.imageCount
 			imageOutputSizes = streamResult.imageOutputSizes
 			searchCount = streamResult.searchCount
 		} else {
-			nonStreamResult, err := s.handleNonStreamingResponse(ctx, resp, c, account, originalModel, upstreamModel)
+			nonStreamResult, err := s.handleNonStreamingResponse(ctx, resp, c, account, originalModel, upstreamModel, startTime)
 			if err != nil {
 				if signal, ok := asOpenAICompactFallbackSignal(err); ok {
 					if retryBody, fallbackModel, retry := s.prepareOpenAICompactFallbackRetry(
@@ -1337,6 +1346,7 @@ func (s *OpenAIGatewayService) Forward(
 				return nil, err
 			}
 			usage = nonStreamResult.usage
+			usageTiming = nonStreamResult.usageTiming
 			responseID = strings.TrimSpace(nonStreamResult.responseID)
 			imageCount = nonStreamResult.imageCount
 			imageOutputSizes = nonStreamResult.imageOutputSizes
@@ -1363,6 +1373,7 @@ func (s *OpenAIGatewayService) Forward(
 			UpstreamHeaders:               resp.Header,
 			ResponseID:                    responseID,
 			Usage:                         *usage,
+			UsageTiming:                   usageTiming.Clone(),
 			Model:                         originalModel,
 			BillingModel:                  billingModel,
 			UpstreamModel:                 upstreamModel,

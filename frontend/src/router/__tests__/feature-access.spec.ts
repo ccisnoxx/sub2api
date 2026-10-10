@@ -8,6 +8,7 @@ type NavigationGuard = (
 
 const routerHarness = vi.hoisted(() => ({
   guard: null as NavigationGuard | null,
+  routes: [] as Array<{ path: string; meta?: Record<string, unknown> }>,
 }))
 
 const authStore = vi.hoisted(() => ({
@@ -33,13 +34,16 @@ const appStore = vi.hoisted(() => ({
 
 vi.mock('vue-router', () => ({
   createWebHistory: vi.fn(() => ({})),
-  createRouter: vi.fn(() => ({
-    beforeEach: vi.fn((guard: NavigationGuard) => {
-      routerHarness.guard = guard
-    }),
-    afterEach: vi.fn(),
-    onError: vi.fn(),
-  })),
+  createRouter: vi.fn((options) => {
+    routerHarness.routes = options.routes
+    return {
+      beforeEach: vi.fn((guard: NavigationGuard) => {
+        routerHarness.guard = guard
+      }),
+      afterEach: vi.fn(),
+      onError: vi.fn(),
+    }
+  }),
 }))
 
 vi.mock('@/stores/auth', () => ({
@@ -77,6 +81,8 @@ vi.mock('@/composables/useRoutePrefetch', () => ({
     resetPrefetchState: vi.fn(),
   }),
 }))
+
+vi.mock('@/router/title', () => ({ resolveRouteDocumentTitle: () => 'Sub2API' }))
 
 function createDeferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void
@@ -118,6 +124,21 @@ describe('feature route guard', () => {
     appStore.publicSettingsLoaded = false
     appStore.cachedPublicSettings = null
     appStore.fetchPublicSettings.mockReset()
+  })
+
+  it.each([
+    [false, false, { path: '/login', query: { redirect: '/admin/service-status' } }],
+    [true, false, '/dashboard'],
+    [true, true, undefined],
+  ])('独立服务状态路由按实际 meta 与认证守卫检查身份 %s/%s', async (authenticated, admin, target) => {
+    const route = routerHarness.routes.find(item => item.path === '/admin/service-status')
+    expect(route?.meta).toMatchObject({ requiresAuth: true, requiresAdmin: true })
+    authStore.isAuthenticated = authenticated
+    authStore.isAdmin = admin
+    const { navigation, next } = runGuard(route!.meta!, route!.path)
+    await navigation
+    if (target === undefined) expect(next).toHaveBeenCalledWith()
+    else expect(next).toHaveBeenCalledWith(target)
   })
 
   it('waits for the first public-settings request before deciding payment access', async () => {

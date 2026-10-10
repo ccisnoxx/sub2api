@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -423,6 +424,16 @@ func (h *OpsHandler) ListRequestErrorUpstreamErrors(c *gin.Context) {
 			d, err := h.opsService.GetErrorLogByID(c.Request.Context(), item.ID)
 			if err != nil || d == nil {
 				continue
+			}
+			// 此批量详情仍属于列表；v1 路由诊断只开放单记录管理员详情。
+			listDetail := *d
+			d = &listDetail
+			d.RoutingDiagnostics = nil
+			if events, stripErr := service.OpsUpstreamErrorsWithoutRoutingDiagnostics(d.UpstreamErrors); stripErr == nil {
+				d.UpstreamErrors = events
+			} else {
+				log.Print("[Ops] 列表无法裁剪上游事件路由诊断，已隐藏事件正文")
+				d.UpstreamErrors = ""
 			}
 			details = append(details, d)
 		}

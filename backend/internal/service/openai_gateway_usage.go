@@ -227,7 +227,7 @@ func groupBillsOpenAIFastAtStandard(apiKey *APIKey, account *Account, serviceTie
 }
 
 // RecordUsage records usage and deducts balance
-func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRecordUsageInput) error {
+func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRecordUsageInput) (recordErr error) {
 	if input == nil {
 		return errors.New("openai usage input is nil")
 	}
@@ -235,6 +235,12 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 	if result == nil {
 		return errors.New("openai usage result is nil")
 	}
+	sourcePersistenceAttempted := false
+	defer func() {
+		if result.UsageTiming.ServiceStatusObservation != nil && (s.usageLogRepo == nil || (!sourcePersistenceAttempted && recordErr != nil)) {
+			MarkServiceStatusSourceError(time.Now())
+		}
+	}()
 	// 探测走 hunt 代理、刻意不看账号是否停调度，它的 200 不能证明真实流量的 403 已经过去。
 	if s.rateLimitService != nil && input.Account != nil && input.Account.Platform == PlatformOpenAI && input.RequestType != RequestTypeTurnStateProbe {
 		s.rateLimitService.ResetOpenAI403Counter(ctx, input.Account.ID)
@@ -455,6 +461,7 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		imageSizeBreakdown["image_cache_read_tokens"] = result.Usage.ImageCacheReadTokens
 	}
 	usageLog := &UsageLog{
+		UsageTiming:              result.UsageTiming.Clone(),
 		UserID:                   user.ID,
 		APIKeyID:                 apiKey.ID,
 		AccountID:                account.ID,
@@ -608,6 +615,7 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 
 	simpleModeKeyRateLimitOnly := simpleModeKeyRateLimitBillingEnabled(s.cfg, apiKey)
 	if s.cfg != nil && s.cfg.RunMode == config.RunModeSimple && !simpleModeKeyRateLimitOnly {
+		sourcePersistenceAttempted = true
 		writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.openai_gateway")
 		logger.LegacyPrintf("service.openai_gateway", "[SIMPLE MODE] Usage recorded (not billed): user=%d, tokens=%d", usageLog.UserID, usageLog.TotalTokens())
 		s.deferredService.ScheduleLastUsedUpdate(account.ID)
@@ -637,9 +645,11 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 
 	if billingErr != nil {
 		usageLog.ActualCost = 0
+		sourcePersistenceAttempted = true
 		writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.openai_gateway")
 		return billingErr
 	}
+	sourcePersistenceAttempted = true
 	writeUsageLogBestEffort(ctx, s.usageLogRepo, usageLog, "service.openai_gateway")
 
 	return nil

@@ -96,6 +96,8 @@ type BillingCache interface {
 
 // ModelPricing 模型价格配置（per-token价格，与LiteLLM格式一致）
 type ModelPricing struct {
+	// 来源存在性与同次读取的价格一起复制，供只读目录区分明确零价与缺失。
+	sourcePricePresence explicitContextFields
 	// UltrafastMultiplier is model-owned and independent of operator Fast pricing.
 	UltrafastMultiplier                float64
 	InputPricePerToken                 float64            // 每token输入价格 (USD)
@@ -1351,6 +1353,13 @@ func (s *BillingService) getModelPricingAt(model string, pricingAt time.Time) (*
 			price1h := litellmPricing.CacheCreationInputTokenCostAbove1hr
 			enableBreakdown := price1h > 0 && price1h > price5m
 			return s.applyModelSpecificPricingPolicyEx(model, &ModelPricing{
+				sourcePricePresence: explicitContextFields{
+					input:        litellmPricing.InputCostPerTokenExplicit,
+					output:       litellmPricing.OutputCostPerTokenExplicit,
+					cacheWrite:   litellmPricing.CacheCreationInputTokenCostExplicit,
+					cacheWrite1h: litellmPricing.CacheCreation1hTokenCostExplicit,
+					cacheRead:    litellmPricing.CacheReadInputTokenCostExplicit,
+				},
 				InputPricePerToken:                 litellmPricing.InputCostPerToken,
 				InputPricePerTokenPriority:         litellmPricing.InputCostPerTokenPriority,
 				OutputPricePerToken:                litellmPricing.OutputCostPerToken,

@@ -1,0 +1,38 @@
+{
+  "task": "S2.4",
+  "status": "本地实现与验证完成",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "candidate_base": "b8db9596977d196f025d79a1f4cf0c3442e5b3d8",
+  "candidate_commit": "b8cf49ca25007cbc23338a9443b71df4c0411155",
+  "application_tree": "ff37d9fa6d350f3534710450e65cc3ce80a25592",
+  "application_branch": "codex/plus-catalog-ui-s24",
+  "application_worktree": "/Users/sc/.codex/worktrees/plus-catalog-ui-s24/sub2api-kin",
+  "maintenance_branch": "codex/plus-pricing-s22-evidence",
+  "source": {
+    "upstream_repository": "KlN-4096/sub2api",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "files_sha256": {
+    "frontend/src/__tests__/fixtures/modelCatalog.ts": "62bbfdd6e0f3f3b04e862a2a40dd0c71f326cc6f3d9f548ea58a9e3a085df868",
+    "frontend/src/api/__tests__/channels.catalog.spec.ts": "d2eb0a10e29911b9c8baa05831f217a463ec62215ac0312a6f3a39da70226c28",
+    "frontend/src/api/channels.ts": "3a4169f60ae893aafc52c4588800897fa0029fdd81bf59df78ab6fe5178de8e8",
+    "frontend/src/components/channels/ModelCatalogCard.vue": "e548f65dca529a13e6b14080b9eaf1f1a751548005a963ea8e5692cc01d4a5cb",
+    "frontend/src/components/channels/__tests__/ModelCatalogCard.spec.ts": "7884e6f2ab1a675d5a266b9b1921380540f4d9a41d03d5dca054eb7d0999107d",
+    "frontend/src/i18n/locales/en/dashboard.ts": "c7ce3c403577905d2f74b254397d6309ae942a4401d65f4e0006f4589d99420e",
+    "frontend/src/i18n/locales/zh/dashboard.ts": "5bf1dc843743d188b4e50b85d8da3b65e967cfd98a7f1e46a00c9cd7e4942165",
+    "frontend/src/utils/__tests__/modelCatalog.spec.ts": "95fe11d1909794ee25e80e89bc8bd1975b7f4cffaaeaa05e51ba3e6c4bba5417",
+    "frontend/src/utils/modelCatalog.ts": "f7d5ee5a7454e253859c253473f7f5c72d9cf50a233bc1ee5f7c38e7d12c4549",
+    "frontend/src/views/user/AvailableChannelsView.vue": "d321294a1d0b4f0c18800003f418bcb34832ede8927e222d03fdc825d99d44ee",
+    "frontend/src/views/user/__tests__/AvailableChannelsView.spec.ts": "d53a09d83de8c8f9809fc1aa406fcb30cd8ac52666fa8998cd405fa7d6aa7a32"
+  },
+  "build_inputs_sha256": {
+    "frontend/package.json": "d1fd3d91ccf9bbca6cf0a79428343109a16efa6b3675fd01869d37db5d63083e",
+    "frontend/pnpm-lock.yaml": "1d8e54cc8e1f1bd3e7593805f607d9314ff81dab98ab5a9a6396475e148b26ce",
+    "frontend/vite.config.ts": "815b3dec61328dc35361667718016d2c192dd5236f90fd062c8a5d5293d22538",
+    "frontend/vitest.config.ts": "7fe146c9d88c0b4a24e73f7b583cb1dd3ab94436246337482d18d0c8616db1a2"
+  },
+  "review": "fresh critical_reviewer 未确认可行动缺陷，输入未变化；不独立执行测试",
+  "external_actions": "未推送、PR、Actions、合并、镜像发布或生产部署",
+  "recorded_utc": "2026-10-09T16:50:53.320893+00:00"
+}

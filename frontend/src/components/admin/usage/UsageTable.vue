@@ -267,36 +267,20 @@
           <div class="flex items-stretch gap-2">
             <span
               class="w-1 shrink-0 rounded-full"
-              :class="row.first_token_ms != null
-                ? ['bg-gradient-to-b from-40% to-60%', LATENCY_BAR_FROM_CLASSES[firstTokenSeverity(row.first_token_ms)], LATENCY_BAR_TO_CLASSES[durationSeverity(row.duration_ms ?? 0)]]
+              :class="displayedFirstTokenMs(row) != null
+                ? ['bg-gradient-to-b from-40% to-60%', LATENCY_BAR_FROM_CLASSES[firstTokenSeverity(displayedFirstTokenMs(row)!)], LATENCY_BAR_TO_CLASSES[durationSeverity(row.duration_ms ?? 0)]]
                 : LATENCY_BAR_CLASSES[durationSeverity(row.duration_ms ?? 0)]"
               aria-hidden="true"
             ></span>
             <div class="grid grid-cols-[max-content_max-content] items-baseline gap-x-2 gap-y-0.5 text-xs">
-              <UsageTps :row="row">
-                <template #timing="{ explanation }">
-                  <span class="inline-flex items-center text-gray-400 dark:text-gray-500">
-                    {{ t('usage.latencyFirstToken') }}
-                    <HelpTooltip trigger="click">
-                      <template #trigger>
-                        <button
-                          data-testid="usage-timing-details"
-                          type="button"
-                          class="rounded text-gray-400 hover:text-primary-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary-500 dark:text-gray-500 dark:hover:text-primary-400"
-                          :aria-label="`${t('usage.averageOutputTps')}: ${explanation}`"
-                        >
-                          <Icon name="infoCircle" size="xs" aria-hidden="true" />
-                        </button>
-                      </template>
-                      <span class="block pr-5">{{ explanation }}</span>
-                    </HelpTooltip>
-                  </span>
-                  <span v-if="row.first_token_ms != null" class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[firstTokenSeverity(row.first_token_ms)]">{{ formatDuration(row.first_token_ms) }}</span>
-                  <span v-else class="text-gray-400 dark:text-gray-500">-</span>
-                  <span class="text-gray-400 dark:text-gray-500">{{ t('usage.latencyDuration') }}</span>
-                  <span class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[durationSeverity(row.duration_ms ?? 0)]">{{ formatDuration(row.duration_ms) }}</span>
-                </template>
-              </UsageTps>
+              <UsageFirstToken :row="row" />
+              <span class="text-gray-400 dark:text-gray-500">{{ t('usage.latencyDuration') }}</span>
+              <span class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[durationSeverity(row.duration_ms ?? 0)]">{{ formatDuration(row.duration_ms) }}</span>
+              <UsageTps :row="row" />
+              <span class="text-gray-400 dark:text-gray-500">{{ t('usage.completionStatus') }}</span>
+              <span data-testid="usage-completion-status" :class="usageCompletionStatus(row) === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : usageCompletionStatus(row) === 'unknown' ? 'text-gray-400 dark:text-gray-500' : 'text-amber-600 dark:text-amber-400'">
+                {{ t(`usage.completionStatuses.${usageCompletionStatus(row)}`) }}
+              </span>
             </div>
           </div>
         </template>
@@ -673,6 +657,7 @@ import { formatCacheTokens, formatMultiplier } from '@/utils/formatters'
 import { formatTokenPricePerMillion } from '@/utils/usagePricing'
 import { getUsageServiceTierLabel } from '@/utils/usageServiceTier'
 import { resolveUsageRequestType } from '@/utils/usageRequestType'
+import { displayedFirstTokenMs, usageCompletionStatus } from '@/utils/usageTiming'
 import {
   LATENCY_BAR_CLASSES,
   LATENCY_BAR_FROM_CLASSES,
@@ -713,10 +698,10 @@ function accountBilled(row: { total_cost?: number | null; account_stats_cost?: n
 
 import DataTable from '@/components/common/DataTable.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
-import HelpTooltip from '@/components/common/HelpTooltip.vue'
 import IpGeoCell from '@/components/common/IpGeoCell.vue'
 import Icon from '@/components/icons/Icon.vue'
 import UsageTps from './UsageTps.vue'
+import UsageFirstToken from './UsageFirstToken.vue'
 import { fetchBatch, getEntry } from '@/utils/ipGeoLookup'
 import type { AdminUsageLog } from '@/types'
 import type { Column } from '@/components/common/types'

@@ -11,10 +11,14 @@ enableAutoUnmount(afterEach)
 const tpsMessages = (messages: typeof en.usage) => ({
   usage: {
     latencyTps: () => messages.latencyTps,
+    averageOutputTps: () => messages.averageOutputTps,
     tpsDescription: () => messages.tpsDescription,
     tpsInvalidOutput: () => messages.tpsInvalidOutput,
     tpsInvalidDuration: () => messages.tpsInvalidDuration,
     tpsNotApplicable: () => messages.tpsNotApplicable,
+    tpsMediaUnknown: () => messages.tpsMediaUnknown,
+    tpsInvalidMedia: () => messages.tpsInvalidMedia,
+    partialResponse: () => messages.partialResponse,
   },
 })
 
@@ -52,16 +56,18 @@ describe('UsageTps', () => {
     expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
   })
 
-  it.each([undefined, null, 0, -1, NaN, Infinity, -Infinity])('输出 %s 不可用并说明原因', (output_tokens) => {
+  it.each([undefined, null, 0, -1, NaN, Infinity, -Infinity])('输出 %s 不可用并说明原因', async (output_tokens) => {
     const wrapper = renderTps({ output_tokens })
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('-')
-    expect(wrapper.get('[data-testid="usage-tps-value"]').attributes('title')).toContain(en.usage.tpsInvalidOutput)
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('—')
+    await wrapper.get('[data-testid="usage-tps-details"]').trigger('click')
+    expect(wrapper.get('[role="tooltip"]').text()).toContain(en.usage.tpsInvalidOutput)
   })
 
-  it.each([undefined, null, 0, -1, NaN, Infinity, -Infinity])('总耗时 %s 不可用并说明原因', (duration_ms) => {
+  it.each([undefined, null, 0, -1, NaN, Infinity, -Infinity])('总耗时 %s 不可用并说明原因', async (duration_ms) => {
     const wrapper = renderTps({ duration_ms })
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('-')
-    expect(wrapper.get('[data-testid="usage-tps-value"]').attributes('title')).toContain(en.usage.tpsInvalidDuration)
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('—')
+    await wrapper.get('[data-testid="usage-tps-details"]').trigger('click')
+    expect(wrapper.get('[role="tooltip"]').text()).toContain(en.usage.tpsInvalidDuration)
   })
 
   it.each([
@@ -79,15 +85,28 @@ describe('UsageTps', () => {
     { request_type: 'live' },
     { request_type: 'probe' },
     { request_type: 'gwpool_degraded' },
-  ])('媒体或非普通生成记录 %j 不显示文本 TPS', (row) => {
+  ])('媒体或非普通生成记录 %j 不显示文本 TPS', async (row) => {
     const wrapper = renderTps(row)
-    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('-')
-    expect(wrapper.get('[data-testid="usage-tps-value"]').attributes('title')).toContain(en.usage.tpsNotApplicable)
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('—')
+    await wrapper.get('[data-testid="usage-tps-details"]').trigger('click')
+    expect(wrapper.get('[role="tooltip"]').text()).toContain(en.usage.tpsNotApplicable)
   })
 
   it('只有图片输入、仍输出文本时可以计算', () => {
     const wrapper = renderTps({ image_input_tokens: 500 })
     expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
+  })
+
+  it.each(['en', 'zh'] as const)('%s 新记录音频未知和部分结果都提供对应说明', async (locale) => {
+    const wrapper = renderTps({ timing_version: 1, audio_output_tokens: null }, locale)
+    const messages = locale === 'zh' ? zh : en
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe('—')
+    await wrapper.get('[data-testid="usage-tps-details"]').trigger('click')
+    expect(wrapper.get('[role="tooltip"]').text()).toContain(messages.usage.tpsMediaUnknown)
+    await wrapper.setProps({ row: { ...textRow, timing_version: 1, audio_output_tokens: 0, is_complete: false, completion_status: 'client_disconnected' } })
+    expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toContain('42.2 tok/s')
+    expect(wrapper.get('[data-testid="usage-partial-response"]').text()).toBe(messages.usage.partialResponse)
+    expect(wrapper.get('[role="tooltip"]').text()).toContain(messages.usage.partialResponse)
   })
 
   it.each([
@@ -108,17 +127,26 @@ describe('UsageTps', () => {
     expect(wrapper.get('[data-testid="usage-tps-value"]').text()).toBe(expected)
   })
 
-  it.each(['en', 'zh'] as const)('%s 标签与数值均提供口径及不可用原因提示，数值旁无常驻按钮', (locale) => {
+  it.each(['en', 'zh'] as const)('%s 只在点击圆圈后显示 TPS 说明', async (locale) => {
     const wrapper = renderTps({ duration_ms: null }, locale)
     const messages = locale === 'zh' ? zh : en
     const label = wrapper.get('[data-testid="usage-tps-label"]')
     const value = wrapper.get('[data-testid="usage-tps-value"]')
+    const trigger = wrapper.get('[data-testid="usage-tps-details"]')
+    const tooltip = () => wrapper.get('[role="tooltip"]')
     expect(label.text()).toBe('TPS')
     for (const target of [label, value]) {
-      expect(target.attributes('title')).toContain(messages.usage.tpsDescription)
-      expect(target.attributes('title')).toContain(messages.usage.tpsInvalidDuration)
+      expect(target.attributes('title')).toBeUndefined()
+      await target.trigger('mouseenter')
+      expect(tooltip().isVisible()).toBe(false)
     }
-    expect(wrapper.find('button').exists()).toBe(false)
+    expect(trigger.attributes('type')).toBe('button')
+    await trigger.trigger('click')
+    expect(tooltip().isVisible()).toBe(true)
+    expect(tooltip().text()).toContain(messages.usage.tpsDescription)
+    expect(tooltip().text()).toContain(messages.usage.tpsInvalidDuration)
+    await trigger.trigger('click')
+    expect(tooltip().isVisible()).toBe(false)
   })
 
   it.each([0.005, 7, 150.45])('有效 TPS %s 统一使用青色，不按速度分档', (output_tokens) => {

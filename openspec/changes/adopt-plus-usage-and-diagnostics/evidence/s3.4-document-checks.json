@@ -1,0 +1,104 @@
+{
+  "task": "S3.4",
+  "status": "passed",
+  "application_sha": "d23474171035320eda06a35d76d455d7f8d7aae4",
+  "document_locations": [
+    "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+    "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin"
+  ],
+  "checks": {
+    "document_and_source_diff_check": "passed",
+    "old_journal_each_full_body_retained": true,
+    "old_evidence_and_frozen_contract_body_retained": true,
+    "only_s34_checkbox_newly_completed": true,
+    "s35_s36_unchecked": true,
+    "local_markdown_links_and_anchors_checked": 464,
+    "evidence_json_parse": "passed",
+    "final8_frontend_source_hashes_match": true,
+    "s33_17_backend_inputs_unchanged": true,
+    "existing_worktrees_checked": 8,
+    "unchanged_files_hash_checked": 35886,
+    "original_s0_17_application_edits_preserved": true,
+    "other7_worktree_heads_and_branches_unchanged": true,
+    "prior_s33_branch_preserved": true,
+    "s25_branch_and19_prior_backups_retained": true,
+    "temporary_preview_stopped": true,
+    "temporary_node_modules_symlink_removed": true,
+    "unchanged_preexisting_deep_link_owners_confirmed": true
+  },
+  "preservation_validation_reuse": "首次35886个文件保留检查已通过；仅补齐自身检查产物后复用非文档hash结果，8个HEAD/分支与新源码仍核对",
+  "initial_document_link_issue": "首轮自身检查JSON尚未归档，3个新链接缺失；已先归档再核对",
+  "trees": [
+    {
+      "path": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "branch": "codex/ci-validation-scope",
+      "non_document_changes_preserved": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "branch": "codex/fix-version-usage-help",
+      "non_document_changes_preserved": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head": "aeead84a68545ed8ee6697345f42aa00e59f1cef",
+      "branch": "codex/plus-pricing-s22-evidence",
+      "non_document_changes_preserved": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+      "branch": "codex/plus-pricing-s22",
+      "non_document_changes_preserved": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin",
+      "head": "d9b06f4fe78a8588282958783d91e9966ff05231",
+      "branch": "codex/plus-routing-producer-s32",
+      "non_document_changes_preserved": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "head": "d23474171035320eda06a35d76d455d7f8d7aae4",
+      "branch": "codex/plus-routing-details-s34",
+      "non_document_changes_preserved": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+      "branch": "codex/plus-usage-s1",
+      "non_document_changes_preserved": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+      "head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+      "branch": "codex/verify-personal-ci-plus-catalog-s27",
+      "non_document_changes_preserved": true
+    }
+  ],
+  "issues": [],
+  "preexisting_link_gaps": [
+    "missing anchor: /Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/docs/dev-journal.md ../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/docs/dev-journal.md ../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s31-结构化诊断合同冻结"
+  ],
+  "audit": {
+    "id": "20261010T000955Z-kin-plus-routing-details-s34-5191490f",
+    "bundle_status": "closed",
+    "verify": "passed"
+  },
+  "not_executed": [
+    "push",
+    "PR update",
+    "new CI",
+    "merge",
+    "mirror release",
+    "production deploy"
+  ],
+  "next_task": "S3.5 未开始"
+}

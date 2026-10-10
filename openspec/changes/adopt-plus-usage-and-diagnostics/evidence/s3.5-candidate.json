@@ -1,0 +1,15 @@
+{
+  "task": "S3.5",
+  "application_sha": "3101cb41636a658dbac47e882ebdc37f34e84641",
+  "branch": "codex/plus-routing-behavior-s35",
+  "worktree": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+  "base_sha": "e3140a68d245d6bb4bddbff509b30395ecaeeb19",
+  "production_source_changes": [],
+  "source_files": {
+    "backend/internal/handler/s35_http_routing_behavior_test.go": "15d95316f14b3e5d82739dd2b2e90488dc1f66dc1428b4beeee5f62deeec423a",
+    "backend/internal/handler/s35_ws_routing_behavior_test.go": "a073d22424f0138942b33b7fd55e1a8030b4d17aa1a519d4e67b3e8d48a6ee07"
+  },
+  "personal_sha": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "pr5_head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+  "prior_s34_application_sha": "d23474171035320eda06a35d76d455d7f8d7aae4"
+}

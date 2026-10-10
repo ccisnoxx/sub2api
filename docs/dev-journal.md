@@ -1,5 +1,167 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S4.3 独立聚合与展示完成
+
+- 本轮仅S4.3。核对personal9397eb8af、KlN .5/c7aacf5d与累计afcc7852后，建立独立personal工作树`plus-service-status-s43`/分支`codex/plus-service-status-s43`；应用固定`35962a802fdc499639c9c861072f25774ccba50b`。原17项未提交改动、main维护源码与旧候选保留，旧日志全文保持。
+- HTTP/WS逻辑turn源关联与冻结终态、两表nullable内部JSONB、五张独立聚合表/配置/事件/水位及管理员API/双语页面贯通。真实请求终态优先，未知/样本不足/过期不报正常，恢复要求新证据；默认关闭，V1/V2、出站身份、调度/重试与计费保持。
+- 最终PG16 13集成及同包7逻辑、相关race21、backend build通过；前端34用例/类型/16文件lint/build与中文1440/英文390合成API页面通过，未变源与计费边界证据复用。2次fresh只读复核确认7项问题，反例先红后绿关闭；最终79文件hash与审计闭包通过。
+- [任务执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s43-独立聚合与展示实现)、[候选](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.3-candidate.json)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.3-validation.json)与[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.3-reviews.json)增量登记。真实JWT/PG/浏览器E2E、固定旧应用兼容、真实多轮WS与部署终态覆盖仍属S4.4，原S3.6 CI不证明新候选。任务服务/临时依赖已清理，Colima恢复Stopped。
+- S4.3勾选；下一项S4.4保持未开始，不自动推进。未启用、push/PR更新、新CI、合并、发布镜像或部署生产。
+
+## 2026-10-09：KIN 借鉴 Plus S4.2 独立服务状态规格完成
+
+- 本轮仅S4.2。personal仍9397eb8af、KlN .5/c7aacf5d；草稿PR #6及累计应用候选afcc7852b未变，现行Personal CI 38020112510/personal-ready成功只按原应用边界复用。复用main来源codex/plus-status-demand-s41文档树编制，应用事实只读取personal候选；原17项改动、四树HEAD/源码及各处旧日志保留。
+- [独立规格](../openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md)冻结终态优先、用户排除/服务失败/未知、5分钟窗口/10分钟重算/180秒过期、5样本及2次异常/3次新请求恢复、31天匿名保留、独立默认关闭开关与仅管理员全站白名单。21个后续验收场景已列明；第一批可用性不加入TTFT/TPS性能判定。
+- KIN用量计费ID与错误ID不同义，WS归属又需逻辑turn；规格要求S4.3新增可空监控关联元数据，不修改原计费键或制造用量行。历史、未接入、责任/终态冲突保持未知；旧样本移窗、重复扫描和阈值放宽不能证明恢复，V1/V2保持原职责。
+- 22个源文件指纹固定，12个S4.1来源指纹一致，5份既有证据保留；新增链接/状态/JSON/diff和四树保留检查通过，旧S3.1锚点问题原样保留。文档场景不是已运行的应用测试；没有新测试/build、SQL/浏览器/CI、独立代码复核或线上读取，运行覆盖/权限/兼容与实际复核留后续。
+- [任务证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s42-独立规格编制)、[来源](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-candidate.json)及[检查](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.2-document-checks.json)增量同步三处。S4.2勾选；下一项S4.3未开始，不自动推进；S4未实现/启用，未push/PR更新、合并、发布镜像或部署生产。
+
+## 2026-10-09：KIN 借鉴 Plus S4.1 管理员服务状态需求确认完成
+
+- 用户明确选择仅管理员查看全站状态，确认部署持续有真实请求，并授权查看线上情况；选择推进后续S4规格与实现。普通用户/匿名不新增S4入口，状态只展示必要聚合事实，排除凭据、敏感原文、账号、身份、请求ID、费用/余额等；具体字段和样本门槛留S4.2。
+- 复用既有管理员浏览器会话，只读线上仪表盘：版本标签`v0.2.14-klno.5-tps.1`、今日2,516请求、当前7 RPM；近24小时模型榜以GPT系列为主。两个流量窗口不同，旧看板只能佐证真实流量，不能证明S4终态成功率、恢复、平台/协议入口或新采集已部署；未保存完整页面或敏感数据，未访问数据库/VPS、发起模型请求或修改设置。
+- [需求记录](../openspec/changes/adopt-plus-usage-and-diagnostics/service-status-demand.md)、[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s41-需求确认完成)、计划与任务清单已更新，S4.1勾选；personal基础9397eb8af与应用候选afcc7852b保持原样，main来源`codex/plus-status-demand-s41`仅登记文档，原17项应用改动及旧日志保留。
+- 文档/指纹/保留/S4.1链接/任务状态检查通过；扩展检查发现既有S3.1锚点不匹配，作为历史文档问题原样保留。S3.6成功门禁只按未改应用候选复用。无应用行为变更，未运行测试/build、新CI或独立代码复核。下一项S4.2编制独立规格未开始，不自动继续；尚未启用S4，未push/PR更新、合并、镜像发布或生产部署。
+
+## 2026-10-09：KIN 借鉴 Plus S4.1 启用需求核对进行中
+
+- 本轮仅S4.1；personal仍9397eb8af、应用候选afcc7852b及草稿PR #6未变，main来源文档提交53332c432续接`codex/plus-status-demand-s41`仅登记文档；原源码、未提交改动及各处旧日志保留。
+- 已核对既有V1/V2：V2被动聚合真实记录但成功计数沿用`actual_cost > 0`，不等于新终态服务状态；已有JWT/管理员认证、分组授权和用户脱敏。代码默认不证明生产模式，S1/S3本地完成不证明当前线上采集或全平台覆盖。
+- 已整理[需求记录](../openspec/changes/adopt-plus-usage-and-diagnostics/service-status-demand.md)和[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s41-启用需求核对待确认)，向用户询问实际流量/运营目的及可见范围；尚未收到输入，管理员全站仅为待选建议。S4.1保持未勾选，实施未排期；S4.2–S4.4未启动，不修改线上开关。
+- 文档阶段只检查来源、文件保留、链接和任务状态，复用未改S3.6候选证据但不声称S4运行验证；未运行应用测试/CI、独立代码复核、生产流量读取、付费探测、push/PR更新、合并、发布或部署。
+
+
+## 2026-10-09：KIN 借鉴 Plus S3.6 独立复核与阶段交付完成
+
+- 本轮仅S3.6。personal仍9397eb8af、KlN .5/c7aacf5d；从干净personal来源S3.5完整cc068ceb9续接`codex/plus-routing-delivery-s36`，累计候选`afcc7852b36a073dfc5fc0721ae8d24b90b7a335`（应用修复`da581c6846d1bf89926ca9730abf2290ea8b65ea`）。main来源独立树只登记文档，原17项应用改动、旧候选/PR #5及各处旧日志保留。
+- fresh只读critical_reviewer复核快照/发送/终态/WS逻辑turn、队列/JSONB及管理员/用户/列表边界，无确认阻断；未独立执行测试。开工53份原产物/28输入与原日志核验通过；CI先后八项lint经5文件等价修正、35顶层/114 PASS及S3四包不限输出lint 0 issues关闭，最终25/28输入直接匹配、3项由35/114及追加并发1/1验证补充；未新增fresh最终全文复核，原独立复核按未改合同边界保留。旧Ops全局清单中的变化项只按未变owner复用，前端/PG16/固定旧源码兼容与行为对照按原边界保留。
+- [草稿PR #6](https://github.com/ccisnoxx/sub2api/pull/6)的[现行Personal CI `38020112510`](https://github.com/ccisnoxx/sub2api/actions/runs/38020112510)全部必要job及App15368 personal-ready通过，开始/结束候选和最新基础一致；未采用未合入CI选择优化，也未本地重复完整gate。实际触发/诊断/重跑次数见[门禁清单](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.6-validation.json)。
+- 累计候选继承迁移251/252，应用回退保留schema/ledger；固定旧repository/migration runner往返不证明生产运行树。完整JWT后端浏览器、付费上游、生产扣款/运行树及既有WS覆盖/深链接限制保留，没有补造线上证据。
+- [S3.6执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s36-独立复核与阶段交付)、任务与交付说明增量登记main来源文档树、应用树和原指定目录；审计`20261010T025433Z-kin-plus-routing-s36-db5630b7` closed/verify passed。S3.6已勾选，S3主线结束；下一顺序项S4.1仅确认启用需求且未排期，S1.5/S0.2/S0.3继续独立安排，本轮不进入下一任务。未合并、更新personal、发布镜像或部署生产。
+
+
+## 2026-10-09：KIN 借鉴 Plus native 当前轮次安全重放修复与 S3.5 复验完成
+
+- 本轮执行用户授权的native安全重放修复及S3.5复验；从personal应用来源`0129d38696b1467768687aef9d8233092d4c1d7c`续接于`codex/plus-native-turn-replay-s35`，修复应用`da581c6846d1bf89926ca9730abf2290ea8b65ea`。personal核对仍为9397eb8af，草稿PR #5仍旧88156f09且未合并；main应用源码未替代personal，原17项应用改动保留。
+- native后续轮次跨账号重试使用当前原始模型和已证明完整的上下文，移除原账号response锚点；缺失终态输出、未知锚点、孤立工具输出/引用或账号工具别名上下文明确停止重放。顶层字符串只在换号历史内无损转换为user消息对象，原发送保持。输出后错误、原同账号重试预算及错误链保持。
+- Ops失败去重使用逻辑turn owner；同turn代理重启不重复记录，下一逻辑turn不被重复局部编号吞掉，原Ops Turn局部表示不改。复核发现的A→B后429换号按A选号/请求价风险已修复，重试选号、渠道映射及费用归属跟随当前B请求。
+- native安全7顶层/24 PASS、既有native9/9、handler18/27及实际WS race4/11通过；Ops41/61、未变并发owner race22/55、既有模型/计费11/25和shared replay helpers6/32按边界复用。新增反例先红后绿；固定旧/新16同oracle各25 PASS及未变producer/存储/权限/前端证据按原边界复用，不重复全量门禁。三次fresh只读修复复核；先后确认的跨模型P1及字符串形态P2均已关闭，最终无确认阻断。审计`20261010T014850Z-kin-plus-native-turn-replay-s35-8306a592`已验证闭合。
+- 新增native后续轮次换号、独立输入/完整工具上下文及跨模型映射和实际费用计算验证；WS使用simple模式的真实RecordUsage和仓库夹具，不证明实际余额扣款。标准扣费/幂等与调度对照按未变owner复用。完整JWT服务器、付费上游、生产、passthrough后续轮次换号及后续轮次同账号重建未新增运行时覆盖；隐藏WS 429未增加恢复telemetry producer，历史未知入口仍未知。
+- [执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s35-native-当前轮次安全重放修复与复验)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-native-fix-validation.json)、[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-native-fix-reviews.json)及[审计摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-native-fix-subagent-digest.md)同步两个既有目录；保留此前部分完成/P1阻断记录。S3.5已勾选，下一项S3.6未开始。本轮无push、PR更新、远端CI、合并、镜像发布或生产部署。
+
+## 2026-10-09：KIN 借鉴 Plus S3.5 验证执行，既有 native WS P1 阻断完整验收
+
+- 本轮仅S3.5，复用干净personal来源S3.4完整e3140a68应用树，固定原分支后建立`codex/plus-routing-behavior-s35`；测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`只新增HTTP/WS两份测试，生产源码不改。personal仍9397eb8af、草稿PR #5仍旧88156f09未合并；未使用main应用源码，原S0的17项改动及其他树旧正文/源码保留。
+- HTTP真实402/429选号、转发、冷却和Ops日志验证失败评估1与恢复评估2分开，后续请求/已排队行不串用，恢复StatusCode=200保持失败SLA外。native/passthrough真实socket各两连接三turn、首turn换号及native同账号重建，真实日志/队列/6条用量owner与后续未选号NULL检查通过。simple模式用量与标准扣费证据分开。
+- 新增及当前行为对照共19顶层/32 PASS，WS race通过；固定pre-S3 personal与当前16同oracle各25 PASS，调度、429限次、402冷却、取消停止切换及标准余额/订阅/atomic/legacy费用和去重一致。17个S3.3输入、6个producer输入和12份原日志核实后按原边界复用；前端未变，不重跑S3.4页面/build或全量CI。
+- 额外native第2turn 429换号探针自然退出1：误发第1turn载荷并收到旧响应ID，真实日志的逻辑turn2与旧请求结果错配。pre-S3整个forwarder和关键分支相同，按源码对照归类既有P1，旧运行时未执行。fresh只读reviewer确认问题及新测试边界，外部队列夹具阻塞和统计元数据已关闭；本轮未修生产源码，不把完整后续换号验收报通过。
+- [S3.5执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s35-验证归属与行为保持部分完成既有-p1-阻断)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-validation.json)、[复核/开放风险](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-reviews.json)及[审计摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-subagent-digest.md)同步现存应用树和用户原指定目录。S3.5保持未勾选，先修复既有native当前turn安全重放再复验；S3.6未开始。无push/PR更新/合并、镜像发布或生产部署。
+- 收尾5个历史目录/Git worktree条目已移出，本轮无删除/归档；分支与snapshot保留，22527个原文件逐项哈希一致，包括维护树未提交记录。维护文档位置已不存在，未重建目录或覆盖snapshot；保留外部状态证据。
+
+## 2026-10-09：KIN 借鉴 Plus S3.4 现有错误详情扩展完成
+
+- 本轮仅S3.4。核对personal9397eb8af、KlN `.5/c7aacf5d`及未合并草稿PR #5旧候选88156f09；复用干净S3.3 personal应用树032db7982，新建`codex/plus-routing-details-s34`，应用`d23474171035320eda06a35d76d455d7f8d7aae4`。原S3.3分支固定，main仅登记文档，原S0的17项源码改动、其他工作树和各自旧journal保留。
+- Usage/Ops共用管理员错误详情展示入口池/已知过滤及35双语原因、完整/部分/未知、选择层/原因、评估序号/已知WS轮次；0与NULL/缺失分开，partial解释已知下界，未知版本不伪造数量。保留阶段、来源、责任方、根因及载荷，不新增敏感字段或用户/列表可见性。show/errorId/errorType generation隔离详情和关联响应，关闭/切换/卸载不串记录。
+- 最终78项定向测试、8文件lint、类型及生产构建通过；旧响应覆盖反例先红后绿。中文亮1440/英文暗390两组实际前端＋合成GET API：四种状态、Escape、pending关闭后新记录/旧响应晚到、Ops详情返回通过，无console error/warning；首屏/面板截图已目视检查。既有Ops深链接首次列表无GET的问题登记为范围外，普通卡片入口通过，未扩展修改。夹具引导层/接口/动画问题及PNPM/i18n测试环境诊断保留。
+- S3.3的17后端输入一致，发送/队列预算/SQL/PG16/固定旧源码兼容/用户白名单/race按原边界复用；旧S2.7 CI不能证明新候选。fresh只读critical_reviewer无确认阻断，未独立执行测试或浏览器；动态生命周期组合及完整JWT/native-passthrough多turn日志/综合调度扣费边界未伪称完成。
+- [执行证据S3.4](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s34-扩展现有错误详情)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.4-validation.json)、[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.4-reviews.json)和closed/verify通过的[委派摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.4-subagent-digest.md)同步三处；仅S3.4勾选，下一项S3.5「验证归属与行为保持」，未自动开始。无push/PR更新/合并、镜像发布或生产部署。
+
+## 2026-10-09：KIN 借鉴 Plus S3.3 错误存储与 DTO 贯通完成
+
+- 本轮仅S3.3。personal仍9397eb8af，草稿PR #5仍旧S2.7候选88156f09且未合并；从干净personal来源S3.2完整候选d9b06f4建立独立`codex/plus-routing-storage-s33`，应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`。main维护树只登记文档，没有替代personal应用源码。
+- 发送绑定记录不可变诊断与request/turn owner，WS跨owner旧绑定失效；同turn重启/同账号重试保持。上游各事件保存所属尝试，provider最终错误取最后实际失败，routing取本次评估，RequestScoped保持nil。Voice/Realtime两次真实凭据失败绑定补齐，没有伪造最终选择耗尽的第三次发送。
+- 严格v1校验及队列自有JSON/字节预算，nullable JSONB迁移252、单条/批量SQL第39参数、严格读回及admin单详情DTO贯通。历史NULL与观察0分开，坏诊断仅丢对象而真实故障保留；普通/include_detail列表裁剪新对象，用户白名单与归属不扩展。
+- 最终owner定向14顶层/36 PASS及两包race通过；既有handler63顶层/129 PASS、service26顶层/59 PASS按未变边界复用，admin5次handler读取、用户4顶层、SQL/DTO、真实PG16及固定旧d9b06f4源码往返均通过。复用S3.2未变producer/调度/core race；S2.7 CI只证明旧候选。fresh只读复核首turn继承建连诊断P2关闭，最终无确认残留；复核未独立执行测试，完整JWT服务器/native-passthrough多turn日志E2E/页面未执行。
+- [任务证据S3.3](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s33-贯通错误存储与-dto)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.3-validation.json)、[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.3-reviews.json)及closed/verify通过的[委派摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.3-subagent-digest.md)已登记。三处各自旧journal全文保留，原S0的17项应用改动及其他现存树HEAD/源码不变。S2.5旧目录核对中已移除，本轮工具未删除/归档；原分支及19份未提交记录按开工哈希保存在本地证据目录。
+- 临时容器已清理，Colima恢复停止。S3.3勾选，下一项S3.4「扩展现有错误详情」，未自动开始；S3.5/S3.6不提前完成。没有新完整Go/CI/浏览器/付费上游或生产请求，没有push/PR更新/合并/镜像发布/生产部署。
+
+## 2026-10-09：KIN 借鉴 Plus S3.2 实际决策 producer 接入完成
+
+- 本轮仅S3.2。最新personal仍9397eb8af，草稿PR #5仍S2.7候选88156f09且未合并；从personal来源建立独立`codex/plus-routing-producer-s32`，应用提交`cee1e908261c68880040b740aae8054410e03070`。main维护树只登记，原S0的17项应用改动及全部旧工作树保留。
+- 接入OpenAI主调度advanced/legacy及公开LoadAwareness、渠道/Grok/阈值/compact/DB、sticky/子池、proxy第二轮/gwpool/图片fallback真实快照。入口池与过滤按不同ID计一次，保持0/NULL/partial；完整新评估、深副本及结构化错误保持原错误链。HTTP/SSE请求、Responses WS建连/逻辑turn、Voice/Realtime预accept重选owner接入；未接入平台/独立旧入口/TokenCount保持nil。
+- 最终服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归及core/handler race通过，13文件格式/hash/diff检查通过。fresh只读复核四项问题全部关闭；复核未独立运行测试，native/passthrough后续第三turn仍用共享映射/scope及既有回归，HTTP bridge有新增实际WS反例。夹具早期Grok/WS失败原因与修正记录完整，无依赖变更。
+- 已更新[任务证据S3.2](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s32-实际决策-producer-接入)、合同覆盖补充、验证/保留清单及已关闭验证的[委派摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md)。旧执行证据与各树journal全文保留；本地应用树同步既有S2.7/S3.1登记，其他树原源码不改。S2.7旧CI只证明旧候选，没有新完整门禁/DB/浏览器或付费上游。
+- S3.2勾选；下一项S3.3「贯通错误存储与DTO」，未自动开始。发送/终态和Ops队列绑定、持久化/迁移、DTO/API/页面未实施；S3.5/S3.6未提前勾选。没有push/修改PR、更新personal、合并、镜像发布或生产部署。
+
+## 2026-10-09：KIN 借鉴 Plus S2.6 模型查看流程验收完成
+
+- 本轮仅S2.6。personal仍`9397eb8af`、KlN `.5/c7aacf5d`；复用干净S2.5 personal来源工作树HEAD `f6e91d55d05ca71332657bd577f223ccb7849cb0`（S2.4功能`b8cf49ca2`、S2.5验证`3722c48cc`），未用main应用源码。原S0的17应用文件及应用4380个源文件校验保持，未改生产代码/扣费/调度/迁移/依赖。
+- 本地Chromium/Playwright 1.62.1：中文亮1440、英文暗390两组各9流程通过，检索/详情/分组档位报价/0与unknown、刷新后权限收窄/403清空/空目录/关闭入口/重试及键盘窄屏均通过。每组1次故意403资源错误，其他无error/warning。使用合成API/用户，不把浏览器夹具当真实后端权限证明。
+- S2.2–S2.5输入与原产物校验后按原边界复用，包含真实JWT/PG16/Redis权限及64组HTTP/计费对账；S2.4旧构建目录缺失，仅重建Vite静态资源，成功并保留既有警告。首轮工作目录/Playwright命令环境和null选项夹具断言错误均记录修正；生产源码未改。
+- 1次fresh只读复核可见范围与价格来源，未确认问题，未独立运行测试；审计 `20261009T190805Z-kin-plus-model-flow-s26-e70c703d` closed/verify passed。已更新[执行证据S2.6](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s26-模型查看流程验收)及任务状态，三个登记位置各自旧journal全文保留。
+- S2.6勾选；下一项S2.7未自动开始。未运行全量/浏览器矩阵/远端CI，不推送、不合并、不发布镜像、不部署生产；本轮文档未提交，应用和原候选HEAD保持。
+
+## 2026-10-09：KIN 借鉴 Plus S2.5 权限与报价验证完成
+
+- 本轮仅S2.5。personal仍`9397eb8af`、来源KlN `.5/c7aacf5d`；从干净S2.4 `1696d054c`创建personal来源 `codex/plus-catalog-verify-s25`，验证候选`3722c48ccdc0e4468dbc5c6ebb13584624c566d6`，只新增integration合同测试，未改生产源码/扣费/调度/迁移/依赖。原S0的17应用文件校验一致；旧S2.3/S2.4目录后续不可见但Git分支/提交保留，本会话未执行删除或归档。
+- 真实PG16/Redis、JWT/生产路由/SQL仓库验证A→B→A主体、查询参数无提权、订阅/专属/停用/软删除/空组、旧数组、Token撤销、后台模式及共用限流；最终2顶层/11 PASS。HTTP价格同输入64组合与独立生产owner费用一致，明确0/unknown、倍率覆盖一次、完整四档/阶梯和分时/effort规则。测试用本地合成用户，GET审计插槽no-op，无生产凭据或扣款。
+- S2.2–S2.4的30输入文件/51原产物匹配，按原边界复用。首次编译及后台缓存夹具失败已诊断修正；两次fresh只读复核，三项测试保护缺口加强断言并定向重跑关闭，未确认生产缺陷；复核未独立运行测试。审计`20261009T170219Z-kin-plus-catalog-verify-s25-cd7afaef` closed/verify passed。
+- [执行证据S2.5](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s25-权限与报价一致性验证)和任务状态已更新，三处旧journal全文保留。临时容器已清理、Colima恢复停止。S2.5勾选，下一项S2.6未开始；本轮未跑浏览器阶段/全量/远端CI，不推送、不合并、不发布镜像、不部署生产。
+
+## 2026-10-09：KIN 借鉴 Plus S2.4 可用渠道页面完成
+
+- 本轮仅S2.4。只读核对personal仍`9397eb8af`、来源KlN `.5/c7aacf5d`；从干净S2.3 personal来源候选`b8db95969`建立`codex/plus-catalog-ui-s24`，已验证应用`b8cf49ca25007cbc23338a9443b71df4c0411155`。main来源文档树仅登记本change与journal，没有替代应用源码；原S0的17文件及各原候选/聊天树保留。
+- 既有可用渠道入口显式读取catalog，按平台/模型聚合但保留各组报价；增加模型/分组/渠道检索、分组与服务档详情、阶梯/缓存/单位/参考时点和分时/effort规则。服务端适用倍率仅应用一次，零与未知分开，个人倍率失败标参考及重试，不承诺实时健康或最低路由价。刷新/主体切换/卸载取消并拒绝晚到响应，旧数组客户端保持。
+- 新前端合同10去重用例、11文件lint、最终类型与build通过（含双语完整性3用例）；测试i18n夹具失败已诊断修正，只重跑受影响文件。保留测试compiler及既有build警告。Chromium1440/390、中英/明暗4组检索、详情、报价切换、summary Enter/Space、Escape焦点、错误重试/空目录通过；额外2组价格表键盘滚动与截图通过。使用合成GET，无生产JWT/数据库/权限验收；正常流程零error/warning，每组1次有意500单独验证恢复。
+- 1次fresh只读复核未确认可行动缺陷，未独立运行测试；审计`20261009T164258Z-kin-plus-catalog-ui-s24-61dc32dd` closed/verify passed。S2.2的6文件/12产物与S2.3的5文件/14产物一致，原owner/DTO检查按未变边界复用；后端、计费、调度、迁移及依赖未改。
+- [任务状态与执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s24-可用渠道页面模型与分组报价目录)及候选/检查清单已更新。S2.4已勾选，下一项S2.5未开始，S2.6/S2.7保持未执行。本轮不推送、不触发远端CI、不合并、不发布镜像、不部署生产；三处登记增量保留各自旧journal。
+
+## 2026-10-09：KIN 借鉴 Plus S2.3 模型目录 DTO 与查询分支完成
+
+- 本轮只执行 S2.3。personal 仍为 `9397eb8af`、来源 KlN `.5/c7aacf5d`；从干净 S2.2 候选 `e4083c38f` 建立 `codex/plus-catalog-s23`，已验证应用 `49c209a77059d2927f78bbd31c1dd479b509dc6f`。复用 main 来源文档工作树仅登记文档，没有替代应用源码。
+- 同一用户 GET 仅单个精确 `view=catalog` 返回目录，默认/其他/重复值兼容旧数组。真实 GetAvailableGroups 先授权，active绑定与平台/公开请求名白名单先于聚合；保留分组报价、空组、稳定offer_key及显式DTO。报价来自S2.2同次配置快照，倍率只读当前用户一次、覆盖含0、失败标参考；未知单位不猜测，不改扣费/调度。
+- 新HTTP/DTO合同13顶层/32PASS及旧helper10用例通过，共23顶层/42PASS；服务端构造编译通过（无业务测试运行）。固定Wire v0.7.0用生成器临时modfile完成，应用go.mod/go.sum原值保留；两次生成环境失败保留诊断。S2.2同输入owner对账和定向回归复用。
+- 1次fresh只读复核未确认可操作缺陷；未独立重跑测试。审计 `20261009T155935Z-kin-plus-catalog-s23-f949dc81` closed/verify passed。复核后仅修正分支注释；S0原17文件、S1的54文件/45原产物、S2.2的6文件/12原产物均匹配，原候选与聊天checkout保留。三处计划及各自旧journal增量保留。
+- [任务状态与执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s23-模型目录-dto-与查询分支)已更新；[DTO合同](../openspec/changes/adopt-plus-usage-and-diagnostics/catalog-contract.md#s23-已实现的目录-dto-与查询分支)记录单位、倍率与白名单。S2.3已勾选，下一项S2.4页面未开始；真实JWT/数据库/浏览器、S2.5/S2.6、全量与远端门禁未执行；不推送、不合并、不发布镜像、不部署生产。
+
+## 2026-10-09：KIN 借鉴 Plus S2.2 权威价格解析完成
+
+- 本轮只执行 S2.2。核对 personal 仍为 `9397eb8af`，来源 KlN `.5/c7aacf5d`；从干净 personal 来源 S1 `e3edb5666` 建立 `codex/plus-pricing-s22`，已验证应用 `e82287300d1b7cc625295c5307ebaa83c707c019`。main 来源新文档树 `codex/plus-pricing-s22-evidence` 仅登记文档，没有替代应用源码。
+- [权威价格服务](../openspec/changes/adopt-plus-usage-and-diagnostics/pricing-contract.md)复用 KIN 真实 resolver、计费探针、上下文/服务档位、FreeFast、分时/effort 与个人/分组/高峰/媒体倍率；明确零价和未知分开，实际依赖请求或未支持单位保留规则/unknown。零标签继续按真实上下文求价，不展示成固定价。
+- 新增15顶层/22 PASS项及48组生产 owner 对账通过；既有98顶层/158 PASS项定向回归通过。2次fresh只读复核确认4项问题均以反例先红后绿关闭；最终标签小修遵循第二轮认可方向并完成对账，没有第三次fresh全文复核。审计 `20261009T151715Z-kin-plus-pricing-s22-ef4e4438` closed/verify passed。
+- 原17应用改动、S1候选和聊天checkout保持原值；S0/S1的17/54文件及45个原产物校验匹配，复用原边界成功证据。三处本计划及各自历史日志增量保留。详见[执行证据 S2.2](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s22-kin-权威价格解析)。
+- S2.2已勾选；下一项S2.3模型聚合DTO与查询分支未开始。目录API/权限聚合、页面及媒体单价未接入；本轮不运行对应浏览器/数据库或全量门禁，不推送、不合并、不发布镜像、不部署生产。
+
+## 2026-10-09：KIN 借鉴 Plus S1.1–S1.4 第一批完成
+
+- 本次只执行S1.1–S1.4。开始/结束只读核对personal仍为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；来源保持KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。新应用工作树 `codex/plus-usage-s1` 从personal创建，完整保存原S0候选到 `6bf78b18ce759e4f211c62b0518c3bca7418efde`，原17应用文件未修改；原聊天CI维护checkout保持干净，没有使用main应用源码。
+- 最终已验证应用 `3f04437572e2819f0313ccc2a3f1a618a2afcdf0`。冻结9项新计时/终态字段与历史0/NULL/unknown；新增251迁移，正规Ent生成，显式SQL/单条/批量/幂等/best-effort fallback/DTO/前端类型贯通。保留旧first_token_ms/openai_ttft_mode、Token/费用/调度/重试与原用量owner。
+- 第一批原生Responses普通/透传HTTP/SSE、JSON/SSE转JSON、pooled/ingress/桥接/原生WS采集接线；沿用既有duration/turn起点、ID归属、首次终态冻结与异步深复制。页面与CSV/Excel共用TPS helper，分清旧首字/严格首Token、媒体与部分状态，统一说明非流式完整内容观察边界。
+- 验证：真实PG16单条/批量/重复写/历史未知/失败fallback/Ent，55个repository与13个DTO顶层检查通过；真实备份恢复后固定旧源码与新源码S1→S0→S1启动/迁移/SQL/DTO往返通过。最终定向采集、计费快照、WS与race通过；前端162去重用例、改动lint、i18n/类型/Vite通过；四组本地Chromium页面/键盘/窄屏/双语及实际32行CSV/Excel解析一致，说明修正后四组弹层重新验收。仍有效的S0和未改动证据复用，构建既有warning如实保留。
+- 4次fresh只读复核完成，确认的checksum临时夹具、权威音频拆分/同源用量/shell item/JSON来源及usage-only音频事实问题均关闭；新增反例先红后绿。最终20行按实际3f0443757复核可关闭；审计 `20261009T092527Z-kin-plus-usage-s1-c8034a11` closed/verify passed，34产物完整，无异常。复核是代码/日志检查，不称独立执行测试。
+- [任务与证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md)、[实际覆盖](../openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md)、[交付准备](../openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)已更新并按维护职责增量同步main来源文档候选及原指定位置，各自旧journal全文保留。文档提交会推进本地HEAD，后续CI绑定真实最终候选；远端必要CI尚未执行，部署运行树兼容仍需针对真实生产候选审定。
+- HTTP原失败不新增用量行；无可信turn/ID、opaque frame、Cyber和转换/其他平台仍旧版本或未知，不能称全平台完成。没有provider凭据请求、生产权限隔离或浏览器矩阵；没有推送/PR/Actions、合并、镜像发布、SSH或生产部署。S1.1–S1.4已勾选，S0.2/S0.3、S1.5与后续保持未执行；下一项推荐S2.1权限与接口合同，本会话到此暂停，不自动推进。
+
+## 2026-10-09：KIN 借鉴 Plus S0.1 最终候选核对完成
+
+- 本次仅执行 S0.1。远端 personal、本地 personal 与 `codex/fix-version-usage-help` HEAD 均为 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，应用仍从该 personal 工作树核对；来源保持 KlN `.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`。没有使用 main 应用源码替代候选。
+- 原有 17 个应用文件与计划编制时 SHA-256 清单全部一致；最终 diff 确认个人 release 通道/缓存、镜像与源码更新能力、版本检查状态、TPS/首字独立点击说明及旧首字文案。应用候选仍未提交，以应用树 `27d96087e53a97386fd86935afa4ccc3dcd991e3`、基线 SHA 与补丁/文件校验值固定内容；该树不是可用于发布的提交 SHA。
+- 复用原始 Go 两包、UsageTps/UsageTable/HelpTooltip 97 用例、最终 VersionBadge 10 用例、i18n/类型/Vite build、合成 API 浏览器交互及真实匿名 GitHub 查询证据。历史独立复核审计包的 20 个产物校验通过；本次没有新委派。补充版本 store 28 用例及 13 个改动前端文件 ESLint，通过。
+- 补充检查先被默认 pnpm 11 与现有 pnpm 9 依赖布局不匹配阻止，实际测试未启动；改用已有 pnpm 9.15.9 后两项检查通过，没有安装依赖或改动锁文件。浏览器首轮遗留版本文案 warning、最终版本三状态零 error/warning，以及历史 build 警告分别登记，不混称零 warning。
+- 按维护职责从最新 origin/main `b43a472f4b1bde5983b3bdfa1447cd3622a77540` 创建 `codex/plus-s01-evidence` 文档工作树，登记[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md)，同步原计划位置的任务状态和证据；两处原有日志均保留，原聊天 CI 维护 checkout 未修改。
+- S0.1 已勾选；下一项为 S0.2 的实际候选提交 SHA、必要 CI 与交付条件准备，未自动开始。应用与本次文档均未提交/推送，合并、镜像发布、生产部署和后续阶段均未执行；旧 `.5-tps.1` 发布/生产结果不能代表本修复，固定后端运行树兼容证明仍需针对真实候选审定。
+
+## 2026-10-09：KIN 借鉴 Plus 功能计划与任务清单
+
+- 按用户要求仅编写计划文档和任务清单，保存于 `openspec/changes/adopt-plus-usage-and-diagnostics/`，未实施新增应用功能。
+- 固定当前 KIN `.5` 来源和 Plus `90da415c` 参考；主线为现有修复交付、用量计时/完成状态、模型价格、错误诊断，服务状态与用户协助按实际规模另行排期。
+- 计划保留现有指纹、调度、gwpool、计费与旧首字配置；建议新增严格首字字段，避免替换旧字段而影响现有统计。新增迁移、请求/WS 快照、权限与报价一致性均写入对应验收任务。
+- 文档完成不代表代码、发布或线上验收完成。现有版本/说明修复候选保留；本轮不推送、不发布、不连接生产。
+- 文档检查覆盖本地链接、唯一任务编号、勾选状态和 diff 空白；既有 17 个应用改动文件的内容校验值保持一致。本轮未运行应用测试或构建。
+
+## 2026-10-08：个人版本提示、TPS 与首字说明修复
+
+- 当前聊天 checkout 为 CI 维护分支，未将该树的应用源码用于修复。复用已部署应用来源 `personal` / `9397eb8af`，在 managed worktree 的 `codex/fix-version-usage-help` 准备候选，保留 KlN `.5` 与个人 TPS 补丁。
+- 版本 owner 识别个人 `X.Y.Z-klno.N-tps.N` 通道，按基础版本、KlN 序号、TPS 序号比较；个人发布查询 `ccisnoxx/sub2api`，`Wei-Shaw/sub2api` 继续只读监测。缓存绑定仓库，旧 KlN/原版缓存不混用。API 报告真实构建类型、发布仓库和更新能力；带个人标签的源码构建保持手动更新；个人镜像与源码构建在 service 提前拒绝二进制更新及回滚，个人 HTTP 路由返回 `409 / IN_PLACE_UPDATE_NOT_SUPPORTED`。
+- 个人徽标保留完整后缀，固定 digest 更新说明遵守现有部署流程与回滚数据兼容/部署记录合同；检查失败及尚未检查不宣称“最新”。普通 KlN release 升级路径保留。
+- TPS 移除标签和数值的原生悬停说明，使用独立圆圈点击入口；首字点击入口仅说明首次响应事件/输出耗时，明确平台与设置可能记录响应元数据、推理或工具调用，未采集显示 `-`。两个说明可独立关闭，点击另一个入口会关闭此前弹层，Enter/Space/Escape 交互保留。
+- 已读取 LuckyKuang/sub2api-plus 的当前 `UsageTable.vue` 和 `usageTiming.ts`：兼容的平均速率公式、颜色、数字格式沿用；完整首字详情依赖当前 KlN 接口不存在的 `timing_version`、`first_output_kind`、`first_output_ms`、`last_token_ms` 等字段，本轮未扩展后端用量合同或伪造该数据。
+- 验证：UsageTps/UsageTable/HelpTooltip 97 个用例通过；版本 service/handler 的定向 Go 测试两包通过；VersionBadge/app/locale completeness 共 41 个用例通过（最终 VersionBadge 10 个，其余检查沿用未变代码的成功证据）；改动前端文件 ESLint 与 diff 检查通过；前端 build（i18n、Vue 类型检查、Vite）通过。浏览器在 `http://127.0.0.1:4173` 验证管理员/用户、1440/390、中文/英文、明暗主题的说明交互及三种个人版本状态。使用合成 API，无生产认证或数据。
+- Browser 插件未列出，使用已有 Playwright/Chromium；版本稳定候选的三个状态无控制台错误或警告。首轮 TPS 浏览器验收遇到实现中的版本文案尚未添加，后续版本验收确认已补齐。未运行全套回归或发布 gate，未推送、创建 PR、发布镜像、SSH 或部署。
+- 真实 GitHub 元数据补充：个人两个已发布版本均 `draft=false / prerelease=true`，`releases/latest` 实际返回 404。已将个人查询改为读取最近 100 条发布，过滤草稿和非法标签、保留预发布，按五段版本数字选最新项；普通 KlN latest 查询与回滚筛选保留。新增回归在修正前分别复现预发布查询失败及源码误判为容器，修正后通过。
+- 真实网络闭环：使用最终 `UpdateService` 和仓库 GitHub 客户端匿名查询个人发布，`.5-tps.1` 正确识别自身为最新、无 warning，release 模式为 container；同通道缓存用于 source 构建时模式为 manual。无生产接口或更新操作。
+- 两次独立只读复核完成：首轮发现预发布 latest 查询及个人源码构建误判，两项已修正；最终复核未确认新增可操作问题。子代理审计 Bundle 已校验并归档（`20261009T061925Z-fix-version-tps-tooltips-06d9f2b5`）。未把源码修复或本地验证记录成线上已生效。部署工具的固定运行树兼容证明需要针对本候选重新审定，不能沿用 `.5` 上线时的旧证明。
+
 ## 2026-10-08：个人镜像发布，P3 实现候选
 
 - 从已验收 personal 029cd8fb 创建 codex/personal-release；读取默认 main 最新阶段记录，未合并 main 应用源码。来源仍为 v0.2.14-klno.3/de08df02，TPS 保留，未处理 .5 历史升级或连接生产。

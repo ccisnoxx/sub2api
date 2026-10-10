@@ -1,0 +1,199 @@
+{
+  "task": "S3.3",
+  "status": "passed",
+  "application_sha": "ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1",
+  "document_locations": [
+    "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+    "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+    "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin"
+  ],
+  "checks": {
+    "document_and_source_diff_check": "passed",
+    "old_journal_each_full_body_retained": true,
+    "old_evidence_and_frozen_contract_body_retained": true,
+    "only_s33_checkbox_newly_completed": true,
+    "s34_s35_s36_unchecked": true,
+    "local_markdown_links_and_anchors_checked": 416,
+    "evidence_json_parse": "passed",
+    "final17_source_hashes_match": true,
+    "old_worktrees_checked": 7,
+    "old_non_document_files_checked": 31285,
+    "original_s0_17_application_edits_preserved": true,
+    "old_existing_worktree_heads_unchanged": true,
+    "missing_s25_branch_and_exact19_backups_retained": true
+  },
+  "old_worktrees": [
+    {
+      "path": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "status_preserved_outside_document_whitelist": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "status_preserved_outside_document_whitelist": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head": "aeead84a68545ed8ee6697345f42aa00e59f1cef",
+      "status_preserved_outside_document_whitelist": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+      "status_preserved_outside_document_whitelist": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin",
+      "head": "d9b06f4fe78a8588282958783d91e9966ff05231",
+      "status_preserved_outside_document_whitelist": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+      "status_preserved_outside_document_whitelist": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+      "head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+      "status_preserved_outside_document_whitelist": true
+    }
+  ],
+  "missing_worktrees": [
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+      "head": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+      "branch_present": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+      "not_removed_by_this_task": true,
+      "same_bytes_from_commit": 4567,
+      "same_bytes_existing_sources": {
+        "openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json",
+          "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-candidate.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json",
+          "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-document-checks.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json",
+          "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-reviews.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md",
+          "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-subagent-digest.md"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json",
+          "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.6-validation.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-candidate.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-document-checks.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s2.7-validation.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-candidate.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.1-document-checks.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-document-checks.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-subagent-digest.md"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.2-validation.json"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md"
+        ],
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md": [
+          "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+          "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+          "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+        ]
+      },
+      "unresolved_files": [],
+      "recovered_journal": {
+        "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/preserved-s25-journal.md",
+        "sha256": "1402c8f380f0ee23b86098887d7f44c6d59b0296533f0662f3e88bf811817c77",
+        "base": "f6e91d55d05ca71332657bd577f223ccb7849cb0",
+        "entry_source": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/docs/dev-journal.md"
+      },
+      "uncommitted_recovery_root": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/preserved-s25-uncommitted",
+      "uncommitted_recovery_files": 19
+    }
+  ],
+  "issues": [],
+  "preexisting_link_gaps": [
+    "missing anchor: /Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin/docs/dev-journal.md ../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md implementation-evidence.md#s31-结构化诊断合同冻结",
+    "missing anchor: /Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin/docs/dev-journal.md ../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s31-结构化诊断合同冻结"
+  ],
+  "validation_reuse": "初次文档检查的31285个非白名单文件保留成功结果复用；后续仅文档修改，7个原HEAD再核对",
+  "audit": {
+    "id": "20261009T213638Z-kin-plus-routing-storage-s33-164e4725",
+    "bundle_status": "closed",
+    "verify": "passed"
+  },
+  "not_executed": [
+    "完整门禁",
+    "push",
+    "合并",
+    "镜像发布",
+    "生产部署"
+  ],
+  "next_task": "S3.4 未开始"
+}

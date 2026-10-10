@@ -1,0 +1,902 @@
+{
+  "task": "S3.6",
+  "status": "独立复核与阶段交付完成",
+  "candidate_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+  "initial_candidate_sha": "cc068ceb9f1fe2ad31397f75a209aea5b0800ad9",
+  "application_repair_sha": "da581c6846d1bf89926ca9730abf2290ea8b65ea",
+  "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "pull_request": "https://github.com/ccisnoxx/sub2api/pull/6",
+  "remote_gate": {
+    "accepted": true,
+    "recorded_utc": "2026-10-10T03:34:17.973161+00:00",
+    "run": {
+      "id": 38020112510,
+      "event": "pull_request",
+      "head_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+      "head_branch": "codex/plus-routing-delivery-s36",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510"
+    },
+    "pr": {
+      "number": 6,
+      "state": "open",
+      "draft": true,
+      "merged_at": null,
+      "html_url": "https://github.com/ccisnoxx/sub2api/pull/6"
+    },
+    "head": {
+      "sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+      "ref": "codex/plus-routing-delivery-s36"
+    },
+    "base": {
+      "sha": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "ref": "personal"
+    },
+    "remote_personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "jobs": [
+      {
+        "id": 114119091996,
+        "name": "binding",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119091996",
+        "started_at": "2026-10-10T03:19:11Z",
+        "completed_at": "2026-10-10T03:19:25Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Verify candidate and latest personal",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144078,
+        "name": "sync-contracts",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144078",
+        "started_at": "2026-10-10T03:19:29Z",
+        "completed_at": "2026-10-10T03:19:37Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run python3 -m unittest discover -s .github/personal-sync -p 'test_*.py'",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144097,
+        "name": "tps",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144097",
+        "started_at": "2026-10-10T03:19:28Z",
+        "completed_at": "2026-10-10T03:20:55Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run pnpm/action-setup@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/setup-node@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run pnpm --dir frontend install --frozen-lockfile",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "TPS contracts and frontend build",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/setup-node@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run pnpm/action-setup@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144349,
+        "name": "existing-ci / golangci-lint",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144349",
+        "started_at": "2026-10-10T03:19:28Z",
+        "completed_at": "2026-10-10T03:23:57Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/setup-go@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Verify Go version",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "golangci-lint",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post golangci-lint",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/setup-go@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144357,
+        "name": "existing-ci / test",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144357",
+        "started_at": "2026-10-10T03:19:28Z",
+        "completed_at": "2026-10-10T03:33:45Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Check Docker Compose simple mode environment",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/setup-go@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Verify Go version",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Unit tests",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Integration tests",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "OpenAI recording concurrency checks",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/setup-go@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144365,
+        "name": "existing-ci / release-helpers",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144365",
+        "started_at": "2026-10-10T03:19:28Z",
+        "completed_at": "2026-10-10T03:19:40Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/setup-python@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run python -m pip install -r .github/release-tools/requirements-release.txt",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run python -m unittest discover -s .github/release-tools -p 'test_*.py'",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run bash -n .github/release-tools/release-images.sh",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/setup-python@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144378,
+        "name": "existing-security / frontend-security",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144378",
+        "started_at": "2026-10-10T03:19:28Z",
+        "completed_at": "2026-10-10T03:19:51Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Set up pnpm",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Set up Node.js",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Install dependencies",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run pnpm audit",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Check audit exceptions",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Set up Node.js",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Set up pnpm",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144395,
+        "name": "existing-security / backend-security",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144395",
+        "started_at": "2026-10-10T03:19:28Z",
+        "completed_at": "2026-10-10T03:19:53Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Set up Go",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Verify Go version",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run govulncheck",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Set up Go",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144412,
+        "name": "existing-ci / shell",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144412",
+        "started_at": "2026-10-10T03:19:32Z",
+        "completed_at": "2026-10-10T03:19:45Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Check deployment scripts",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114119144421,
+        "name": "existing-ci / frontend",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114119144421",
+        "started_at": "2026-10-10T03:19:29Z",
+        "completed_at": "2026-10-10T03:21:04Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Setup pnpm",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Setup Node.js",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Install frontend dependencies",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Frontend typecheck and critical vitest",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Setup Node.js",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Setup pnpm",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 114121744946,
+        "name": "personal-ready",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114121744946",
+        "started_at": "2026-10-10T03:33:49Z",
+        "completed_at": "2026-10-10T03:34:02Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Require every selected check",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Recheck candidate and current base after CI",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/checkout@v6",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ],
+    "ready": [
+      {
+        "name": "personal-ready",
+        "app_id": 15368,
+        "head_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+        "status": "completed",
+        "conclusion": "success",
+        "details_url": "https://github.com/ccisnoxx/sub2api/actions/runs/38020112510/job/114121744946"
+      }
+    ]
+  },
+  "gate_attempts": [
+    {
+      "id": 38018899219,
+      "candidate_sha": "cc068ceb9f1fe2ad31397f75a209aea5b0800ad9",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "confirmed_failure": "7项S3范围lint问题；新SHA同步后自动取消，后端完整测试未完成"
+    },
+    {
+      "id": 38019526434,
+      "candidate_sha": "59633c99ce1a84af70f7d1da7382d7d5c964c43e",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "confirmed_failure": "首轮同类输出限额隐藏的第八项错误返回；new-from-rev漏检，S3四包不限输出lint及并发1/1验证后关闭；新SHA同步后自动取消"
+    },
+    {
+      "id": 38020112510,
+      "candidate_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "validation_policy": {
+    "native_pr_runs": 3,
+    "different_candidate_shas": 3,
+    "manual_dispatches": 0,
+    "same_sha_reruns": 0,
+    "local_full_gate_runs": 0,
+    "unchanged_success_reused_by_boundary": true
+  },
+  "initial_reuse": {
+    "artifact_count": 53,
+    "source_count": 28,
+    "all_matched_at_initial_candidate": true
+  },
+  "final_source_reuse": {
+    "checked": 28,
+    "matched": 25,
+    "changed_by_lint_correction": [
+      "backend/internal/service/ops_routing_diagnostics_log_test.go",
+      "backend/internal/service/routing_diagnostics.go",
+      "backend/internal/service/openai_gateway_scheduling.go"
+    ]
+  },
+  "correction": {
+    "candidate_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+    "files": [
+      "backend/internal/service/openai_gateway_scheduling.go",
+      "backend/internal/service/openai_ws_native_resume_test.go",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go",
+      "backend/internal/service/routing_diagnostics.go",
+      "backend/internal/service/routing_diagnostics_test.go"
+    ],
+    "changes": "仅无调用wrapper、保证已存在的类型断言和测试lint修正；不改变调度/计费/诊断合同",
+    "targeted": {
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestOpenAIWSNativeLaterTurn|TestOpsRoutingDiagnostics|TestRoutingDiagnostics|TestOpenAIRoutingDiagnostics|TestOpenAIGatewayService_SelectAccountWithScheduler_(NoAvailableErrorReportsEmptyPool|NoAvailableErrorReportsModelNotSupported|DefaultDisabledUsesLegacyLoadAwareness|EnabledUsesAdvancedPreviousResponseRouting))' -count=1",
+      "exit_code": 0,
+      "top_level_pass": 35,
+      "test_pass_events": 114,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-targeted.jsonl",
+      "sha256": "376c6b5abb23b10b237de7386db885dc5c77488aecdc9bc51bde34190d72c153"
+    },
+    "lint": {
+      "command": "golangci-lint 2.14.0 run ./internal/service --new-from-rev=cc068ceb9f1fe2ad31397f75a209aea5b0800ad9 --timeout=5m",
+      "exit_code": 0,
+      "result": "0 issues",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-lint.log",
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    "independent_review_reuse": "fresh critical_reviewer审查cc068ceb9完整S3；五文件等价lint修正由主代理实际diff/完整最小owner/调用者核对及targeted/lint验证，未新增fresh最终全文复核。",
+    "corrected_source_sha256": {
+      "backend/internal/service/openai_gateway_scheduling.go": "c64018bf61691a43f763bdfbd5dd708a2e5d8ecabca748ea28611e106d5be6ec",
+      "backend/internal/service/openai_ws_native_resume_test.go": "43631a62d6e131912d78b00c85d1de0b06500c83a250ede9ed9bd195b715c495",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go": "df2f7bdcf29c6de9e5ce6030c8ab97e56895b03ba3ad5465077ef061e46f9905",
+      "backend/internal/service/routing_diagnostics.go": "01a33968033c5b9d9c704c22259d5a331e6ce5f6aec4915fd59299541b82c33b",
+      "backend/internal/service/routing_diagnostics_test.go": "af1743ef76d322fae410afb07a4e84adc7594f6d1c3b8a4efb9a761425cfca50"
+    },
+    "diff_sha256": "4bb09779da4609237f5e0242db2018acb3cc71eaba73e39634f2cf9030bbecc7",
+    "diff_stat": "5 files changed, 22 insertions(+), 24 deletions(-)",
+    "unused_wrapper_has_no_callers": true,
+    "constructor_invariant": "beginRoutingDiagnosticsSelection先调用EnsureRoutingDiagnosticsRequest；私有key的实际值必为非nil routingDiagnosticsRequest，逗号ok写法不新增回退/吞错。",
+    "production_contract_changes": [],
+    "lint_output_limit_diagnosis": "golangci-lint 2.14.0默认max-same-issues=3；首轮7项中同文案3项导致第8项错误返回未显示；本地new-from-rev筛选遗漏未改测试。",
+    "confirmed_lint_issue_count": 8,
+    "final_lint_checks": [
+      {
+        "command": "golangci-lint run ./internal/service --max-same-issues=0 --max-issues-per-linter=0 --timeout=5m",
+        "exit_code": 0,
+        "result": "0 issues",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-service-lint-final.log",
+        "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+      },
+      {
+        "command": "golangci-lint run ./internal/handler ./internal/handler/admin ./internal/repository --max-same-issues=0 --max-issues-per-linter=0 --timeout=5m",
+        "exit_code": 0,
+        "result": "0 issues",
+        "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-other-s3-lint-released-lock.log",
+        "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+      }
+    ],
+    "last_affected_test": {
+      "command": "go test -tags=unit -json ./internal/service -run '^TestRoutingDiagnosticsConcurrentSequenceAndPublish$' -count=1",
+      "exit_code": 0,
+      "top_level_pass": 1,
+      "test_pass_events": 1,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-concurrent-final.jsonl",
+      "sha256": "1fae3186ccb62113ca14f4387a8d0d7448c043daadc2af2a5896e8cee408d3bc"
+    },
+    "environment_failed_check": {
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-other-s3-lint-final.log",
+      "exit_code": 3,
+      "cause": "linter全局并行锁阻止启动；等service lint退出后顺序运行剩余S3包通过。"
+    }
+  },
+  "independent_review": {
+    "task": "S3.6 独立只读复核",
+    "accepted": true,
+    "candidate_sha": "cc068ceb9f1fe2ad31397f75a209aea5b0800ad9",
+    "diff_base": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "agent_type": "critical_reviewer",
+    "runtime_ref": "/root/s36_independent_review",
+    "runtime_ref_source": "spawn_metadata",
+    "open_findings": [],
+    "reviewer_ran_tests": false,
+    "reviewer_ran_browser": false,
+    "reviewer_ran_remote_actions": false,
+    "coverage": [
+      "advanced/legacy/channel/Grok/compact/proxy/image/gwpool选择事实与评估隔离",
+      "发送/终态provider与RequestScoped、恢复telemetry归属",
+      "WS逻辑turn/重启去重/新turn未选号、异步深副本与字节预算",
+      "nullable JSONB单批写/严格v1与事件内白名单读回",
+      "管理员单详情、普通/include_detail列表裁剪、用户归属及白名单",
+      "native当前安全载荷、当前模型选号/能力/映射/请求价",
+      "管理员面板0/NULL/partial与详情generation生命周期"
+    ],
+    "limitations": [
+      "管理员为真实handler/repository替身；PG16独立验证，完整JWT服务器未运行",
+      "WS simple费用计算/RecordUsage/仓库夹具不证明新WS余额扣款；标准owner对照按未变边界复用",
+      "passthrough后续换号/后续同账号重建/64项stream上限/result.Model缺失未新增runtime",
+      "隐藏WS429无恢复telemetry producer；未接入入口未知",
+      "复核未执行新CI/付费上游/生产/发布/部署"
+    ],
+    "observed_write_evidence": {
+      "baseline_files_checked": 4626,
+      "changed_files": [],
+      "git_status": "",
+      "head_before": "cc068ceb9f1fe2ad31397f75a209aea5b0800ad9",
+      "head_after": "cc068ceb9f1fe2ad31397f75a209aea5b0800ad9"
+    },
+    "audit_id": "20261010T025433Z-kin-plus-routing-s36-db5630b7",
+    "audit_dir": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-49a15fec/20261010T025433Z-kin-plus-routing-s36-db5630b7",
+    "reviewed_candidate_sha": "cc068ceb9f1fe2ad31397f75a209aea5b0800ad9",
+    "delivered_candidate_sha": "afcc7852b36a073dfc5fc0721ae8d24b90b7a335",
+    "post_review_changes": [
+      "backend/internal/service/openai_gateway_scheduling.go",
+      "backend/internal/service/openai_ws_native_resume_test.go",
+      "backend/internal/service/ops_routing_diagnostics_log_test.go",
+      "backend/internal/service/routing_diagnostics.go",
+      "backend/internal/service/routing_diagnostics_test.go"
+    ],
+    "reuse_boundary": "fresh critical_reviewer审查cc068ceb9完整S3；五文件等价lint修正由主代理实际diff/完整最小owner/调用者核对及targeted/lint验证，未新增fresh最终全文复核。",
+    "new_fresh_review_after_lint_correction": false
+  },
+  "data_boundary": "累计候选含251/252；固定旧repository/migration runner/PG16兼容不代表完整生产运行树；应用回退保留扩展列/ledger。",
+  "not_executed": [
+    "合并/更新personal",
+    "镜像发布/Release dry run/生成新digest/生产部署/SSH",
+    "完整JWT后端浏览器/生产扣款/付费上游",
+    "passthrough后续换号/后续同账号重建/64项stream上限/result.Model缺失的新runtime",
+    "其他阶段"
+  ],
+  "limits": [
+    "隐藏WS429无恢复telemetry producer；未接入入口未知",
+    "WS simple计算和用量仓库夹具不证明余额扣款",
+    "既有Ops深链接首轮列表加载限制保留",
+    "fresh阶段复核审查初始cc068ceb9；5文件等价lint修正由主代理核对与目标检查验证，未新增fresh最终全文复核"
+  ],
+  "external_actions": {
+    "candidate_branch_push": true,
+    "draft_pr_created": true,
+    "draft_pr_updated": true,
+    "native_personal_ci": true,
+    "merged": false,
+    "personal_updated": false,
+    "released": false,
+    "production_deployed": false
+  },
+  "next_task": "S4.1 确认启用需求（未排期）；S1.5/S0.2/S0.3按独立需求和授权另行选择",
+  "next_task_started": false,
+  "artifacts": [
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/baseline.json",
+      "sha256": "8fc99c491d1e3049fc039512137b91c9187fda0998991de9283133d4db1a9a10",
+      "bytes": 1782018
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/candidate.json",
+      "sha256": "959b653e5398b6ffbdf9e3df94fc840d8e4a02dfce1b10c065425295b3e52b4e",
+      "bytes": 6715
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/gate-start-binding.json",
+      "sha256": "266a069e5e92329a6c42af88b636be4cc3d81e5b3bb168710dcba80eb8aa725e",
+      "bytes": 1224
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/gate-corrected-start-binding.json",
+      "sha256": "090765d0cf8f532ea94a8d947f9d221c6a6dc575d1c3f70fb6b697e6adece75d",
+      "bytes": 511
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/gate-final-start-binding.json",
+      "sha256": "2c57854f8b7e5b83ee4f2a74182a7e0cc5f2dc2ffd6409fc9f19daf7ce42158f",
+      "bytes": 511
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/gate-first-status.json",
+      "sha256": "dc2672f13ad8bff6a4322a891ca47b9f3dc266d2e59bba4ede5d3ad611e08d29",
+      "bytes": 26267
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/gate-second-status.json",
+      "sha256": "a6e93d1306ce15263e0096bb7a2794e19bfed1a3d8626da0e6af6402d7911201",
+      "bytes": 26267
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/lint-first-failed.log",
+      "sha256": "1c8a6b397890b9cee81e09d00eadafc3944e40eba3fcea498927c6016c9500cf",
+      "bytes": 27389
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/lint-corrected-failed.log",
+      "sha256": "e0559f035e2ce2017a65ce1b67c3901180eaee8224a177d8364792a673ac038a",
+      "bytes": 25653
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-service-lint-final.log",
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+      "bytes": 10
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-other-s3-lint-released-lock.log",
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+      "bytes": 10
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-concurrent-final.jsonl",
+      "sha256": "1fae3186ccb62113ca14f4387a8d0d7448c043daadc2af2a5896e8cee408d3bc",
+      "bytes": 1719
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-validation.json",
+      "sha256": "cf031ce026f4772fb28119a9be45b9725dfdabdd76fa0b52b73d6b0ba4cc2ef9",
+      "bytes": 4616
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-targeted.jsonl",
+      "sha256": "376c6b5abb23b10b237de7386db885dc5c77488aecdc9bc51bde34190d72c153",
+      "bytes": 294583
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction-lint.log",
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+      "bytes": 10
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/correction.diff",
+      "sha256": "4bb09779da4609237f5e0242db2018acb3cc71eaba73e39634f2cf9030bbecc7",
+      "bytes": 12370
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/reuse-checks.json",
+      "sha256": "3b26a54279d21748fb269b27cf2a6922b27259f506e6eb9d60d71a73d7d3d2fb",
+      "bytes": 64827
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/review-acceptance.json",
+      "sha256": "6317fe221e7dbcd33154be21212ab48856d1ce0a2f88cc02eaa5888086b1493d",
+      "bytes": 2659
+    },
+    {
+      "path": "/Users/sc/.codex/validation/sub2api-kin/20261009-s36/gate-final-binding.json",
+      "sha256": "c68bc980962816e934a55679e82e5c36e513db0759bba96dd52b08c6e1d71a56",
+      "bytes": 16814
+    }
+  ]
+}

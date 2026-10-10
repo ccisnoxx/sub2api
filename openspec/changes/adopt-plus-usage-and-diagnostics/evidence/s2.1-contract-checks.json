@@ -1,0 +1,125 @@
+{
+  "task": "S2.1",
+  "date": "2026-10-09",
+  "timezone": "America/Los_Angeles",
+  "status": "contract_frozen_implementation_pending",
+  "application_source": {
+    "worktree": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+    "branch": "codex/plus-usage-s1",
+    "head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+    "verified_s1_application": "3f04437572e2819f0313ccc2a3f1a618a2afcdf0",
+    "personal_base": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "upstream_tag": "v0.2.14-klno.5",
+    "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d"
+  },
+  "documentation_worktree": "/Users/sc/.codex/worktrees/plus-s01-evidence/sub2api-kin",
+  "requested_documentation_mirror": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+  "remote_ref_check": {
+    "command": "git ls-remote origin refs/heads/personal refs/heads/main",
+    "personal": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "main": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+    "result": "matches_local_refs",
+    "fetch_or_remote_write": false
+  },
+  "examined_files_sha256": {
+    "backend/internal/server/routes/user.go": "77bdb755320cd6a95e9caaab4716c3fb5cedbdde6f75fbbe8d847e53adee25a0",
+    "backend/internal/server/middleware/jwt_auth.go": "613e0f2ae3653872abda61c02fe1b64389c13f047acec2f7eb06e28087002ca1",
+    "backend/internal/server/middleware/backend_mode_guard.go": "1f11edac06a8a6bb2127ca99cdb25680ee3934a5565484dae3dbab70e8cb0738",
+    "backend/internal/handler/available_channel_handler.go": "36581be82c18a992b837a4727af073010eeef982e44625a699143b2272a1a41c",
+    "backend/internal/handler/available_channel_handler_test.go": "bac1e83d8470479d4b48584e97368793cf7f5f43ebd01e867e6a54d03c41c541",
+    "backend/internal/pkg/response/response.go": "38b5dc41d4b75111f950346f19531a95d34458756d53bc90235c81fb03de2d50",
+    "backend/internal/service/setting_public.go": "2d829f10c09b0ac952e2b71c2d434da6ddcdc1230f3b71178edaa9827622ae84",
+    "backend/internal/service/api_key_service.go": "4bc98211879f64e03e0525ab712ace4358805234e00cf03ee3f7a2bead23056b",
+    "backend/internal/service/user.go": "bc447b1f4805d258bf08e49c96b7156d6d675ef80e69e685db2ff424461789ca",
+    "backend/internal/service/api_key_group_visibility_test.go": "20dd7c79eea4d7ae0795522c935edb173ac1eec24084d63b57ed5aa834a34041",
+    "backend/internal/service/user_can_bind_group_test.go": "e8c3cddf49d7d9b0f4c90f791f40eae07aa28f9aa04dab646440156dda948dee",
+    "backend/internal/service/group_model_allowlist.go": "02091a513bd221f4d507eb0757bb3cda4b99f938600c1ddab7e270fc5b9877f4",
+    "backend/internal/service/group_model_allowlist_test.go": "0b636c8d16c8b40b3b10d7111584066229d4ebabc196133bcbbc1f65c8277759",
+    "backend/internal/server/middleware/group_model_allowlist.go": "dcf2702c4045db6afde0f072e8670053ece3b665fe676df09a0dda47a6fbe3ba",
+    "backend/internal/service/channel_available.go": "759085dc75694b4c01529009b7b9a4bc9cb6d47eb74c98dcc4824ff75daa11e5",
+    "backend/internal/service/channel_available_test.go": "c3dc082e7974cc11a55feec988f3d0f604bcd1bb41d0ae2e9fc08278bee1eef1",
+    "backend/internal/service/channel.go": "7ee3fffa31c6cfac4576339a3d8b18c5546079e891702fb25f2c12f8f6487d8b",
+    "backend/internal/repository/group_repo.go": "74ec6f921edce8fafa0cc7b2e196f764dc8ccb9203c0bd855e4673261e8e1105",
+    "backend/internal/repository/user_subscription_repo.go": "12ce7309fa1733ecc718ee6e5622b132fd5a6b414d40b3ea2b9d575c077ac135",
+    "backend/internal/repository/user_subscription_repo_integration_test.go": "711e6875a2cc03b6dff71ac1be46d7b631bec09ff14160ba93d351b541ef78ec",
+    "backend/migrations/081_create_channels.sql": "4eb880b780b2a1df07ec8dff5a9cd1ecf5cd0d35119051018f3ed3b4ae594285",
+    "frontend/src/api/channels.ts": "dbfb8190b80b96b1ceaa8a885ebe593963a1ad56b7d280abceeb7d5897f40b60",
+    "frontend/src/views/user/AvailableChannelsView.vue": "cfe6d517bff625f391b58f5adabb0f104d1cb2c80e9995df2236df3849f93e08"
+  },
+  "source_checks": [
+    {
+      "check": "personal_is_ancestor_of_source_head",
+      "method": "git merge-base --is-ancestor personal HEAD",
+      "result": "passed"
+    },
+    {
+      "check": "core_api_authorization_client_unchanged_since_personal",
+      "method": "git diff --name-only personal HEAD -- nine specified core paths",
+      "result": "no_differences"
+    },
+    {
+      "check": "legacy_route_handler_and_client_shape",
+      "method": "source inspection",
+      "result": "legacy_array_no_view_dispatch"
+    },
+    {
+      "check": "permission_subscription_platform_and_model_allowlist_owners",
+      "method": "source and existing test-content inspection",
+      "result": "contract_matches_authoritative_owners"
+    },
+    {
+      "check": "existing_app_changes_preserved",
+      "method": "HEAD and SHA-256 comparison for four worktrees",
+      "result": "unchanged_17_original_modified_app_files"
+    },
+    {
+      "check": "s1_source_worktree_and_original_chat_checkout",
+      "method": "git status --porcelain",
+      "result": "clean"
+    },
+    {
+      "check": "contract_acceptance_case_ids",
+      "method": "document structure check",
+      "result": "12_unique_ids_future_execution_pending"
+    }
+  ],
+  "application_changes": false,
+  "new_catalog_api_implemented": false,
+  "existing_tests_executed_this_turn": false,
+  "existing_s1_evidence_extended_to_catalog": false,
+  "validation_scope": "源码和文档一致性；既有测试仅作保护边界定位，新目录验收留待实际实现",
+  "future_acceptance_cases": {
+    "AC01": "implementation_and_execution_pending",
+    "AC02": "implementation_and_execution_pending",
+    "AC03": "implementation_and_execution_pending",
+    "AC04": "implementation_and_execution_pending",
+    "AC05": "implementation_and_execution_pending",
+    "AC06": "implementation_and_execution_pending",
+    "AC07": "implementation_and_execution_pending",
+    "AC08": "implementation_and_execution_pending",
+    "AC09": "implementation_and_execution_pending",
+    "AC10": "implementation_and_execution_pending",
+    "AC11": "implementation_and_execution_pending",
+    "AC12": "implementation_and_execution_pending"
+  },
+  "not_run": [
+    "Go/frontend tests",
+    "application build",
+    "database or browser checks",
+    "full CI",
+    "independent code review"
+  ],
+  "delegation": false,
+  "merge_image_release_production_deploy": "not_executed",
+  "next_task": "S2.2",
+  "contract_sha256": "8dc704540e783e079b514c6031bb798c0e45984eecba4c50ba5917348d0be3e6",
+  "document_checks": {
+    "local_links_code_blocks_and_whitespace": "passed",
+    "mirrors_identical": "passed",
+    "previous_journal_bodies_preserved": "passed",
+    "task_ids_unique": 55,
+    "only_newly_completed_task": "S2.1",
+    "S2.2_started": false,
+    "future_acceptance_ids_unique": 12
+  }
+}

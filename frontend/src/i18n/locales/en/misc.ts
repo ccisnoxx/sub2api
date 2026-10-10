@@ -31,6 +31,9 @@ export default {
     refresh: 'Refresh',
     sourceMode: 'Source Build',
     sourceModeHint: 'Source build, use git pull to update',
+    containerModeHint: 'Update personal images with a pinned digest through the existing deployment process. Before rollback, confirm data compatibility and use a verified deployment record.',
+    checkPending: 'Version check has not completed',
+    checkFailed: 'Version check failed. Refresh to retry.',
     updateNow: 'Update Now',
     updating: 'Updating...',
     updateComplete: 'Update Complete',
@@ -59,6 +62,7 @@ export default {
     dockerRecreate: 'Recreate the container',
     upstreamLabel: 'Upstream',
     forkLabel: 'Fork',
+    personalLabel: 'Personal image',
     upstreamUpdateAvailable: 'Upstream released v{version}. Notice only: updates come through the fork.',
     upstreamUpToDate: 'Upstream is up to date'
   },

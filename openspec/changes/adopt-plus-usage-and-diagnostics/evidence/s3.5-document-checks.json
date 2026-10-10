@@ -1,0 +1,132 @@
+{
+  "task": "S3.5",
+  "status": "文件保留及文档核对通过；历史目录外部状态单列",
+  "before_files": 35927,
+  "existing_tree_results": [
+    {
+      "path": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head": "7949efe62e3854c83f39a21a0c36e03402c05688",
+      "compared_original_files": 4219,
+      "modified_files": [],
+      "unexpected_changes": [],
+      "missing_original_files": []
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+      "compared_original_files": 4571,
+      "modified_files": [
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md",
+        "docs/dev-journal.md"
+      ],
+      "unexpected_changes": [],
+      "missing_original_files": []
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "head": "3101cb41636a658dbac47e882ebdc37f34e84641",
+      "compared_original_files": 4610,
+      "modified_files": [
+        "docs/dev-journal.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md",
+        "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+      ],
+      "unexpected_changes": [],
+      "missing_original_files": []
+    }
+  ],
+  "missing_tree_recovery": {
+    "observed": "5个历史树在运行中移出磁盘/Git worktree列表；本轮没有删除/归档调用，来源未由本轮确认",
+    "recovery": [
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+        "original_head": "aeead84a68545ed8ee6697345f42aa00e59f1cef",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/2da1ec5a43179a9684ceeca7e71a33e5d15342dc",
+        "recovery_sha": "f97802c8512e1d6391c702b4f8f6fd09530feac7",
+        "compared_files": 4277,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+        "original_head": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/0b8ced9760b757037aadfa8ac3debfbebad1f871",
+        "recovery_sha": "e4083c38fc594ab75ed8c1cedb7adeb9eaf4a1d2",
+        "compared_files": 4547,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin",
+        "original_head": "d9b06f4fe78a8588282958783d91e9966ff05231",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/e04a4d0205783f64bf5d114b35d58962cf152816",
+        "recovery_sha": "d9b06f4fe78a8588282958783d91e9966ff05231",
+        "compared_files": 4591,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+        "original_head": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/5992c06d8249c2de8b09fddc3ec18226b02ca87f",
+        "recovery_sha": "e3edb5666a03a582bfbb83a718aedda03ba6ea08",
+        "compared_files": 4535,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      },
+      {
+        "path": "/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin",
+        "original_head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+        "branch_preserved": true,
+        "recovery_ref": "refs/codex/snapshots/f52f380bdd3a879876a64b5967d5f7a85e0ec605",
+        "recovery_sha": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+        "compared_files": 4577,
+        "mismatched_files": [],
+        "files_not_in_snapshot": [],
+        "directory_missing_at_close": true,
+        "restoration_performed": false
+      }
+    ]
+  },
+  "body_checks": [
+    {
+      "path": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+      "prior_journal_exactly_preserved": true,
+      "prior_implementation_evidence_exactly_preserved": true,
+      "frozen_contract_sections_1_to_10_preserved": true,
+      "s35_and_s36_unchecked": true
+    },
+    {
+      "path": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "prior_journal_exactly_preserved": true,
+      "prior_implementation_evidence_exactly_preserved": true,
+      "frozen_contract_sections_1_to_10_preserved": true,
+      "s35_and_s36_unchecked": true
+    }
+  ],
+  "original_s0_application_17_edits_unchanged": true,
+  "prior_s33_s34_branches_fixed": true,
+  "document_sync_locations": 2,
+  "maintenance_document_tree_removed_before_sync": true,
+  "source_diff_from_s34": "仅两个新增测试，无生产源码改动",
+  "stage_status": "S3.5部分完成且未勾选；S3.6未开始",
+  "audit_id": "20261010T011828Z-kin-plus-routing-behavior-s35-f88db7ec",
+  "current_contract_header_points_to_section_11": true
+}

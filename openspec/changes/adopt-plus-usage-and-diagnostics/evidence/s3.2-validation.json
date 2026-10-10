@@ -1,0 +1,200 @@
+{
+  "task": "S3.2",
+  "status": "completed",
+  "recorded_utc": "2026-10-09T21:21:04.854851+00:00",
+  "application": {
+    "task": "S3.2",
+    "worktree": "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin",
+    "branch": "codex/plus-routing-producer-s32",
+    "application_sha": "cee1e908261c68880040b740aae8054410e03070",
+    "parent": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "source_files": {
+      "backend/internal/handler/grok_audio.go": "c26c53e6558474dbb228e8713528b79c46eabf3cced11292e5e8b9634610c5a9",
+      "backend/internal/handler/openai_gateway_credential_failover_loop_test.go": "6dc893a7118644f0886662f8da123b8b01dc9639303d4069d08703968bb2226d",
+      "backend/internal/handler/openai_gateway_handler.go": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf",
+      "backend/internal/handler/openai_ws_routing_diagnostics.go": "9c9c75ae0855e251c1f88b2004b54b4dfe714c69d8aababfad63eae97c727d0e",
+      "backend/internal/handler/ops_error_logger.go": "e4fea594fbca01ae654609ed4a0628433456c7fb505e3b882cc812718bc5c860",
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": "513ef2862ec345065464ee7de7091757700ddbe8594f8d1b819e2c49eb3b23e1",
+      "backend/internal/service/gateway_service.go": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "backend/internal/service/openai_account_scheduler.go": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "backend/internal/service/openai_gateway_scheduling.go": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+      "backend/internal/service/openai_routing_diagnostics_test.go": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "backend/internal/service/ops_upstream_context.go": "963b594f3ab29d88f9f9a413b10f803ff0f1d9f7a34d7d2bce6eab21d7159a5d",
+      "backend/internal/service/routing_diagnostics.go": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "backend/internal/service/routing_diagnostics_test.go": "dda07d0483249165d73897efa1539aebbe8fe068a10fd0da902e78a1f3228d93"
+    },
+    "local_only": true,
+    "pushed": false
+  },
+  "personal_sha": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "main_sha": "b43a472f4b1bde5983b3bdfa1447cd3622a77540",
+  "upstream_sha": "c7aacf5d3ae383d0d5c75f471f66e61690a5701d",
+  "pr5_at_close": {
+    "baseRefName": "personal",
+    "baseRefOid": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+    "headRefOid": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+    "isDraft": true,
+    "mergedAt": null,
+    "state": "OPEN",
+    "url": "https://github.com/ccisnoxx/sub2api/pull/5"
+  },
+  "go_version": "go1.27.2 darwin/arm64",
+  "test_workdir": "/Users/sc/.codex/worktrees/plus-routing-producer-s32/sub2api-kin/backend",
+  "runs": [
+    {
+      "scope": "producer 与已有派生值合同",
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestRoutingDiagnostics|TestOpenAIRoutingDiagnostics)' -count=1",
+      "log": "service-final.jsonl",
+      "result": "passed",
+      "process_exit_code": 0,
+      "sha256": "98f4aa3e49ac69de26e7d78775458fe06c77d1ccbfc9e6e9cb604150f8c42e27",
+      "top_level_pass": 17,
+      "all_test_pass_events": 59,
+      "fail_events": 0,
+      "package_pass": true
+    },
+    {
+      "scope": "请求/WS/音频 owner 与既有归因、native/passthrough 回归",
+      "command": "go test -tags=unit -json ./internal/handler -run '^(TestSetOpsRequestContextRetainsRoutingSelectionAttempts|TestOpsStreamTurnClearsRoutingProducerState|TestWSSelectionUsesCurrentRoutingOwnerWithoutReplacingPricingContext|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner|TestLogOpsStreamError_RecordsOneFailurePerWebSocketTurn|TestLogOpsStreamError_RequestScopedIgnoresResidualUpstreamContext|TestOpsRecoveredCredentialFailoverDoesNotCreateRequestError|TestOpsWebSocketCredentialFailoverSuccessDoesNotCreateRequestError|TestClassifyOpsRoutingCapacityMarkerExcludesMaskedSelectionFailureFromSLA|TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected|TestResponsesWebSocketCredentialFailoverLoop|TestOpenAIResponsesWebSocket_PassthroughTracksModelPerTurn|TestOpenAIResponsesWebSocket_PassthroughKeepsTurnMappingSnapshot|TestOpenAIResponsesWebSocket_CtxPoolAppliesPerTurnMappingAndPreservesRequestedModel)$' -count=1",
+      "log": "handler-final.jsonl",
+      "result": "passed",
+      "process_exit_code": 0,
+      "sha256": "7516c6124d8d23a1bc22def773b6cc9b58493ae1f64a1c6c4c93c75ca99245a1",
+      "top_level_pass": 17,
+      "all_test_pass_events": 22,
+      "fail_events": 0,
+      "package_pass": true
+    },
+    {
+      "scope": "既有 advanced/legacy/DB/compact/负载/子池/gwpool/利润调度回归",
+      "command": "go test -tags=unit ./internal/service -run '^(TestOpenAIGatewayService_SelectAccountWithScheduler|TestOpenAIGatewayService_SelectAccountWithLoadAwareness_DBFreshGroupRecheckWaitsOnValidAccount$|TestLegacySchedulerDecision_|TestOpenAIScheduler|TestGatewayPoolSelection(RechecksConcurrentExhaustionBySelectingRemainingAccount|WeightedSessionKeepsVerifiedWindow)$|TestProfitControlSchedulerFiltersCandidates$)' -count=1",
+      "log": "service-regression-final.log",
+      "result": "passed",
+      "process_exit_code": 0,
+      "sha256": "71f1b5b18a44108fb66abdbd0215eb3af83827aa25d004e1b39cc48f13084fef"
+    },
+    {
+      "scope": "不可变快照及并发 owner",
+      "command": "go test -race ./internal/service -run '^TestRoutingDiagnostics' -count=1",
+      "log": "core-race-final.log",
+      "result": "passed",
+      "process_exit_code": 0,
+      "sha256": "249b402975f219efcda628e7f540aa17b8da1c44d65a07eb587901e229e09856"
+    },
+    {
+      "scope": "WS逻辑turn/凭据failover/后续重选和音频请求归属",
+      "command": "go test -race -tags=unit ./internal/handler -run '^(TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner)$' -count=1",
+      "log": "handler-race-final.log",
+      "result": "passed",
+      "process_exit_code": 0,
+      "sha256": "4d9fc18d0a2a9b428375745485ebe8d8a956650e37061ea05df082fdb7b07420"
+    }
+  ],
+  "format_and_diff": {
+    "gofmt_all_13_files": "passed",
+    "git_diff_check": "passed",
+    "source_matches_test_and_review_hashes": true
+  },
+  "coverage": [
+    "OpenAI SelectAccountWithScheduler/ForCapability advanced and legacy",
+    "OpenAI public SelectAccountWithLoadAwareness legacy",
+    "previous_response_id/guardian_parent/session_hash/load_balance and weighted/subscription subpools",
+    "channel pricing/list thresholds/Grok team and free quota/compact fresh and DB rechecks",
+    "proxy second evaluation/gateway pool reselection and final restriction/image native to basic fallback",
+    "HTTP/SSE handlers sharing setOpsRequestContext",
+    "Responses WS handshake and logical turn owners across credential failover, same-account retry and proxy restart",
+    "Grok Voice request selection loops; Realtime pre-accept connection selection loops"
+  ],
+  "unobserved_paths": [
+    "other-platform generic GatewayService selectors",
+    "independent compatibility and direct account selectors without new owner",
+    "TokenCount",
+    "Grok Realtime audio frames beyond connection selection"
+  ],
+  "not_implemented": [
+    "provider send/terminal snapshot binding",
+    "Ops event/async queue/error persistence/DTO/API/permission propagation",
+    "JSONB migration",
+    "admin page"
+  ],
+  "not_run": [
+    "full Go regression or full CI gate",
+    "push/PR update/workflow dispatch",
+    "database/browser/browser matrix",
+    "real paid upstream or production requests",
+    "merge/image release/production deployment"
+  ],
+  "prior_evidence_reuse": {
+    "S3.1": "v1 frozen contract and source ownership reused as specification; new changed producer evaluated separately",
+    "S2.7": "CI 37982040213 and personal-ready remain valid only for unchanged 88156f09 candidate; not a gate for cee1e908"
+  },
+  "early_failures": [
+    {
+      "log": "worker-producers-1.log",
+      "cause": "Grok fixture used APIKey for OAuth-only team gate and omitted UsageLogRepository for free quota; fixture corrected, failed scope then final producer scope passed"
+    },
+    {
+      "log": "review-fixes-handler.jsonl",
+      "cause": "later WS turn fixture returned 402, while existing later-turn failover accepts 429; replaced with real 429 and correct request array, failed test then final scope passed"
+    },
+    {
+      "log": "review-fix-turn-diagnostic.jsonl",
+      "cause": "temporary zaptest helper required indirect module updates before tests executed; replaced with installed zap.NewDevelopment, no go.mod/go.sum changes"
+    }
+  ],
+  "independent_review": {
+    "review_id": "producer-review-a1",
+    "review_of": "openai-producers-a1",
+    "agent_type": "critical_reviewer",
+    "read_only": true,
+    "candidate_source_hashes": {
+      "backend/internal/handler/grok_audio.go": "c26c53e6558474dbb228e8713528b79c46eabf3cced11292e5e8b9634610c5a9",
+      "backend/internal/handler/openai_gateway_credential_failover_loop_test.go": "6dc893a7118644f0886662f8da123b8b01dc9639303d4069d08703968bb2226d",
+      "backend/internal/handler/openai_gateway_handler.go": "3db844684ed5e0792ca93143eb06813a6485c04e88bfc0add0ada755ae4db5cf",
+      "backend/internal/handler/openai_ws_routing_diagnostics.go": "9c9c75ae0855e251c1f88b2004b54b4dfe714c69d8aababfad63eae97c727d0e",
+      "backend/internal/handler/ops_error_logger.go": "e4fea594fbca01ae654609ed4a0628433456c7fb505e3b882cc812718bc5c860",
+      "backend/internal/handler/ops_routing_diagnostics_context_test.go": "513ef2862ec345065464ee7de7091757700ddbe8594f8d1b819e2c49eb3b23e1",
+      "backend/internal/service/gateway_service.go": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "backend/internal/service/openai_account_scheduler.go": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "backend/internal/service/openai_gateway_scheduling.go": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+      "backend/internal/service/openai_routing_diagnostics_test.go": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "backend/internal/service/ops_upstream_context.go": "963b594f3ab29d88f9f9a413b10f803ff0f1d9f7a34d7d2bce6eab21d7159a5d",
+      "backend/internal/service/routing_diagnostics.go": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "backend/internal/service/routing_diagnostics_test.go": "dda07d0483249165d73897efa1539aebbe8fe068a10fd0da902e78a1f3228d93"
+    },
+    "conclusion": "冻结候选没有确认仍未修复的P0/P1/P2问题；S3.2范围内无剩余阻断。",
+    "confirmed_findings_closed": [
+      "同ID入口池与排除按不同ID计数，advanced/legacy batch/plain重复及全排除反例保护",
+      "WS初始业务ctx及gwpool wait写回同步当前请求owner，实际建连凭据failover最终attempt=2",
+      "每次Proxy建立逻辑turn起点，同turn重试保持owner、下一实际turn清空；原Ops局部编号保持",
+      "Grok Voice/Realtime请求owner跨实际重选保持，失败3轮attempt=3且未发送上游"
+    ],
+    "verified_logs": [
+      "service-final.jsonl",
+      "handler-final.jsonl",
+      "service-regression-final.log",
+      "core-race-final.log",
+      "handler-race-final.log"
+    ],
+    "independent_tests_executed": false,
+    "limitations": [
+      "native/passthrough重试后第三turn没有新同等E2E诊断断言；共享逻辑turn映射源码、scope测试与既有WS回归提供当前证据",
+      "provider发送/终态绑定、Ops events/queue、数据库/DTO/API/页面与权限队列验收未在S3.2实施",
+      "完整门禁/CI/数据库/浏览器未执行"
+    ]
+  },
+  "audit": {
+    "audit_id": "20261009T204821Z-kin-plus-routing-producer-s32-19968c3a",
+    "status": "closed",
+    "verification": "passed",
+    "digest_sha256": "0c728ddf63494575ff922d44e4416b360035862604ad62ecd4669931ebd53566"
+  },
+  "missing_references": [
+    "docs/conventions/codex-outbound-identity.md",
+    "docs/conventions/account-extra-freshness.md"
+  ],
+  "missing_reference_handling": "checked relevant personal-source filesystem and Git tree; no matching maintained source, no outbound/extra owner changes, no guessed replacement",
+  "evidence_root": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32",
+  "next_task": "S3.3",
+  "next_task_started": false
+}

@@ -1,0 +1,49 @@
+{
+  "task": "S2.2",
+  "candidate_commit": "e82287300d1b7cc625295c5307ebaa83c707c019",
+  "audit_id": "20261009T151715Z-kin-plus-pricing-s22-ef4e4438",
+  "audit_dir": "/Users/sc/.codex/audits/multi-agent/sub2api-kin-9262f2b2/20261009T151715Z-kin-plus-pricing-s22-ef4e4438",
+  "audit_verify": "passed",
+  "confirmed_findings": [
+    {
+      "finding": "per_request 重叠区间不能照抄为有效价格",
+      "fix": "所有真实边界切段，再由首次命中 owner 求值",
+      "status": "closed",
+      "evidence": [
+        "review-counterexamples-red.log",
+        "review-counterexamples-green.log"
+      ]
+    },
+    {
+      "finding": "动态全局价格与零值存在性混用两个版本",
+      "fix": "来源字段事实随同次 ModelPricing 传递",
+      "status": "closed",
+      "evidence": [
+        "review-counterexamples-red.log",
+        "review-counterexamples-green.log"
+      ]
+    },
+    {
+      "finding": "resolved reason 与冻结合同冲突",
+      "fix": "服务层成功 reason 空，后续 DTO 映射 null",
+      "status": "closed",
+      "evidence": [
+        "review-counterexamples-red.log",
+        "review-counterexamples-green.log"
+      ]
+    },
+    {
+      "finding": "零标签 probe(context=0) 不能代表真实上下文价格",
+      "fix": "GetRequestTierPrice 确认实际零标签，FallsBackToContext=true、Price=nil；引用有效上下文及默认价",
+      "status": "closed",
+      "evidence": [
+        "label-context-red.log",
+        "label-context-green.log",
+        "catalog-final-label.log"
+      ]
+    }
+  ],
+  "scope": "两个 fresh critical_reviewer 只读源码和测试日志；未独立运行测试；实际源文件写入观测均为零。",
+  "final_patch_review_limit": "第二轮明确认可零标签的回退表示；最终小修由主代理按该方向实施并完成先红后绿对账，没有第三次 fresh 全文复核。",
+  "digest": "s2.2-subagent-digest.md"
+}

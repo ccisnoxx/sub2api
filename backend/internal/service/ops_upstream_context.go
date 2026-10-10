@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -16,11 +17,13 @@ import (
 // Gin context keys used by Ops error logger for capturing upstream error details.
 // These keys are set by gateway services and consumed by handler/ops_error_logger.go.
 const (
-	OpsUpstreamStatusCodeKey   = "ops_upstream_status_code"
-	OpsUpstreamErrorMessageKey = "ops_upstream_error_message"
-	OpsUpstreamErrorDetailKey  = "ops_upstream_error_detail"
-	OpsUpstreamErrorsKey       = "ops_upstream_errors"
-	OpsUpstreamModelKey        = "ops_upstream_model"
+	OpsUpstreamStatusCodeKey         = "ops_upstream_status_code"
+	OpsUpstreamErrorMessageKey       = "ops_upstream_error_message"
+	OpsUpstreamErrorDetailKey        = "ops_upstream_error_detail"
+	OpsUpstreamErrorsKey             = "ops_upstream_errors"
+	OpsUpstreamModelKey              = "ops_upstream_model"
+	OpsRoutingDiagnosticsAttemptKey  = "ops_routing_diagnostics_attempt"
+	OpsUpstreamRoutingDiagnosticsKey = "ops_upstream_routing_diagnostics"
 
 	// Optional stage latencies (milliseconds) for troubleshooting and alerting.
 	OpsAuthLatencyMsKey      = "ops_auth_latency_ms"
@@ -45,6 +48,8 @@ const (
 	OpsStreamErrorKey  = "ops_stream_error"
 	OpsStreamErrorsKey = "ops_stream_errors"
 	OpsStreamTurnKey   = "ops_stream_turn"
+	// 转发器重启后的局部编号会重复；失败去重保留连接逻辑轮次的 owner。
+	opsStreamErrorRoutingOwnerKey = "ops_stream_error_routing_owner"
 
 	// Client-side configuration denials should remain visible in ops_error_logs,
 	// but should be excluded from SLA/error-rate calculations.
@@ -98,6 +103,34 @@ func ClearOpsUpstreamModel(c *gin.Context) {
 		return
 	}
 	c.Set(OpsUpstreamModelKey, "")
+}
+
+type opsRoutingDiagnosticsAttempt struct {
+	owner       *routingDiagnosticsRequest
+	diagnostics *RoutingDiagnostics
+}
+
+// BindOpsRoutingDiagnosticsAttempt 在选定账号后绑定本次发送；重选不能改写旧失败。
+func BindOpsRoutingDiagnosticsAttempt(c *gin.Context) {
+	if c == nil || c.Request == nil {
+		return
+	}
+	owner, _ := c.Request.Context().Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
+	c.Set(OpsRoutingDiagnosticsAttemptKey, opsRoutingDiagnosticsAttempt{owner: owner, diagnostics: GetRoutingDiagnostics(c.Request.Context())})
+}
+
+func getOpsRoutingDiagnosticsAttempt(c *gin.Context) *RoutingDiagnostics {
+	if c == nil || c.Request == nil {
+		return nil
+	}
+	value, _ := c.Get(OpsRoutingDiagnosticsAttemptKey)
+	bound, _ := value.(opsRoutingDiagnosticsAttempt)
+	owner, _ := c.Request.Context().Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
+	// beginProxy 可能先于 BeginOpsStreamTurn 推进逻辑 turn；归属不一致时旧连接绑定无效。
+	if owner == nil || owner != bound.owner {
+		return nil
+	}
+	return bound.diagnostics.Clone()
 }
 
 func MarkOpsClientBusinessLimited(c *gin.Context, reason string) {
@@ -156,13 +189,15 @@ type OpsStreamError struct {
 	// Turn identifies a WebSocket turn. HTTP/SSE requests leave it at zero.
 	Turn int
 	// SkipMonitoring snapshots the rule decision for this visible failure.
-	SkipMonitoring  bool
-	AccountID       int64
-	UpstreamModel   string
-	UpstreamStatus  int
-	UpstreamMessage string
-	UpstreamDetail  string
-	UpstreamErrors  []*OpsUpstreamErrorEvent
+	SkipMonitoring           bool
+	AccountID                int64
+	UpstreamModel            string
+	UpstreamStatus           int
+	UpstreamMessage          string
+	UpstreamDetail           string
+	UpstreamErrors           []*OpsUpstreamErrorEvent
+	RoutingDiagnostics       *RoutingDiagnostics
+	ServiceStatusObservation *ServiceStatusObservation
 	// RequestScoped 表示该带内失败是请求级结果（如上游内容策略截停），与本请求此前的
 	// 上游尝试无关：分类不受上游错误上下文影响、不快照也不落库上游归因、不继承透传规则的
 	// skip_monitoring，按业务限制计，落库状态取 IntendedStatus 以便进入错误列表。
@@ -175,16 +210,33 @@ const maxOpsStreamErrorsPerRequest = 64
 
 // BeginOpsStreamTurn scopes first-wins deduplication to one WebSocket turn.
 func BeginOpsStreamTurn(c *gin.Context, turn int) {
+	BeginOpsStreamTurnWithRoutingTurn(c, turn, turn)
+}
+
+// BeginOpsStreamTurnWithRoutingTurn 保留原转发 turn 的日志合同；诊断使用连接逻辑 turn。
+func BeginOpsStreamTurnWithRoutingTurn(c *gin.Context, turn, routingTurn int) {
 	if c == nil || turn <= 0 {
 		return
 	}
 	c.Set(OpsStreamTurnKey, turn)
+	newRoutingTurn := true
+	if c.Request != nil {
+		// 建连选号不代表本 turn 重新观察过池；每个逻辑 turn 使用新归属。
+		previous := c.Request.Context()
+		current := EnsureServiceStatusTurn(EnsureRoutingDiagnosticsTurn(previous, routingTurn), routingTurn)
+		newRoutingTurn = current != previous
+		c.Request = c.Request.WithContext(current)
+	}
 	// Rule and attempt state is turn-scoped on a long-lived WS connection.
 	c.Set(OpsSkipPassthroughKey, false)
 	c.Set(OpsUpstreamErrorsKey, []*OpsUpstreamErrorEvent{})
 	c.Set(OpsUpstreamStatusCodeKey, 0)
 	c.Set(OpsUpstreamErrorMessageKey, "")
 	c.Set(OpsUpstreamErrorDetailKey, "")
+	if newRoutingTurn {
+		c.Set(OpsRoutingDiagnosticsAttemptKey, (*RoutingDiagnostics)(nil))
+	}
+	c.Set(OpsUpstreamRoutingDiagnosticsKey, (*RoutingDiagnostics)(nil))
 }
 
 // MarkOpsStreamError 记录一次就地 SSE 错误，供 ops 日志采集。
@@ -232,6 +284,9 @@ func markOpsStreamError(c *gin.Context, streamErr OpsStreamError) {
 		streamErr.SkipMonitoring = currentOpsFailureSkipMonitoring(c)
 	}
 	snapshotOpsStreamErrorContext(c, &streamErr)
+	if c.Request != nil {
+		streamErr.ServiceStatusObservation = ServiceStatusFinalObservation(c.Request.Context(), "")
+	}
 	if GetOpenAIClientTransport(c) == OpenAIClientTransportWS {
 		if value, ok := c.Get(OpsStreamTurnKey); ok {
 			streamErr.Turn, _ = value.(int)
@@ -240,8 +295,19 @@ func markOpsStreamError(c *gin.Context, streamErr OpsStreamError) {
 		if value, ok := c.Get(OpsStreamErrorsKey); ok {
 			errorsForRequest, _ = value.([]OpsStreamError)
 		}
-		if len(errorsForRequest) > 0 && errorsForRequest[len(errorsForRequest)-1].Turn == streamErr.Turn {
-			return
+		var routingOwner *routingDiagnosticsRequest
+		if c.Request != nil {
+			routingOwner, _ = c.Request.Context().Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
+		}
+		if len(errorsForRequest) > 0 {
+			sameTurn := errorsForRequest[len(errorsForRequest)-1].Turn == streamErr.Turn
+			if routingOwner != nil {
+				previousOwner, _ := c.Get(opsStreamErrorRoutingOwnerKey)
+				sameTurn = previousOwner == routingOwner
+			}
+			if sameTurn {
+				return
+			}
 		}
 		errorsForRequest = append(errorsForRequest, streamErr)
 		if len(errorsForRequest) > maxOpsStreamErrorsPerRequest {
@@ -249,6 +315,7 @@ func markOpsStreamError(c *gin.Context, streamErr OpsStreamError) {
 		}
 		c.Set(OpsStreamErrorsKey, errorsForRequest)
 		c.Set(OpsStreamErrorKey, streamErr)
+		c.Set(opsStreamErrorRoutingOwnerKey, routingOwner)
 		return
 	}
 	if _, exists := c.Get(OpsStreamErrorKey); exists {
@@ -270,8 +337,12 @@ func snapshotOpsStreamErrorContext(c *gin.Context, streamErr *OpsStreamError) {
 		streamErr.UpstreamModel, _ = value.(string)
 		streamErr.UpstreamModel = strings.TrimSpace(streamErr.UpstreamModel)
 	}
+	streamErr.RoutingDiagnostics = nil
 	if streamErr.RequestScoped {
 		return
+	}
+	if c.Request != nil {
+		streamErr.RoutingDiagnostics = GetRoutingDiagnostics(c.Request.Context())
 	}
 	if value, ok := c.Get(OpsUpstreamStatusCodeKey); ok {
 		switch status := value.(type) {
@@ -289,6 +360,11 @@ func snapshotOpsStreamErrorContext(c *gin.Context, streamErr *OpsStreamError) {
 		streamErr.UpstreamDetail, _ = value.(string)
 		streamErr.UpstreamDetail = strings.TrimSpace(streamErr.UpstreamDetail)
 	}
+	if streamErr.UpstreamStatus > 0 || streamErr.UpstreamMessage != "" || streamErr.UpstreamDetail != "" {
+		value, _ := c.Get(OpsUpstreamRoutingDiagnosticsKey)
+		d, _ := value.(*RoutingDiagnostics)
+		streamErr.RoutingDiagnostics = d.Clone()
+	}
 	if value, ok := c.Get(OpsUpstreamErrorsKey); ok {
 		if events, ok := value.([]*OpsUpstreamErrorEvent); ok {
 			streamErr.UpstreamErrors = make([]*OpsUpstreamErrorEvent, 0, len(events))
@@ -297,8 +373,7 @@ func snapshotOpsStreamErrorContext(c *gin.Context, streamErr *OpsStreamError) {
 					streamErr.UpstreamErrors = append(streamErr.UpstreamErrors, nil)
 					continue
 				}
-				copyOfEvent := *event
-				streamErr.UpstreamErrors = append(streamErr.UpstreamErrors, &copyOfEvent)
+				streamErr.UpstreamErrors = append(streamErr.UpstreamErrors, event.Clone())
 			}
 		}
 	}
@@ -335,7 +410,7 @@ func GetOpsStreamError(c *gin.Context) (OpsStreamError, bool) {
 		return OpsStreamError{}, false
 	}
 	se, ok := v.(OpsStreamError)
-	return se, ok
+	return cloneOpsStreamError(se), ok
 }
 
 func GetOpsStreamErrors(c *gin.Context) []OpsStreamError {
@@ -344,13 +419,30 @@ func GetOpsStreamErrors(c *gin.Context) []OpsStreamError {
 	}
 	if value, ok := c.Get(OpsStreamErrorsKey); ok {
 		if errorsForRequest, ok := value.([]OpsStreamError); ok && len(errorsForRequest) > 0 {
-			return append([]OpsStreamError(nil), errorsForRequest...)
+			out := make([]OpsStreamError, len(errorsForRequest))
+			for i, se := range errorsForRequest {
+				out[i] = cloneOpsStreamError(se)
+			}
+			return out
 		}
 	}
 	if streamErr, ok := GetOpsStreamError(c); ok {
 		return []OpsStreamError{streamErr}
 	}
 	return nil
+}
+
+func cloneOpsStreamError(se OpsStreamError) OpsStreamError {
+	se.RoutingDiagnostics = se.RoutingDiagnostics.Clone()
+	se.ServiceStatusObservation = se.ServiceStatusObservation.Clone()
+	if se.UpstreamErrors != nil {
+		events := make([]*OpsUpstreamErrorEvent, len(se.UpstreamErrors))
+		for i, event := range se.UpstreamErrors {
+			events[i] = event.Clone()
+		}
+		se.UpstreamErrors = events
+	}
+	return se
 }
 
 // SetOpsUpstreamError is the exported wrapper for setOpsUpstreamError, used by
@@ -364,6 +456,7 @@ func setOpsUpstreamError(c *gin.Context, upstreamStatusCode int, upstreamMessage
 	if c == nil {
 		return
 	}
+	c.Set(OpsUpstreamRoutingDiagnosticsKey, getOpsRoutingDiagnosticsAttempt(c))
 	if upstreamStatusCode > 0 {
 		c.Set(OpsUpstreamStatusCodeKey, upstreamStatusCode)
 	}
@@ -378,7 +471,8 @@ func setOpsUpstreamError(c *gin.Context, upstreamStatusCode int, upstreamMessage
 // OpsUpstreamErrorEvent describes one upstream error attempt during a single gateway request.
 // It is stored in ops_error_logs.upstream_errors as a JSON array.
 type OpsUpstreamErrorEvent struct {
-	AtUnixMs int64 `json:"at_unix_ms,omitempty"`
+	ServiceStatusObservation *ServiceStatusObservation `json:"-"`
+	AtUnixMs                 int64                     `json:"at_unix_ms,omitempty"`
 
 	// Passthrough 表示本次请求是否命中“原样透传（仅替换认证）”分支。
 	// 该字段用于排障与灰度评估；存入 JSON，不涉及 DB schema 变更。
@@ -426,7 +520,22 @@ type OpsUpstreamErrorEvent struct {
 	// from persisted attempt JSON. The logger consults it only when this event is
 	// the final client-visible failure; recovered attempts remain provider-health
 	// telemetry and do not count as failed requests.
-	SkipMonitoring bool `json:"-"`
+	SkipMonitoring     bool                `json:"-"`
+	RoutingDiagnostics *RoutingDiagnostics `json:"routing_diagnostics,omitempty"`
+}
+
+func (ev *OpsUpstreamErrorEvent) Clone() *OpsUpstreamErrorEvent {
+	if ev == nil {
+		return nil
+	}
+	out := *ev
+	out.RoutingDiagnostics = ev.RoutingDiagnostics.Clone()
+	out.ServiceStatusObservation = ev.ServiceStatusObservation.Clone()
+	if ev.ProxyID != nil {
+		id := *ev.ProxyID
+		out.ProxyID = &id
+	}
+	return &out
 }
 
 const (
@@ -441,8 +550,22 @@ func appendOpsUpstreamError(c *gin.Context, ev OpsUpstreamErrorEvent) {
 	if c == nil {
 		return
 	}
+	// 只携带实际发送绑定值，不能借用后来发生的选择评估。
+	ev.RoutingDiagnostics = getOpsRoutingDiagnosticsAttempt(c)
 	if ev.AtUnixMs <= 0 {
 		ev.AtUnixMs = time.Now().UnixMilli()
+	}
+	if c.Request != nil {
+		reason := serviceStatusAttemptReason(c.Request.Context())
+		if ev.Stage == string(GatewayFailureStageAccountAuth) && ev.Platform == PlatformOpenAI {
+			reason = "provider_authentication"
+			SetServiceStatusAttemptFailure(c.Request.Context(), CompletionStatusUpstreamError, reason, time.UnixMilli(ev.AtUnixMs))
+		}
+		if ev.Platform != PlatformOpenAI {
+			reason = "unsupported_entry"
+		}
+		at := time.UnixMilli(ev.AtUnixMs)
+		ev.ServiceStatusObservation = ServiceStatusAttemptObservation(c.Request.Context(), reason, at)
 	}
 	ev.Platform = strings.TrimSpace(ev.Platform)
 	normalizeOpsUpstreamProxyAttribution(&ev)
@@ -608,8 +731,17 @@ func ParseOpsUpstreamErrors(raw string) ([]*OpsUpstreamErrorEvent, error) {
 	if err := json.Unmarshal([]byte(raw), &out); err != nil {
 		return nil, err
 	}
-	for _, ev := range out {
+	for i, ev := range out {
 		normalizeOpsUpstreamProxyAttribution(ev)
+		if ev != nil {
+			if encoded := gjson.Get(raw, strconv.Itoa(i)+".routing_diagnostics"); encoded.Exists() {
+				d, err := DecodeRoutingDiagnosticsJSON([]byte(encoded.Raw))
+				if err != nil {
+					log.Print("[Ops] 已拒绝无效的历史事件路由诊断")
+				}
+				ev.RoutingDiagnostics = d
+			}
+		}
 	}
 	return out, nil
 }
@@ -636,6 +768,24 @@ func normalizeOpsUpstreamErrorsJSON(raw string) (string, error) {
 			continue
 		}
 		prefix := strconv.Itoa(i) + "."
+		if encoded := ev.Get("routing_diagnostics"); encoded.Exists() {
+			d, decodeErr := DecodeRoutingDiagnosticsJSON([]byte(encoded.Raw))
+			if decodeErr != nil {
+				log.Print("[Ops] 已拒绝无效的历史事件路由诊断")
+				var err error
+				out, err = sjson.Delete(out, prefix+"routing_diagnostics")
+				if err != nil {
+					return "", err
+				}
+			} else if d != nil {
+				encoded, _ := json.Marshal(d)
+				var err error
+				out, err = sjson.SetRaw(out, prefix+"routing_diagnostics", string(encoded))
+				if err != nil {
+					return "", err
+				}
+			}
+		}
 		proxyID := ev.Get("proxy_id")
 		proxyName := strings.TrimSpace(ev.Get("proxy_name").String())
 		hasValidID := proxyID.Exists() && proxyID.Type == gjson.Number && proxyID.Int() > 0
@@ -659,6 +809,26 @@ func normalizeOpsUpstreamErrorsJSON(raw string) (string, error) {
 		}
 	}
 	return out, nil
+}
+
+// OpsUpstreamErrorsWithoutRoutingDiagnostics 保留旧事件字段，列表不扩展内部诊断可见范围。
+func OpsUpstreamErrorsWithoutRoutingDiagnostics(raw string) (string, error) {
+	if strings.TrimSpace(raw) == "" {
+		return raw, nil
+	}
+	if !gjson.Valid(raw) || !gjson.Parse(raw).IsArray() {
+		return "", errors.New("无法裁剪上游事件的路由诊断")
+	}
+	for i, event := range gjson.Parse(raw).Array() {
+		if event.Get("routing_diagnostics").Exists() {
+			var err error
+			raw, err = sjson.Delete(raw, strconv.Itoa(i)+".routing_diagnostics")
+			if err != nil {
+				return "", errors.New("无法裁剪上游事件的路由诊断")
+			}
+		}
+	}
+	return raw, nil
 }
 
 // safeUpstreamURL returns scheme + host + path from a URL, stripping query/fragment

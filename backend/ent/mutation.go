@@ -44751,6 +44751,21 @@ type UsageLogMutation struct {
 	addduration_ms               *int
 	first_token_ms               *int
 	addfirst_token_ms            *int
+	timing_version               *int16
+	addtiming_version            *int16
+	strict_first_token_ms        *int
+	addstrict_first_token_ms     *int
+	last_token_ms                *int
+	addlast_token_ms             *int
+	first_output_ms              *int
+	addfirst_output_ms           *int
+	first_output_kind            *string
+	audio_output_tokens          *int
+	addaudio_output_tokens       *int
+	completion_status            *string
+	is_complete                  *bool
+	usage_source                 *string
+	service_status_observation   *map[string]interface{}
 	user_agent                   *string
 	ip_address                   *string
 	image_count                  *int
@@ -46638,6 +46653,561 @@ func (m *UsageLogMutation) ResetFirstTokenMs() {
 	delete(m.clearedFields, usagelog.FieldFirstTokenMs)
 }
 
+// SetTimingVersion sets the "timing_version" field.
+func (m *UsageLogMutation) SetTimingVersion(i int16) {
+	m.timing_version = &i
+	m.addtiming_version = nil
+}
+
+// TimingVersion returns the value of the "timing_version" field in the mutation.
+func (m *UsageLogMutation) TimingVersion() (r int16, exists bool) {
+	v := m.timing_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimingVersion returns the old "timing_version" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldTimingVersion(ctx context.Context) (v int16, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTimingVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTimingVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimingVersion: %w", err)
+	}
+	return oldValue.TimingVersion, nil
+}
+
+// AddTimingVersion adds i to the "timing_version" field.
+func (m *UsageLogMutation) AddTimingVersion(i int16) {
+	if m.addtiming_version != nil {
+		*m.addtiming_version += i
+	} else {
+		m.addtiming_version = &i
+	}
+}
+
+// AddedTimingVersion returns the value that was added to the "timing_version" field in this mutation.
+func (m *UsageLogMutation) AddedTimingVersion() (r int16, exists bool) {
+	v := m.addtiming_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTimingVersion resets all changes to the "timing_version" field.
+func (m *UsageLogMutation) ResetTimingVersion() {
+	m.timing_version = nil
+	m.addtiming_version = nil
+}
+
+// SetStrictFirstTokenMs sets the "strict_first_token_ms" field.
+func (m *UsageLogMutation) SetStrictFirstTokenMs(i int) {
+	m.strict_first_token_ms = &i
+	m.addstrict_first_token_ms = nil
+}
+
+// StrictFirstTokenMs returns the value of the "strict_first_token_ms" field in the mutation.
+func (m *UsageLogMutation) StrictFirstTokenMs() (r int, exists bool) {
+	v := m.strict_first_token_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStrictFirstTokenMs returns the old "strict_first_token_ms" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldStrictFirstTokenMs(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStrictFirstTokenMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStrictFirstTokenMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStrictFirstTokenMs: %w", err)
+	}
+	return oldValue.StrictFirstTokenMs, nil
+}
+
+// AddStrictFirstTokenMs adds i to the "strict_first_token_ms" field.
+func (m *UsageLogMutation) AddStrictFirstTokenMs(i int) {
+	if m.addstrict_first_token_ms != nil {
+		*m.addstrict_first_token_ms += i
+	} else {
+		m.addstrict_first_token_ms = &i
+	}
+}
+
+// AddedStrictFirstTokenMs returns the value that was added to the "strict_first_token_ms" field in this mutation.
+func (m *UsageLogMutation) AddedStrictFirstTokenMs() (r int, exists bool) {
+	v := m.addstrict_first_token_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearStrictFirstTokenMs clears the value of the "strict_first_token_ms" field.
+func (m *UsageLogMutation) ClearStrictFirstTokenMs() {
+	m.strict_first_token_ms = nil
+	m.addstrict_first_token_ms = nil
+	m.clearedFields[usagelog.FieldStrictFirstTokenMs] = struct{}{}
+}
+
+// StrictFirstTokenMsCleared returns if the "strict_first_token_ms" field was cleared in this mutation.
+func (m *UsageLogMutation) StrictFirstTokenMsCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldStrictFirstTokenMs]
+	return ok
+}
+
+// ResetStrictFirstTokenMs resets all changes to the "strict_first_token_ms" field.
+func (m *UsageLogMutation) ResetStrictFirstTokenMs() {
+	m.strict_first_token_ms = nil
+	m.addstrict_first_token_ms = nil
+	delete(m.clearedFields, usagelog.FieldStrictFirstTokenMs)
+}
+
+// SetLastTokenMs sets the "last_token_ms" field.
+func (m *UsageLogMutation) SetLastTokenMs(i int) {
+	m.last_token_ms = &i
+	m.addlast_token_ms = nil
+}
+
+// LastTokenMs returns the value of the "last_token_ms" field in the mutation.
+func (m *UsageLogMutation) LastTokenMs() (r int, exists bool) {
+	v := m.last_token_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastTokenMs returns the old "last_token_ms" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldLastTokenMs(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastTokenMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastTokenMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastTokenMs: %w", err)
+	}
+	return oldValue.LastTokenMs, nil
+}
+
+// AddLastTokenMs adds i to the "last_token_ms" field.
+func (m *UsageLogMutation) AddLastTokenMs(i int) {
+	if m.addlast_token_ms != nil {
+		*m.addlast_token_ms += i
+	} else {
+		m.addlast_token_ms = &i
+	}
+}
+
+// AddedLastTokenMs returns the value that was added to the "last_token_ms" field in this mutation.
+func (m *UsageLogMutation) AddedLastTokenMs() (r int, exists bool) {
+	v := m.addlast_token_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearLastTokenMs clears the value of the "last_token_ms" field.
+func (m *UsageLogMutation) ClearLastTokenMs() {
+	m.last_token_ms = nil
+	m.addlast_token_ms = nil
+	m.clearedFields[usagelog.FieldLastTokenMs] = struct{}{}
+}
+
+// LastTokenMsCleared returns if the "last_token_ms" field was cleared in this mutation.
+func (m *UsageLogMutation) LastTokenMsCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldLastTokenMs]
+	return ok
+}
+
+// ResetLastTokenMs resets all changes to the "last_token_ms" field.
+func (m *UsageLogMutation) ResetLastTokenMs() {
+	m.last_token_ms = nil
+	m.addlast_token_ms = nil
+	delete(m.clearedFields, usagelog.FieldLastTokenMs)
+}
+
+// SetFirstOutputMs sets the "first_output_ms" field.
+func (m *UsageLogMutation) SetFirstOutputMs(i int) {
+	m.first_output_ms = &i
+	m.addfirst_output_ms = nil
+}
+
+// FirstOutputMs returns the value of the "first_output_ms" field in the mutation.
+func (m *UsageLogMutation) FirstOutputMs() (r int, exists bool) {
+	v := m.first_output_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFirstOutputMs returns the old "first_output_ms" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldFirstOutputMs(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFirstOutputMs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFirstOutputMs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFirstOutputMs: %w", err)
+	}
+	return oldValue.FirstOutputMs, nil
+}
+
+// AddFirstOutputMs adds i to the "first_output_ms" field.
+func (m *UsageLogMutation) AddFirstOutputMs(i int) {
+	if m.addfirst_output_ms != nil {
+		*m.addfirst_output_ms += i
+	} else {
+		m.addfirst_output_ms = &i
+	}
+}
+
+// AddedFirstOutputMs returns the value that was added to the "first_output_ms" field in this mutation.
+func (m *UsageLogMutation) AddedFirstOutputMs() (r int, exists bool) {
+	v := m.addfirst_output_ms
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearFirstOutputMs clears the value of the "first_output_ms" field.
+func (m *UsageLogMutation) ClearFirstOutputMs() {
+	m.first_output_ms = nil
+	m.addfirst_output_ms = nil
+	m.clearedFields[usagelog.FieldFirstOutputMs] = struct{}{}
+}
+
+// FirstOutputMsCleared returns if the "first_output_ms" field was cleared in this mutation.
+func (m *UsageLogMutation) FirstOutputMsCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldFirstOutputMs]
+	return ok
+}
+
+// ResetFirstOutputMs resets all changes to the "first_output_ms" field.
+func (m *UsageLogMutation) ResetFirstOutputMs() {
+	m.first_output_ms = nil
+	m.addfirst_output_ms = nil
+	delete(m.clearedFields, usagelog.FieldFirstOutputMs)
+}
+
+// SetFirstOutputKind sets the "first_output_kind" field.
+func (m *UsageLogMutation) SetFirstOutputKind(s string) {
+	m.first_output_kind = &s
+}
+
+// FirstOutputKind returns the value of the "first_output_kind" field in the mutation.
+func (m *UsageLogMutation) FirstOutputKind() (r string, exists bool) {
+	v := m.first_output_kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFirstOutputKind returns the old "first_output_kind" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldFirstOutputKind(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFirstOutputKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFirstOutputKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFirstOutputKind: %w", err)
+	}
+	return oldValue.FirstOutputKind, nil
+}
+
+// ClearFirstOutputKind clears the value of the "first_output_kind" field.
+func (m *UsageLogMutation) ClearFirstOutputKind() {
+	m.first_output_kind = nil
+	m.clearedFields[usagelog.FieldFirstOutputKind] = struct{}{}
+}
+
+// FirstOutputKindCleared returns if the "first_output_kind" field was cleared in this mutation.
+func (m *UsageLogMutation) FirstOutputKindCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldFirstOutputKind]
+	return ok
+}
+
+// ResetFirstOutputKind resets all changes to the "first_output_kind" field.
+func (m *UsageLogMutation) ResetFirstOutputKind() {
+	m.first_output_kind = nil
+	delete(m.clearedFields, usagelog.FieldFirstOutputKind)
+}
+
+// SetAudioOutputTokens sets the "audio_output_tokens" field.
+func (m *UsageLogMutation) SetAudioOutputTokens(i int) {
+	m.audio_output_tokens = &i
+	m.addaudio_output_tokens = nil
+}
+
+// AudioOutputTokens returns the value of the "audio_output_tokens" field in the mutation.
+func (m *UsageLogMutation) AudioOutputTokens() (r int, exists bool) {
+	v := m.audio_output_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAudioOutputTokens returns the old "audio_output_tokens" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldAudioOutputTokens(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAudioOutputTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAudioOutputTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAudioOutputTokens: %w", err)
+	}
+	return oldValue.AudioOutputTokens, nil
+}
+
+// AddAudioOutputTokens adds i to the "audio_output_tokens" field.
+func (m *UsageLogMutation) AddAudioOutputTokens(i int) {
+	if m.addaudio_output_tokens != nil {
+		*m.addaudio_output_tokens += i
+	} else {
+		m.addaudio_output_tokens = &i
+	}
+}
+
+// AddedAudioOutputTokens returns the value that was added to the "audio_output_tokens" field in this mutation.
+func (m *UsageLogMutation) AddedAudioOutputTokens() (r int, exists bool) {
+	v := m.addaudio_output_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearAudioOutputTokens clears the value of the "audio_output_tokens" field.
+func (m *UsageLogMutation) ClearAudioOutputTokens() {
+	m.audio_output_tokens = nil
+	m.addaudio_output_tokens = nil
+	m.clearedFields[usagelog.FieldAudioOutputTokens] = struct{}{}
+}
+
+// AudioOutputTokensCleared returns if the "audio_output_tokens" field was cleared in this mutation.
+func (m *UsageLogMutation) AudioOutputTokensCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldAudioOutputTokens]
+	return ok
+}
+
+// ResetAudioOutputTokens resets all changes to the "audio_output_tokens" field.
+func (m *UsageLogMutation) ResetAudioOutputTokens() {
+	m.audio_output_tokens = nil
+	m.addaudio_output_tokens = nil
+	delete(m.clearedFields, usagelog.FieldAudioOutputTokens)
+}
+
+// SetCompletionStatus sets the "completion_status" field.
+func (m *UsageLogMutation) SetCompletionStatus(s string) {
+	m.completion_status = &s
+}
+
+// CompletionStatus returns the value of the "completion_status" field in the mutation.
+func (m *UsageLogMutation) CompletionStatus() (r string, exists bool) {
+	v := m.completion_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletionStatus returns the old "completion_status" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldCompletionStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletionStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletionStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletionStatus: %w", err)
+	}
+	return oldValue.CompletionStatus, nil
+}
+
+// ResetCompletionStatus resets all changes to the "completion_status" field.
+func (m *UsageLogMutation) ResetCompletionStatus() {
+	m.completion_status = nil
+}
+
+// SetIsComplete sets the "is_complete" field.
+func (m *UsageLogMutation) SetIsComplete(b bool) {
+	m.is_complete = &b
+}
+
+// IsComplete returns the value of the "is_complete" field in the mutation.
+func (m *UsageLogMutation) IsComplete() (r bool, exists bool) {
+	v := m.is_complete
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsComplete returns the old "is_complete" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldIsComplete(ctx context.Context) (v *bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsComplete is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsComplete requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsComplete: %w", err)
+	}
+	return oldValue.IsComplete, nil
+}
+
+// ClearIsComplete clears the value of the "is_complete" field.
+func (m *UsageLogMutation) ClearIsComplete() {
+	m.is_complete = nil
+	m.clearedFields[usagelog.FieldIsComplete] = struct{}{}
+}
+
+// IsCompleteCleared returns if the "is_complete" field was cleared in this mutation.
+func (m *UsageLogMutation) IsCompleteCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldIsComplete]
+	return ok
+}
+
+// ResetIsComplete resets all changes to the "is_complete" field.
+func (m *UsageLogMutation) ResetIsComplete() {
+	m.is_complete = nil
+	delete(m.clearedFields, usagelog.FieldIsComplete)
+}
+
+// SetUsageSource sets the "usage_source" field.
+func (m *UsageLogMutation) SetUsageSource(s string) {
+	m.usage_source = &s
+}
+
+// UsageSource returns the value of the "usage_source" field in the mutation.
+func (m *UsageLogMutation) UsageSource() (r string, exists bool) {
+	v := m.usage_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsageSource returns the old "usage_source" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldUsageSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsageSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsageSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsageSource: %w", err)
+	}
+	return oldValue.UsageSource, nil
+}
+
+// ResetUsageSource resets all changes to the "usage_source" field.
+func (m *UsageLogMutation) ResetUsageSource() {
+	m.usage_source = nil
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (m *UsageLogMutation) SetServiceStatusObservation(value map[string]interface{}) {
+	m.service_status_observation = &value
+}
+
+// ServiceStatusObservation returns the value of the "service_status_observation" field in the mutation.
+func (m *UsageLogMutation) ServiceStatusObservation() (r map[string]interface{}, exists bool) {
+	v := m.service_status_observation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldServiceStatusObservation returns the old "service_status_observation" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldServiceStatusObservation(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldServiceStatusObservation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldServiceStatusObservation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldServiceStatusObservation: %w", err)
+	}
+	return oldValue.ServiceStatusObservation, nil
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (m *UsageLogMutation) ClearServiceStatusObservation() {
+	m.service_status_observation = nil
+	m.clearedFields[usagelog.FieldServiceStatusObservation] = struct{}{}
+}
+
+// ServiceStatusObservationCleared returns if the "service_status_observation" field was cleared in this mutation.
+func (m *UsageLogMutation) ServiceStatusObservationCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldServiceStatusObservation]
+	return ok
+}
+
+// ResetServiceStatusObservation resets all changes to the "service_status_observation" field.
+func (m *UsageLogMutation) ResetServiceStatusObservation() {
+	m.service_status_observation = nil
+	delete(m.clearedFields, usagelog.FieldServiceStatusObservation)
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (m *UsageLogMutation) SetUserAgent(s string) {
 	m.user_agent = &s
@@ -47453,7 +48023,7 @@ func (m *UsageLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UsageLogMutation) Fields() []string {
-	fields := make([]string, 0, 47)
+	fields := make([]string, 0, 57)
 	if m.user != nil {
 		fields = append(fields, usagelog.FieldUserID)
 	}
@@ -47555,6 +48125,36 @@ func (m *UsageLogMutation) Fields() []string {
 	}
 	if m.first_token_ms != nil {
 		fields = append(fields, usagelog.FieldFirstTokenMs)
+	}
+	if m.timing_version != nil {
+		fields = append(fields, usagelog.FieldTimingVersion)
+	}
+	if m.strict_first_token_ms != nil {
+		fields = append(fields, usagelog.FieldStrictFirstTokenMs)
+	}
+	if m.last_token_ms != nil {
+		fields = append(fields, usagelog.FieldLastTokenMs)
+	}
+	if m.first_output_ms != nil {
+		fields = append(fields, usagelog.FieldFirstOutputMs)
+	}
+	if m.first_output_kind != nil {
+		fields = append(fields, usagelog.FieldFirstOutputKind)
+	}
+	if m.audio_output_tokens != nil {
+		fields = append(fields, usagelog.FieldAudioOutputTokens)
+	}
+	if m.completion_status != nil {
+		fields = append(fields, usagelog.FieldCompletionStatus)
+	}
+	if m.is_complete != nil {
+		fields = append(fields, usagelog.FieldIsComplete)
+	}
+	if m.usage_source != nil {
+		fields = append(fields, usagelog.FieldUsageSource)
+	}
+	if m.service_status_observation != nil {
+		fields = append(fields, usagelog.FieldServiceStatusObservation)
 	}
 	if m.user_agent != nil {
 		fields = append(fields, usagelog.FieldUserAgent)
@@ -47671,6 +48271,26 @@ func (m *UsageLogMutation) Field(name string) (ent.Value, bool) {
 		return m.DurationMs()
 	case usagelog.FieldFirstTokenMs:
 		return m.FirstTokenMs()
+	case usagelog.FieldTimingVersion:
+		return m.TimingVersion()
+	case usagelog.FieldStrictFirstTokenMs:
+		return m.StrictFirstTokenMs()
+	case usagelog.FieldLastTokenMs:
+		return m.LastTokenMs()
+	case usagelog.FieldFirstOutputMs:
+		return m.FirstOutputMs()
+	case usagelog.FieldFirstOutputKind:
+		return m.FirstOutputKind()
+	case usagelog.FieldAudioOutputTokens:
+		return m.AudioOutputTokens()
+	case usagelog.FieldCompletionStatus:
+		return m.CompletionStatus()
+	case usagelog.FieldIsComplete:
+		return m.IsComplete()
+	case usagelog.FieldUsageSource:
+		return m.UsageSource()
+	case usagelog.FieldServiceStatusObservation:
+		return m.ServiceStatusObservation()
 	case usagelog.FieldUserAgent:
 		return m.UserAgent()
 	case usagelog.FieldIPAddress:
@@ -47774,6 +48394,26 @@ func (m *UsageLogMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldDurationMs(ctx)
 	case usagelog.FieldFirstTokenMs:
 		return m.OldFirstTokenMs(ctx)
+	case usagelog.FieldTimingVersion:
+		return m.OldTimingVersion(ctx)
+	case usagelog.FieldStrictFirstTokenMs:
+		return m.OldStrictFirstTokenMs(ctx)
+	case usagelog.FieldLastTokenMs:
+		return m.OldLastTokenMs(ctx)
+	case usagelog.FieldFirstOutputMs:
+		return m.OldFirstOutputMs(ctx)
+	case usagelog.FieldFirstOutputKind:
+		return m.OldFirstOutputKind(ctx)
+	case usagelog.FieldAudioOutputTokens:
+		return m.OldAudioOutputTokens(ctx)
+	case usagelog.FieldCompletionStatus:
+		return m.OldCompletionStatus(ctx)
+	case usagelog.FieldIsComplete:
+		return m.OldIsComplete(ctx)
+	case usagelog.FieldUsageSource:
+		return m.OldUsageSource(ctx)
+	case usagelog.FieldServiceStatusObservation:
+		return m.OldServiceStatusObservation(ctx)
 	case usagelog.FieldUserAgent:
 		return m.OldUserAgent(ctx)
 	case usagelog.FieldIPAddress:
@@ -48047,6 +48687,76 @@ func (m *UsageLogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFirstTokenMs(v)
 		return nil
+	case usagelog.FieldTimingVersion:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimingVersion(v)
+		return nil
+	case usagelog.FieldStrictFirstTokenMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStrictFirstTokenMs(v)
+		return nil
+	case usagelog.FieldLastTokenMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastTokenMs(v)
+		return nil
+	case usagelog.FieldFirstOutputMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFirstOutputMs(v)
+		return nil
+	case usagelog.FieldFirstOutputKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFirstOutputKind(v)
+		return nil
+	case usagelog.FieldAudioOutputTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAudioOutputTokens(v)
+		return nil
+	case usagelog.FieldCompletionStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletionStatus(v)
+		return nil
+	case usagelog.FieldIsComplete:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsComplete(v)
+		return nil
+	case usagelog.FieldUsageSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsageSource(v)
+		return nil
+	case usagelog.FieldServiceStatusObservation:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetServiceStatusObservation(v)
+		return nil
 	case usagelog.FieldUserAgent:
 		v, ok := value.(string)
 		if !ok {
@@ -48200,6 +48910,21 @@ func (m *UsageLogMutation) AddedFields() []string {
 	if m.addfirst_token_ms != nil {
 		fields = append(fields, usagelog.FieldFirstTokenMs)
 	}
+	if m.addtiming_version != nil {
+		fields = append(fields, usagelog.FieldTimingVersion)
+	}
+	if m.addstrict_first_token_ms != nil {
+		fields = append(fields, usagelog.FieldStrictFirstTokenMs)
+	}
+	if m.addlast_token_ms != nil {
+		fields = append(fields, usagelog.FieldLastTokenMs)
+	}
+	if m.addfirst_output_ms != nil {
+		fields = append(fields, usagelog.FieldFirstOutputMs)
+	}
+	if m.addaudio_output_tokens != nil {
+		fields = append(fields, usagelog.FieldAudioOutputTokens)
+	}
 	if m.addimage_count != nil {
 		fields = append(fields, usagelog.FieldImageCount)
 	}
@@ -48253,6 +48978,16 @@ func (m *UsageLogMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedDurationMs()
 	case usagelog.FieldFirstTokenMs:
 		return m.AddedFirstTokenMs()
+	case usagelog.FieldTimingVersion:
+		return m.AddedTimingVersion()
+	case usagelog.FieldStrictFirstTokenMs:
+		return m.AddedStrictFirstTokenMs()
+	case usagelog.FieldLastTokenMs:
+		return m.AddedLastTokenMs()
+	case usagelog.FieldFirstOutputMs:
+		return m.AddedFirstOutputMs()
+	case usagelog.FieldAudioOutputTokens:
+		return m.AddedAudioOutputTokens()
 	case usagelog.FieldImageCount:
 		return m.AddedImageCount()
 	case usagelog.FieldVideoCount:
@@ -48394,6 +49129,41 @@ func (m *UsageLogMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddFirstTokenMs(v)
 		return nil
+	case usagelog.FieldTimingVersion:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTimingVersion(v)
+		return nil
+	case usagelog.FieldStrictFirstTokenMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStrictFirstTokenMs(v)
+		return nil
+	case usagelog.FieldLastTokenMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLastTokenMs(v)
+		return nil
+	case usagelog.FieldFirstOutputMs:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFirstOutputMs(v)
+		return nil
+	case usagelog.FieldAudioOutputTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAudioOutputTokens(v)
+		return nil
 	case usagelog.FieldImageCount:
 		v, ok := value.(int)
 		if !ok {
@@ -48461,6 +49231,27 @@ func (m *UsageLogMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(usagelog.FieldFirstTokenMs) {
 		fields = append(fields, usagelog.FieldFirstTokenMs)
+	}
+	if m.FieldCleared(usagelog.FieldStrictFirstTokenMs) {
+		fields = append(fields, usagelog.FieldStrictFirstTokenMs)
+	}
+	if m.FieldCleared(usagelog.FieldLastTokenMs) {
+		fields = append(fields, usagelog.FieldLastTokenMs)
+	}
+	if m.FieldCleared(usagelog.FieldFirstOutputMs) {
+		fields = append(fields, usagelog.FieldFirstOutputMs)
+	}
+	if m.FieldCleared(usagelog.FieldFirstOutputKind) {
+		fields = append(fields, usagelog.FieldFirstOutputKind)
+	}
+	if m.FieldCleared(usagelog.FieldAudioOutputTokens) {
+		fields = append(fields, usagelog.FieldAudioOutputTokens)
+	}
+	if m.FieldCleared(usagelog.FieldIsComplete) {
+		fields = append(fields, usagelog.FieldIsComplete)
+	}
+	if m.FieldCleared(usagelog.FieldServiceStatusObservation) {
+		fields = append(fields, usagelog.FieldServiceStatusObservation)
 	}
 	if m.FieldCleared(usagelog.FieldUserAgent) {
 		fields = append(fields, usagelog.FieldUserAgent)
@@ -48541,6 +49332,27 @@ func (m *UsageLogMutation) ClearField(name string) error {
 		return nil
 	case usagelog.FieldFirstTokenMs:
 		m.ClearFirstTokenMs()
+		return nil
+	case usagelog.FieldStrictFirstTokenMs:
+		m.ClearStrictFirstTokenMs()
+		return nil
+	case usagelog.FieldLastTokenMs:
+		m.ClearLastTokenMs()
+		return nil
+	case usagelog.FieldFirstOutputMs:
+		m.ClearFirstOutputMs()
+		return nil
+	case usagelog.FieldFirstOutputKind:
+		m.ClearFirstOutputKind()
+		return nil
+	case usagelog.FieldAudioOutputTokens:
+		m.ClearAudioOutputTokens()
+		return nil
+	case usagelog.FieldIsComplete:
+		m.ClearIsComplete()
+		return nil
+	case usagelog.FieldServiceStatusObservation:
+		m.ClearServiceStatusObservation()
 		return nil
 	case usagelog.FieldUserAgent:
 		m.ClearUserAgent()
@@ -48678,6 +49490,36 @@ func (m *UsageLogMutation) ResetField(name string) error {
 		return nil
 	case usagelog.FieldFirstTokenMs:
 		m.ResetFirstTokenMs()
+		return nil
+	case usagelog.FieldTimingVersion:
+		m.ResetTimingVersion()
+		return nil
+	case usagelog.FieldStrictFirstTokenMs:
+		m.ResetStrictFirstTokenMs()
+		return nil
+	case usagelog.FieldLastTokenMs:
+		m.ResetLastTokenMs()
+		return nil
+	case usagelog.FieldFirstOutputMs:
+		m.ResetFirstOutputMs()
+		return nil
+	case usagelog.FieldFirstOutputKind:
+		m.ResetFirstOutputKind()
+		return nil
+	case usagelog.FieldAudioOutputTokens:
+		m.ResetAudioOutputTokens()
+		return nil
+	case usagelog.FieldCompletionStatus:
+		m.ResetCompletionStatus()
+		return nil
+	case usagelog.FieldIsComplete:
+		m.ResetIsComplete()
+		return nil
+	case usagelog.FieldUsageSource:
+		m.ResetUsageSource()
+		return nil
+	case usagelog.FieldServiceStatusObservation:
+		m.ResetServiceStatusObservation()
 		return nil
 	case usagelog.FieldUserAgent:
 		m.ResetUserAgent()

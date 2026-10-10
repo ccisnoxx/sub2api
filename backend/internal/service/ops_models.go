@@ -23,8 +23,9 @@ type OpsSystemLog struct {
 }
 
 type OpsErrorLog struct {
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
+	ServiceStatusObservation *ServiceStatusObservation `json:"-"`
+	ID                       int64                     `json:"id"`
+	CreatedAt                time.Time                 `json:"created_at"`
 
 	// Standardized classification
 	// - phase: request|auth|account_auth|routing|upstream|network|internal
@@ -86,6 +87,9 @@ type OpsErrorLogDetail struct {
 	UpstreamErrorMessage string `json:"upstream_error_message,omitempty"`
 	UpstreamErrorDetail  string `json:"upstream_error_detail,omitempty"`
 	UpstreamErrors       string `json:"upstream_errors,omitempty"` // JSON array (string) for display/parsing
+
+	// 仅管理员详情暴露经过固定版本白名单验证的历史选择快照。
+	RoutingDiagnostics *RoutingDiagnostics `json:"routing_diagnostics,omitempty"`
 
 	// Timings (optional)
 	AuthLatencyMs      *int64 `json:"auth_latency_ms"`

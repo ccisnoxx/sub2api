@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -55,9 +56,11 @@ INSERT INTO ops_error_logs (
   response_latency_ms,
   time_to_first_token_ms,
   created_at,
-  api_key_prefix
+  api_key_prefix,
+  routing_diagnostics,
+  service_status_observation
 ) VALUES (
-  $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38
+  $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40
 )`
 
 func NewOpsRepository(db *sql.DB) service.OpsRepository {
@@ -167,6 +170,8 @@ func opsInsertErrorLogArgs(input *service.OpsInsertErrorLogInput) []any {
 		opsNullInt64(input.TimeToFirstTokenMs),
 		input.CreatedAt,
 		opsNullString(input.APIKeyPrefix),
+		opsNullString(input.RoutingDiagnosticsJSON),
+		opsNullString(input.ServiceStatusObservationJSON),
 	}
 }
 
@@ -449,7 +454,9 @@ SELECT
   e.time_to_first_token_ms,
   COALESCE(e.api_key_prefix, ''),
   COALESCE(ak.name, ''),
-  ak.deleted_at
+  ak.deleted_at,
+  e.routing_diagnostics::text,
+  e.service_status_observation::text
 FROM ops_error_logs e
 LEFT JOIN users u ON e.user_id = u.id
 LEFT JOIN accounts a ON e.account_id = a.id
@@ -476,6 +483,8 @@ LIMIT 1`
 	var requestType sql.NullInt64
 	var detailAPIKeyName string
 	var detailAPIKeyDeletedAt sql.NullTime
+	var routingDiagnostics sql.NullString
+	var sourceObservation sql.NullString
 
 	err := r.db.QueryRowContext(ctx, q, id).Scan(
 		&out.ID,
@@ -524,6 +533,8 @@ LIMIT 1`
 		&out.APIKeyPrefix,
 		&detailAPIKeyName,
 		&detailAPIKeyDeletedAt,
+		&routingDiagnostics,
+		&sourceObservation,
 	)
 	if err != nil {
 		return nil, err
@@ -588,6 +599,24 @@ LIMIT 1`
 	}
 	out.APIKeyName = detailAPIKeyName
 	out.APIKeyDeleted = detailAPIKeyDeletedAt.Valid
+
+	if sourceObservation.Valid {
+		var decodeErr error
+		out.ServiceStatusObservation, decodeErr = service.DecodeServiceStatusObservation([]byte(sourceObservation.String))
+		if decodeErr != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
+	}
+	if routingDiagnostics.Valid {
+		diagnostics, decodeErr := service.DecodeRoutingDiagnosticsJSON([]byte(routingDiagnostics.String))
+		if decodeErr != nil {
+			// 诊断损坏不能覆盖真实故障；固定异常信号不包含原始字段或解码错误。
+			slog.WarnContext(ctx, "历史路由诊断无效，已保留错误记录并省略诊断",
+				"component", "repository.ops", "signal", "routing_diagnostics_invalid", "error_log_id", out.ID)
+		} else {
+			out.RoutingDiagnostics = diagnostics
+		}
+	}
 
 	// Normalize upstream_errors to empty string when stored as JSON null.
 	out.UpstreamErrors = strings.TrimSpace(out.UpstreamErrors)

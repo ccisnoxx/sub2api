@@ -1,0 +1,381 @@
+{
+  "task": "S3.5 native安全重放修复与复验",
+  "producer_storage_inputs": {
+    "backend/internal/handler/admin/ops_handler.go": {
+      "sha256": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "unchanged_since_0129": true,
+      "current_sha256": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb",
+      "final_sha256": "1d0e689564d723eb3f89188748e26d479c699e2b47df5873807b99feea4a4beb"
+    },
+    "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go": {
+      "sha256": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "unchanged_since_0129": true,
+      "current_sha256": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a",
+      "final_sha256": "97ef3277fdb7390a11017ae7702cd5198534bfcaf92bc87341e03d19baa8832a"
+    },
+    "backend/internal/handler/grok_audio.go": {
+      "sha256": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "unchanged_since_0129": true,
+      "current_sha256": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc",
+      "final_sha256": "66022a732167c4dcf12aa0d6f847709e299599cfe163501923476b883c1b75fc"
+    },
+    "backend/internal/handler/ops_error_logger.go": {
+      "sha256": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "unchanged_since_0129": true,
+      "current_sha256": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21",
+      "final_sha256": "4cdb2f7c77ce70d02eb4405944bcf74d59318153cf31dc44e858e9eae95e6e21"
+    },
+    "backend/internal/handler/ops_routing_diagnostics_context_test.go": {
+      "sha256": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "unchanged_since_0129": true,
+      "current_sha256": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d",
+      "final_sha256": "ead866d3b2e7a7c83d00d1d285b472c4391af34be2326e357f5ea199416d266d"
+    },
+    "backend/internal/handler/ops_routing_diagnostics_log_test.go": {
+      "sha256": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "unchanged_since_0129": true,
+      "current_sha256": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a",
+      "final_sha256": "2b56f6064de985bcdc52a1b7d725f00f6c0be1a7a280b86de7bde3d746eac28a"
+    },
+    "backend/internal/repository/ops_repo.go": {
+      "sha256": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "unchanged_since_0129": true,
+      "current_sha256": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641",
+      "final_sha256": "386c9add5b24844045bde71fb62c6e1ed944ab5c16732c4c79f88d2afc55f641"
+    },
+    "backend/internal/repository/ops_repo_args_test.go": {
+      "sha256": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "unchanged_since_0129": true,
+      "current_sha256": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929",
+      "final_sha256": "4e6f6de9e647202489dc1504e3aa564feef566684e8c987635a5a2eb46a34929"
+    },
+    "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go": {
+      "sha256": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "unchanged_since_0129": true,
+      "current_sha256": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910",
+      "final_sha256": "e4655c1bfe4db3170f8ebb216f67659d88fc1d045cd4e229cdcd2372152e1910"
+    },
+    "backend/internal/service/ops_models.go": {
+      "sha256": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "unchanged_since_0129": true,
+      "current_sha256": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b",
+      "final_sha256": "2ff6eb8fc711d2fc521e60279f4b4692ef4a7b7117185c86a19a0efd8c41324b"
+    },
+    "backend/internal/service/ops_port.go": {
+      "sha256": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "unchanged_since_0129": true,
+      "current_sha256": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f",
+      "final_sha256": "07e63890847e48fd91e3c0b4fa32f9195f5ecf88ccf9bc09ec1973be6f458c9f"
+    },
+    "backend/internal/service/ops_routing_diagnostics_dto_test.go": {
+      "sha256": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "unchanged_since_0129": true,
+      "current_sha256": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5",
+      "final_sha256": "3c597e3a8ed617db162e45b549b7475aefed4c8689c9b0bd308ca526a49f34b5"
+    },
+    "backend/internal/service/ops_routing_diagnostics_log_test.go": {
+      "sha256": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "unchanged_since_0129": true,
+      "current_sha256": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf",
+      "final_sha256": "1c90a15f4f10913fe7e690703a8d7da633421000032328e50cb2c5dee00a9dcf"
+    },
+    "backend/internal/service/ops_service.go": {
+      "sha256": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "unchanged_since_0129": true,
+      "current_sha256": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4",
+      "final_sha256": "3d656084dd9d658c4849609580a7eaba9150d30849a38db88cb0965c21bd82f4"
+    },
+    "backend/internal/service/ops_upstream_context.go": {
+      "sha256": "de6efd7080915abc0c03ec9a9aa5392092b81110cd8a84c2e9d07eacfacb0397",
+      "unchanged_since_0129": false,
+      "replaced_by": "ops.jsonl/ops-race.jsonl及真实handler当前轮次回归；不再复用S3.3该owner运行时证据",
+      "current_sha256": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e",
+      "final_sha256": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e"
+    },
+    "backend/internal/service/routing_diagnostics_validation.go": {
+      "sha256": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "unchanged_since_0129": true,
+      "current_sha256": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206",
+      "final_sha256": "228ff15d219612fe5532b99f89da2817c5998d73748da1c6e12098945f825206"
+    },
+    "backend/migrations/252_add_ops_routing_diagnostics.sql": {
+      "sha256": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac",
+      "unchanged_since_0129": true,
+      "current_sha256": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac",
+      "final_sha256": "b01aa7a1a3fd47681dc135b13997710f253f9a63ab36ea139593200194b395ac"
+    },
+    "backend/internal/service/openai_routing_diagnostics_test.go": {
+      "sha256": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "unchanged_since_0129": true,
+      "current_sha256": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280",
+      "final_sha256": "bde776900a9a282eb91d94a7fbbc5660e211df1dd6035d89b2c4a88eb0966280"
+    },
+    "backend/internal/service/routing_diagnostics.go": {
+      "sha256": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "unchanged_since_0129": true,
+      "current_sha256": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25",
+      "final_sha256": "1fbfb14b8668bbdc8dcd26e4fa60bc0bcd7119be021d018cf78a18790512df25"
+    },
+    "backend/internal/service/openai_gateway_scheduling.go": {
+      "sha256": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+      "unchanged_since_0129": true,
+      "current_sha256": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2",
+      "final_sha256": "3822083b1d45d6b30ecb3bee2698d94e4d33f3ac422b26ebf4d261c6a47416c2"
+    },
+    "backend/internal/service/openai_account_scheduler.go": {
+      "sha256": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "unchanged_since_0129": true,
+      "current_sha256": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b",
+      "final_sha256": "2e5818e11cfe5f3adc6edcd1db2ffe03d6d5682a29ef4bea2a9873364d43ac1b"
+    },
+    "backend/internal/service/gateway_service.go": {
+      "sha256": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "unchanged_since_0129": true,
+      "current_sha256": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58",
+      "final_sha256": "bd9778b45a40399dc60a096b1243aea1691d25e42f36930367ab66148e6cbc58"
+    },
+    "backend/internal/service/openai_account_scheduler_test.go": {
+      "sha256": "960da7cdd62b986c99e9babb575363ae3a0287bc0179d6d4a5f2581793195d9a",
+      "unchanged_since_0129": true,
+      "current_sha256": "960da7cdd62b986c99e9babb575363ae3a0287bc0179d6d4a5f2581793195d9a",
+      "final_sha256": "960da7cdd62b986c99e9babb575363ae3a0287bc0179d6d4a5f2581793195d9a"
+    }
+  },
+  "historical_artifacts": [
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-final.jsonl",
+      "sha256": "00b76b525e8333b3d25d8ac63da028a9059f5dfb5ecec839395f4d2ab3538ee8",
+      "command": "go test -tags=unit ./internal/service ./internal/handler -run '^TestOpsRoutingDiagnostics' -count=1 -json",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/handler-regression.jsonl",
+      "sha256": "41e11e94eb520ca18b151de0bcecef95b745b879c4927ffc59f2b7ef3aba11b5",
+      "command": "go test -tags=unit -json ./internal/handler -run '^(TestOpsErrorLoggerMiddleware|TestEnqueueOpsErrorLog|TestLogOpsStreamError|TestOpsRecovered|TestOpsWebSocketCredential|TestClassifyOps|TestSetOps|TestOpsStreamTurn|TestWSSelection|TestWSRoutingTurn|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner|TestOpenAIResponsesWebSocket_(PassthroughTracksModelPerTurn|PassthroughKeepsTurnMappingSnapshot|CtxPoolAppliesPerTurnMappingAndPreservesRequestedModel)|TestEstimateOpsErrorLogJobBytes)' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/service-regression.jsonl",
+      "sha256": "2494fa16fb89926fbca36b5a817232fdad873883e33df80369dbdae6684e92c4",
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestOpsStream|TestOpsUpstream|TestOpsService(RecordError|GetErrorLogByID|GetUserError)|TestToUserError|TestSanitizeOpsUpstreamErrorsForQueue|TestNormalizeOpsUpstream|TestParseOpsUpstream|TestOpsRoutingDiagnostics)' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/admin-detail.jsonl",
+      "sha256": "997f627afb35e0d988909828199c8a464cf5f02443e22a25331bf5bd65a3b914",
+      "command": "go test -tags=unit -json ./internal/handler/admin -run '^TestOpsRoutingDiagnosticsAdmin' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/user-ownership.jsonl",
+      "sha256": "6e43a7fa5e6bf5da3edf04be98018b1013340e41150082bf810ad70d365d97bb",
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestListUserErrorRequests|TestGetUserErrorRequestDetail)' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-final.jsonl",
+      "sha256": "d70ada0f85f923b54984ac10b0c19bfc9fd7f07d61f6e929f1e51fff136906b9",
+      "command": "go test -tags=unit -json ./internal/service ./internal/handler -run '^(TestOpsRoutingDiagnostics|TestOpsStreamTurnClearsRoutingProducerState|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketHandshakeFailoverKeepsRoutingOwner|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner)' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/log-contract-race.log",
+      "sha256": "9290caf3ed56a46a3d6969ddf76e175f0a6a6eb75072ba524bb9eb4d489897e5",
+      "command": "go test -race -tags=unit ./internal/service ./internal/handler -run '^TestOpsRoutingDiagnostics' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/audio-binding-race.log",
+      "sha256": "bb1a99acc787cac3f7581c425d23e80d2a2a7ee1b04a546aa8cbb4f6c38c6fed",
+      "command": "go test -race -tags=unit ./internal/handler -run '^TestGrokAudioSelectionRetriesShareRequestRoutingOwner$' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.3",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s33/ws-owner-fix-race.log",
+      "sha256": "8eb2feb701fdf3a027ad55578b2f90067090f674cd17a87218c79d4c29763f15",
+      "command": "go test -race -tags=unit ./internal/service ./internal/handler -run '^(TestOpsRoutingDiagnostics|TestWSRoutingTurnMappingKeepsSelectionAcrossProxyRetry|TestResponsesWebSocketTurnAfterFailoverClearsRoutingSnapshot|TestGrokAudioSelectionRetriesShareRequestRoutingOwner)' -count=1",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.2",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/service-final.jsonl",
+      "sha256": "98f4aa3e49ac69de26e7d78775458fe06c77d1ccbfc9e6e9cb604150f8c42e27",
+      "command": "go test -tags=unit -json ./internal/service -run '^(TestRoutingDiagnostics|TestOpenAIRoutingDiagnostics)' -count=1",
+      "original_result": "passed",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.2",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/service-regression-final.log",
+      "sha256": "71f1b5b18a44108fb66abdbd0215eb3af83827aa25d004e1b39cc48f13084fef",
+      "command": "go test -tags=unit ./internal/service -run '^(TestOpenAIGatewayService_SelectAccountWithScheduler|TestOpenAIGatewayService_SelectAccountWithLoadAwareness_DBFreshGroupRecheckWaitsOnValidAccount$|TestLegacySchedulerDecision_|TestOpenAIScheduler|TestGatewayPoolSelection(RechecksConcurrentExhaustionBySelectingRemainingAccount|WeightedSessionKeepsVerifiedWindow)$|TestProfitControlSchedulerFiltersCandidates$)' -count=1",
+      "original_result": "passed",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "stage": "S3.2",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s32/core-race-final.log",
+      "sha256": "249b402975f219efcda628e7f540aa17b8da1c44d65a07eb587901e229e09856",
+      "command": "go test -race ./internal/service -run '^TestRoutingDiagnostics' -count=1",
+      "original_result": "passed",
+      "exit_code": 0,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    }
+  ],
+  "http_and_differential": [
+    {
+      "command": "go test -tags=unit -json ./internal/handler -run '^TestS35HTTP' -count=1",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/http-final.jsonl",
+      "sha256": "4321254c98b6eb99afbc4e87dba908fcec7c2b9a2371c8851e4010571f3f6baa",
+      "exit_code": 0,
+      "top_level_pass": 1,
+      "test_pass_events": 3,
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "label": "old",
+      "working_directory": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/old-personal-baseline/backend",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/handler",
+        "./internal/service",
+        "-run",
+        "^(TestResponsesGrok429FailoverIsBounded|TestResponsesGrok402FailoverCooldown|TestResponsesGrok429FailoverHandlesMixedStatuses|TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected|TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient|TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent|TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling|TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo|TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields|TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist|TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness|TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported|TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate|TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback)$",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/differential-old.jsonl",
+      "sha256": "6723810391f0d1f0ad881d5e8436ac64511eba2085a0f048db491b1d89086558",
+      "top_level_pass": 16,
+      "test_pass_events": 25,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok402FailoverCooldown",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/429_then_500_stops_after_the_bounded_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/500_then_429_permits_one_healthy_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/OAuth_429_then_API-key_failure_cannot_bypass_the_bound",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/first_rate_limited_account_selects_healthy_account",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/two_rate_limited_accounts_stop_without_sweeping_the_pool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicbalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicsubscription",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacybalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacysubscription"
+      ],
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    },
+    {
+      "label": "current",
+      "working_directory": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin/backend",
+      "command": [
+        "go",
+        "test",
+        "-tags=unit",
+        "-json",
+        "./internal/handler",
+        "./internal/service",
+        "-run",
+        "^(TestResponsesGrok429FailoverIsBounded|TestResponsesGrok402FailoverCooldown|TestResponsesGrok429FailoverHandlesMixedStatuses|TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected|TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient|TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent|TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling|TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo|TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields|TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist|TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness|TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool|TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported|TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate|TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback)$",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/differential-current.jsonl",
+      "sha256": "44496d03dfe703d1943e3ed000de0b38b5fb42213c3947f6d72014275a489ae6",
+      "top_level_pass": 16,
+      "test_pass_events": 25,
+      "passed_test_names": [
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverAbortsWhenClientDisconnected",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok402FailoverCooldown",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/429_then_500_stops_after_the_bounded_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/500_then_429_permits_one_healthy_followup",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverHandlesMixedStatuses/OAuth_429_then_API-key_failure_cannot_bypass_the_bound",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/first_rate_limited_account_selects_healthy_account",
+        "github.com/Wei-Shaw/sub2api/internal/handler::TestResponsesGrok429FailoverIsBounded/two_rate_limited_accounts_stop_without_sweeping_the_pool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateBillingKeySkipsBillingWithRepo",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_DuplicateUsageLogSkipsBilling",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SimpleModeSkipsBillingAfterPersist",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayServiceRecordUsage_SubscriptionBillingSetsSubscriptionFields",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_DefaultDisabledUsesLegacyLoadAwareness",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_EnabledUsesAdvancedPreviousResponseRouting",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceTopKFallback",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsEmptyPool",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_NoAvailableErrorReportsModelNotSupported",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIGatewayService_SelectAccountWithScheduler_SessionStickyRateLimitedAccountFallsBackToFreshCandidate",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicbalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/atomicsubscription",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacybalance",
+        "github.com/Wei-Shaw/sub2api/internal/service::TestOpenAIUsageTiming_BillingAndSnapshotRemainIndependent/legacysubscription"
+      ],
+      "log_hash_verified": true,
+      "log_hash_verified_final": true
+    }
+  ],
+  "policy": "仅按未改变的行为owner和独立边界复用；受native修复影响的WS运行时证据另行复验，历史S3.3包含WS的一揽子日志不能独自证明修复后WS正确。 ops_upstream_context.go本轮修改，原S3.3 Ops去重与WS日志runtime证据由本次41/61和真实handler/race替换；其他storage/SQL/PG16/admin/user合同及input继续按原边界复用。",
+  "frontend": "S3.4源码及依赖未改，复用原页面、78定向、lint/type/build，后续最终保留检查再次核实。",
+  "changed_input_revalidation": {
+    "backend/internal/service/ops_upstream_context.go": {
+      "regular": "ops-result.json（Ops边界41/61）",
+      "race": "ops-race-result.json（Ops/native边界22/55）",
+      "handler": "handler-04-result.json：最终native/model/string/S35真实轮次及延后队列"
+    }
+  },
+  "current_handler_ws_change": "原HTTP函数/标准fee owner未改；当前模型/渠道/能力/费用/字符串实际转发最终handler18/27与race4/11通过。native/string source有变化，native-safety7/24及既有native9/9已重新执行；原native-service5/18为历史中间证明，不冒充当前hash证据。",
+  "final_application_sha": "da581c6846d1bf89926ca9730abf2290ea8b65ea",
+  "unchanged_producer_storage_input_count": 22,
+  "ops_native_race_reuse": "Ops source/test及native并发控制owner未变；历史Ops/native race22/55按并发控制边界复用；新增纯字符串历史helper及当前native行为由最终service7/24和真实handler race4/11覆盖。"
+}

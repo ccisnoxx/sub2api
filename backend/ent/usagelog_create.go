@@ -463,6 +463,138 @@ func (_c *UsageLogCreate) SetNillableFirstTokenMs(v *int) *UsageLogCreate {
 	return _c
 }
 
+// SetTimingVersion sets the "timing_version" field.
+func (_c *UsageLogCreate) SetTimingVersion(v int16) *UsageLogCreate {
+	_c.mutation.SetTimingVersion(v)
+	return _c
+}
+
+// SetNillableTimingVersion sets the "timing_version" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableTimingVersion(v *int16) *UsageLogCreate {
+	if v != nil {
+		_c.SetTimingVersion(*v)
+	}
+	return _c
+}
+
+// SetStrictFirstTokenMs sets the "strict_first_token_ms" field.
+func (_c *UsageLogCreate) SetStrictFirstTokenMs(v int) *UsageLogCreate {
+	_c.mutation.SetStrictFirstTokenMs(v)
+	return _c
+}
+
+// SetNillableStrictFirstTokenMs sets the "strict_first_token_ms" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableStrictFirstTokenMs(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetStrictFirstTokenMs(*v)
+	}
+	return _c
+}
+
+// SetLastTokenMs sets the "last_token_ms" field.
+func (_c *UsageLogCreate) SetLastTokenMs(v int) *UsageLogCreate {
+	_c.mutation.SetLastTokenMs(v)
+	return _c
+}
+
+// SetNillableLastTokenMs sets the "last_token_ms" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableLastTokenMs(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetLastTokenMs(*v)
+	}
+	return _c
+}
+
+// SetFirstOutputMs sets the "first_output_ms" field.
+func (_c *UsageLogCreate) SetFirstOutputMs(v int) *UsageLogCreate {
+	_c.mutation.SetFirstOutputMs(v)
+	return _c
+}
+
+// SetNillableFirstOutputMs sets the "first_output_ms" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableFirstOutputMs(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetFirstOutputMs(*v)
+	}
+	return _c
+}
+
+// SetFirstOutputKind sets the "first_output_kind" field.
+func (_c *UsageLogCreate) SetFirstOutputKind(v string) *UsageLogCreate {
+	_c.mutation.SetFirstOutputKind(v)
+	return _c
+}
+
+// SetNillableFirstOutputKind sets the "first_output_kind" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableFirstOutputKind(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetFirstOutputKind(*v)
+	}
+	return _c
+}
+
+// SetAudioOutputTokens sets the "audio_output_tokens" field.
+func (_c *UsageLogCreate) SetAudioOutputTokens(v int) *UsageLogCreate {
+	_c.mutation.SetAudioOutputTokens(v)
+	return _c
+}
+
+// SetNillableAudioOutputTokens sets the "audio_output_tokens" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableAudioOutputTokens(v *int) *UsageLogCreate {
+	if v != nil {
+		_c.SetAudioOutputTokens(*v)
+	}
+	return _c
+}
+
+// SetCompletionStatus sets the "completion_status" field.
+func (_c *UsageLogCreate) SetCompletionStatus(v string) *UsageLogCreate {
+	_c.mutation.SetCompletionStatus(v)
+	return _c
+}
+
+// SetNillableCompletionStatus sets the "completion_status" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableCompletionStatus(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetCompletionStatus(*v)
+	}
+	return _c
+}
+
+// SetIsComplete sets the "is_complete" field.
+func (_c *UsageLogCreate) SetIsComplete(v bool) *UsageLogCreate {
+	_c.mutation.SetIsComplete(v)
+	return _c
+}
+
+// SetNillableIsComplete sets the "is_complete" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableIsComplete(v *bool) *UsageLogCreate {
+	if v != nil {
+		_c.SetIsComplete(*v)
+	}
+	return _c
+}
+
+// SetUsageSource sets the "usage_source" field.
+func (_c *UsageLogCreate) SetUsageSource(v string) *UsageLogCreate {
+	_c.mutation.SetUsageSource(v)
+	return _c
+}
+
+// SetNillableUsageSource sets the "usage_source" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableUsageSource(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetUsageSource(*v)
+	}
+	return _c
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (_c *UsageLogCreate) SetServiceStatusObservation(v map[string]interface{}) *UsageLogCreate {
+	_c.mutation.SetServiceStatusObservation(v)
+	return _c
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_c *UsageLogCreate) SetUserAgent(v string) *UsageLogCreate {
 	_c.mutation.SetUserAgent(v)
@@ -761,6 +893,18 @@ func (_c *UsageLogCreate) defaults() {
 		v := usagelog.DefaultStream
 		_c.mutation.SetStream(v)
 	}
+	if _, ok := _c.mutation.TimingVersion(); !ok {
+		v := usagelog.DefaultTimingVersion
+		_c.mutation.SetTimingVersion(v)
+	}
+	if _, ok := _c.mutation.CompletionStatus(); !ok {
+		v := usagelog.DefaultCompletionStatus
+		_c.mutation.SetCompletionStatus(v)
+	}
+	if _, ok := _c.mutation.UsageSource(); !ok {
+		v := usagelog.DefaultUsageSource
+		_c.mutation.SetUsageSource(v)
+	}
 	if _, ok := _c.mutation.ImageCount(); !ok {
 		v := usagelog.DefaultImageCount
 		_c.mutation.SetImageCount(v)
@@ -883,6 +1027,30 @@ func (_c *UsageLogCreate) check() error {
 	}
 	if _, ok := _c.mutation.Stream(); !ok {
 		return &ValidationError{Name: "stream", err: errors.New(`ent: missing required field "UsageLog.stream"`)}
+	}
+	if _, ok := _c.mutation.TimingVersion(); !ok {
+		return &ValidationError{Name: "timing_version", err: errors.New(`ent: missing required field "UsageLog.timing_version"`)}
+	}
+	if v, ok := _c.mutation.FirstOutputKind(); ok {
+		if err := usagelog.FirstOutputKindValidator(v); err != nil {
+			return &ValidationError{Name: "first_output_kind", err: fmt.Errorf(`ent: validator failed for field "UsageLog.first_output_kind": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CompletionStatus(); !ok {
+		return &ValidationError{Name: "completion_status", err: errors.New(`ent: missing required field "UsageLog.completion_status"`)}
+	}
+	if v, ok := _c.mutation.CompletionStatus(); ok {
+		if err := usagelog.CompletionStatusValidator(v); err != nil {
+			return &ValidationError{Name: "completion_status", err: fmt.Errorf(`ent: validator failed for field "UsageLog.completion_status": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.UsageSource(); !ok {
+		return &ValidationError{Name: "usage_source", err: errors.New(`ent: missing required field "UsageLog.usage_source"`)}
+	}
+	if v, ok := _c.mutation.UsageSource(); ok {
+		if err := usagelog.UsageSourceValidator(v); err != nil {
+			return &ValidationError{Name: "usage_source", err: fmt.Errorf(`ent: validator failed for field "UsageLog.usage_source": %w`, err)}
+		}
 	}
 	if v, ok := _c.mutation.UserAgent(); ok {
 		if err := usagelog.UserAgentValidator(v); err != nil {
@@ -1082,6 +1250,46 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.FirstTokenMs(); ok {
 		_spec.SetField(usagelog.FieldFirstTokenMs, field.TypeInt, value)
 		_node.FirstTokenMs = &value
+	}
+	if value, ok := _c.mutation.TimingVersion(); ok {
+		_spec.SetField(usagelog.FieldTimingVersion, field.TypeInt16, value)
+		_node.TimingVersion = value
+	}
+	if value, ok := _c.mutation.StrictFirstTokenMs(); ok {
+		_spec.SetField(usagelog.FieldStrictFirstTokenMs, field.TypeInt, value)
+		_node.StrictFirstTokenMs = &value
+	}
+	if value, ok := _c.mutation.LastTokenMs(); ok {
+		_spec.SetField(usagelog.FieldLastTokenMs, field.TypeInt, value)
+		_node.LastTokenMs = &value
+	}
+	if value, ok := _c.mutation.FirstOutputMs(); ok {
+		_spec.SetField(usagelog.FieldFirstOutputMs, field.TypeInt, value)
+		_node.FirstOutputMs = &value
+	}
+	if value, ok := _c.mutation.FirstOutputKind(); ok {
+		_spec.SetField(usagelog.FieldFirstOutputKind, field.TypeString, value)
+		_node.FirstOutputKind = &value
+	}
+	if value, ok := _c.mutation.AudioOutputTokens(); ok {
+		_spec.SetField(usagelog.FieldAudioOutputTokens, field.TypeInt, value)
+		_node.AudioOutputTokens = &value
+	}
+	if value, ok := _c.mutation.CompletionStatus(); ok {
+		_spec.SetField(usagelog.FieldCompletionStatus, field.TypeString, value)
+		_node.CompletionStatus = value
+	}
+	if value, ok := _c.mutation.IsComplete(); ok {
+		_spec.SetField(usagelog.FieldIsComplete, field.TypeBool, value)
+		_node.IsComplete = &value
+	}
+	if value, ok := _c.mutation.UsageSource(); ok {
+		_spec.SetField(usagelog.FieldUsageSource, field.TypeString, value)
+		_node.UsageSource = value
+	}
+	if value, ok := _c.mutation.ServiceStatusObservation(); ok {
+		_spec.SetField(usagelog.FieldServiceStatusObservation, field.TypeJSON, value)
+		_node.ServiceStatusObservation = value
 	}
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(usagelog.FieldUserAgent, field.TypeString, value)
@@ -1863,6 +2071,198 @@ func (u *UsageLogUpsert) AddFirstTokenMs(v int) *UsageLogUpsert {
 // ClearFirstTokenMs clears the value of the "first_token_ms" field.
 func (u *UsageLogUpsert) ClearFirstTokenMs() *UsageLogUpsert {
 	u.SetNull(usagelog.FieldFirstTokenMs)
+	return u
+}
+
+// SetTimingVersion sets the "timing_version" field.
+func (u *UsageLogUpsert) SetTimingVersion(v int16) *UsageLogUpsert {
+	u.Set(usagelog.FieldTimingVersion, v)
+	return u
+}
+
+// UpdateTimingVersion sets the "timing_version" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateTimingVersion() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldTimingVersion)
+	return u
+}
+
+// AddTimingVersion adds v to the "timing_version" field.
+func (u *UsageLogUpsert) AddTimingVersion(v int16) *UsageLogUpsert {
+	u.Add(usagelog.FieldTimingVersion, v)
+	return u
+}
+
+// SetStrictFirstTokenMs sets the "strict_first_token_ms" field.
+func (u *UsageLogUpsert) SetStrictFirstTokenMs(v int) *UsageLogUpsert {
+	u.Set(usagelog.FieldStrictFirstTokenMs, v)
+	return u
+}
+
+// UpdateStrictFirstTokenMs sets the "strict_first_token_ms" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateStrictFirstTokenMs() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldStrictFirstTokenMs)
+	return u
+}
+
+// AddStrictFirstTokenMs adds v to the "strict_first_token_ms" field.
+func (u *UsageLogUpsert) AddStrictFirstTokenMs(v int) *UsageLogUpsert {
+	u.Add(usagelog.FieldStrictFirstTokenMs, v)
+	return u
+}
+
+// ClearStrictFirstTokenMs clears the value of the "strict_first_token_ms" field.
+func (u *UsageLogUpsert) ClearStrictFirstTokenMs() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldStrictFirstTokenMs)
+	return u
+}
+
+// SetLastTokenMs sets the "last_token_ms" field.
+func (u *UsageLogUpsert) SetLastTokenMs(v int) *UsageLogUpsert {
+	u.Set(usagelog.FieldLastTokenMs, v)
+	return u
+}
+
+// UpdateLastTokenMs sets the "last_token_ms" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateLastTokenMs() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldLastTokenMs)
+	return u
+}
+
+// AddLastTokenMs adds v to the "last_token_ms" field.
+func (u *UsageLogUpsert) AddLastTokenMs(v int) *UsageLogUpsert {
+	u.Add(usagelog.FieldLastTokenMs, v)
+	return u
+}
+
+// ClearLastTokenMs clears the value of the "last_token_ms" field.
+func (u *UsageLogUpsert) ClearLastTokenMs() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldLastTokenMs)
+	return u
+}
+
+// SetFirstOutputMs sets the "first_output_ms" field.
+func (u *UsageLogUpsert) SetFirstOutputMs(v int) *UsageLogUpsert {
+	u.Set(usagelog.FieldFirstOutputMs, v)
+	return u
+}
+
+// UpdateFirstOutputMs sets the "first_output_ms" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateFirstOutputMs() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldFirstOutputMs)
+	return u
+}
+
+// AddFirstOutputMs adds v to the "first_output_ms" field.
+func (u *UsageLogUpsert) AddFirstOutputMs(v int) *UsageLogUpsert {
+	u.Add(usagelog.FieldFirstOutputMs, v)
+	return u
+}
+
+// ClearFirstOutputMs clears the value of the "first_output_ms" field.
+func (u *UsageLogUpsert) ClearFirstOutputMs() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldFirstOutputMs)
+	return u
+}
+
+// SetFirstOutputKind sets the "first_output_kind" field.
+func (u *UsageLogUpsert) SetFirstOutputKind(v string) *UsageLogUpsert {
+	u.Set(usagelog.FieldFirstOutputKind, v)
+	return u
+}
+
+// UpdateFirstOutputKind sets the "first_output_kind" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateFirstOutputKind() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldFirstOutputKind)
+	return u
+}
+
+// ClearFirstOutputKind clears the value of the "first_output_kind" field.
+func (u *UsageLogUpsert) ClearFirstOutputKind() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldFirstOutputKind)
+	return u
+}
+
+// SetAudioOutputTokens sets the "audio_output_tokens" field.
+func (u *UsageLogUpsert) SetAudioOutputTokens(v int) *UsageLogUpsert {
+	u.Set(usagelog.FieldAudioOutputTokens, v)
+	return u
+}
+
+// UpdateAudioOutputTokens sets the "audio_output_tokens" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateAudioOutputTokens() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldAudioOutputTokens)
+	return u
+}
+
+// AddAudioOutputTokens adds v to the "audio_output_tokens" field.
+func (u *UsageLogUpsert) AddAudioOutputTokens(v int) *UsageLogUpsert {
+	u.Add(usagelog.FieldAudioOutputTokens, v)
+	return u
+}
+
+// ClearAudioOutputTokens clears the value of the "audio_output_tokens" field.
+func (u *UsageLogUpsert) ClearAudioOutputTokens() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldAudioOutputTokens)
+	return u
+}
+
+// SetCompletionStatus sets the "completion_status" field.
+func (u *UsageLogUpsert) SetCompletionStatus(v string) *UsageLogUpsert {
+	u.Set(usagelog.FieldCompletionStatus, v)
+	return u
+}
+
+// UpdateCompletionStatus sets the "completion_status" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateCompletionStatus() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldCompletionStatus)
+	return u
+}
+
+// SetIsComplete sets the "is_complete" field.
+func (u *UsageLogUpsert) SetIsComplete(v bool) *UsageLogUpsert {
+	u.Set(usagelog.FieldIsComplete, v)
+	return u
+}
+
+// UpdateIsComplete sets the "is_complete" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateIsComplete() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldIsComplete)
+	return u
+}
+
+// ClearIsComplete clears the value of the "is_complete" field.
+func (u *UsageLogUpsert) ClearIsComplete() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldIsComplete)
+	return u
+}
+
+// SetUsageSource sets the "usage_source" field.
+func (u *UsageLogUpsert) SetUsageSource(v string) *UsageLogUpsert {
+	u.Set(usagelog.FieldUsageSource, v)
+	return u
+}
+
+// UpdateUsageSource sets the "usage_source" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateUsageSource() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldUsageSource)
+	return u
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (u *UsageLogUpsert) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpsert {
+	u.Set(usagelog.FieldServiceStatusObservation, v)
+	return u
+}
+
+// UpdateServiceStatusObservation sets the "service_status_observation" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateServiceStatusObservation() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldServiceStatusObservation)
+	return u
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (u *UsageLogUpsert) ClearServiceStatusObservation() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldServiceStatusObservation)
 	return u
 }
 
@@ -2817,6 +3217,230 @@ func (u *UsageLogUpsertOne) UpdateFirstTokenMs() *UsageLogUpsertOne {
 func (u *UsageLogUpsertOne) ClearFirstTokenMs() *UsageLogUpsertOne {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.ClearFirstTokenMs()
+	})
+}
+
+// SetTimingVersion sets the "timing_version" field.
+func (u *UsageLogUpsertOne) SetTimingVersion(v int16) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetTimingVersion(v)
+	})
+}
+
+// AddTimingVersion adds v to the "timing_version" field.
+func (u *UsageLogUpsertOne) AddTimingVersion(v int16) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddTimingVersion(v)
+	})
+}
+
+// UpdateTimingVersion sets the "timing_version" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateTimingVersion() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateTimingVersion()
+	})
+}
+
+// SetStrictFirstTokenMs sets the "strict_first_token_ms" field.
+func (u *UsageLogUpsertOne) SetStrictFirstTokenMs(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetStrictFirstTokenMs(v)
+	})
+}
+
+// AddStrictFirstTokenMs adds v to the "strict_first_token_ms" field.
+func (u *UsageLogUpsertOne) AddStrictFirstTokenMs(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddStrictFirstTokenMs(v)
+	})
+}
+
+// UpdateStrictFirstTokenMs sets the "strict_first_token_ms" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateStrictFirstTokenMs() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateStrictFirstTokenMs()
+	})
+}
+
+// ClearStrictFirstTokenMs clears the value of the "strict_first_token_ms" field.
+func (u *UsageLogUpsertOne) ClearStrictFirstTokenMs() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearStrictFirstTokenMs()
+	})
+}
+
+// SetLastTokenMs sets the "last_token_ms" field.
+func (u *UsageLogUpsertOne) SetLastTokenMs(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetLastTokenMs(v)
+	})
+}
+
+// AddLastTokenMs adds v to the "last_token_ms" field.
+func (u *UsageLogUpsertOne) AddLastTokenMs(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddLastTokenMs(v)
+	})
+}
+
+// UpdateLastTokenMs sets the "last_token_ms" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateLastTokenMs() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateLastTokenMs()
+	})
+}
+
+// ClearLastTokenMs clears the value of the "last_token_ms" field.
+func (u *UsageLogUpsertOne) ClearLastTokenMs() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearLastTokenMs()
+	})
+}
+
+// SetFirstOutputMs sets the "first_output_ms" field.
+func (u *UsageLogUpsertOne) SetFirstOutputMs(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetFirstOutputMs(v)
+	})
+}
+
+// AddFirstOutputMs adds v to the "first_output_ms" field.
+func (u *UsageLogUpsertOne) AddFirstOutputMs(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddFirstOutputMs(v)
+	})
+}
+
+// UpdateFirstOutputMs sets the "first_output_ms" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateFirstOutputMs() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateFirstOutputMs()
+	})
+}
+
+// ClearFirstOutputMs clears the value of the "first_output_ms" field.
+func (u *UsageLogUpsertOne) ClearFirstOutputMs() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearFirstOutputMs()
+	})
+}
+
+// SetFirstOutputKind sets the "first_output_kind" field.
+func (u *UsageLogUpsertOne) SetFirstOutputKind(v string) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetFirstOutputKind(v)
+	})
+}
+
+// UpdateFirstOutputKind sets the "first_output_kind" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateFirstOutputKind() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateFirstOutputKind()
+	})
+}
+
+// ClearFirstOutputKind clears the value of the "first_output_kind" field.
+func (u *UsageLogUpsertOne) ClearFirstOutputKind() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearFirstOutputKind()
+	})
+}
+
+// SetAudioOutputTokens sets the "audio_output_tokens" field.
+func (u *UsageLogUpsertOne) SetAudioOutputTokens(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetAudioOutputTokens(v)
+	})
+}
+
+// AddAudioOutputTokens adds v to the "audio_output_tokens" field.
+func (u *UsageLogUpsertOne) AddAudioOutputTokens(v int) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddAudioOutputTokens(v)
+	})
+}
+
+// UpdateAudioOutputTokens sets the "audio_output_tokens" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateAudioOutputTokens() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateAudioOutputTokens()
+	})
+}
+
+// ClearAudioOutputTokens clears the value of the "audio_output_tokens" field.
+func (u *UsageLogUpsertOne) ClearAudioOutputTokens() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearAudioOutputTokens()
+	})
+}
+
+// SetCompletionStatus sets the "completion_status" field.
+func (u *UsageLogUpsertOne) SetCompletionStatus(v string) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetCompletionStatus(v)
+	})
+}
+
+// UpdateCompletionStatus sets the "completion_status" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateCompletionStatus() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateCompletionStatus()
+	})
+}
+
+// SetIsComplete sets the "is_complete" field.
+func (u *UsageLogUpsertOne) SetIsComplete(v bool) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetIsComplete(v)
+	})
+}
+
+// UpdateIsComplete sets the "is_complete" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateIsComplete() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateIsComplete()
+	})
+}
+
+// ClearIsComplete clears the value of the "is_complete" field.
+func (u *UsageLogUpsertOne) ClearIsComplete() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearIsComplete()
+	})
+}
+
+// SetUsageSource sets the "usage_source" field.
+func (u *UsageLogUpsertOne) SetUsageSource(v string) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetUsageSource(v)
+	})
+}
+
+// UpdateUsageSource sets the "usage_source" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateUsageSource() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateUsageSource()
+	})
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (u *UsageLogUpsertOne) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetServiceStatusObservation(v)
+	})
+}
+
+// UpdateServiceStatusObservation sets the "service_status_observation" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateServiceStatusObservation() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateServiceStatusObservation()
+	})
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (u *UsageLogUpsertOne) ClearServiceStatusObservation() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearServiceStatusObservation()
 	})
 }
 
@@ -3973,6 +4597,230 @@ func (u *UsageLogUpsertBulk) UpdateFirstTokenMs() *UsageLogUpsertBulk {
 func (u *UsageLogUpsertBulk) ClearFirstTokenMs() *UsageLogUpsertBulk {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.ClearFirstTokenMs()
+	})
+}
+
+// SetTimingVersion sets the "timing_version" field.
+func (u *UsageLogUpsertBulk) SetTimingVersion(v int16) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetTimingVersion(v)
+	})
+}
+
+// AddTimingVersion adds v to the "timing_version" field.
+func (u *UsageLogUpsertBulk) AddTimingVersion(v int16) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddTimingVersion(v)
+	})
+}
+
+// UpdateTimingVersion sets the "timing_version" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateTimingVersion() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateTimingVersion()
+	})
+}
+
+// SetStrictFirstTokenMs sets the "strict_first_token_ms" field.
+func (u *UsageLogUpsertBulk) SetStrictFirstTokenMs(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetStrictFirstTokenMs(v)
+	})
+}
+
+// AddStrictFirstTokenMs adds v to the "strict_first_token_ms" field.
+func (u *UsageLogUpsertBulk) AddStrictFirstTokenMs(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddStrictFirstTokenMs(v)
+	})
+}
+
+// UpdateStrictFirstTokenMs sets the "strict_first_token_ms" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateStrictFirstTokenMs() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateStrictFirstTokenMs()
+	})
+}
+
+// ClearStrictFirstTokenMs clears the value of the "strict_first_token_ms" field.
+func (u *UsageLogUpsertBulk) ClearStrictFirstTokenMs() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearStrictFirstTokenMs()
+	})
+}
+
+// SetLastTokenMs sets the "last_token_ms" field.
+func (u *UsageLogUpsertBulk) SetLastTokenMs(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetLastTokenMs(v)
+	})
+}
+
+// AddLastTokenMs adds v to the "last_token_ms" field.
+func (u *UsageLogUpsertBulk) AddLastTokenMs(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddLastTokenMs(v)
+	})
+}
+
+// UpdateLastTokenMs sets the "last_token_ms" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateLastTokenMs() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateLastTokenMs()
+	})
+}
+
+// ClearLastTokenMs clears the value of the "last_token_ms" field.
+func (u *UsageLogUpsertBulk) ClearLastTokenMs() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearLastTokenMs()
+	})
+}
+
+// SetFirstOutputMs sets the "first_output_ms" field.
+func (u *UsageLogUpsertBulk) SetFirstOutputMs(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetFirstOutputMs(v)
+	})
+}
+
+// AddFirstOutputMs adds v to the "first_output_ms" field.
+func (u *UsageLogUpsertBulk) AddFirstOutputMs(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddFirstOutputMs(v)
+	})
+}
+
+// UpdateFirstOutputMs sets the "first_output_ms" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateFirstOutputMs() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateFirstOutputMs()
+	})
+}
+
+// ClearFirstOutputMs clears the value of the "first_output_ms" field.
+func (u *UsageLogUpsertBulk) ClearFirstOutputMs() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearFirstOutputMs()
+	})
+}
+
+// SetFirstOutputKind sets the "first_output_kind" field.
+func (u *UsageLogUpsertBulk) SetFirstOutputKind(v string) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetFirstOutputKind(v)
+	})
+}
+
+// UpdateFirstOutputKind sets the "first_output_kind" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateFirstOutputKind() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateFirstOutputKind()
+	})
+}
+
+// ClearFirstOutputKind clears the value of the "first_output_kind" field.
+func (u *UsageLogUpsertBulk) ClearFirstOutputKind() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearFirstOutputKind()
+	})
+}
+
+// SetAudioOutputTokens sets the "audio_output_tokens" field.
+func (u *UsageLogUpsertBulk) SetAudioOutputTokens(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetAudioOutputTokens(v)
+	})
+}
+
+// AddAudioOutputTokens adds v to the "audio_output_tokens" field.
+func (u *UsageLogUpsertBulk) AddAudioOutputTokens(v int) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddAudioOutputTokens(v)
+	})
+}
+
+// UpdateAudioOutputTokens sets the "audio_output_tokens" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateAudioOutputTokens() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateAudioOutputTokens()
+	})
+}
+
+// ClearAudioOutputTokens clears the value of the "audio_output_tokens" field.
+func (u *UsageLogUpsertBulk) ClearAudioOutputTokens() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearAudioOutputTokens()
+	})
+}
+
+// SetCompletionStatus sets the "completion_status" field.
+func (u *UsageLogUpsertBulk) SetCompletionStatus(v string) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetCompletionStatus(v)
+	})
+}
+
+// UpdateCompletionStatus sets the "completion_status" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateCompletionStatus() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateCompletionStatus()
+	})
+}
+
+// SetIsComplete sets the "is_complete" field.
+func (u *UsageLogUpsertBulk) SetIsComplete(v bool) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetIsComplete(v)
+	})
+}
+
+// UpdateIsComplete sets the "is_complete" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateIsComplete() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateIsComplete()
+	})
+}
+
+// ClearIsComplete clears the value of the "is_complete" field.
+func (u *UsageLogUpsertBulk) ClearIsComplete() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearIsComplete()
+	})
+}
+
+// SetUsageSource sets the "usage_source" field.
+func (u *UsageLogUpsertBulk) SetUsageSource(v string) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetUsageSource(v)
+	})
+}
+
+// UpdateUsageSource sets the "usage_source" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateUsageSource() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateUsageSource()
+	})
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (u *UsageLogUpsertBulk) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetServiceStatusObservation(v)
+	})
+}
+
+// UpdateServiceStatusObservation sets the "service_status_observation" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateServiceStatusObservation() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateServiceStatusObservation()
+	})
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (u *UsageLogUpsertBulk) ClearServiceStatusObservation() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearServiceStatusObservation()
 	})
 }
 

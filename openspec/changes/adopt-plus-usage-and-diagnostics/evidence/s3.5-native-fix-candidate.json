@@ -1,0 +1,29 @@
+{
+  "task": "S3.5 native当前轮次安全重放修复及复验",
+  "application_sha": "da581c6846d1bf89926ca9730abf2290ea8b65ea",
+  "branch": "codex/plus-native-turn-replay-s35",
+  "worktree": "/Users/sc/.codex/worktrees/plus-routing-storage-s33/sub2api-kin",
+  "base_sha": "0129d38696b1467768687aef9d8233092d4c1d7c",
+  "prior_s35_test_sha": "3101cb41636a658dbac47e882ebdc37f34e84641",
+  "personal_sha": "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92",
+  "pr5_head": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+  "source_files": {
+    "backend/internal/handler/openai_gateway_handler.go": "3015671100eaed2735c588dcca39eecdd52d4fd01b92846cfff0a7e03cdc11b4",
+    "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go": "2cef992397dda710ef63cb63ac131ea068c5e36103689124ff5e8a8274693130",
+    "backend/internal/handler/s35_ws_routing_behavior_test.go": "3064dde0011c690eacac72ad20e5fa29c3fe16c60b87420206264458f025a213",
+    "backend/internal/service/openai_ws_forwarder_ingress.go": "4280b625fd8a6e07689eb433ce6da65a69a2bbfa7b739291dbd2b1da00c29c4a",
+    "backend/internal/service/openai_ws_native_resume_test.go": "87df75a27f3c56da75e35600d2c78d7c7f3da7f0a3389502bb7a8bab6b418e63",
+    "backend/internal/service/ops_stream_turn_ownership_test.go": "7df6930bce09ef57e4064af00e29accce5e9e137adbc870aa17c49491bb61bb2",
+    "backend/internal/service/ops_upstream_context.go": "cd857bf5187dddf0706cd94cd0cfec2bd40218360be25c6f30fec8d58323094e"
+  },
+  "production_source_changes": [
+    "backend/internal/handler/openai_gateway_handler.go",
+    "backend/internal/service/openai_ws_forwarder_ingress.go",
+    "backend/internal/service/ops_upstream_context.go"
+  ],
+  "preservation_before_source_commit": "全部3树原文件匹配，仅授权5源码/测试变更，原S0 17应用改动及main源码保留",
+  "intermediate_native_ops_sha": "9c2c5fba1d71b2e7e3b6f518ef61938d2cb57cae",
+  "scope": "native安全重放及S3.5复验；S3.6未开始",
+  "remote_actions_performed": false,
+  "intermediate_model_sha": "62c08468569c1852d07edfb8f746157022804225"
+}

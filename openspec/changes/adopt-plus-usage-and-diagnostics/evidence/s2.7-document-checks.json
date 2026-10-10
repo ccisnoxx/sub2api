@@ -1,0 +1,77 @@
+{
+  "task": "S2.7",
+  "candidate": "88156f09fcf980a771a8aab570f0dbaec5de25fb",
+  "checks": [
+    {
+      "worktree": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+      "head_preserved": true,
+      "branch_preserved": true,
+      "snapshot_files_checked": 4577,
+      "only_expected_document_changes": true,
+      "old_journal_preserved": true,
+      "unexpected_source_or_file_changes": []
+    },
+    {
+      "worktree": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head_preserved": true,
+      "branch_preserved": true,
+      "snapshot_files_checked": 4258,
+      "only_expected_document_changes": true,
+      "old_journal_preserved": true,
+      "unexpected_source_or_file_changes": []
+    },
+    {
+      "worktree": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head_preserved": true,
+      "branch_preserved": true,
+      "snapshot_files_checked": 4552,
+      "only_expected_document_changes": true,
+      "old_journal_preserved": true,
+      "unexpected_source_or_file_changes": []
+    },
+    {
+      "worktree": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head_preserved": true,
+      "branch_preserved": true,
+      "snapshot_files_checked": 4219,
+      "only_expected_document_changes": false,
+      "old_journal_preserved": true,
+      "unexpected_source_or_file_changes": []
+    },
+    {
+      "worktree": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head_preserved": true,
+      "branch_preserved": true,
+      "snapshot_files_checked": 4547,
+      "only_expected_document_changes": false,
+      "old_journal_preserved": true,
+      "unexpected_source_or_file_changes": []
+    },
+    {
+      "worktree": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head_preserved": true,
+      "branch_preserved": true,
+      "snapshot_files_checked": 4535,
+      "only_expected_document_changes": false,
+      "old_journal_preserved": true,
+      "unexpected_source_or_file_changes": []
+    },
+    {
+      "final_candidate_clean": true,
+      "candidate_head_preserved": true,
+      "source_files": 4380,
+      "unchanged_source_files": 4377,
+      "only_three_documented_corrections": [
+        "backend/internal/server/api_contract_test.go",
+        "backend/internal/service/catalog_pricing.go",
+        "backend/internal/service/openai_usage_timing_test.go"
+      ],
+      "ci_controls_unchanged": true,
+      "registration_documents_equal": true,
+      "task_checkboxes": "仅S2.7本轮推进；S0.2/S0.3/S1.5/S3.1仍待执行",
+      "diff_check": "passed"
+    }
+  ],
+  "recorded_utc": "2026-10-09T19:58:59.968095+00:00",
+  "result": "passed"
+}

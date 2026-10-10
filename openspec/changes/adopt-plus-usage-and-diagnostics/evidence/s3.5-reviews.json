@@ -1,0 +1,60 @@
+{
+  "task": "S3.5",
+  "candidate_sha": "3101cb41636a658dbac47e882ebdc37f34e84641",
+  "independent_reviewer": {
+    "agent_type": "reviewer",
+    "runtime_ref": "/root/routing_behavior_review_s35",
+    "fork_turns": "none",
+    "read_only": true,
+    "tests_independently_executed": false,
+    "candidate_sources": {
+      "backend/internal/handler/s35_http_routing_behavior_test.go": "15d95316f14b3e5d82739dd2b2e90488dc1f66dc1428b4beeee5f62deeec423a",
+      "backend/internal/handler/s35_ws_routing_behavior_test.go": "a073d22424f0138942b33b7fd55e1a8030b4d17aa1a519d4e67b3e8d48a6ee07"
+    },
+    "new_candidate_findings": [],
+    "known_existing_findings": [
+      {
+        "severity": "P1",
+        "classification": "pre-S3 existing defect, source comparison; current runtime reproduced",
+        "trigger": "native 连接 turn1 已完成，turn2 在下游尚未输出时收到429并换号",
+        "actual_send_sequence": [
+          "93501/session-1-turn-1 completed",
+          "93501/session-1-turn-2 429",
+          "93502/session-1-turn-1 replayed"
+        ],
+        "expected_response_id": "resp_session-1-turn-2",
+        "actual_response_id": "resp_session-1-turn-1",
+        "ops_observation": {
+          "logical_turn": 2,
+          "account_id": 93502,
+          "message": "s35-visible-session-1-turn-1",
+          "routing_turn": 2,
+          "selection_attempt": 1
+        },
+        "locations": [
+          "backend/internal/service/openai_ws_forwarder_ingress.go:1221",
+          "backend/internal/service/openai_ws_forwarder_ingress.go:1918",
+          "backend/internal/handler/openai_gateway_handler.go:3260",
+          "backend/internal/handler/openai_gateway_handler.go:4039"
+        ],
+        "probe_log": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/native-later-probe-02.jsonl",
+        "probe_exit_code": 1,
+        "baseline_evidence": "/Users/sc/.codex/validation/sub2api-kin/20261009-s35/ws/baseline-native-retry-comparison.json",
+        "old_runtime_reproduction_executed": false,
+        "safe_direction": "另立修复任务：native失败出口返回安全重放的当前turn载荷，沿用HTTP bridge判断；不能安全重放时显式终止。",
+        "production_changes_in_this_task": false,
+        "delivery_risk_open": true
+      }
+    ],
+    "fixture_finding_closed": "外部probe-01手动队列读取不扣计数，改为有界消费后probe-02自然退出，实际失败为响应ID错配。",
+    "metadata_finding_closed": "differential-checks的top_level_pass误将Package中的斜杠参与计数，按Test字段修正为两边16；未改原日志、不重跑测试。",
+    "coverage_limits": [
+      "只在首turn进行换号/同账号恢复的通过测试不覆盖后续turn换号分支",
+      "simple模式HTTP没有usage repository，不证明实际用量落库；WS真实Create用量6条，不代表标准扣费",
+      "标准余额/订阅/atomic/legacy及去重由service owner oracle覆盖，没有真实DB扣费/付费上游",
+      "状态200满足现有SLA过滤源码，未执行数据库聚合查询",
+      "旧版本WS动态复现、完整JWT服务器及生产未执行"
+    ]
+  },
+  "root_acceptance": "验收子任务交付的冻结测试与证据，S3.5整体仍未通过；既有P1需修复和复验，S3.6不勾选。"
+}

@@ -1,0 +1,103 @@
+{
+  "task": "S2.6",
+  "result": "passed",
+  "recorded_utc": "2026-10-09T19:15:21.257196+00:00",
+  "task_changes": [
+    {
+      "before": [
+        " ",
+        "S2.6 验收模型查看流程。"
+      ],
+      "after": [
+        "x",
+        "S2.6 验收模型查看流程。"
+      ]
+    }
+  ],
+  "next_task": "S2.7 未执行",
+  "synchronized_files": [
+    "plan.md",
+    "tasks.md",
+    "implementation-evidence.md",
+    "evidence/s2.6-candidate.json",
+    "evidence/s2.6-validation.json",
+    "evidence/s2.6-reviews.json",
+    "evidence/s2.6-subagent-digest.md"
+  ],
+  "previous_journals": [
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+      "previous_journal_sha256": "bc9b01bb990a04d3ab050ff4cb734e94ac563725a2789dd7cfe5b066a9efa108",
+      "previous_journal_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "previous_journal_sha256": "98542f64fab676f7755b074beb875f79cad9866f09eda972870f4469c0ceda73",
+      "previous_journal_preserved": true
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "previous_journal_sha256": "32f2421b0ee3364799ee81fb0bdc3b17c4e989c2369744657231fb6ba62788cc",
+      "previous_journal_preserved": true
+    }
+  ],
+  "worktrees": [
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-catalog-verify-s25/sub2api-kin",
+      "head_preserved": true,
+      "non_task_files_preserved": true,
+      "unexpected_paths": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22-evidence/sub2api-kin",
+      "head_preserved": true,
+      "non_task_files_preserved": true,
+      "unexpected_paths": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/fix-version-usage-help/sub2api-kin",
+      "head_preserved": true,
+      "non_task_files_preserved": true,
+      "unexpected_paths": []
+    },
+    {
+      "root": "/Users/sc/PycharmProjects/sub2api-kin",
+      "head_preserved": true,
+      "non_task_files_preserved": true,
+      "unexpected_paths": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-pricing-s22/sub2api-kin",
+      "head_preserved": true,
+      "non_task_files_preserved": true,
+      "unexpected_paths": []
+    },
+    {
+      "root": "/Users/sc/.codex/worktrees/plus-usage-s1/sub2api-kin",
+      "head_preserved": true,
+      "non_task_files_preserved": true,
+      "unexpected_paths": []
+    }
+  ],
+  "source_files_unchanged": 4380,
+  "candidate_ancestor_checked": true,
+  "remote_personal_and_main_unchanged": true,
+  "links_checked": 68,
+  "new_evidence_anchor_checked": true,
+  "historical_evidence_preserved": true,
+  "diff_check": "passed",
+  "environment": {
+    "preview": "stopped",
+    "dependency_link": "removed",
+    "dependency_install": "not_executed",
+    "ignored_browser_build": "retained for reproducibility; 178 files recorded in browser-build-manifest.json"
+  },
+  "validation_artifacts_rechecked": 27,
+  "diff_names": [
+    "docs/dev-journal.md",
+    "openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md",
+    "openspec/changes/adopt-plus-usage-and-diagnostics/plan.md",
+    "openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md"
+  ],
+  "external_actions": "not_executed"
+}

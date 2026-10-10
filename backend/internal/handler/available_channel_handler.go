@@ -12,7 +12,8 @@ import (
 
 // AvailableChannelHandler 处理用户侧「可用渠道」查询。
 //
-// 用户侧接口委托 ChannelService.ListAvailable，并在返回前做四层过滤：
+// 默认数组委托 ChannelService.ListAvailable，并在返回前做四层过滤；
+// 显式目录分支复用用户分组授权，使用独立配置快照和价格 DTO：
 //  1. 行过滤：只保留状态为 Active 且与当前用户可访问分组有交集的渠道；
 //  2. 分组过滤：渠道的 Groups 只保留用户可访问的那些；
 //  3. 平台过滤：普通分组只保留自身平台模型；Composite 分组按渠道已配置的具体模型平台
@@ -23,6 +24,7 @@ type AvailableChannelHandler struct {
 	channelService *service.ChannelService
 	apiKeyService  *service.APIKeyService
 	settingService *service.SettingService
+	billingService *service.BillingService
 }
 
 // NewAvailableChannelHandler 创建用户侧可用渠道 handler。
@@ -30,11 +32,13 @@ func NewAvailableChannelHandler(
 	channelService *service.ChannelService,
 	apiKeyService *service.APIKeyService,
 	settingService *service.SettingService,
+	billingService *service.BillingService,
 ) *AvailableChannelHandler {
 	return &AvailableChannelHandler{
 		channelService: channelService,
 		apiKeyService:  apiKeyService,
 		settingService: settingService,
+		billingService: billingService,
 	}
 }
 
@@ -131,9 +135,13 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 		return
 	}
 
-	// Feature 未启用时返回空数组（不暴露渠道信息）。检查放在认证之后，
-	// 保持与未开关前的 401 行为一致：未登录先 401，登录后再按开关决定。
+	// 未启用时按视图返回空数组或空目录。认证先于开关检查，保留原 401 行为。
+	catalog := isCatalogRequest(c)
 	if !h.featureEnabled(c) {
+		if catalog {
+			response.Success(c, emptyUserModelCatalog())
+			return
+		}
 		response.Success(c, []userAvailableChannel{})
 		return
 	}
@@ -141,6 +149,10 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 	userGroups, err := h.apiKeyService.GetAvailableGroups(c.Request.Context(), subject.UserID)
 	if err != nil {
 		response.ErrorFrom(c, err)
+		return
+	}
+	if catalog {
+		h.listCatalog(c, subject.UserID, userGroups)
 		return
 	}
 	allowedGroupIDs := make(map[int64]struct{}, len(userGroups))

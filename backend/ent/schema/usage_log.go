@@ -132,6 +132,18 @@ func (UsageLog) Fields() []ent.Field {
 		field.Int("first_token_ms").
 			Optional().
 			Nillable(),
+		// 新计时口径与旧 first_token_ms 独立；历史与未接入路径保持版本 0 和未知值。
+		field.Int16("timing_version").Default(0),
+		field.Int("strict_first_token_ms").Optional().Nillable(),
+		field.Int("last_token_ms").Optional().Nillable(),
+		field.Int("first_output_ms").Optional().Nillable(),
+		field.String("first_output_kind").MaxLen(16).Optional().Nillable(),
+		field.Int("audio_output_tokens").Optional().Nillable(),
+		field.String("completion_status").MaxLen(32).Default("unknown"),
+		field.Bool("is_complete").Optional().Nillable(),
+		field.String("usage_source").MaxLen(32).Default("unknown"),
+		// 内部源元数据使用可空 JSONB，历史不回填；不导入 service，避免 ORM 循环依赖。
+		field.JSON("service_status_observation", map[string]any{}).Optional(),
 		field.String("user_agent").
 			MaxLen(512).
 			Optional().

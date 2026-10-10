@@ -38,6 +38,10 @@ const messages: Record<string, string> = {
 	'usage.sentUpstreamModel': 'Sent upstream model',
 	'usage.upstreamResponseModel': 'Upstream response model',
 	'usage.upstreamModelMismatch': 'Upstream model mismatch',
+  'usage.averageTpsExport': 'Average TPS',
+  'usage.averageTpsNote': 'Average TPS note',
+  'usage.partialResponse': 'Partial response',
+  'usage.tpsMediaUnknown': 'Media token counts are incomplete.',
 	'common.yes': 'Yes',
 	'common.no': 'No',
 }
@@ -797,6 +801,37 @@ describe('admin UsageView model audit export', () => {
 		])
 		const row = sheetAddAoa.mock.calls[0][1][0]
 		expect(row.slice(4, 8)).toEqual(['gpt-5.6-sol', 'gpt-5.5', 'gpt-5.4', 'Yes'])
+    expect(headers.slice(-12, -10)).toEqual(['Average TPS', 'Average TPS note'])
+    expect(row.slice(-12)).toEqual([100, '', '', '', '', '', '', '', '', 'unknown', '', 'unknown'])
 		expect(saveAs).toHaveBeenCalledTimes(1)
 	})
+
+  it('Excel 与 CSV 保持同一平均值和原始字段，false 与未知空值不混淆', async () => {
+    const base = { output_tokens: 101, duration_ms: 345, first_token_ms: 12, billing_mode: 'token', timing_version: 1, request_type: 'sync' }
+    exportList.mockResolvedValue({ items: [{
+      ...base, image_count: 1, image_output_tokens: 30, audio_output_tokens: 20,
+      strict_first_token_ms: 300, last_token_ms: 302, first_output_ms: 25, first_output_kind: 'image',
+      completion_status: 'client_disconnected', is_complete: false, usage_source: 'upstream_partial',
+    }, {
+      ...base, image_count: 0, image_output_tokens: 0, audio_output_tokens: null,
+      strict_first_token_ms: null, last_token_ms: null, first_output_ms: null, first_output_kind: null,
+      completion_status: 'unknown', is_complete: null, usage_source: 'unknown',
+    }], total: 2, pages: 1 })
+    const wrapper = mountRouteFilteredUsageView()
+    vi.advanceTimersByTime(120)
+    await flushPromises()
+    await (wrapper.vm as any).exportToExcel()
+    await flushPromises()
+    const [partial, unknown] = sheetAddAoa.mock.calls[0][1]
+    expect(partial.slice(27, 29)).toEqual([12, 345])
+    expect(partial.slice(-12)).toEqual([
+      147.82608695652175, 'Partial response', 1, 300, 302, 25, 'image', 30, 20,
+      'client_disconnected', false, 'upstream_partial',
+    ])
+    expect(unknown.slice(-12)).toEqual([
+      '', 'Media token counts are incomplete.', 1, '', '', '', '', 0, '', 'unknown', '', 'unknown',
+    ])
+    expect(saveAs).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
 })

@@ -74,6 +74,11 @@ const messages: Record<string, string> = {
   'usage.stream': 'Stream',
   'usage.sync': 'Sync',
   'usage.latencyFirstToken': 'First',
+  'usage.legacyFirstToken': 'First (legacy)',
+  'usage.firstToken': 'First Token',
+  'usage.completionStatuses.unknown': 'Unknown',
+  'usage.completionStatuses.completed': 'Completed',
+  'usage.firstTokenDescription': 'Wait from forwarding start to the first recorded output; reasoning or tool calls may precede visible text.',
   'usage.latencyDuration': 'Total',
   'usage.averageOutputTps': 'Avg output TPS',
   'usage.latencyTps': 'TPS',
@@ -1068,8 +1073,31 @@ describe('admin UsageTable deleted-user badge', () => {
 
 
 describe('UsageTable 平均输出 TPS 接入', () => {
+  it('同表显示历史旧口径与新严格口径，并分别保留未知和已完成状态', () => {
+    const textRow = {
+      ...baseImageRow, billing_mode: 'token', image_count: 0, image_output_tokens: 0,
+      output_tokens: 500, duration_ms: 10000, first_token_ms: 90000,
+    }
+    const wrapper = mount(UsageTable, {
+      props: {
+        data: [{ ...textRow, request_id: 'legacy', timing_version: 0 }, {
+          ...textRow, request_id: 'strict', timing_version: 1, audio_output_tokens: 0,
+          strict_first_token_ms: 300, completion_status: 'completed', is_complete: true,
+        }],
+        columns: [{ key: 'latency', label: 'Latency' }],
+      },
+      global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
+    })
+    expect(wrapper.findAll('[data-testid="usage-first-token-label"]').map(node => node.text())).toEqual(['First (legacy)', 'First Token'])
+    expect(wrapper.findAll('[data-testid="usage-first-token-value"]').map(node => node.text())).toEqual(['1m 30s', '300ms'])
+    expect(wrapper.findAll('[data-testid="usage-completion-status"]').map(node => node.text())).toEqual(['Unknown', 'Completed'])
+    expect(wrapper.findAll('[data-testid="usage-first-token-value"]')[1].classes()).toContain('text-emerald-600')
+    wrapper.unmount()
+  })
+
   it.each([true, false])('账号计费显示为 %s 时，TPS 与原有耗时及色条共存', async (showAccountBilling) => {
     const wrapper = mount(UsageTable, {
+      attachTo: document.body,
       props: {
         data: [{
           ...baseImageRow,
@@ -1097,25 +1125,33 @@ describe('UsageTable 平均输出 TPS 接入', () => {
     const details = cell.get('[data-testid="usage-timing-details"]')
     expect(details.element.parentElement?.parentElement?.textContent).toContain('First')
     expect(details.attributes('type')).toBe('button')
-    expect(details.attributes('aria-label')).toContain(messages['usage.tpsDescription'])
-    expect(cell.findAll('button')).toHaveLength(2) // 唯一说明入口及 HelpTooltip 内的关闭按钮。
+    expect(details.attributes('aria-label')).toBe(messages['usage.legacyFirstToken'])
+    const tpsDetails = cell.get('[data-testid="usage-tps-details"]')
+    expect(tpsDetails.element.parentElement?.parentElement?.textContent).toContain('TPS')
     expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-cyan-600')
-    const tooltip = () => cell.get('[role="tooltip"]')
+    const tooltip = () => cell.findAll('[role="tooltip"]').find(node => node.text().includes(messages['usage.firstTokenDescription']))!
+    const tpsTooltip = () => cell.findAll('[role="tooltip"]').find(node => node.text().includes(messages['usage.tpsDescription']))!
     expect(tooltip().isVisible()).toBe(false)
     await details.trigger('click')
     await nextTick()
     expect(tooltip().isVisible()).toBe(true)
-    expect(tooltip().text()).toContain(messages['usage.tpsDescription'])
+    expect(tooltip().text()).toContain(messages['usage.firstTokenDescription'])
+    expect(tooltip().text()).not.toContain(messages['usage.tpsDescription'])
+    expect(tpsTooltip().isVisible()).toBe(false)
+    await tpsDetails.trigger('click')
+    await nextTick()
+    expect(tooltip().isVisible()).toBe(false)
+    expect(tpsTooltip().isVisible()).toBe(true)
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     await nextTick()
     expect(tooltip().isVisible()).toBe(false)
     await wrapper.setProps({ data: [{ ...wrapper.props('data')[0], duration_ms: null, first_token_ms: null }] })
-    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('-')
+    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('—')
     expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-gray-400')
     expect(cell.get('[aria-hidden="true"]').classes()).not.toContain('bg-gradient-to-b')
-    await cell.get('[data-testid="usage-timing-details"]').trigger('click')
+    await cell.get('[data-testid="usage-tps-details"]').trigger('click')
     await nextTick()
-    expect(tooltip().text()).toContain(messages['usage.tpsInvalidDuration'])
+    expect(tpsTooltip().text()).toContain(messages['usage.tpsInvalidDuration'])
 
     wrapper.unmount()
   })
