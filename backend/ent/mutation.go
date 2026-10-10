@@ -44765,6 +44765,7 @@ type UsageLogMutation struct {
 	completion_status            *string
 	is_complete                  *bool
 	usage_source                 *string
+	service_status_observation   *map[string]interface{}
 	user_agent                   *string
 	ip_address                   *string
 	image_count                  *int
@@ -47158,6 +47159,55 @@ func (m *UsageLogMutation) ResetUsageSource() {
 	m.usage_source = nil
 }
 
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (m *UsageLogMutation) SetServiceStatusObservation(value map[string]interface{}) {
+	m.service_status_observation = &value
+}
+
+// ServiceStatusObservation returns the value of the "service_status_observation" field in the mutation.
+func (m *UsageLogMutation) ServiceStatusObservation() (r map[string]interface{}, exists bool) {
+	v := m.service_status_observation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldServiceStatusObservation returns the old "service_status_observation" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldServiceStatusObservation(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldServiceStatusObservation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldServiceStatusObservation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldServiceStatusObservation: %w", err)
+	}
+	return oldValue.ServiceStatusObservation, nil
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (m *UsageLogMutation) ClearServiceStatusObservation() {
+	m.service_status_observation = nil
+	m.clearedFields[usagelog.FieldServiceStatusObservation] = struct{}{}
+}
+
+// ServiceStatusObservationCleared returns if the "service_status_observation" field was cleared in this mutation.
+func (m *UsageLogMutation) ServiceStatusObservationCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldServiceStatusObservation]
+	return ok
+}
+
+// ResetServiceStatusObservation resets all changes to the "service_status_observation" field.
+func (m *UsageLogMutation) ResetServiceStatusObservation() {
+	m.service_status_observation = nil
+	delete(m.clearedFields, usagelog.FieldServiceStatusObservation)
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (m *UsageLogMutation) SetUserAgent(s string) {
 	m.user_agent = &s
@@ -47973,7 +48023,7 @@ func (m *UsageLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UsageLogMutation) Fields() []string {
-	fields := make([]string, 0, 56)
+	fields := make([]string, 0, 57)
 	if m.user != nil {
 		fields = append(fields, usagelog.FieldUserID)
 	}
@@ -48102,6 +48152,9 @@ func (m *UsageLogMutation) Fields() []string {
 	}
 	if m.usage_source != nil {
 		fields = append(fields, usagelog.FieldUsageSource)
+	}
+	if m.service_status_observation != nil {
+		fields = append(fields, usagelog.FieldServiceStatusObservation)
 	}
 	if m.user_agent != nil {
 		fields = append(fields, usagelog.FieldUserAgent)
@@ -48236,6 +48289,8 @@ func (m *UsageLogMutation) Field(name string) (ent.Value, bool) {
 		return m.IsComplete()
 	case usagelog.FieldUsageSource:
 		return m.UsageSource()
+	case usagelog.FieldServiceStatusObservation:
+		return m.ServiceStatusObservation()
 	case usagelog.FieldUserAgent:
 		return m.UserAgent()
 	case usagelog.FieldIPAddress:
@@ -48357,6 +48412,8 @@ func (m *UsageLogMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldIsComplete(ctx)
 	case usagelog.FieldUsageSource:
 		return m.OldUsageSource(ctx)
+	case usagelog.FieldServiceStatusObservation:
+		return m.OldServiceStatusObservation(ctx)
 	case usagelog.FieldUserAgent:
 		return m.OldUserAgent(ctx)
 	case usagelog.FieldIPAddress:
@@ -48692,6 +48749,13 @@ func (m *UsageLogMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsageSource(v)
+		return nil
+	case usagelog.FieldServiceStatusObservation:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetServiceStatusObservation(v)
 		return nil
 	case usagelog.FieldUserAgent:
 		v, ok := value.(string)
@@ -49186,6 +49250,9 @@ func (m *UsageLogMutation) ClearedFields() []string {
 	if m.FieldCleared(usagelog.FieldIsComplete) {
 		fields = append(fields, usagelog.FieldIsComplete)
 	}
+	if m.FieldCleared(usagelog.FieldServiceStatusObservation) {
+		fields = append(fields, usagelog.FieldServiceStatusObservation)
+	}
 	if m.FieldCleared(usagelog.FieldUserAgent) {
 		fields = append(fields, usagelog.FieldUserAgent)
 	}
@@ -49283,6 +49350,9 @@ func (m *UsageLogMutation) ClearField(name string) error {
 		return nil
 	case usagelog.FieldIsComplete:
 		m.ClearIsComplete()
+		return nil
+	case usagelog.FieldServiceStatusObservation:
+		m.ClearServiceStatusObservation()
 		return nil
 	case usagelog.FieldUserAgent:
 		m.ClearUserAgent()
@@ -49447,6 +49517,9 @@ func (m *UsageLogMutation) ResetField(name string) error {
 		return nil
 	case usagelog.FieldUsageSource:
 		m.ResetUsageSource()
+		return nil
+	case usagelog.FieldServiceStatusObservation:
+		m.ResetServiceStatusObservation()
 		return nil
 	case usagelog.FieldUserAgent:
 		m.ResetUserAgent()

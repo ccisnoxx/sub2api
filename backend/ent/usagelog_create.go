@@ -589,6 +589,12 @@ func (_c *UsageLogCreate) SetNillableUsageSource(v *string) *UsageLogCreate {
 	return _c
 }
 
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (_c *UsageLogCreate) SetServiceStatusObservation(v map[string]interface{}) *UsageLogCreate {
+	_c.mutation.SetServiceStatusObservation(v)
+	return _c
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_c *UsageLogCreate) SetUserAgent(v string) *UsageLogCreate {
 	_c.mutation.SetUserAgent(v)
@@ -1280,6 +1286,10 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UsageSource(); ok {
 		_spec.SetField(usagelog.FieldUsageSource, field.TypeString, value)
 		_node.UsageSource = value
+	}
+	if value, ok := _c.mutation.ServiceStatusObservation(); ok {
+		_spec.SetField(usagelog.FieldServiceStatusObservation, field.TypeJSON, value)
+		_node.ServiceStatusObservation = value
 	}
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(usagelog.FieldUserAgent, field.TypeString, value)
@@ -2235,6 +2245,24 @@ func (u *UsageLogUpsert) SetUsageSource(v string) *UsageLogUpsert {
 // UpdateUsageSource sets the "usage_source" field to the value that was provided on create.
 func (u *UsageLogUpsert) UpdateUsageSource() *UsageLogUpsert {
 	u.SetExcluded(usagelog.FieldUsageSource)
+	return u
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (u *UsageLogUpsert) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpsert {
+	u.Set(usagelog.FieldServiceStatusObservation, v)
+	return u
+}
+
+// UpdateServiceStatusObservation sets the "service_status_observation" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateServiceStatusObservation() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldServiceStatusObservation)
+	return u
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (u *UsageLogUpsert) ClearServiceStatusObservation() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldServiceStatusObservation)
 	return u
 }
 
@@ -3392,6 +3420,27 @@ func (u *UsageLogUpsertOne) SetUsageSource(v string) *UsageLogUpsertOne {
 func (u *UsageLogUpsertOne) UpdateUsageSource() *UsageLogUpsertOne {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.UpdateUsageSource()
+	})
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (u *UsageLogUpsertOne) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetServiceStatusObservation(v)
+	})
+}
+
+// UpdateServiceStatusObservation sets the "service_status_observation" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateServiceStatusObservation() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateServiceStatusObservation()
+	})
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (u *UsageLogUpsertOne) ClearServiceStatusObservation() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearServiceStatusObservation()
 	})
 }
 
@@ -4751,6 +4800,27 @@ func (u *UsageLogUpsertBulk) SetUsageSource(v string) *UsageLogUpsertBulk {
 func (u *UsageLogUpsertBulk) UpdateUsageSource() *UsageLogUpsertBulk {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.UpdateUsageSource()
+	})
+}
+
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (u *UsageLogUpsertBulk) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetServiceStatusObservation(v)
+	})
+}
+
+// UpdateServiceStatusObservation sets the "service_status_observation" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateServiceStatusObservation() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateServiceStatusObservation()
+	})
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (u *UsageLogUpsertBulk) ClearServiceStatusObservation() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearServiceStatusObservation()
 	})
 }
 

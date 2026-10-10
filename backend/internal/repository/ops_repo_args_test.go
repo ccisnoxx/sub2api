@@ -14,7 +14,7 @@ func TestOpsInsertErrorLogArgsPreservesExplicitZeroUpstreamStatus(t *testing.T) 
 	zero := 0
 	args := opsInsertErrorLogArgs(&service.OpsInsertErrorLogInput{UpstreamStatusCode: &zero})
 
-	require.Len(t, args, 39)
+	require.Len(t, args, 40)
 	encoded, ok := args[27].(sql.NullInt64)
 	require.True(t, ok)
 	require.True(t, encoded.Valid)
@@ -48,7 +48,7 @@ func TestOpsInsertErrorLogArgsPreservesSerializedRoutingDiagnostics(t *testing.T
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			args := opsInsertErrorLogArgs(&service.OpsInsertErrorLogInput{RoutingDiagnosticsJSON: tc.raw})
-			require.Len(t, args, 39)
+			require.Len(t, args, 40)
 			encoded, ok := args[38].(sql.NullString)
 			require.True(t, ok)
 			require.Equal(t, tc.valid, encoded.Valid)

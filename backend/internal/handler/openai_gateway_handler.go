@@ -388,6 +388,7 @@ func NewOpenAIGatewayHandler(
 // Responses handles OpenAI Responses API endpoint
 // POST /openai/v1/responses
 func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
+	c.Request = c.Request.WithContext(service.EnsureServiceStatusRequest(c.Request.Context()))
 	defer service.FinishGatewayPoolWaitKeepalive(c)
 	// 局部兜底：确保该 handler 内部任何 panic 都不会击穿到进程级。
 	streamStarted := false
@@ -3248,7 +3249,7 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 
 		for {
 			routingTurns.beginProxy(c)
-			err := h.gatewayService.ProxyResponsesWebSocketFromClient(ctx, c, wsConn, account, token, wsFirstMessage, hooks)
+			err := h.gatewayService.ProxyResponsesWebSocketFromClient(service.WithServiceStatusOwner(ctx, c.Request.Context()), c, wsConn, account, token, wsFirstMessage, hooks)
 			if err == nil {
 				reqLog.Info("openai.websocket_ingress_closed", zap.Int64("account_id", account.ID))
 				return
@@ -3497,6 +3498,7 @@ func (h *OpenAIGatewayHandler) submitUsageRecordTask(parent context.Context, tas
 	if h.usageRecordWorkerPool != nil {
 		if mode := h.usageRecordWorkerPool.Submit(task); mode != service.UsageRecordSubmitModeDroppedStopped {
 			if mode.Dropped() {
+				service.MarkServiceStatusSourceError(time.Now())
 				abandon()
 			}
 			return
@@ -3522,6 +3524,22 @@ func (h *OpenAIGatewayHandler) submitUsageRecordTask(parent context.Context, tas
 }
 
 func (h *OpenAIGatewayHandler) submitOpenAIUsageRecordTask(parent context.Context, result *service.OpenAIForwardResult, task service.UsageRecordTask) {
+	if result != nil {
+		result.UsageTiming = result.UsageTiming.Clone()
+		service.CommitServiceStatusObservation(parent, result.UsageTiming.ServiceStatusObservation)
+		if task != nil && result.UsageTiming.ServiceStatusObservation != nil {
+			originalTask := task
+			task = func(ctx context.Context) {
+				defer func() {
+					if recovered := recover(); recovered != nil {
+						service.MarkServiceStatusSourceError(time.Now())
+						panic(recovered) // 保留现有 worker/同步回退的 panic owner。
+					}
+				}()
+				originalTask(ctx)
+			}
+		}
+	}
 	// Money-critical bills never drop on pool overflow: media, search surcharge, voice.
 	if result != nil && (result.ImageCount > 0 || result.VideoCount > 0 ||
 		result.SearchCount > 0 || result.WebSearchCalls > 0 || result.AudioUsage != nil) {
@@ -3789,6 +3807,24 @@ func (h *OpenAIGatewayHandler) handleStreamingAwareErrorWithCode(
 	streamStarted bool,
 	countTowardsSLA bool,
 ) {
+	if !hasOpsUpstreamErrorContext(c) {
+		reason := service.ServiceStatusLocalErrorReason(code)
+		if reason == "" {
+			switch errType {
+			case "invalid_request_error":
+				reason = "user_invalid_request"
+			case "authentication_error":
+				reason = "user_authentication"
+			case "insufficient_quota":
+				reason = "user_quota"
+			case "context_length_exceeded":
+				reason = "user_context_limit"
+			}
+		}
+		if reason != "" {
+			service.MarkServiceStatusUserRejection(c, reason)
+		}
+	}
 	// body-signal compact 心跳可能已把响应头提交为 200：先停心跳（建立
 	// happens-before，接管 ResponseWriter），并升级为流内错误处理。
 	if service.StopOpenAICompactSSEKeepaliveCommitted(c) {
@@ -3972,6 +4008,24 @@ func openAIFirstOutputFailoverExhausted(failoverErr *service.UpstreamFailoverErr
 
 // errorResponse returns OpenAI API format error response
 func (h *OpenAIGatewayHandler) errorResponse(c *gin.Context, status int, errType, message string) {
+	if !hasOpsUpstreamErrorContext(c) {
+		reason := service.ServiceStatusLocalErrorReason(errType)
+		if reason == "" {
+			switch errType {
+			case "invalid_request_error":
+				reason = "user_invalid_request"
+			case "authentication_error":
+				reason = "user_authentication"
+			case "insufficient_quota":
+				reason = "user_quota"
+			case "context_length_exceeded":
+				reason = "user_context_limit"
+			}
+		}
+		if reason != "" {
+			service.MarkServiceStatusUserRejection(c, reason)
+		}
+	}
 	// body-signal compact 心跳可能已把响应头提交为 200：JSON 错误体会与已
 	// 提交的 SSE 流交错，必须降级为 response.failed 终止事件（#3887）。
 	if service.StopOpenAICompactSSEKeepaliveCommitted(c) {

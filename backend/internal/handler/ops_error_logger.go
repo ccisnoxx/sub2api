@@ -123,6 +123,7 @@ func startOpsErrorLogWorkers() {
 
 	workerCount, queueSize := opsErrorLogConfig()
 	opsErrorLogQueue = make(chan opsErrorLogJob, queueSize)
+	queue := opsErrorLogQueue
 	opsErrorLogQueueLen.Store(0)
 	opsErrorLogQueueBytes.Store(0)
 
@@ -131,7 +132,7 @@ func startOpsErrorLogWorkers() {
 		go func() {
 			defer opsErrorLogWorkersWg.Done()
 			for {
-				job, ok := <-opsErrorLogQueue
+				job, ok := <-queue
 				if !ok {
 					return
 				}
@@ -144,7 +145,7 @@ func startOpsErrorLogWorkers() {
 			batchLoop:
 				for len(batch) < opsErrorLogBatchSize {
 					select {
-					case nextJob, ok := <-opsErrorLogQueue:
+					case nextJob, ok := <-queue:
 						if !ok {
 							if !timer.Stop() {
 								select {
@@ -180,6 +181,12 @@ func flushOpsErrorLogBatch(batch []opsErrorLogJob) {
 	}
 	defer func() {
 		if r := recover(); r != nil {
+			for _, job := range batch {
+				if job.entry != nil && job.entry.ServiceStatusObservation != nil {
+					service.MarkServiceStatusSourceError(time.Now())
+					break
+				}
+			}
 			log.Printf("[OpsErrorLogger] worker panic: %v\n%s", r, debug.Stack())
 		}
 	}()
@@ -215,6 +222,7 @@ func enqueueOpsErrorLog(ops *service.OpsService, entry *service.OpsInsertErrorLo
 	// 队列拥有独立记录；清理与后续请求修改都不能改写已排队字段。
 	queuedEntry := *entry
 	entry = &queuedEntry
+	entry.ServiceStatusObservation = entry.ServiceStatusObservation.Clone()
 	entry.UserAgent = normalizeOpsPersistentUserAgent(entry.UserAgent)
 	if entry.ErrorBody != "" {
 		originalBody := entry.ErrorBody
@@ -225,12 +233,18 @@ func enqueueOpsErrorLog(ops *service.OpsService, entry *service.OpsInsertErrorLo
 		}
 	}
 	if err := service.SanitizeOpsUpstreamErrorsForQueue(entry); err != nil {
+		if entry.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		opsErrorLogDropped.Add(1)
 		maybeLogOpsErrorLogDrop()
 		return
 	}
 	select {
 	case <-opsErrorLogShutdownCh:
+		if entry.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		return
 	default:
 	}
@@ -239,6 +253,9 @@ func enqueueOpsErrorLog(ops *service.OpsService, entry *service.OpsInsertErrorLo
 	stopping := opsErrorLogStopping
 	opsErrorLogMu.RUnlock()
 	if stopping {
+		if entry.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		return
 	}
 
@@ -247,10 +264,16 @@ func enqueueOpsErrorLog(ops *service.OpsService, entry *service.OpsInsertErrorLo
 	opsErrorLogMu.RLock()
 	defer opsErrorLogMu.RUnlock()
 	if opsErrorLogStopping || opsErrorLogQueue == nil {
+		if entry.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		return
 	}
 	queuedBytes := estimateOpsErrorLogJobBytes(entry)
 	if !reserveOpsErrorLogQueueBytes(queuedBytes) {
+		if entry.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		opsErrorLogDropped.Add(1)
 		maybeLogOpsErrorLogDrop()
 		return
@@ -263,6 +286,9 @@ func enqueueOpsErrorLog(ops *service.OpsService, entry *service.OpsInsertErrorLo
 		opsErrorLogQueueLen.Add(-1)
 		opsErrorLogQueueBytes.Add(-queuedBytes)
 		// Queue is full; drop to avoid blocking request handling.
+		if entry.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		opsErrorLogDropped.Add(1)
 		maybeLogOpsErrorLogDrop()
 	}
@@ -422,6 +448,9 @@ func estimateOpsErrorLogJobBytes(entry *service.OpsInsertErrorLogInput) int64 {
 	if entry.RoutingDiagnosticsJSON != nil {
 		size += len(*entry.RoutingDiagnosticsJSON)
 	}
+	if entry.ServiceStatusObservationJSON != nil {
+		size += len(*entry.ServiceStatusObservationJSON)
+	}
 	return int64(size)
 }
 
@@ -454,7 +483,7 @@ func setOpsRequestContext(c *gin.Context, model string, stream bool) {
 	c.Set(opsStreamKey, stream)
 	if c.Request != nil {
 		// 入口可能先登记空模型再登记映射结果；复用同一次请求的选择序号。
-		ctx := service.EnsureRoutingDiagnosticsRequest(c.Request.Context())
+		ctx := service.EnsureServiceStatusRequest(service.EnsureRoutingDiagnosticsRequest(c.Request.Context()))
 		if model != "" {
 			ctx = context.WithValue(ctx, ctxkey.Model, model)
 		}
@@ -1087,6 +1116,7 @@ func (state *opsCaptureWriterState) shouldCapture() bool {
 // - Streaming errors after the response has started (SSE) may still need explicit logging.
 func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		c.Request = c.Request.WithContext(service.WithServiceStatusRequest(c.Request.Context(), 0))
 		originalWriter := c.Writer
 		w := acquireOpsCaptureWriter(originalWriter)
 		w.setContext(c)
@@ -1103,16 +1133,25 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 		w.finalizeCapture()
 
 		if _, rejected := middleware2.GetIngressRejectReason(c); rejected {
+			service.MarkServiceStatusSourceError(time.Now())
 			return
 		}
 
 		if ops == nil {
+			if c.Writer.Status() >= 400 || len(service.GetOpsStreamErrors(c)) > 0 {
+				service.MarkServiceStatusSourceError(time.Now())
+			}
 			return
 		}
 		if !ops.IsMonitoringEnabled(c.Request.Context()) {
+			if c.Writer.Status() >= 400 || len(service.GetOpsStreamErrors(c)) > 0 {
+				service.MarkServiceStatusSourceError(time.Now())
+			}
 			return
 		}
 		if c.GetBool(opsDedicatedErrorRecordedKey) {
+			// 专用旧日志尚无等价 S1 owner，不能将未采集的终态当作完整窗口。
+			service.MarkServiceStatusSourceError(time.Now())
 			return
 		}
 
@@ -1150,14 +1189,17 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 
 		// Skip logging if a passthrough rule with skip_monitoring=true matched.
 		if shouldSkipFinalOpsFailure(c) {
+			service.MarkServiceStatusSourceError(time.Now())
 			return
 		}
 
 		// Skip logging if the error should be filtered based on settings
 		if shouldSkipOpsErrorLog(c.Request.Context(), ops, parsed.Message, string(body), c.Request.URL.Path) {
+			service.MarkServiceStatusSourceError(time.Now())
 			return
 		}
 		if shouldSkipOpsClientClosed(c, ops, status) {
+			service.MarkServiceStatusSourceError(time.Now())
 			return
 		}
 
@@ -1290,6 +1332,7 @@ func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 			entry.ClientIP = &clientIP
 		}
 
+		entry.ServiceStatusObservation = service.ServiceStatusFinalObservation(c.Request.Context(), "")
 		enqueueOpsErrorLog(ops, entry)
 	}
 }
@@ -1406,6 +1449,15 @@ func logOpsRecoveredUpstream(c *gin.Context, ops *service.OpsService, finalStatu
 		entry.ClientIP = &clientIP
 	}
 	applyOpsLatencyFieldsFromContext(c, entry)
+	for i := len(entry.UpstreamErrors) - 1; i >= 0; i-- {
+		if ev := entry.UpstreamErrors[i]; ev != nil && ev.ServiceStatusObservation != nil {
+			entry.ServiceStatusObservation = ev.ServiceStatusObservation.Clone()
+			break
+		}
+	}
+	if entry.ServiceStatusObservation == nil {
+		entry.ServiceStatusObservation = service.ServiceStatusAttemptObservation(c.Request.Context(), "unclassified", entry.CreatedAt)
+	}
 	enqueueOpsErrorLog(ops, entry)
 }
 
@@ -1451,11 +1503,17 @@ func opsStreamErrorsAllRequestScoped(streamErrs []service.OpsStreamError) bool {
 func logOpsStreamErrorValue(c *gin.Context, ops *service.OpsService, wireStatus int, streamErr service.OpsStreamError) {
 	// 命中 skip_monitoring=true 透传规则的请求跳过落库，与其它分支一致。
 	if streamErr.SkipMonitoring || (streamErr.Turn == 0 && !streamErr.RequestScoped && shouldSkipFinalOpsFailure(c)) {
+		if streamErr.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		return
 	}
 
 	// 复用与 status>=400 分支相同的设置过滤（context canceled / 无可用账号等）。
 	if shouldSkipOpsErrorLog(c.Request.Context(), ops, streamErr.Message, streamErr.Message, c.Request.URL.Path) {
+		if streamErr.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
 		return
 	}
 
@@ -1604,6 +1662,7 @@ func logOpsStreamErrorValue(c *gin.Context, ops *service.OpsService, wireStatus 
 		entry.ClientIP = &clientIP
 	}
 
+	entry.ServiceStatusObservation = streamErr.ServiceStatusObservation.Clone()
 	enqueueOpsErrorLog(ops, entry)
 }
 

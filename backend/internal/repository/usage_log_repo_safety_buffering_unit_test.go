@@ -12,7 +12,7 @@ import (
 )
 
 // TestPrepareUsageLogInsert_SafetyBufferingArgWiring 把 safety_buffering_enabled /
-// safety_buffering_faster_model 钉在 created_at 之前的倒数第 5、第 4 位，与本文件顶部的
+// safety_buffering_faster_model 钉在 created_at 之前，并在 S4 元数据加入后保持倒数第 9、第 8 位，与本文件顶部的
 // 四处清单契约同步（usage_log_repo_insert_shape_unit_test.go）。
 func TestPrepareUsageLogInsert_SafetyBufferingArgWiring(t *testing.T) {
 	enabled := true
@@ -29,29 +29,29 @@ func TestPrepareUsageLogInsert_SafetyBufferingArgWiring(t *testing.T) {
 	require.Len(t, prepared.args, len(usageLogInsertArgTypes))
 
 	n := len(prepared.args)
-	enabledArg, ok := prepared.args[n-8].(sql.NullBool)
-	require.True(t, ok, "safety_buffering_enabled 应是 sql.NullBool，实际 %T", prepared.args[n-8])
+	enabledArg, ok := prepared.args[n-9].(sql.NullBool)
+	require.True(t, ok, "safety_buffering_enabled 应是 sql.NullBool，实际 %T", prepared.args[n-9])
 	require.True(t, enabledArg.Valid)
 	require.True(t, enabledArg.Bool)
-	require.Equal(t, "boolean", usageLogInsertArgTypes[n-8])
+	require.Equal(t, "boolean", usageLogInsertArgTypes[n-9])
 
-	fasterArg, ok := prepared.args[n-7].(sql.NullString)
-	require.True(t, ok, "safety_buffering_faster_model 应是 sql.NullString，实际 %T", prepared.args[n-7])
+	fasterArg, ok := prepared.args[n-8].(sql.NullString)
+	require.True(t, ok, "safety_buffering_faster_model 应是 sql.NullString，实际 %T", prepared.args[n-8])
 	require.True(t, fasterArg.Valid)
 	require.Equal(t, faster, fasterArg.String)
-	require.Equal(t, "text", usageLogInsertArgTypes[n-7])
+	require.Equal(t, "text", usageLogInsertArgTypes[n-8])
 
-	_, ok = prepared.args[n-1].(time.Time)
-	require.True(t, ok, "created_at 必须仍在末位，实际 %T", prepared.args[n-1])
+	_, ok = prepared.args[n-2].(time.Time)
+	require.True(t, ok, "created_at 必须在 S4 元数据之前，实际 %T", prepared.args[n-2])
 
 	absent := prepareUsageLogInsert(&service.UsageLog{
 		UserID: 1, APIKeyID: 2, RequestID: "client:safety-buffering-absent", Model: "gpt-6-astra",
 		CreatedAt: time.Now().UTC(),
 	})
-	nullEnabled, ok := absent.args[n-8].(sql.NullBool)
+	nullEnabled, ok := absent.args[n-9].(sql.NullBool)
 	require.True(t, ok)
 	require.False(t, nullEnabled.Valid, "上游没带头时必须写 NULL，而不是 false")
-	nullFaster, ok := absent.args[n-7].(sql.NullString)
+	nullFaster, ok := absent.args[n-8].(sql.NullString)
 	require.True(t, ok)
 	require.False(t, nullFaster.Valid, "上游没带头时必须写 NULL，而不是空串")
 
@@ -71,15 +71,15 @@ type usageLogTailScannerStub struct {
 func (s usageLogTailScannerStub) Scan(dest ...any) error {
 	s.t.Helper()
 	n := len(dest)
-	require.GreaterOrEqual(s.t, n, 8)
-	enabled, ok := dest[n-8].(*sql.NullBool)
-	require.True(s.t, ok, "倒数第 8 个 scan 目标应是 *sql.NullBool，实际 %T", dest[n-8])
+	require.GreaterOrEqual(s.t, n, 9)
+	enabled, ok := dest[n-9].(*sql.NullBool)
+	require.True(s.t, ok, "倒数第 9 个 scan 目标应是 *sql.NullBool，实际 %T", dest[n-9])
 	*enabled = s.enabled
-	faster, ok := dest[n-7].(*sql.NullString)
-	require.True(s.t, ok, "倒数第 7 个 scan 目标应是 *sql.NullString，实际 %T", dest[n-7])
+	faster, ok := dest[n-8].(*sql.NullString)
+	require.True(s.t, ok, "倒数第 8 个 scan 目标应是 *sql.NullString，实际 %T", dest[n-8])
 	*faster = s.faster
-	created, ok := dest[n-1].(*time.Time)
-	require.True(s.t, ok, "created_at 必须仍在末位，实际 %T", dest[n-1])
+	created, ok := dest[n-2].(*time.Time)
+	require.True(s.t, ok, "created_at 必须在 S4 元数据之前，实际 %T", dest[n-2])
 	*created = s.created
 	return nil
 }

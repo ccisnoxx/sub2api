@@ -109,6 +109,8 @@ type UsageLog struct {
 	IsComplete *bool `json:"is_complete,omitempty"`
 	// UsageSource holds the value of the "usage_source" field.
 	UsageSource string `json:"usage_source,omitempty"`
+	// ServiceStatusObservation holds the value of the "service_status_observation" field.
+	ServiceStatusObservation map[string]interface{} `json:"service_status_observation,omitempty"`
 	// UserAgent holds the value of the "user_agent" field.
 	UserAgent *string `json:"user_agent,omitempty"`
 	// IPAddress holds the value of the "ip_address" field.
@@ -218,7 +220,7 @@ func (*UsageLog) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case usagelog.FieldImageSizeBreakdown:
+		case usagelog.FieldServiceStatusObservation, usagelog.FieldImageSizeBreakdown:
 			values[i] = new([]byte)
 		case usagelog.FieldUpstreamModelMismatch, usagelog.FieldLongContextBillingApplied, usagelog.FieldStream, usagelog.FieldIsComplete, usagelog.FieldCacheTTLOverridden:
 			values[i] = new(sql.NullBool)
@@ -527,6 +529,14 @@ func (_m *UsageLog) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field usage_source", values[i])
 			} else if value.Valid {
 				_m.UsageSource = value.String
+			}
+		case usagelog.FieldServiceStatusObservation:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field service_status_observation", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.ServiceStatusObservation); err != nil {
+					return fmt.Errorf("unmarshal field service_status_observation: %w", err)
+				}
 			}
 		case usagelog.FieldUserAgent:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -843,6 +853,9 @@ func (_m *UsageLog) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("usage_source=")
 	builder.WriteString(_m.UsageSource)
+	builder.WriteString(", ")
+	builder.WriteString("service_status_observation=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ServiceStatusObservation))
 	builder.WriteString(", ")
 	if v := _m.UserAgent; v != nil {
 		builder.WriteString("user_agent=")

@@ -909,6 +909,18 @@ func (_u *UsageLogUpdate) SetNillableUsageSource(v *string) *UsageLogUpdate {
 	return _u
 }
 
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (_u *UsageLogUpdate) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpdate {
+	_u.mutation.SetServiceStatusObservation(v)
+	return _u
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (_u *UsageLogUpdate) ClearServiceStatusObservation() *UsageLogUpdate {
+	_u.mutation.ClearServiceStatusObservation()
+	return _u
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_u *UsageLogUpdate) SetUserAgent(v string) *UsageLogUpdate {
 	_u.mutation.SetUserAgent(v)
@@ -1580,6 +1592,12 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UsageSource(); ok {
 		_spec.SetField(usagelog.FieldUsageSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ServiceStatusObservation(); ok {
+		_spec.SetField(usagelog.FieldServiceStatusObservation, field.TypeJSON, value)
+	}
+	if _u.mutation.ServiceStatusObservationCleared() {
+		_spec.ClearField(usagelog.FieldServiceStatusObservation, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(usagelog.FieldUserAgent, field.TypeString, value)
@@ -2695,6 +2713,18 @@ func (_u *UsageLogUpdateOne) SetNillableUsageSource(v *string) *UsageLogUpdateOn
 	return _u
 }
 
+// SetServiceStatusObservation sets the "service_status_observation" field.
+func (_u *UsageLogUpdateOne) SetServiceStatusObservation(v map[string]interface{}) *UsageLogUpdateOne {
+	_u.mutation.SetServiceStatusObservation(v)
+	return _u
+}
+
+// ClearServiceStatusObservation clears the value of the "service_status_observation" field.
+func (_u *UsageLogUpdateOne) ClearServiceStatusObservation() *UsageLogUpdateOne {
+	_u.mutation.ClearServiceStatusObservation()
+	return _u
+}
+
 // SetUserAgent sets the "user_agent" field.
 func (_u *UsageLogUpdateOne) SetUserAgent(v string) *UsageLogUpdateOne {
 	_u.mutation.SetUserAgent(v)
@@ -3396,6 +3426,12 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	}
 	if value, ok := _u.mutation.UsageSource(); ok {
 		_spec.SetField(usagelog.FieldUsageSource, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ServiceStatusObservation(); ok {
+		_spec.SetField(usagelog.FieldServiceStatusObservation, field.TypeJSON, value)
+	}
+	if _u.mutation.ServiceStatusObservationCleared() {
+		_spec.ClearField(usagelog.FieldServiceStatusObservation, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.UserAgent(); ok {
 		_spec.SetField(usagelog.FieldUserAgent, field.TypeString, value)

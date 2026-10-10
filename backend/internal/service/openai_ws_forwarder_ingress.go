@@ -1085,7 +1085,7 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 			return nil, errors.New("upstream websocket lease is nil")
 		}
 		turnStart := time.Now()
-		timing := newResponsesOutputTiming(ctx, turnStart, account)
+		timing := newResponsesOutputTiming(WithServiceStatusOwner(ctx, c.Request.Context()), turnStart, account)
 		defer timing.stop()
 		timingResponseID := ""
 		wroteDownstream := false

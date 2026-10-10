@@ -106,6 +106,7 @@ var usageLogInsertArgTypes = [...]string{
 	"text",        // route_pair_pool_gateway
 	"text",        // route_pair_pool_version
 	"timestamptz", // created_at
+	"jsonb",       // service_status_observation
 }
 
 const (
@@ -143,20 +144,23 @@ type usageLogInsertPrepared struct {
 	requestID      string
 	rateMultiplier float64
 	requestType    int16
+	observationKey string
 	args           []any
 }
 
 type usageLogBatchState struct {
-	ID        int64
-	CreatedAt time.Time
+	ID             int64
+	CreatedAt      time.Time
+	ObservationKey string
 }
 
 type usageLogBatchRow struct {
-	RequestID string    `json:"request_id"`
-	APIKeyID  int64     `json:"api_key_id"`
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	Inserted  bool      `json:"inserted"`
+	RequestID      string    `json:"request_id"`
+	APIKeyID       int64     `json:"api_key_id"`
+	ID             int64     `json:"id"`
+	CreatedAt      time.Time `json:"created_at"`
+	Inserted       bool      `json:"inserted"`
+	ObservationKey string    `json:"observation_key"`
 }
 
 type usageLogCreateShared struct {
@@ -170,7 +174,12 @@ const (
 	usageLogCreateStateCanceled
 )
 
-func (r *usageLogRepository) Create(ctx context.Context, log *service.UsageLog) (bool, error) {
+func (r *usageLogRepository) Create(ctx context.Context, log *service.UsageLog) (inserted bool, err error) {
+	defer func() {
+		if err != nil && log != nil && log.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
+	}()
 	if log == nil {
 		return false, nil
 	}
@@ -186,7 +195,12 @@ func (r *usageLogRepository) Create(ctx context.Context, log *service.UsageLog) 
 	return r.createBatched(ctx, log)
 }
 
-func (r *usageLogRepository) CreateBestEffort(ctx context.Context, log *service.UsageLog) error {
+func (r *usageLogRepository) CreateBestEffort(ctx context.Context, log *service.UsageLog) (err error) {
+	defer func() {
+		if err != nil && log != nil && log.ServiceStatusObservation != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
+	}()
 	if log == nil {
 		return nil
 	}
@@ -212,7 +226,9 @@ func (r *usageLogRepository) CreateBestEffort(ctx context.Context, log *service.
 		resultCh: make(chan error, 1),
 	}
 	if key, ok := r.bestEffortRecentKey(req.prepared.requestID, req.apiKeyID); ok {
-		if _, exists := r.bestEffortRecent.Get(key); exists {
+		if cached, exists := r.bestEffortRecent.Get(key); exists {
+			storedKey, _ := cached.(string)
+			markUsageObservationConflict(req.prepared, storedKey)
 			return nil
 		}
 	}
@@ -326,14 +342,15 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 			route_pair_overridden,
 			route_pair_pool_gateway,
 			route_pair_pool_version,
-			created_at
+			created_at,
+			service_status_observation
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8, $9,
 			$10, $11,
 			$12, $13, $14, $15,
 			$16, $17, $18, $19,
 			$20, $21, $22, $23, $24, $25,
-			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82
+			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 		RETURNING id, created_at
@@ -342,9 +359,16 @@ func (r *usageLogRepository) createSingle(ctx context.Context, sqlq sqlExecutor,
 	if err := scanSingleRow(ctx, sqlq, query, prepared.args, &log.ID, &log.CreatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) && prepared.requestID != "" {
 			selectQuery := "SELECT id, created_at FROM usage_logs WHERE request_id = $1 AND api_key_id = $2"
-			if err := scanSingleRow(ctx, sqlq, selectQuery, []any{prepared.requestID, log.APIKeyID}, &log.ID, &log.CreatedAt); err != nil {
+			var storedKey sql.NullString
+			dest := []any{&log.ID, &log.CreatedAt}
+			if prepared.observationKey != "" {
+				selectQuery = "SELECT id, created_at, service_status_observation->>'observation_key' FROM usage_logs WHERE request_id = $1 AND api_key_id = $2"
+				dest = append(dest, &storedKey)
+			}
+			if err := scanSingleRow(ctx, sqlq, selectQuery, []any{prepared.requestID, log.APIKeyID}, dest...); err != nil {
 				return false, err
 			}
+			markUsageObservationConflict(prepared, storedKey.String)
 			log.RateMultiplier = prepared.rateMultiplier
 			return false, nil
 		} else {
@@ -543,6 +567,7 @@ func (r *usageLogRepository) flushCreateBatch(db *sql.DB, batch []usageLogCreate
 					for idx, req := range reqs {
 						req.log.RateMultiplier = preparedByKey[key].rateMultiplier
 						if hasState {
+							markUsageObservationConflict(req.prepared, state.ObservationKey)
 							req.log.ID = state.ID
 							req.log.CreatedAt = state.CreatedAt
 						}
@@ -575,6 +600,7 @@ func (r *usageLogRepository) flushCreateBatch(db *sql.DB, batch []usageLogCreate
 					continue
 				}
 				for idx, req := range reqs {
+					markUsageObservationConflict(req.prepared, state.ObservationKey)
 					req.log.ID = state.ID
 					req.log.CreatedAt = state.CreatedAt
 					req.log.RateMultiplier = preparedByKey[key].rateMultiplier
@@ -605,10 +631,11 @@ func (r *usageLogRepository) flushBestEffortBatch(db *sql.DB, batch []usageLogBe
 	}
 
 	type bestEffortGroup struct {
-		prepared usageLogInsertPrepared
-		apiKeyID int64
-		key      string
-		reqs     []usageLogBestEffortRequest
+		prepared             usageLogInsertPrepared
+		apiKeyID             int64
+		key                  string
+		storedObservationKey string
+		reqs                 []usageLogBestEffortRequest
 	}
 
 	groupsByKey := make(map[string]*bestEffortGroup, len(batch))
@@ -624,9 +651,10 @@ func (r *usageLogRepository) flushBestEffortBatch(db *sql.DB, batch []usageLogBe
 		group, exists := groupsByKey[key]
 		if !exists {
 			group = &bestEffortGroup{
-				prepared: prepared,
-				apiKeyID: req.apiKeyID,
-				key:      key,
+				prepared:             prepared,
+				apiKeyID:             req.apiKeyID,
+				key:                  key,
+				storedObservationKey: prepared.observationKey,
 			}
 			groupsByKey[key] = group
 			groupOrder = append(groupOrder, group)
@@ -646,26 +674,39 @@ func (r *usageLogRepository) flushBestEffortBatch(db *sql.DB, batch []usageLogBe
 	defer cancel()
 
 	query, args := buildUsageLogBestEffortInsertQuery(preparedList)
-	if _, err := db.ExecContext(ctx, query, args...); err != nil {
+	result, err := db.ExecContext(ctx, query, args...)
+	if err != nil {
 		logger.LegacyPrintf("repository.usage_log", "best-effort batch insert failed: %v", err)
 		for _, group := range groupOrder {
 			singleErr := execUsageLogInsertNoResult(ctx, db, group.prepared)
 			if singleErr != nil {
 				logger.LegacyPrintf("repository.usage_log", "best-effort single fallback insert failed: %v", singleErr)
-			} else if group.prepared.requestID != "" && r != nil && r.bestEffortRecent != nil {
-				r.bestEffortRecent.SetDefault(group.key, struct{}{})
+			} else if group.prepared.requestID != "" && group.prepared.observationKey == "" && r != nil && r.bestEffortRecent != nil {
+				r.bestEffortRecent.SetDefault(group.key, "")
 			}
 			for _, req := range group.reqs {
+				// 同批计费键只保存首条；不同源键不能被幂等去重静默吞掉。
+				markUsageObservationConflict(req.prepared, group.prepared.observationKey)
 				sendUsageLogBestEffortResult(req.resultCh, singleErr)
 			}
 		}
 		return
 	}
+	insertedCount, countErr := result.RowsAffected()
 	for _, group := range groupOrder {
-		if group.prepared.requestID != "" && r != nil && r.bestEffortRecent != nil {
-			r.bestEffortRecent.SetDefault(group.key, struct{}{})
+		var sourceErr error
+		if group.prepared.observationKey != "" && (countErr != nil || insertedCount < int64(len(groupOrder))) {
+			// 只有幂等冲突/计数不可用时读取已存键；普通成功批次不增加查询。
+			group.storedObservationKey, sourceErr = storedUsageObservationKey(ctx, db, group.prepared)
+			if sourceErr != nil {
+				service.MarkServiceStatusSourceError(time.Now())
+			}
+		}
+		if group.prepared.requestID != "" && r != nil && r.bestEffortRecent != nil && sourceErr == nil {
+			r.bestEffortRecent.SetDefault(group.key, group.storedObservationKey)
 		}
 		for _, req := range group.reqs {
+			markUsageObservationConflict(req.prepared, group.storedObservationKey)
 			sendUsageLogBestEffortResult(req.resultCh, nil)
 		}
 	}
@@ -710,8 +751,9 @@ func (r *usageLogRepository) batchInsertUsageLogs(db *sql.DB, keys []string, pre
 		key := usageLogBatchKey(row.RequestID, row.APIKeyID)
 		insertedMap[key] = row.Inserted
 		stateMap[key] = usageLogBatchState{
-			ID:        row.ID,
-			CreatedAt: row.CreatedAt,
+			ID:             row.ID,
+			CreatedAt:      row.CreatedAt,
+			ObservationKey: row.ObservationKey,
 		}
 	}
 	if len(stateMap) != len(keys) {
@@ -806,7 +848,8 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 			route_pair_overridden,
 			route_pair_pool_gateway,
 			route_pair_pool_version,
-			created_at
+			created_at,
+			service_status_observation
 		) AS (VALUES `)
 
 	// Each batch row prepends the synthetic input_index before the
@@ -921,7 +964,8 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				route_pair_overridden,
 				route_pair_pool_gateway,
 				route_pair_pool_version,
-				created_at
+				created_at,
+			service_status_observation
 			)
 			SELECT
 				user_id,
@@ -1005,10 +1049,11 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				route_pair_overridden,
 				route_pair_pool_gateway,
 				route_pair_pool_version,
-				created_at
+				created_at,
+			service_status_observation
 			FROM input
 			ON CONFLICT (request_id, api_key_id) DO NOTHING
-			RETURNING request_id, api_key_id, id, created_at
+			RETURNING request_id, api_key_id, id, created_at, service_status_observation
 		),
 		resolved AS (
 			SELECT
@@ -1017,7 +1062,8 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 				input.api_key_id,
 				COALESCE(inserted.id, existing.id) AS id,
 				COALESCE(inserted.created_at, existing.created_at) AS created_at,
-				(inserted.id IS NOT NULL) AS inserted
+				(inserted.id IS NOT NULL) AS inserted,
+				COALESCE(inserted.service_status_observation, existing.service_status_observation)->>'observation_key' AS observation_key
 			FROM input
 			LEFT JOIN inserted
 				ON inserted.request_id = input.request_id
@@ -1033,7 +1079,8 @@ func buildUsageLogBatchInsertQuery(keys []string, preparedByKey map[string]usage
 					'api_key_id', resolved.api_key_id,
 					'id', resolved.id,
 					'created_at', resolved.created_at,
-					'inserted', resolved.inserted
+					'inserted', resolved.inserted,
+					'observation_key', resolved.observation_key
 				)
 				ORDER BY resolved.input_idx
 			),
@@ -1129,7 +1176,8 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			route_pair_overridden,
 			route_pair_pool_gateway,
 			route_pair_pool_version,
-			created_at
+			created_at,
+			service_status_observation
 		) AS (VALUES `)
 
 	args := make([]any, 0, len(preparedList)*len(usageLogInsertArgTypes))
@@ -1239,7 +1287,8 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			route_pair_overridden,
 			route_pair_pool_gateway,
 			route_pair_pool_version,
-			created_at
+			created_at,
+			service_status_observation
 		)
 		SELECT
 			user_id,
@@ -1323,7 +1372,8 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 			route_pair_overridden,
 			route_pair_pool_gateway,
 			route_pair_pool_version,
-			created_at
+			created_at,
+			service_status_observation
 		FROM input
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 	`)
@@ -1332,7 +1382,7 @@ func buildUsageLogBestEffortInsertQuery(preparedList []usageLogInsertPrepared) (
 }
 
 func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared usageLogInsertPrepared) error {
-	_, err := sqlq.ExecContext(ctx, `
+	result, err := sqlq.ExecContext(ctx, `
 		INSERT INTO usage_logs (
 			user_id,
 			api_key_id,
@@ -1415,22 +1465,51 @@ func execUsageLogInsertNoResult(ctx context.Context, sqlq sqlExecutor, prepared 
 			route_pair_overridden,
 			route_pair_pool_gateway,
 			route_pair_pool_version,
-			created_at
+			created_at,
+			service_status_observation
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8, $9,
 			$10, $11,
 			$12, $13, $14, $15,
 			$16, $17, $18, $19,
 			$20, $21, $22, $23, $24, $25,
-			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82
+			$26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43, $44, $45, $46, $47, $48, $49, $50, $51, $52, $53, $54, $55, $56, $57, $58, $59, $60, $61, $62, $63, $64, $65, $66, $67, $68, $69, $70, $71, $72, $73, $74, $75, $76, $77, $78, $79, $80, $81, $82, $83
 		)
 		ON CONFLICT (request_id, api_key_id) DO NOTHING
 	`, prepared.args...)
+	if err == nil && prepared.observationKey != "" {
+		count, countErr := result.RowsAffected()
+		if countErr != nil || count == 0 {
+			storedKey, sourceErr := storedUsageObservationKey(ctx, sqlq, prepared)
+			if sourceErr != nil {
+				service.MarkServiceStatusSourceError(time.Now())
+			}
+			markUsageObservationConflict(prepared, storedKey)
+		}
+	}
 	return err
+}
+
+// 计费的 request_id 唯一约束不变；源事实若因此未持久化，只标记完整性缺口。
+func markUsageObservationConflict(prepared usageLogInsertPrepared, storedKey string) {
+	if prepared.observationKey != "" && prepared.observationKey != storedKey {
+		service.MarkServiceStatusSourceError(time.Now())
+	}
+}
+func storedUsageObservationKey(ctx context.Context, sqlq sqlExecutor, prepared usageLogInsertPrepared) (string, error) {
+	var key sql.NullString
+	err := scanSingleRow(ctx, sqlq, "SELECT service_status_observation->>'observation_key' FROM usage_logs WHERE request_id=$1 AND api_key_id=$2", []any{prepared.requestID, prepared.args[1]}, &key)
+	return key.String, err
 }
 
 func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
 	timing := log.CanonicalUsageTiming()
+	observation := log.ServiceStatusObservation.Clone()
+	observationJSON := service.MarshalServiceStatusObservation(observation)
+	observationKey := ""
+	if observationJSON != nil {
+		observationKey = observation.ObservationKey
+	}
 	createdAt := log.CreatedAt
 	if createdAt.IsZero() {
 		createdAt = time.Now()
@@ -1496,6 +1575,7 @@ func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
 		requestID:      requestID,
 		rateMultiplier: rateMultiplier,
 		requestType:    requestType,
+		observationKey: observationKey,
 		args: []any{
 			log.UserID,
 			log.APIKeyID,
@@ -1579,6 +1659,7 @@ func prepareUsageLogInsert(log *service.UsageLog) usageLogInsertPrepared {
 			routePairPoolGateway,       // route_pair_pool_gateway
 			routePairPoolVersion,       // route_pair_pool_version
 			createdAt,
+			nullString(observationJSON),
 		},
 	}
 }

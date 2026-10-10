@@ -20,6 +20,8 @@ type responsesOutputTiming struct {
 	observed   bool
 	audioSeen  bool
 	stopCancel func() bool
+	source     *serviceStatusRequest
+	attempt    uint64
 }
 
 func newResponsesOutputTiming(ctx context.Context, start time.Time, account *Account) *responsesOutputTiming {
@@ -27,6 +29,10 @@ func newResponsesOutputTiming(ctx context.Context, start time.Time, account *Acc
 		return nil
 	}
 	o := &responsesOutputTiming{start: start, ctx: ctx, timing: UsageTiming{TimingVersion: 1, CompletionStatus: CompletionStatusUnknown, UsageSource: UsageSourceUnknown}}
+	o.source = serviceStatusOwner(ctx)
+	if o.source != nil {
+		o.attempt = o.source.beginAttempt()
+	}
 	if ctx != nil {
 		o.stopCancel = context.AfterFunc(ctx, func() {
 			if errors.Is(ctx.Err(), context.Canceled) {
@@ -47,6 +53,10 @@ func (o *responsesOutputTiming) clientDisconnected() {
 }
 
 func (o *responsesOutputTiming) finishStatus(status string) {
+	o.finishStatusAt(status, time.Now(), "")
+}
+
+func (o *responsesOutputTiming) finishStatusAt(status string, at time.Time, reason string) {
 	// 首次终态冻结；取消后 drain 到的完成只更新用量来源，不能改写客户端生命周期。
 	if o.timing.CompletionStatus != CompletionStatusUnknown {
 		return
@@ -54,6 +64,13 @@ func (o *responsesOutputTiming) finishStatus(status string) {
 	o.timing.CompletionStatus = status
 	complete := status == CompletionStatusCompleted
 	o.timing.IsComplete = &complete
+	if o.source != nil {
+		if status == CompletionStatusClientDisconnected {
+			reason = "client_cancelled"
+		}
+		o.timing.ServiceStatusObservation = o.source.observation("terminal", status, reason, at)
+		o.source.observeAttemptCandidate(o.timing.ServiceStatusObservation, o.attempt)
+	}
 }
 
 func (o *responsesOutputTiming) output(kind string, token bool, at time.Time) {
@@ -156,7 +173,15 @@ func (o *responsesOutputTiming) observeEvent(payload []byte, eventType string, a
 	}
 	status := responsesTimingStatus(eventType, gjson.GetBytes(payload, "response.status").String())
 	if status != "" {
-		o.finishStatus(status)
+		reason := ""
+		if status == CompletionStatusUpstreamError || status == CompletionStatusInterrupted {
+			code := gjson.GetBytes(payload, "response.error.code").String()
+			if code == "" {
+				code = gjson.GetBytes(payload, "error.code").String()
+			}
+			reason = ServiceStatusProviderReason(0, code)
+		}
+		o.finishStatusAt(status, at, reason)
 	}
 }
 
@@ -338,15 +363,15 @@ func (o *responsesOutputTiming) observeJSON(payload []byte, at time.Time) {
 		o.observeItem(item, true, at)
 	}
 	if compact {
-		o.finishStatus(CompletionStatusCompleted)
+		o.finishStatusAt(CompletionStatusCompleted, at, "")
 	}
 	switch gjson.GetBytes(payload, "status").String() {
 	case "completed":
-		o.finishStatus(CompletionStatusCompleted)
+		o.finishStatusAt(CompletionStatusCompleted, at, "")
 	case "failed":
-		o.finishStatus(CompletionStatusUpstreamError)
+		o.finishStatusAt(CompletionStatusUpstreamError, at, ServiceStatusProviderReason(0, gjson.GetBytes(payload, "error.code").String()))
 	case "incomplete", "cancelled", "canceled":
-		o.finishStatus(CompletionStatusInterrupted)
+		o.finishStatusAt(CompletionStatusInterrupted, at, "unclassified")
 	}
 }
 
@@ -402,7 +427,17 @@ func (o *responsesOutputTiming) snapshot(clientDisconnected bool) UsageTiming {
 		o.finishStatus(CompletionStatusClientDisconnected)
 	}
 	if o.timing.CompletionStatus == CompletionStatusUnknown && o.observed {
-		o.finishStatus(CompletionStatusInterrupted)
+		reason := "service_transport"
+		if o.ctx != nil && errors.Is(o.ctx.Err(), context.DeadlineExceeded) {
+			reason = "service_timeout"
+		}
+		o.finishStatusAt(CompletionStatusInterrupted, time.Now(), reason)
+	}
+	if o.source != nil {
+		if o.timing.ServiceStatusObservation == nil {
+			o.timing.ServiceStatusObservation = o.source.observation("terminal", CompletionStatusUnknown, "terminal_missing", time.Now())
+		}
+		o.source.observeAttemptCandidate(o.timing.ServiceStatusObservation, o.attempt)
 	}
 	return o.timing.Clone()
 }
@@ -414,8 +449,12 @@ func responsesTimingStart(starts []time.Time) time.Time {
 	return time.Time{}
 }
 func (o *responsesOutputTiming) stop() {
-	if o != nil && o.stopCancel != nil {
-		o.stopCancel()
+	if o != nil {
+		if o.stopCancel != nil {
+			o.stopCancel()
+		}
+		// 失败返回仍保存内部事实，不能因此制造用量行。
+		o.snapshot(false)
 	}
 }
 func (o *responsesOutputTiming) observeBufferedSSE(body string, at time.Time) {

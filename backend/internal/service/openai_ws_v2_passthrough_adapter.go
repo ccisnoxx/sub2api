@@ -976,6 +976,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		},
 	}
 
+	turnTimings := &responsesWSTurnTimings{account: account, ctx: ctx, source: serviceStatusOwner(ctx)}
+	defer turnTimings.close()
 	completedTurns := atomic.Int32{}
 	turnLifecycle := newOpenAIWSPassthroughTurnLifecycle(true)
 	var acceptedTurnStartedAt atomic.Pointer[time.Time]
@@ -1160,6 +1162,7 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				SetOpsUpstreamModel(c, actualModel)
 				responseCreateAtCopy := responseCreateAt
 				acceptedTurnStartedAt.Store(&responseCreateAtCopy)
+				turnTimings.bindSource(c.Request.Context())
 				acceptedTurn = true
 			}
 			return out, blocked, policyErr
@@ -1214,8 +1217,6 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 	if hooks != nil {
 		firstTurnStartedAt = hooks.InitialTurnStartedAt
 	}
-	turnTimings := &responsesWSTurnTimings{account: account, ctx: ctx}
-	defer turnTimings.close()
 	failureAccountSideEffectsApplied := false
 	relayResult, relayExit := openaiwsv2.RunEntry(openaiwsv2.EntryInput{
 		Ctx:                ctx,
@@ -1654,7 +1655,14 @@ type responsesWSTurnTimings struct {
 	account      *Account
 	ctx          context.Context
 	turns        map[string]*responsesOutputTiming
+	source       *serviceStatusRequest
 	disconnected bool
+}
+
+func (r *responsesWSTurnTimings) bindSource(ctx context.Context) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.source = serviceStatusOwner(ctx)
 }
 
 func (r *responsesWSTurnTimings) observe(event openaiwsv2.RelayObservedEvent) {
@@ -1665,7 +1673,11 @@ func (r *responsesWSTurnTimings) observe(event openaiwsv2.RelayObservedEvent) {
 	}
 	o := r.turns[event.ResponseID]
 	if o == nil {
-		o = newResponsesOutputTiming(r.ctx, event.StartedAt, r.account)
+		observerCtx := r.ctx
+		if r.source != nil {
+			observerCtx = context.WithValue(observerCtx, serviceStatusRequestKey{}, r.source)
+		}
+		o = newResponsesOutputTiming(observerCtx, event.StartedAt, r.account)
 		if o == nil {
 			return
 		}

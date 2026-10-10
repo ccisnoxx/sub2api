@@ -189,14 +189,15 @@ type OpsStreamError struct {
 	// Turn identifies a WebSocket turn. HTTP/SSE requests leave it at zero.
 	Turn int
 	// SkipMonitoring snapshots the rule decision for this visible failure.
-	SkipMonitoring     bool
-	AccountID          int64
-	UpstreamModel      string
-	UpstreamStatus     int
-	UpstreamMessage    string
-	UpstreamDetail     string
-	UpstreamErrors     []*OpsUpstreamErrorEvent
-	RoutingDiagnostics *RoutingDiagnostics
+	SkipMonitoring           bool
+	AccountID                int64
+	UpstreamModel            string
+	UpstreamStatus           int
+	UpstreamMessage          string
+	UpstreamDetail           string
+	UpstreamErrors           []*OpsUpstreamErrorEvent
+	RoutingDiagnostics       *RoutingDiagnostics
+	ServiceStatusObservation *ServiceStatusObservation
 	// RequestScoped 表示该带内失败是请求级结果（如上游内容策略截停），与本请求此前的
 	// 上游尝试无关：分类不受上游错误上下文影响、不快照也不落库上游归因、不继承透传规则的
 	// skip_monitoring，按业务限制计，落库状态取 IntendedStatus 以便进入错误列表。
@@ -222,7 +223,7 @@ func BeginOpsStreamTurnWithRoutingTurn(c *gin.Context, turn, routingTurn int) {
 	if c.Request != nil {
 		// 建连选号不代表本 turn 重新观察过池；每个逻辑 turn 使用新归属。
 		previous := c.Request.Context()
-		current := EnsureRoutingDiagnosticsTurn(previous, routingTurn)
+		current := EnsureServiceStatusTurn(EnsureRoutingDiagnosticsTurn(previous, routingTurn), routingTurn)
 		newRoutingTurn = current != previous
 		c.Request = c.Request.WithContext(current)
 	}
@@ -283,6 +284,9 @@ func markOpsStreamError(c *gin.Context, streamErr OpsStreamError) {
 		streamErr.SkipMonitoring = currentOpsFailureSkipMonitoring(c)
 	}
 	snapshotOpsStreamErrorContext(c, &streamErr)
+	if c.Request != nil {
+		streamErr.ServiceStatusObservation = ServiceStatusFinalObservation(c.Request.Context(), "")
+	}
 	if GetOpenAIClientTransport(c) == OpenAIClientTransportWS {
 		if value, ok := c.Get(OpsStreamTurnKey); ok {
 			streamErr.Turn, _ = value.(int)
@@ -430,6 +434,7 @@ func GetOpsStreamErrors(c *gin.Context) []OpsStreamError {
 
 func cloneOpsStreamError(se OpsStreamError) OpsStreamError {
 	se.RoutingDiagnostics = se.RoutingDiagnostics.Clone()
+	se.ServiceStatusObservation = se.ServiceStatusObservation.Clone()
 	if se.UpstreamErrors != nil {
 		events := make([]*OpsUpstreamErrorEvent, len(se.UpstreamErrors))
 		for i, event := range se.UpstreamErrors {
@@ -466,7 +471,8 @@ func setOpsUpstreamError(c *gin.Context, upstreamStatusCode int, upstreamMessage
 // OpsUpstreamErrorEvent describes one upstream error attempt during a single gateway request.
 // It is stored in ops_error_logs.upstream_errors as a JSON array.
 type OpsUpstreamErrorEvent struct {
-	AtUnixMs int64 `json:"at_unix_ms,omitempty"`
+	ServiceStatusObservation *ServiceStatusObservation `json:"-"`
+	AtUnixMs                 int64                     `json:"at_unix_ms,omitempty"`
 
 	// Passthrough 表示本次请求是否命中“原样透传（仅替换认证）”分支。
 	// 该字段用于排障与灰度评估；存入 JSON，不涉及 DB schema 变更。
@@ -524,6 +530,7 @@ func (ev *OpsUpstreamErrorEvent) Clone() *OpsUpstreamErrorEvent {
 	}
 	out := *ev
 	out.RoutingDiagnostics = ev.RoutingDiagnostics.Clone()
+	out.ServiceStatusObservation = ev.ServiceStatusObservation.Clone()
 	if ev.ProxyID != nil {
 		id := *ev.ProxyID
 		out.ProxyID = &id
@@ -547,6 +554,18 @@ func appendOpsUpstreamError(c *gin.Context, ev OpsUpstreamErrorEvent) {
 	ev.RoutingDiagnostics = getOpsRoutingDiagnosticsAttempt(c)
 	if ev.AtUnixMs <= 0 {
 		ev.AtUnixMs = time.Now().UnixMilli()
+	}
+	if c.Request != nil {
+		reason := serviceStatusAttemptReason(c.Request.Context())
+		if ev.Stage == string(GatewayFailureStageAccountAuth) && ev.Platform == PlatformOpenAI {
+			reason = "provider_authentication"
+			SetServiceStatusAttemptFailure(c.Request.Context(), CompletionStatusUpstreamError, reason, time.UnixMilli(ev.AtUnixMs))
+		}
+		if ev.Platform != PlatformOpenAI {
+			reason = "unsupported_entry"
+		}
+		at := time.UnixMilli(ev.AtUnixMs)
+		ev.ServiceStatusObservation = ServiceStatusAttemptObservation(c.Request.Context(), reason, at)
 	}
 	ev.Platform = strings.TrimSpace(ev.Platform)
 	normalizeOpsUpstreamProxyAttribution(&ev)
