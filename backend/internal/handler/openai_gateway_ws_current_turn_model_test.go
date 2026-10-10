@@ -25,16 +25,19 @@ import (
 // 真实 socket 和生产选号、渠道映射、定价及用量 owner 共同保护换号后的请求归属。
 func TestOpenAIWSCurrentTurnModelFailover(t *testing.T) {
 	t.Run("select_only_current_model_account", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, true, false)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, true, false, false)
 	})
 	t.Run("requested_price", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, false)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, false, false)
 	})
 	t.Run("channel_mapped_price", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceChannelMapped, false, false)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceChannelMapped, false, false, false)
 	})
 	t.Run("current_image_intent_requires_responses", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, true)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, true, false)
+	})
+	t.Run("current_string_input", func(t *testing.T) {
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, true, false, true)
 	})
 }
 
@@ -44,7 +47,7 @@ type openAIWSCurrentTurnModelHit struct {
 	input     string
 }
 
-func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, restrictReplacement, imageIntent bool) {
+func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, restrictReplacement, imageIntent, currentStringInput bool) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	const (
@@ -88,6 +91,23 @@ func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, res
 			}
 			model := gjson.GetBytes(payload, "model").String()
 			input := gjson.GetBytes(payload, "input.0.content").String()
+			if wireInput := gjson.GetBytes(payload, "input"); wireInput.Type == gjson.String {
+				input = wireInput.String()
+			}
+			if currentStringInput && accountID == currentID {
+				wireInput := gjson.GetBytes(payload, "input")
+				if !wireInput.IsArray() {
+					upstreamErrors <- fmt.Errorf("换号后的字符串请求没有展开为对象项数组")
+					return
+				}
+				for _, item := range wireInput.Array() {
+					if !item.IsObject() {
+						t.Logf("实际换号载荷包含非法非对象项：%s", payload)
+						upstreamErrors <- fmt.Errorf("换号后的 input 数组含非对象项")
+						return
+					}
+				}
+			}
 			hitsMu.Lock()
 			hits = append(hits, openAIWSCurrentTurnModelHit{accountID: accountID, model: model, input: input})
 			hitsMu.Unlock()
@@ -225,6 +245,9 @@ func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, res
 	for i, model := range []string{modelA, modelB} {
 		input := []string{"turn-a", "turn-b"}[i]
 		payload := fmt.Sprintf(`{"type":"response.create","model":%q,"input":[{"role":"user","content":%q}],"stream":false}`, model, input)
+		if currentStringInput && i == 1 {
+			payload = fmt.Sprintf(`{"type":"response.create","model":%q,"input":%q,"stream":false}`, model, input)
+		}
 		if imageIntent && i == 1 {
 			payload = fmt.Sprintf(`{"type":"response.create","model":%q,"input":[{"role":"user","content":%q}],"tools":[{"type":"image_generation"}],"stream":false}`, model, input)
 		}

@@ -67,6 +67,32 @@ func openAIWSNativeCompletedReplayOutput(eventType string, message []byte) ([]js
 	return items, true
 }
 
+// 换号历史最终写成 input 数组；顶层字符串的协议语义是 user 文本，需先转成合法消息项。
+// 仅归一化独立的换号历史，原始载荷与同账号 replay 继续沿用既有形态。
+func buildOpenAIWSNativeAccountFailoverInputSequence(
+	previousFullInput []json.RawMessage,
+	previousFullInputExists bool,
+	currentPayload []byte,
+	hasPreviousResponseID bool,
+) ([]json.RawMessage, bool, error) {
+	currentItems, currentExists, err := openAIWSExtractNormalizedInputSequence(currentPayload)
+	if err != nil {
+		return nil, false, err
+	}
+	if gjson.GetBytes(currentPayload, "input").Type == gjson.String {
+		item, marshalErr := json.Marshal(struct {
+			Role    string          `json:"role"`
+			Content json.RawMessage `json:"content"`
+		}{Role: "user", Content: currentItems[0]})
+		if marshalErr != nil {
+			return nil, false, marshalErr
+		}
+		currentItems = []json.RawMessage{item}
+	}
+	items, exists := buildOpenAIWSReplayInputSequenceFromItems(previousFullInput, previousFullInputExists, currentItems, currentExists, hasPreviousResponseID)
+	return items, exists, nil
+}
+
 func openAIWSNativeReplayInputHasItemReference(items []json.RawMessage) bool {
 	for _, item := range items {
 		if gjson.GetBytes(item, "type").String() == "item_reference" {
@@ -1713,7 +1739,7 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 		if !currentTurnAccountFailoverPrepared {
 			currentTurnAccountFailoverPrepared = true
 			var inputErr error
-			currentTurnAccountFailoverInput, currentTurnAccountFailoverInputComplete, inputErr = buildOpenAIWSReplayInputSequence(
+			currentTurnAccountFailoverInput, currentTurnAccountFailoverInputComplete, inputErr = buildOpenAIWSNativeAccountFailoverInputSequence(
 				lastTurnAccountFailoverInput,
 				lastTurnAccountFailoverInputComplete,
 				currentPayload,

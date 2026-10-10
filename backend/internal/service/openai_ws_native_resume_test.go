@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -247,6 +248,99 @@ func TestOpenAIWSNativeLaterTurnFailoverRejectsAccountToolAliases(t *testing.T) 
 			} else {
 				require.Equal(t, "python_tool", gjson.GetBytes(upstream.rawWrites[1], "tools.0.name").String())
 			}
+		})
+	}
+}
+
+// 上游是既有 capture conn；下游使用真实 client socket，重放正文由生产 native owner 生成。
+func TestOpenAIWSNativeLaterTurnFailoverIndependentStringInput(t *testing.T) {
+	for _, tc := range []struct{ name, inputJSON, text string }{
+		{"unicode_escapes_newline_quote", `"\u6c49字🌦\n\"quoted\"\\path\t\u2028"`, "汉字🌦\n\"quoted\"\\path\t\u2028"},
+		{"empty_string", `""`, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			requests := []string{
+				`{"type":"response.create","model":"public-model","input":"old-root"}`,
+				fmt.Sprintf(`{"type":"response.create","model":"public-model","client_metadata":{"thread_id":"current-string"},"input":%s}`, tc.inputJSON),
+			}
+			completed := `{"type":"response.completed","response":{"id":"resp_first","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"old-answer"}]}]}}`
+			proxyErr, messages, upstream, _, _, _ := runOpenAIWSNativeResume(t, requests, []string{completed}, []string{nativeResumeRateLimitEvent})
+			var failoverErr *UpstreamFailoverError
+			require.ErrorAs(t, proxyErr, &failoverErr)
+			require.Equal(t, http.StatusTooManyRequests, failoverErr.StatusCode)
+			retryPayload, currentTurn := OpenAIWSCurrentTurnRetryPayload(proxyErr)
+			require.True(t, currentTurn)
+			require.NotEmpty(t, retryPayload)
+			require.Len(t, messages, 1, "429 必须在当前轮次下游输出之前截获")
+			require.Equal(t, "public-model", gjson.GetBytes(retryPayload, "model").String())
+			require.Equal(t, "current-string", gjson.GetBytes(retryPayload, "client_metadata.thread_id").String(), "不能回退连接首包")
+			require.False(t, gjson.GetBytes(retryPayload, "previous_response_id").Exists())
+			input := gjson.GetBytes(retryPayload, "input")
+			require.True(t, input.IsArray())
+			items := input.Array()
+			require.Len(t, items, 1, "独立当前请求不能拼入旧根和 assistant output")
+			require.True(t, items[0].IsObject(), "Responses input 数组成员必须是 object item，不能是字符串 scalar")
+			require.Equal(t, "user", items[0].Get("role").String())
+			require.Equal(t, gjson.String, items[0].Get("content").Type)
+			require.Equal(t, tc.text, items[0].Get("content").String())
+			upstream.mu.Lock()
+			defer upstream.mu.Unlock()
+			require.Len(t, upstream.rawWrites, 2)
+			for i, expected := range []string{"old-root", tc.text} {
+				original := gjson.GetBytes(upstream.rawWrites[i], "input")
+				require.Equal(t, gjson.String, original.Type, "首发及同账号当前请求保持合法顶层字符串")
+				require.Equal(t, expected, original.String())
+				require.Equal(t, []string{`"old-root"`, tc.inputJSON}[i], original.Raw, "原始字符串转义不应被换号历史归一化改写")
+			}
+			t.Logf("captureconn 原发送 input[0]=%s input[1]=%s；生产 wrapper=%s", gjson.GetBytes(upstream.rawWrites[0], "input").Raw, gjson.GetBytes(upstream.rawWrites[1], "input").Raw, retryPayload)
+		})
+	}
+}
+
+func TestOpenAIWSNativeLaterTurnFailoverStringRootContinuation(t *testing.T) {
+	for _, tc := range []struct{ name, inputJSON, text string }{
+		{"unicode_escapes_newline_quote", `"\u6c49字🌦\n\"quoted\"\\path\t\u2028"`, "汉字🌦\n\"quoted\"\\path\t\u2028"},
+		{"empty_string", `""`, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			requests := []string{
+				fmt.Sprintf(`{"type":"response.create","model":"public-model","input":%s}`, tc.inputJSON),
+				`{"type":"response.create","previous_response_id":"resp_first","input":[{"role":"user","content":"continuation-current"}]}`,
+			}
+			completed := `{"type":"response.completed","response":{"id":"resp_first","output":[{"type":"message","role":"assistant","content":[{"type":"output_text","text":"完整回答\n\"assistant\""}]}]}}`
+			proxyErr, messages, upstream, _, _, _ := runOpenAIWSNativeResume(t, requests, []string{completed}, []string{nativeResumeRateLimitEvent})
+			var failoverErr *UpstreamFailoverError
+			require.ErrorAs(t, proxyErr, &failoverErr)
+			require.Equal(t, http.StatusTooManyRequests, failoverErr.StatusCode)
+			retryPayload, currentTurn := OpenAIWSCurrentTurnRetryPayload(proxyErr)
+			require.True(t, currentTurn)
+			require.NotEmpty(t, retryPayload)
+			require.Len(t, messages, 1)
+			require.False(t, gjson.GetBytes(retryPayload, "previous_response_id").Exists(), "只有完整本地历史才能去除已知锚点")
+			require.Equal(t, "public-model", gjson.GetBytes(retryPayload, "model").String())
+			input := gjson.GetBytes(retryPayload, "input")
+			require.True(t, input.IsArray())
+			items := input.Array()
+			require.Len(t, items, 3)
+			for _, item := range items {
+				require.True(t, item.IsObject(), "Responses input 数组成员必须是 object item，不能混合字符串 scalar")
+			}
+			require.Equal(t, "user", items[0].Get("role").String())
+			require.Equal(t, gjson.String, items[0].Get("content").Type)
+			require.Equal(t, tc.text, items[0].Get("content").String())
+			require.Equal(t, "assistant", items[1].Get("role").String())
+			require.Equal(t, "完整回答\n\"assistant\"", items[1].Get("content.0.text").String())
+			require.Equal(t, "user", items[2].Get("role").String())
+			require.Equal(t, "continuation-current", items[2].Get("content").String())
+			upstream.mu.Lock()
+			defer upstream.mu.Unlock()
+			require.Len(t, upstream.rawWrites, 2)
+			original := gjson.GetBytes(upstream.rawWrites[0], "input")
+			require.Equal(t, gjson.String, original.Type, "字符串根首发保持原协议形态")
+			require.Equal(t, tc.text, original.String())
+			require.Equal(t, tc.inputJSON, original.Raw)
+			require.Equal(t, "continuation-current", gjson.GetBytes(upstream.rawWrites[1], "input.0.content").String())
+			t.Logf("captureconn 原字符串根=%s；生产 wrapper=%s", original.Raw, retryPayload)
 		})
 	}
 }
