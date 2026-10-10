@@ -38,7 +38,7 @@ deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc
 
 `Deployment` 是唯一远端生命周期 owner，使用非阻塞 `flock` 持有 `/root/sub2api-kin/.personal-deploy/deployment.lock`，锁覆盖预检、备份、拉取、启动、健康、持久提交及失败恢复。并发部署在执行 Docker 命令前退出。其他生产配置维护也应尊重这把锁；工具的 hash 检查会拒绝已观察到的外部漂移。
 
-本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。同一上游基线只允许零运行差异与下述精确工具链补丁；跨基线只允许下述固定 `.3 → .5` 正向升级。其他后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止操作，没有 force 或 ignore 兼容开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足零差异合同。
+本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。同一上游基线只允许零运行差异、下述精确工具链补丁及固定 S0–S4 累计应用；跨基线只允许下述固定 `.3 → .5` 正向升级。其他后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止操作，没有 force 或 ignore 兼容开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足零差异合同。
 
 本轮经用户三次明确授权，升级 Go 1.27.0 → 1.27.2，x/net v0.58.0 → v0.60.0，并按模块最小版本选择同步 crypto0.57、sys0.48、term0.46、text0.42、tools0.50、mod0.41、sync0.23。精确 lint 兼容规则仅匹配五个固定文件中的既有 HTTP/2 弃用接口，其他检查继续启用。例外绑定已审定的 `backend/.golangci.yml`、`backend/go.mod`、`backend/go.sum`、`Dockerfile`、`deploy/Dockerfile` 前后完整文件 SHA-256；应用候选为 `ce682c4901033d09c7e12614b7b73e11bdd17ef4`，旧输入为 tps.1 revision `896de21b4be7f4ec4b4236f4df663b47371665b0`。五个路径必须全部变化、方向一致，双方均为普通 `100644` 文件。任意其他版本、校验行、字节、权限、业务源码、迁移或运行配置变化均拒绝；未来安全补丁需要另行审定，不能按文件路径泛化放行。CI/Release 精确核对所选源码 go.mod 的 Go 声明并继续全部门禁，personal 的声明固定为1.27.2；main 不维护应用树。
 
@@ -48,7 +48,15 @@ deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc
 
 此正向证明明确记录 `image_rollback_compatible=false`。`.5` 的 `account.extra.openai_gwpool_usage_rounds` 新增 `rounds.active_usage` 与归档的 `active_duration_ms/incomplete`，contacts 新增 `previous`；`.3` 的类型解码与 whole-key `UpdateExtra` 会丢失这些字段。`.5` reporter 在 HTTP 监听与 health 之前启动，cooldown 首次 arm 也可能写入持久化数据。因此迁移清单未变化、启动等待失败或 `/health` 尚未成功都不能证明旧镜像恢复无损。该升级拒绝 `.5 → .3` 普通部署、显式回滚，以及新应用启动后的自动旧镜像恢复。需要另行评估数据兼容的向前修复或经授权的维护恢复；数据库恢复与可能丢失写入不在部署工具的授权中。
 
-远端取得锁后再次读取实际旧 digest、revision、version、source、Image ID，与本机兼容证据绑定的旧状态比较。PostgreSQL `SELECT 1`、Redis `PING` 与容器 healthcheck 均须通过；数据库/Redis 容器 ID 在整个应用更新中保持不变。通过 `schema_migrations` 的 `filename/checksum` 排序清单记录行数与 SHA-256，更新后以及自动恢复前再次比较。若迁移状态发生变化，保留失败和诊断，停止镜像恢复。已有成功记录的迁移状态后来发生变化时，同样禁止后续部署或显式回滚。
+S0–S4 的 `klno.5-tps.1-to-s0-s4` 证明固定旧应用 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92 / 0.2.14-klno.5-tps.1`，保留双方 `.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d` 来源。新候选锚点为 `7bd38c3e5c671e325a8a1236327ba137c20fe46f`，旧完整运行树为 `928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d`，新树为 `b37da537d70f419fe12922ae9b593f8b3cdb75e1f63a6c621e9da95e103ddf77`，精确 127 个差异路径以 `deploy_hostdzire.py` 的 `CUMULATIVE_CHANGED_PATHS` 为准。正式个人标签的 merge revision 可以不同，但必须包含审定候选且整个运行树完全相同。本机核对真实 Git 对象，远端核对 canonical 清单、证明 hash、实际旧新 revision 与镜像版本。不能删掉专属证明、伪装成零差异或安全补丁放行这次累计运行差异。
+
+累计证明只允许新增 `251_add_usage_log_timing.sql`、`252_add_ops_routing_diagnostics.sql`、`253_service_status_observation.sql`、`254_service_status.sql`，分别固定 Go runner 使用的 `SHA256(strings.TrimSpace(SQL))`。251 的追加计时/终态字段包含旧写入可使用的默认值和可空列，252/253 追加可空 JSONB，254 创建独立服务状态表并安装分组可见性 trigger；兼容结论绑定这些完整 SQL 和固定旧应用的真实扩展 schema 证据，不推广为“所有追加迁移均安全”。回退只恢复应用镜像，保持扩展 schema 与 ledger，`schema_rollback=retain`。
+
+远端取得锁后再次读取实际旧 digest、revision、version、source、Image ID，与本机兼容证据绑定的旧状态比较。PostgreSQL `SELECT 1`、Redis `PING` 与容器 healthcheck 均须通过；数据库/Redis 容器 ID 在整个应用更新中保持不变。通过 `schema_migrations` 的 `filename/checksum` 数据库排序清单记录行数与 SHA-256，保留数据库实际顺序。通常更新后以及自动恢复前必须完全一致，未知迁移差异阻止恢复。已有成功记录的迁移状态后来发生变化时，同样禁止后续部署或显式回滚。
+
+累计升级要求启动前账本与当前成功记录相同，所有原行逐字不变，健康终态只能新增全部四个固定 filename/checksum；新成功记录保存扩展后的 fingerprint。启动失败或取消时，自动恢复只接受无新增或按 runner 事务顺序提交的固定前缀，并在替换旧应用后再次核对；未知行、旧行变动、错误 checksum、缺口、重复记录、配置/依赖漂移或未绑定的实际运行镜像均明确阻止恢复。固定新增迁移可能在 replacement 停止新应用前完成下一笔事务，恢复后仍只能观察到相同原行和不倒退的固定前缀。
+
+自动恢复保留原 selection，不改写旧成功记录。失败操作若已经提交任何新增迁移，旧镜像虽恢复健康，下一次自动部署仍会因原成功记录与扩展账本不一致返回 `E_MIGRATION`，需要先人工核对失败记录和账本。成功累计部署可使用当前部署 ID 显式切回固定旧 `.5`，通过健康后提交新的回滚选择与完整扩展账本；之后只有这份成功回滚记录所绑定的同一扩展账本可再次升级审定累计应用。普通 `deploy` 不允许反向切回。
 
 首次适配只修改普通 `services/sub2api` 中唯一的直接 `image` 行为 `"${SUB2API_IMAGE:?必须指定应用镜像}"`；不重新序列化 YAML，原注释、CRLF、其他服务和设置逐字保留。特殊缩进、锚点或无法唯一定位的结构会失败，不能用仓库 Compose 模板替换生产文件。适配前后在内存中核对完整 Compose JSON，仅应用 `image` 可变化，完整配置和环境值不会进入日志或输出。
 
@@ -74,7 +82,8 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 |---|---|
 | 预检、兼容证据、备份或拉取失败 | 非零退出；旧运行容器、持久镜像选择及原 Compose 保留 |
 | 拉取成功后配置校验失败，尚未启动 | hash 核对无漂移时恢复本次 Compose 适配；保留失败记录 |
-| 同基线应用启动或健康失败，兼容证据有效且数据库/迁移/配置未漂移 | 用旧固定 digest 仅重建应用并验证健康，恢复本次 Compose 适配；原选择保留。`rollback_status=success` 仍是部署失败，退出码 `1` |
+| 零差异或精确安全补丁应用启动或健康失败，兼容证据有效且数据库/迁移/配置未漂移 | 用旧固定 digest 仅重建应用并验证健康，恢复本次 Compose 适配；原选择保留。`rollback_status=success` 仍是部署失败，退出码 `1` |
+| S0–S4 累计升级启动、取消、健康或 selection 写入前失败 | 仅在固定追加兼容证明、原行不变和固定事务前缀、旧新运行镜像、配置与依赖合同均成立时恢复旧 `.5`，保留新 schema/ledger 和原 selection；检查失败记录 `rollback_status=blocked`，实际恢复启动/健康失败记录 `failed` |
 | `.3 → .5` 新应用启动或健康失败，持久选择尚未提交 | 保留 `status=failed`、原始错误、诊断与 `observed_running`，记录 `rollback_status=blocked`、`rollback_error=E_COMPATIBILITY`；不启动旧镜像、不替换原 selection，保留当前 Compose 供人工核对 |
 | 数据库/Redis 容器、迁移或配置发生漂移 | 阻止自动镜像切回，保存失败与当前可观察状态，需人工评估 |
 | 同基线显式回滚 | 绑定当前成功部署 ID、旧/目标完整元数据、配置 hash、双方 Git 兼容证据与迁移指纹；通过健康后提交新的回滚记录与旧 digest 选择，保留已完成的 Compose 参数化 |
@@ -97,6 +106,6 @@ python3 -m py_compile deploy/personal/deploy_hostdzire.py deploy/personal/test_d
 git diff --check
 ```
 
-替身覆盖成功仅更新应用、版本解析后固定 digest、拉取/备份失败无运行变更、健康超时及自动恢复、显式回滚与过期拒绝、真实 `flock` 竞争、运行 revision 漂移、OCI 标签/source/platform/RepoDigest 拒绝、迁移禁止部署与回滚、配置漂移保留、选择落盘失败及部分提交。真实固定 Git 对象与临时 Git 保护完整运行路径 diff、来源/tag 绑定、`.3 → .5` 正向及反向拒绝、运行树内容/模式/类型/迁移/来源漂移；远端替身覆盖正向证明字段与 hash 篡改、成功 app-only 生命周期、启动前备份、启动/健康失败阻止旧镜像与保留原 selection、单向记录显式回滚拒绝及部分提交；真实本机子进程验证 dump 文件流和私密错误边界；OpenSSH 替身验证固定别名、scp 和通过 stdin 传输 JSON。正式前还需独立只读审查以及现场健康、界面与网关验收。
+替身覆盖成功仅更新应用、版本解析后固定 digest、拉取/备份失败无运行变更、健康超时及自动恢复、显式回滚与过期拒绝、真实 `flock` 竞争、运行 revision 漂移、OCI 标签/source/platform/RepoDigest 拒绝、迁移禁止部署与回滚、配置漂移保留、选择落盘失败及部分提交。真实固定 Git 对象与临时 Git 保护完整运行路径 diff、来源/tag 绑定、`.3 → .5` 正向及反向拒绝、运行树内容/模式/类型/迁移/来源漂移；远端替身覆盖正向证明字段与 hash 篡改、成功 app-only 生命周期、启动前备份、启动/健康失败阻止旧镜像与保留原 selection、单向记录显式回滚拒绝及部分提交。累计合同另保护固定四迁移、原账本字节、部分事务与取消恢复、未知差异阻止恢复、恢复后重试拒绝、显式回滚后再次升级、selection 部分提交、证明伪装及最终 merge 祖先/完整运行树检查。真实本机子进程验证 dump 文件流和私密错误边界；OpenSSH 替身验证固定别名、scp 和通过 stdin 传输 JSON。正式前还需独立只读审查以及现场健康、界面与网关验收。
 
 稳定测试边界为 `Deployment(base=临时目录, runner=Docker替身)`；生产项目、容器名、持久卷和健康 URL 固定在本模块，没有临时栈或更换生产目标的 CLI 开关。隔离真实镜像恢复演练由维护者在完全独立的容器/卷/端口中组织，不能据替身结果宣称生产已更新或数据库已恢复验证。

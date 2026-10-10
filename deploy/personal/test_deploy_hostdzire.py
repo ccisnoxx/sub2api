@@ -86,6 +86,8 @@ class DockerSubstitute:
         self.config_drift = False
         self.dependency_change = False
         self.migration_change = False
+        self.migration_listing = b"001.sql|" + b"1" * 64 + b"\n"
+        self.migrations_on_start = None
 
     def container(self, service):
         value = {"Config": {"Labels": {"com.docker.compose.project": deploy.PROJECT,
@@ -136,6 +138,8 @@ class DockerSubstitute:
             elif operation == ["up", "-d", "--no-deps", "--wait", "--wait-timeout", "120", "sub2api"]:
                 self.current = env["SUB2API_IMAGE"]
                 self.config_image = self.current
+                if self.current == self.failure_image and self.migrations_on_start is not None:
+                    self.migration_listing = self.migrations_on_start
                 self.healthy = not (self.health_failure and self.current == self.failure_image)
                 if self.config_drift and self.current == self.failure_image:
                     with open(self.base / "docker-compose.yml", "ab") as output_file:
@@ -153,7 +157,7 @@ class DockerSubstitute:
             elif "SELECT 1" in args[-1]:
                 output = b"1\n"
             elif "SELECT filename, checksum FROM schema_migrations" in args[-1]:
-                output = b"001.sql|old-checksum\n"
+                output = self.migration_listing
                 if self.migration_change and self.current == self.failure_image:
                     output += b"002.sql|new-checksum\n"
             else:
@@ -696,6 +700,294 @@ class DeploymentTests(unittest.TestCase):
         self.assertEqual(self.starts(), [])
 
 
+# 独立固定 SQL checksum；生命周期夹具模拟数据库返回，不从被测 proof 生成新增行。
+CUMULATIVE_LEDGER_ROWS = (
+    b"251_add_usage_log_timing.sql|99562d6463ffa0477e2760c02c3251109e1f7142cf0b86ea4394f871e7a48faf\n",
+    b"252_add_ops_routing_diagnostics.sql|863bd7e74c5fcc5f425e43dcdbfb52691a9fd77e1a00cb2dd8251ea4bde24d0f\n",
+    b"253_service_status_observation.sql|0709bb5a752147c14740d199c9fd84cc9875f3823a79111624a92afe83821c44\n",
+    b"254_service_status.sql|21522e3ef19e18bbe00bef39d48b153b61e0eee3e33b4047b7d045c5edaf0102\n",
+)
+
+
+class CumulativeDeploymentTests(unittest.TestCase):
+    setUp = DeploymentTests.setUp
+    execute = DeploymentTests.execute
+    persisted = DeploymentTests.persisted
+    starts = DeploymentTests.starts
+
+    def prepare(self):
+        # 固定 .5 已有成功记录；通过此前真实 .3 → .5 证明建立，而非绕过状态 owner。
+        metadata = dict(NEW, revision=deploy.CUMULATIVE_OLD_REVISION, version="0.2.14-klno.5-tps.1")
+        self.docker.images[metadata["image"]] = self.docker.images[NEW_ID] = image(metadata, NEW_ID)
+        evidence = deploy.GitEvidence(Path(deploy.__file__).resolve().parents[2])
+        old3 = dict(deploy.LEGACY, revision=deploy.FORWARD_OLD_REVISION, image_id=OLD_ID,
+                    image=deploy.REPOSITORY + "@sha256:" + "6" * 64,
+                    version="0.2.14-klno.3-tps.1", source=deploy.SOURCE)
+        self.docker.images[old3["image"]] = self.docker.images[OLD_ID] = image(old3, OLD_ID)
+        self.docker.current = self.docker.config_image = old3["image"]
+        state = self.base / ".personal-deploy"
+        record_id = "20261008T180000Z-123456789abc"
+        deploy.private_directory(state / "records" / record_id)
+        deploy.atomic_private(state / "records" / record_id / "record.json", deploy.canonical({
+            "id": record_id, "status": "success", "action": "deploy", "target": old3,
+            "migration_state": deploy.migration_fingerprint(self.docker.migration_listing)}))
+        deploy.atomic_private(state / "image.env", ("SUB2API_IMAGE=" + old3["image"] +
+                                                    "\nSUB2API_DEPLOYMENT_ID=" + record_id + "\n").encode())
+        value = request(metadata, old3)
+        value["compatibility"] = evidence.compatibility(old3, metadata)
+        previous, code = self.execute(value)
+        self.assertEqual((code, previous["status"]), (0, "success"))
+        target = dict(metadata, image=deploy.REPOSITORY + "@sha256:" + "2" * 64,
+                      input=deploy.REPOSITORY + "@sha256:" + "2" * 64,
+                      revision=deploy.CUMULATIVE_NEW_REVISION, version="0.2.14-klno.5-tps.2")
+        target_id = "sha256:" + "3" * 64
+        self.docker.images[target["image"]] = self.docker.images[target_id] = image(target, target_id)
+        self.docker.failure_image = target["image"]
+        self.baseline = self.docker.migration_listing
+        self.expanded = self.baseline + b"".join(CUMULATIVE_LEDGER_ROWS)
+        self.docker.migrations_on_start = self.expanded
+        old = deploy.Deployment(self.base, self.docker).running()
+        value = request(target, old)
+        value["compatibility"] = evidence.compatibility(old, target)
+        self.docker.commands.clear()
+        return value, previous
+
+    def test_success_records_new_ledger_and_keeps_dependencies_app_only(self):
+        value, previous = self.prepare()
+        result, code = self.execute(value)
+        self.assertEqual((code, result["status"]), (0, "success"))
+        saved = self.persisted(result)
+        self.assertEqual(saved["migration_state"]["rows"], 5)
+        self.assertEqual(saved["migration_state"]["filename_checksum_sha256"], deploy.sha(self.expanded))
+        self.assertEqual(saved["migration_state_before"], self.persisted(previous)["migration_state"])
+        self.assertEqual(saved["dependencies"], {"postgres": PG_ID, "redis": REDIS_ID})
+        self.assertEqual(len(self.starts()), 1)
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], result["id"])
+        commands = [args for args, _ in self.docker.commands]
+        self.assertLess(next(i for i, args in enumerate(commands) if "pg_dump" in args[-1]),
+                        next(i for i, args in enumerate(commands) if "--no-deps" in args))
+        self.assertFalse(any(part in args for args in commands for part in ("down", "prune", "rm")))
+
+    def test_database_row_order_is_preserved_without_python_resorting(self):
+        self.docker.migration_listing = (b"006b_guard.sql|" + b"1" * 64 + b"\n" +
+                                         b"006_guard.sql|" + b"2" * 64 + b"\n")
+        value, previous = self.prepare()
+        self.assertNotEqual(self.baseline.splitlines(), sorted(self.baseline.splitlines()))
+        result, code = self.execute(value)
+        self.assertEqual((code, result["status"]), (0, "success"))
+        self.assertEqual(self.persisted(result)["migration_state_before"], self.persisted(previous)["migration_state"])
+        self.assertEqual(self.persisted(result)["migration_state"]["filename_checksum_sha256"], deploy.sha(self.expanded))
+
+    def test_health_requires_all_four_migrations_even_when_container_healthy(self):
+        value, previous = self.prepare()
+        self.docker.migrations_on_start = self.baseline + b"".join(CUMULATIVE_LEDGER_ROWS[:3])
+        result, code = self.execute(value)
+        self.assertEqual((code, result["error_code"], result["rollback_status"]), (1, "E_MIGRATION", "success"))
+        self.assertEqual(self.docker.current, value["expected_old"]["image"])
+        self.assertEqual(self.persisted(result)["recovery_migration_state"]["rows"], 4)
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], previous["id"])
+
+    def test_cancelled_partial_migration_preserves_schema_and_blocks_automatic_retry(self):
+        value, previous = self.prepare()
+        partial = self.baseline + b"".join(CUMULATIVE_LEDGER_ROWS[:2])
+        self.docker.migrations_on_start = partial
+        run = self.docker.run
+        def cancelled(args, **options):
+            output = run(args, **options)
+            if "--no-deps" in args and self.docker.current == value["target"]["image"]:
+                raise deploy.DeployError("E_INTERRUPTED", "目标迁移期间取消")
+            return output
+        self.docker.run = cancelled
+        result, code = self.execute(value)
+        self.assertEqual((code, result["error_code"], result["rollback_status"]), (1, "E_INTERRUPTED", "success"))
+        self.assertEqual(self.docker.migration_listing, partial)
+        self.assertEqual(len(self.starts()), 2)
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], previous["id"])
+        self.docker.commands.clear()
+        retry, code = self.execute(value)
+        self.assertEqual((code, retry["error_code"]), (1, "E_MIGRATION"))
+        self.assertEqual(self.starts(), [])
+        self.assertNotIn("backups", self.persisted(retry))
+
+    def test_recovery_accepts_a_fixed_transaction_finishing_during_replacement(self):
+        value, previous = self.prepare()
+        self.docker.migrations_on_start = self.baseline + CUMULATIVE_LEDGER_ROWS[0]
+        self.docker.wait_failure = True
+        run = self.docker.run
+        def finish_transaction(args, **options):
+            output = run(args, **options)
+            if "--no-deps" in args and self.docker.current == value["expected_old"]["image"]:
+                self.docker.migration_listing = self.expanded
+            return output
+        self.docker.run = finish_transaction
+        result, code = self.execute(value)
+        self.assertEqual((code, result["rollback_status"]), (1, "success"))
+        self.assertEqual(self.persisted(result)["recovery_migration_state"]["rows"], 5)
+
+    def test_recovery_rejects_prefix_regression_during_replacement(self):
+        value, previous = self.prepare()
+        self.docker.migrations_on_start = self.baseline + b"".join(CUMULATIVE_LEDGER_ROWS[:2])
+        self.docker.wait_failure = True
+        run = self.docker.run
+        def regress_ledger(args, **options):
+            output = run(args, **options)
+            if "--no-deps" in args and self.docker.current == value["expected_old"]["image"]:
+                self.docker.migration_listing = self.baseline + CUMULATIVE_LEDGER_ROWS[0]
+            return output
+        self.docker.run = regress_ledger
+        result, code = self.execute(value)
+        self.assertEqual((code, result["rollback_status"], result.get("rollback_error")), (1, "failed", "E_MIGRATION"))
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], previous["id"])
+        self.assertNotIn("recovery_migration_state", self.persisted(result))
+
+    def test_recovery_rejects_regression_after_full_target_ledger_observed(self):
+        value, previous = self.prepare()
+        executor = deploy.Deployment(self.base, self.docker)
+        health = executor.health
+        def failed_health(expected, dependencies, expected_migrations=None):
+            if expected["image"] == value["target"]["image"]:
+                self.docker.migration_listing = self.baseline + b"".join(CUMULATIVE_LEDGER_ROWS[:3])
+                raise deploy.DeployError("E_HEALTH", "验证过完整迁移后发生健康失败")
+            return health(expected, dependencies, expected_migrations)
+        executor.health = failed_health
+        result, code = executor.execute(value)
+        self.assertEqual((code, result["rollback_status"], result.get("rollback_error")), (1, "blocked", "E_MIGRATION"))
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], previous["id"])
+        self.assertEqual(len(self.starts()), 1)
+
+    def test_unknown_ledger_changes_block_old_image_recovery(self):
+        for kind in ("unknown", "checksum", "old_mutation", "old_removed", "hole", "duplicate"):
+            with self.subTest(kind=kind):
+                self.setUp()
+                value, previous = self.prepare()
+                listing = self.expanded
+                if kind == "unknown":
+                    listing += b"255_unreviewed.sql|" + b"8" * 64 + b"\n"
+                elif kind == "checksum":
+                    listing = listing.replace(b"99562d6463ffa0477e2760c02c3251109e1f7142cf0b86ea4394f871e7a48faf", b"8" * 64)
+                elif kind == "old_mutation":
+                    listing = listing.replace(b"1" * 64, b"8" * 64)
+                elif kind == "old_removed":
+                    listing = listing[len(self.baseline):]
+                elif kind == "hole":
+                    listing = self.baseline + CUMULATIVE_LEDGER_ROWS[1]
+                else:
+                    listing += CUMULATIVE_LEDGER_ROWS[-1]
+                self.docker.migrations_on_start = listing
+                self.docker.wait_failure = True
+                result, code = self.execute(value)
+                self.assertEqual((code, result["rollback_status"], result["rollback_error"]), (1, "blocked", "E_MIGRATION"))
+                self.assertEqual(len(self.starts()), 1)
+                self.assertEqual(self.docker.current, value["target"]["image"])
+                self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], previous["id"])
+
+    def test_runtime_configuration_and_dependency_drift_block_recovery(self):
+        for kind, expected in (("runtime", "E_STALE"), ("runtime_alias", "E_STALE"),
+                               ("config", "E_DRIFT"), ("dependency", "E_DEPENDENCY")):
+            with self.subTest(kind=kind):
+                self.setUp()
+                value, previous = self.prepare()
+                if kind in ("runtime", "runtime_alias"):
+                    run = self.docker.run
+                    def replace_with_unbound_revision(args, **options):
+                        output = run(args, **options)
+                        if "--no-deps" in args and self.docker.current == value["target"]["image"]:
+                            if kind == "runtime":
+                                self.docker.images[self.docker.current]["Config"]["Labels"]["org.opencontainers.image.revision"] = "0" * 40
+                            else:
+                                self.docker.config_image = "unreviewed:latest"
+                            raise deploy.DeployError("E_INTERRUPTED", "替换期间取消")
+                        return output
+                    self.docker.run = replace_with_unbound_revision
+                else:
+                    self.docker.wait_failure = True
+                    self.docker.config_drift = kind == "config"
+                    self.docker.dependency_change = kind == "dependency"
+                result, code = self.execute(value)
+                self.assertEqual((code, result["rollback_status"], result["rollback_error"]), (1, "blocked", expected))
+                self.assertEqual(len(self.starts()), 1)
+
+    def test_explicit_rollback_retains_full_ledger_and_rejects_plain_reverse_deploy(self):
+        value, previous = self.prepare()
+        deployed, code = self.execute(value)
+        self.assertEqual(code, 0)
+        old = deploy.Deployment(self.base, self.docker).running()
+        target = dict(value["expected_old"], input=value["expected_old"]["image"])
+        evidence = deploy.GitEvidence(Path(deploy.__file__).resolve().parents[2])
+        reverse = request(target, old)
+        reverse["compatibility"] = evidence.compatibility(old, target)
+        result, code = self.execute(reverse)
+        self.assertEqual((code, result["error_code"]), (1, "E_COMPATIBILITY"))
+        self.assertEqual(len(self.starts()), 1)
+        reverse.update(action="rollback", rollback_id=deployed["id"])
+        result, code = self.execute(reverse)
+        self.assertEqual((code, result["status"]), (0, "success"))
+        self.assertEqual(self.docker.migration_listing, self.expanded)
+        self.assertEqual(self.persisted(result)["migration_state"], self.persisted(deployed)["migration_state"])
+        self.assertEqual(self.docker.current, target["image"])
+        self.assertEqual(len(self.starts()), 2)
+        value["expected_old"] = deploy.Deployment(self.base, self.docker).running()
+        result, code = self.execute(value)
+        self.assertEqual((code, result["status"]), (0, "success"))
+        self.assertEqual(self.docker.migration_listing, self.expanded)
+        self.assertEqual(self.persisted(result)["migration_state_before"]["rows"], 1)
+
+    def test_selection_failure_before_replace_restores_old_but_retains_new_ledger(self):
+        value, previous = self.prepare()
+        atomic = deploy.atomic_private
+        def fail_selection(path, data):
+            if path.name == "image.env":
+                raise OSError("选择文件写入失败")
+            return atomic(path, data)
+        with mock.patch.object(deploy, "atomic_private", side_effect=fail_selection):
+            result, code = self.execute(value)
+        self.assertEqual((code, result["rollback_status"], result["selection_committed"]), (1, "success", False))
+        self.assertEqual(self.docker.migration_listing, self.expanded)
+        self.assertEqual(self.docker.current, value["expected_old"]["image"])
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], previous["id"])
+
+    def test_partial_selection_commit_preserves_target_and_failed_record(self):
+        value, previous = self.prepare()
+        atomic = deploy.atomic_private
+        def fail_after_selection(path, data):
+            atomic(path, data)
+            if path.name == "image.env":
+                raise OSError("选择 replace 后目录 fsync 失败")
+        with mock.patch.object(deploy, "atomic_private", side_effect=fail_after_selection):
+            result, code = self.execute(value)
+        self.assertEqual((code, result["selection_committed"]), (1, True))
+        self.assertNotIn("rollback_status", result)
+        self.assertEqual(len(self.starts()), 1)
+        self.assertEqual(self.persisted(result)["migration_state"]["rows"], 5)
+        self.assertEqual(deploy.Deployment(self.base, self.docker).selected()["record_id"], result["id"])
+
+    def test_recomputed_hash_cannot_authorize_tampered_or_disguised_proof(self):
+        value, previous = self.prepare()
+        mutations = {
+            "checksum": lambda p: p["cumulative_upgrade"]["migrations"].update({"254_service_status.sql": "0" * 64}),
+            "tree": lambda p: p["cumulative_upgrade"].update(new_runtime_sha256="0" * 64),
+            "source": lambda p: p["cumulative_upgrade"]["new_source"].update(upstream_sha="0" * 40),
+            "direction": lambda p: p["cumulative_upgrade"].update(direction="rollback"),
+            "schema_restore": lambda p: p["cumulative_upgrade"].update(schema_rollback="restore"),
+            "extra": lambda p: p["cumulative_upgrade"].update(force=True),
+            "changed": lambda p: p["changed_paths"].pop(),
+            "mixed": lambda p: p.update(security_patch=deploy.approved_security_patch("upgrade")),
+            "zero": lambda p: (p.pop("cumulative_upgrade"), p.update(changed_paths=[])),
+            "security": lambda p: (p.pop("cumulative_upgrade"), p.update(changed_paths=sorted(deploy.SECURITY_PATCH_FILES), security_patch=deploy.approved_security_patch("upgrade"))),
+        }
+        for kind, mutate in mutations.items():
+            with self.subTest(kind=kind):
+                bad = copy.deepcopy(value)
+                mutate(bad["compatibility"])
+                bad["compatibility"]["sha256"] = deploy.sha(deploy.canonical({
+                    key: item for key, item in bad["compatibility"].items() if key != "sha256"}))
+                self.docker.commands.clear()
+                result, code = self.execute(bad)
+                self.assertEqual((code, result["error_code"]), (1, "E_COMPATIBILITY"))
+                self.assertEqual(self.starts(), [])
+                self.assertNotIn("backups", self.persisted(result))
+
+
 class GitAndInputTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -932,6 +1224,100 @@ class ForwardGitTests(unittest.TestCase):
                     self.evidence.compatibility(old, target)
                 self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
 
+
+
+class CumulativeGitTests(unittest.TestCase):
+    git = ForwardGitTests.git
+    commit = ForwardGitTests.commit
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name) / "repository"
+        actual = Path(deploy.__file__).resolve().parents[2]
+        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
+                       check=True, capture_output=True)
+        self.git("config", "user.email", "fixture@example.invalid")
+        self.git("config", "user.name", "Deployment Fixture")
+        self.evidence = deploy.GitEvidence(self.root)
+        self.old = dict(NEW, revision=deploy.CUMULATIVE_OLD_REVISION, version="0.2.14-klno.5-tps.1")
+        self.target = dict(NEW, revision=deploy.CUMULATIVE_NEW_REVISION, version="0.2.14-klno.5-tps.2")
+
+    def checkout(self, revision=None):
+        self.git("checkout", "-q", "--detach", revision or deploy.CUMULATIVE_NEW_REVISION)
+
+    def test_real_candidate_has_exact_added_sql_and_all_prior_sql_unchanged(self):
+        forward = self.evidence.compatibility(self.old, self.target)
+        reverse = self.evidence.compatibility(self.target, self.old)
+        for old, target, proof in ((self.old, self.target, forward), (self.target, self.old, reverse)):
+            deploy.validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
+        migration_paths = self.git("diff", "--name-only", self.old["revision"], self.target["revision"],
+                                   "--", "backend/migrations/*.sql").splitlines()
+        self.assertEqual(migration_paths, ["backend/migrations/" + row.split(b"|", 1)[0].decode()
+                                           for row in CUMULATIVE_LEDGER_ROWS])
+        for row in CUMULATIVE_LEDGER_ROWS:
+            name, checksum = row.rstrip(b"\n").split(b"|")
+            content = self.evidence.git("show", self.target["revision"] + ":backend/migrations/" + name.decode())
+            self.assertEqual(deploy.sha(content.strip()), checksum.decode())
+        self.assertEqual(forward["cumulative_upgrade"]["direction"], "upgrade")
+        self.assertEqual(reverse["cumulative_upgrade"]["direction"], "rollback")
+
+    def test_exact_revisions_cannot_relabel_the_old_or_new_release(self):
+        for old, target in ((dict(self.old, version="0.2.14-klno.5-tps.2"), self.target),
+                            (self.old, dict(self.target, version="0.2.14-klno.5-tps.1"))):
+            with self.subTest(old_version=old["version"], new_version=target["version"]):
+                with self.assertRaises(deploy.DeployError) as raised:
+                    self.evidence.compatibility(old, target)
+                self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
+
+    def test_merged_revision_requires_candidate_ancestry_and_identical_full_tree(self):
+        self.checkout()
+        (self.root / "README.md").write_text("最终普通合并说明；保留审定应用运行树。\n")
+        merged = self.commit("final merge metadata")
+        proof = self.evidence.compatibility(self.old, dict(self.target, revision=merged))
+        deploy.validate_compatibility_proof(proof, self.old["revision"], merged,
+                                           self.old["version"], self.target["version"])
+        self.assertEqual(proof["new_revision"], merged)
+        tree = self.git("rev-parse", deploy.CUMULATIVE_NEW_REVISION + "^{tree}")
+        unrelated = subprocess.run(["git", "-C", str(self.root), "commit-tree", tree, "-p", deploy.FORWARD_NEW_SOURCE["upstream_sha"]],
+                                   input=b"same bytes without reviewed candidate ancestry\n", check=True, capture_output=True).stdout.decode().strip()
+        self.assertEqual(self.evidence.runtime_fingerprint(unrelated), self.evidence.runtime_fingerprint(merged))
+        with self.assertRaises(deploy.DeployError) as raised:
+            self.evidence.compatibility(self.old, dict(self.target, revision=unrelated))
+        self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
+
+    def test_modified_migrations_modes_sources_and_unchanged_files_are_rejected(self):
+        for kind in ("new_sql", "old_sql", "unlisted_sql", "mode", "type", "source", "unchanged", "old_runtime"):
+            with self.subTest(kind=kind):
+                self.checkout(self.old["revision"] if kind == "old_runtime" else None)
+                old, target = self.old, self.target
+                if kind == "source":
+                    path = self.root / "deploy/personal-source.json"
+                    data = json.loads(path.read_text())
+                    data["unreviewed"] = True
+                    path.write_text(json.dumps(data))
+                elif kind in ("mode", "type"):
+                    path = self.root / "backend/migrations/254_service_status.sql"
+                    if kind == "mode":
+                        path.chmod(0o755)
+                    else:
+                        path.unlink()
+                        path.symlink_to("253_service_status_observation.sql")
+                else:
+                    relative = {"new_sql": "backend/migrations/254_service_status.sql",
+                                "old_sql": "backend/migrations/001_init.sql",
+                                "unlisted_sql": "backend/migrations/255_unreviewed.sql",
+                                "unchanged": "backend/internal/service/user_service.go", "old_runtime": "Dockerfile"}[kind]
+                    with (self.root / relative).open("a") as output:
+                        output.write("\n-- 未审定运行内容\n")
+                revision = self.commit(kind)
+                if kind == "old_runtime":
+                    old = dict(self.old, revision=revision)
+                else:
+                    target = dict(self.target, revision=revision)
+                with self.assertRaises(deploy.DeployError) as raised:
+                    self.evidence.compatibility(old, target)
+                self.assertEqual(raised.exception.code, "E_COMPATIBILITY")
 
 
 class TransportTests(unittest.TestCase):

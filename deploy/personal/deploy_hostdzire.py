@@ -232,6 +232,150 @@ FORWARD_CHANGED_PATHS = (
     "deploy/Dockerfile",
 )
 
+# S0–S4 的精确追加兼容合同；正式 merge 必须保留候选完整运行树并包含此锚点。
+CUMULATIVE_UPGRADE_ID = "klno.5-tps.1-to-s0-s4"
+CUMULATIVE_OLD_REVISION = "9397eb8afb621aef483f2ec0bf4b2dd6247c7b92"
+CUMULATIVE_OLD_VERSION = "0.2.14-klno.5-tps.1"
+CUMULATIVE_NEW_REVISION = "7bd38c3e5c671e325a8a1236327ba137c20fe46f"
+CUMULATIVE_OLD_RUNTIME = "928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d"
+CUMULATIVE_NEW_RUNTIME = "b37da537d70f419fe12922ae9b593f8b3cdb75e1f63a6c621e9da95e103ddf77"
+CUMULATIVE_CHANGED_PATHS = (
+    "backend/cmd/s44-ws-fixture/driver.go",
+    "backend/cmd/s44-ws-fixture/fixture_test.go",
+    "backend/cmd/s44-ws-fixture/main.go",
+    "backend/cmd/s44-ws-fixture/server.go",
+    "backend/cmd/server/wire.go",
+    "backend/cmd/server/wire_gen.go",
+    "backend/ent/migrate/schema.go",
+    "backend/ent/mutation.go",
+    "backend/ent/runtime/runtime.go",
+    "backend/ent/schema/usage_log.go",
+    "backend/ent/usagelog.go",
+    "backend/ent/usagelog/usagelog.go",
+    "backend/ent/usagelog/where.go",
+    "backend/ent/usagelog_create.go",
+    "backend/ent/usagelog_update.go",
+    "backend/go.sum",
+    "backend/internal/handler/admin/ops_handler.go",
+    "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go",
+    "backend/internal/handler/admin/system_handler.go",
+    "backend/internal/handler/admin/system_handler_test.go",
+    "backend/internal/handler/available_channel_handler.go",
+    "backend/internal/handler/available_model_catalog.go",
+    "backend/internal/handler/available_model_catalog_test.go",
+    "backend/internal/handler/dto/mappers.go",
+    "backend/internal/handler/dto/mappers_usage_test.go",
+    "backend/internal/handler/dto/types.go",
+    "backend/internal/handler/grok_audio.go",
+    "backend/internal/handler/handler.go",
+    "backend/internal/handler/openai_gateway_credential_failover_loop_test.go",
+    "backend/internal/handler/openai_gateway_handler.go",
+    "backend/internal/handler/openai_gateway_ws_current_turn_model_test.go",
+    "backend/internal/handler/openai_ws_routing_diagnostics.go",
+    "backend/internal/handler/ops_error_logger.go",
+    "backend/internal/handler/ops_routing_diagnostics_context_test.go",
+    "backend/internal/handler/ops_routing_diagnostics_log_test.go",
+    "backend/internal/handler/s35_http_routing_behavior_test.go",
+    "backend/internal/handler/s35_ws_routing_behavior_test.go",
+    "backend/internal/handler/service_status_handler.go",
+    "backend/internal/handler/service_status_handler_test.go",
+    "backend/internal/handler/service_status_observation_test.go",
+    "backend/internal/handler/wire.go",
+    "backend/internal/repository/available_catalog_contract_integration_test.go",
+    "backend/internal/repository/ops_repo.go",
+    "backend/internal/repository/ops_repo_args_test.go",
+    "backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go",
+    "backend/internal/repository/service_status_incidents.go",
+    "backend/internal/repository/service_status_normalize.go",
+    "backend/internal/repository/service_status_normalize_test.go",
+    "backend/internal/repository/service_status_repo.go",
+    "backend/internal/repository/service_status_repo_integration_test.go",
+    "backend/internal/repository/service_status_source_integration_test.go",
+    "backend/internal/repository/usage_log_repo_insert.go",
+    "backend/internal/repository/usage_log_repo_insert_shape_unit_test.go",
+    "backend/internal/repository/usage_log_repo_query.go",
+    "backend/internal/repository/usage_log_repo_request_type_test.go",
+    "backend/internal/repository/usage_log_repo_safety_buffering_unit_test.go",
+    "backend/internal/repository/usage_log_session_id_unit_test.go",
+    "backend/internal/repository/usage_log_timing_integration_test.go",
+    "backend/internal/repository/wire.go",
+    "backend/internal/server/api_contract_test.go",
+    "backend/internal/server/middleware/middleware.go",
+    "backend/internal/server/routes/admin.go",
+    "backend/internal/server/routes/service_status_routes_test.go",
+    "backend/internal/service/billing_context_schedule.go",
+    "backend/internal/service/billing_service.go",
+    "backend/internal/service/catalog_pricing.go",
+    "backend/internal/service/catalog_pricing_test.go",
+    "backend/internal/service/channel_catalog.go",
+    "backend/internal/service/gateway_service.go",
+    "backend/internal/service/model_pricing_resolver.go",
+    "backend/internal/service/openai_account_scheduler.go",
+    "backend/internal/service/openai_gateway_forward.go",
+    "backend/internal/service/openai_gateway_passthrough.go",
+    "backend/internal/service/openai_gateway_passthrough_function_args_test.go",
+    "backend/internal/service/openai_gateway_response_handling.go",
+    "backend/internal/service/openai_gateway_scheduling.go",
+    "backend/internal/service/openai_gateway_service.go",
+    "backend/internal/service/openai_gateway_usage.go",
+    "backend/internal/service/openai_routing_diagnostics_test.go",
+    "backend/internal/service/openai_usage_timing_billing_test.go",
+    "backend/internal/service/openai_usage_timing_test.go",
+    "backend/internal/service/openai_ws_forwarder_client_cancel_test.go",
+    "backend/internal/service/openai_ws_forwarder_ingress.go",
+    "backend/internal/service/openai_ws_forwarder_ingress_session_test.go",
+    "backend/internal/service/openai_ws_forwarder_success_test.go",
+    "backend/internal/service/openai_ws_forwarder_v2.go",
+    "backend/internal/service/openai_ws_http_bridge.go",
+    "backend/internal/service/openai_ws_native_resume_test.go",
+    "backend/internal/service/openai_ws_v2/passthrough_relay.go",
+    "backend/internal/service/openai_ws_v2/usage_timing_callback_test.go",
+    "backend/internal/service/openai_ws_v2_passthrough_adapter.go",
+    "backend/internal/service/ops_models.go",
+    "backend/internal/service/ops_port.go",
+    "backend/internal/service/ops_routing_diagnostics_dto_test.go",
+    "backend/internal/service/ops_routing_diagnostics_log_test.go",
+    "backend/internal/service/ops_service.go",
+    "backend/internal/service/ops_stream_turn_ownership_test.go",
+    "backend/internal/service/ops_upstream_context.go",
+    "backend/internal/service/pricing_service.go",
+    "backend/internal/service/routing_diagnostics.go",
+    "backend/internal/service/routing_diagnostics_test.go",
+    "backend/internal/service/routing_diagnostics_validation.go",
+    "backend/internal/service/service_status.go",
+    "backend/internal/service/service_status_aggregator.go",
+    "backend/internal/service/service_status_aggregator_test.go",
+    "backend/internal/service/service_status_observation.go",
+    "backend/internal/service/service_status_observation_test.go",
+    "backend/internal/service/service_status_source_integrity.go",
+    "backend/internal/service/service_status_source_integrity_test.go",
+    "backend/internal/service/service_status_source_reporter.go",
+    "backend/internal/service/service_status_source_reporter_test.go",
+    "backend/internal/service/service_status_test.go",
+    "backend/internal/service/service_status_types.go",
+    "backend/internal/service/stream_output_timing.go",
+    "backend/internal/service/stream_output_timing_test.go",
+    "backend/internal/service/update_service.go",
+    "backend/internal/service/update_service_test.go",
+    "backend/internal/service/usage_log.go",
+    "backend/internal/service/usage_timing.go",
+    "backend/internal/service/wire.go",
+    "backend/internal/web/embed_on.go",
+    "backend/internal/web/embed_test.go",
+    "backend/internal/web/static_cache.go",
+    "backend/migrations/251_add_usage_log_timing.sql",
+    "backend/migrations/252_add_ops_routing_diagnostics.sql",
+    "backend/migrations/253_service_status_observation.sql",
+    "backend/migrations/254_service_status.sql",
+)
+# 与 Go runner 的 SHA256(strings.TrimSpace(SQL)) 相同，不是原文件字节 hash。
+CUMULATIVE_MIGRATIONS = {
+    "251_add_usage_log_timing.sql": "99562d6463ffa0477e2760c02c3251109e1f7142cf0b86ea4394f871e7a48faf",
+    "252_add_ops_routing_diagnostics.sql": "863bd7e74c5fcc5f425e43dcdbfb52691a9fd77e1a00cb2dd8251ea4bde24d0f",
+    "253_service_status_observation.sql": "0709bb5a752147c14740d199c9fd84cc9875f3823a79111624a92afe83821c44",
+    "254_service_status.sql": "21522e3ef19e18bbe00bef39d48b153b61e0eee3e33b4047b7d045c5edaf0102",
+}
+
 
 class DeployError(Exception):
     def __init__(self, code, message):
@@ -268,6 +412,23 @@ def approved_forward_upgrade():
             "image_rollback_compatible": False}
 
 
+def approved_cumulative_upgrade(direction):
+    require(SHA_RE.fullmatch(CUMULATIVE_NEW_REVISION) and
+            re.fullmatch(r"[0-9a-f]{64}", CUMULATIVE_NEW_RUNTIME) and CUMULATIVE_CHANGED_PATHS,
+            "E_COMPATIBILITY", "S0–S4 最终候选尚未固定，禁止部署")
+    old_revision, new_revision = CUMULATIVE_OLD_REVISION, CUMULATIVE_NEW_REVISION
+    old_runtime, new_runtime = CUMULATIVE_OLD_RUNTIME, CUMULATIVE_NEW_RUNTIME
+    if direction == "rollback":
+        old_revision, new_revision = new_revision, old_revision
+        old_runtime, new_runtime = new_runtime, old_runtime
+    return {"id": CUMULATIVE_UPGRADE_ID, "direction": direction,
+            "old_source": dict(FORWARD_NEW_SOURCE), "new_source": dict(FORWARD_NEW_SOURCE),
+            "old_runtime_revision": old_revision, "new_runtime_revision": new_revision,
+            "old_runtime_sha256": old_runtime, "new_runtime_sha256": new_runtime,
+            "image_rollback_compatible": True, "schema_rollback": "retain",
+            "migrations": dict(CUMULATIVE_MIGRATIONS)}
+
+
 def validate_compatibility_proof(proof, old_revision, new_revision, old_version=None, new_version=None):
     require(isinstance(proof, dict), "E_COMPATIBILITY", "兼容证据必须为对象")
     content = {key: value for key, value in proof.items() if key != "sha256"}
@@ -278,6 +439,20 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
             all(isinstance(path, str) for path in proof["changed_paths"]),
             "E_COMPATIBILITY", "兼容证据无效或没有绑定实际旧、新 revision")
     forward = proof.get("forward_upgrade")
+    cumulative = proof.get("cumulative_upgrade")
+    cumulative_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == "v0.2.14-klno.5"
+    if old_revision != new_revision and CUMULATIVE_OLD_REVISION in (old_revision, new_revision) and cumulative_source and not forward:
+        require("cumulative_upgrade" in proof, "E_COMPATIBILITY", "固定 S0–S4 运行差异必须使用专属升级证据")
+    if "cumulative_upgrade" in proof:
+        direction = "upgrade" if old_revision == CUMULATIVE_OLD_REVISION else "rollback"
+        approved = approved_cumulative_upgrade(direction)
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "cumulative_upgrade"} and
+                isinstance(cumulative, dict) and canonical(cumulative) == canonical(approved) and
+                (old_revision if direction == "upgrade" else new_revision) == CUMULATIVE_OLD_REVISION and
+                old_revision != new_revision and SHA_RE.fullmatch(old_revision) and SHA_RE.fullmatch(new_revision) and
+                proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(CUMULATIVE_CHANGED_PATHS),
+                "E_COMPATIBILITY", "累计升级证据不属于已审定的 revision、来源、运行树与迁移")
     if "forward_upgrade" in proof:
         require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
                                "changed_paths", "compatible", "forward_upgrade"} and
@@ -285,13 +460,20 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
                 proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(FORWARD_CHANGED_PATHS),
                 "E_COMPATIBILITY", "正向升级证据不属于已审定的来源、完整运行树与差异")
     if old_version is not None and new_version is not None:
-        old_source = forward["old_source"] if forward else proof.get("upstream", {})
-        new_source = forward["new_source"] if forward else proof.get("upstream", {})
+        upgrade = forward or cumulative
+        old_source = upgrade["old_source"] if upgrade else proof.get("upstream", {})
+        new_source = upgrade["new_source"] if upgrade else proof.get("upstream", {})
         require(isinstance(old_source, dict) and isinstance(new_source, dict) and
                 old_source.get("upstream_tag") == "v" + old_version.split("-tps.", 1)[0] and
                 new_source.get("upstream_tag") == "v" + new_version.split("-tps.", 1)[0],
                 "E_COMPATIBILITY", "兼容证据的上游来源与实际旧、新镜像版本不一致")
-    if forward:
+        if cumulative:
+            old_release = old_version if cumulative["direction"] == "upgrade" else new_version
+            application_release = new_version if cumulative["direction"] == "upgrade" else old_version
+            require(old_release == CUMULATIVE_OLD_VERSION and VERSION_RE.fullmatch(application_release) and
+                    int(application_release.rsplit("-tps.", 1)[1]) > 1,
+                    "E_COMPATIBILITY", "累计升级只绑定固定 .5-tps.1 旧发布与后续同基线个人版本")
+    if forward or cumulative:
         return
     if proof["changed_paths"] == []:
         require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
@@ -311,6 +493,44 @@ def approved_security_patch(direction):
     return {"id": SECURITY_PATCH_ID, "direction": direction, "files": {
         path: {"old_sha256": hashes[indexes[0]], "new_sha256": hashes[indexes[1]]}
         for path, hashes in SECURITY_PATCH_FILES.items()}}
+
+
+def migration_fingerprint(listing):
+    return {"rows": len(listing.splitlines()), "filename_checksum_sha256": sha(listing)}
+
+
+def cumulative_ledger_lines(listing):
+    lines = listing.splitlines(keepends=True)
+    names = []
+    for line in lines:
+        match = re.fullmatch(rb"([^|\r\n]+)\|[0-9a-f]{64}\n", line)
+        require(match is not None, "E_MIGRATION", "累计升级要求可精确核对的迁移账本格式")
+        names.append(match[1].decode())
+    require(lines and len(names) == len(set(names)), "E_MIGRATION", "累计升级迁移账本为空或有重复文件名")
+    return lines
+
+
+def cumulative_ledger_prefix(baseline, observed):
+    """原行逐字保留，不用 Python 排序冒充数据库实际 collation。"""
+    approved_names = {name.encode() for name in CUMULATIVE_MIGRATIONS}
+    require(not any(line.split(b"|", 1)[0] in approved_names for line in cumulative_ledger_lines(baseline)),
+            "E_MIGRATION", "累计升级原账本不能包含本次迁移")
+    lines = cumulative_ledger_lines(observed)
+    additions = [line for line in lines if line.split(b"|", 1)[0] in approved_names]
+    retained = b"".join(line for line in lines if line.split(b"|", 1)[0] not in approved_names)
+    expected = [(name + "|" + checksum + "\n").encode() for name, checksum in sorted(CUMULATIVE_MIGRATIONS.items())]
+    require(retained == baseline and additions == expected[:len(additions)],
+            "E_MIGRATION", "迁移差异不是原账本与固定 251–254 的已提交前缀，禁止旧镜像恢复")
+    return len(additions)
+
+
+def cumulative_ledger_baseline(observed):
+    approved_names = {name.encode() for name in CUMULATIVE_MIGRATIONS}
+    baseline = b"".join(line for line in observed.splitlines(keepends=True)
+                        if line.split(b"|", 1)[0] not in approved_names)
+    require(cumulative_ledger_prefix(baseline, observed) == len(CUMULATIVE_MIGRATIONS),
+            "E_MIGRATION", "显式回滚要求全部固定新增迁移，不能有未知差异")
+    return baseline
 
 
 
@@ -431,6 +651,25 @@ class GitEvidence:
             entries.append({"path": path, "mode": mode, "type": kind, "object": object_id})
         return sha(canonical(sorted(entries, key=lambda entry: entry["path"])))
 
+    def cumulative_upgrade(self, old_revision, new_revision, changed):
+        direction = "upgrade" if old_revision == CUMULATIVE_OLD_REVISION else "rollback"
+        approved = approved_cumulative_upgrade(direction)
+        require((old_revision if direction == "upgrade" else new_revision) == CUMULATIVE_OLD_REVISION and
+                changed == list(CUMULATIVE_CHANGED_PATHS) and
+                self.runtime_fingerprint(old_revision) == approved["old_runtime_sha256"] and
+                self.runtime_fingerprint(new_revision) == approved["new_runtime_sha256"],
+                "E_COMPATIBILITY", "累计升级仅允许固定旧应用与已审定的新完整运行树")
+        application_revision = new_revision if direction == "upgrade" else old_revision
+        ancestry = subprocess.run(["git", "-C", str(self.root), "merge-base", "--is-ancestor",
+                                   CUMULATIVE_NEW_REVISION, application_revision], capture_output=True)
+        require(ancestry.returncode == 0, "E_COMPATIBILITY", "个人合并 revision 不包含已审定的累计应用候选")
+        for filename, checksum in CUMULATIVE_MIGRATIONS.items():
+            path = "backend/migrations/" + filename
+            require(self.git("ls-tree", application_revision, "--", path).startswith(b"100644 blob ") and
+                    sha(self.git("show", application_revision + ":" + path).strip()) == checksum,
+                    "E_COMPATIBILITY", "累计应用新增迁移不是已审定的普通文件与 checksum")
+        return approved
+
     def compatibility(self, old, target):
         validate_metadata(old, allow_legacy=True)
         if "image" in target:
@@ -456,8 +695,14 @@ class GitEvidence:
                     "E_COMPATIBILITY", "跨基线仅允许已审定的 .3 → .5 完整运行树；禁止镜像回退")
             proof["forward_upgrade"] = approved_forward_upgrade()
         elif changed:
-            proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
+            if CUMULATIVE_OLD_REVISION in (old["revision"], target["revision"]):
+                require(old_source == FORWARD_NEW_SOURCE, "E_COMPATIBILITY", "累计应用必须保留固定 .5 来源")
+                proof["cumulative_upgrade"] = self.cumulative_upgrade(old["revision"], target["revision"], changed)
+            else:
+                proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
+        if "cumulative_upgrade" in proof:
+            validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
         return proof
 
 
@@ -509,6 +754,9 @@ class Deployment:
         self.config_after = None
         self.env_before = None
         self.selection_before = None
+        self.migration_before = None
+        self.cumulative_baseline = None
+        self.cumulative_prefix_high_water = 0
         self.started = False
         self.adapted = False
 
@@ -628,12 +876,15 @@ class Deployment:
         self.record["updated_at"] = now()
         atomic_private(self.directory / "record.json", canonical(self.record) + b"\n")
 
-    def migration_state(self, postgres_id):
+    def migration_listing(self, postgres_id):
         listing = self.runner.run(["docker", "exec", postgres_id, "sh", "-ec",
                                    'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atqc "SELECT filename, checksum FROM schema_migrations ORDER BY filename, checksum"'],
                                   sensitive=True)
         require(listing.strip(), "E_MIGRATION", "迁移记录为空或不可读取，禁止猜测旧版本兼容性")
-        return {"rows": len(listing.splitlines()), "filename_checksum_sha256": sha(listing)}
+        return listing
+
+    def migration_state(self, postgres_id):
+        return migration_fingerprint(self.migration_listing(postgres_id))
 
     def guard_configuration(self):
         require(sha(read_regular(self.compose_file)) == sha(self.config_after if self.adapted else self.config_before) and
@@ -700,7 +951,7 @@ class Deployment:
         stop = offset + line.end(2)
         self.config_after = (text[:start] + '"' + IMAGE_VARIABLE + '"' + suffix + text[stop:]).encode()
 
-    def health(self, expected, dependencies):
+    def health(self, expected, dependencies, expected_migrations=None):
         self.guard_configuration()
         container = self.inspect(APP)
         actual = self.running()
@@ -712,7 +963,7 @@ class Deployment:
                                            "http://127.0.0.1:10088/health"], sensitive=True))
         require(health.get("status") == "ok", "E_HEALTH", "主机 /health 未返回 ok")
         self.dependencies(expected["image"], dependencies)
-        require(self.migration_state(dependencies["postgres"]) == self.record["migration_state"],
+        require(self.migration_state(dependencies["postgres"]) == (expected_migrations or self.record["migration_state"]),
                 "E_MIGRATION", "应用更新后迁移状态已变化，禁止自动镜像回滚")
         return actual
 
@@ -726,6 +977,31 @@ class Deployment:
             require_image_rollback(proof)
         require(request["action"] != "deploy" or proof.get("security_patch", {}).get("direction") != "rollback",
                 "E_COMPATIBILITY", "反向安全补丁只允许绑定成功记录的显式回滚，不能用普通部署切回")
+        require(request["action"] != "deploy" or proof.get("cumulative_upgrade", {}).get("direction") != "rollback",
+                "E_COMPATIBILITY", "累计应用反向切回只允许绑定成功记录的显式回滚")
+
+    def observe_cumulative_prefix(self, listing):
+        # 同一部署 owner 保留已验证的最高提交前缀，覆盖健康失败及 replacement 两侧。
+        prefix = cumulative_ledger_prefix(self.cumulative_baseline, listing)
+        require(prefix >= self.cumulative_prefix_high_water, "E_MIGRATION",
+                "固定迁移前缀不能少于本次已观察到的提交")
+        self.cumulative_prefix_high_water = prefix
+        return prefix
+
+    def cumulative_recovery_state(self, request, old, dependencies):
+        # Compose replacement 可能在等待失败后仍运行；只接管本次已绑定的两个镜像。
+        observed = self.running()
+        fields = ("image", "revision", "version", "source", "image_id")
+        require(self.inspect(APP).get("Config", {}).get("Image") == observed["image"] and
+                any(all(observed.get(key) == expected.get(key) for key in fields)
+                    for expected in (old, self.record["target"])),
+                "E_STALE", "失败后的实际运行镜像不属于本次旧、新固定镜像，禁止接管")
+        listing = self.migration_listing(dependencies["postgres"])
+        if request["compatibility"]["cumulative_upgrade"]["direction"] == "upgrade":
+            self.observe_cumulative_prefix(listing)
+        else:
+            require(listing == self.migration_before, "E_MIGRATION", "显式回滚失败后迁移账本发生变化")
+        return migration_fingerprint(listing)
 
     def pull_target(self, target):
         value = target["input"]
@@ -835,9 +1111,35 @@ class Deployment:
             self.adapt_configuration()
             baseline = self.configuration(old["image"])
             dependencies = self.dependencies(old["image"])
-            migrations = self.migration_state(dependencies["postgres"])
+            self.migration_before = self.migration_listing(dependencies["postgres"])
+            migrations = migration_fingerprint(self.migration_before)
             require(previous is None or previous.get("migration_state") == migrations,
                     "E_MIGRATION", "当前迁移状态与成功记录不一致，禁止部署或镜像回滚")
+            expected_migrations = migrations
+            cumulative = request["compatibility"].get("cumulative_upgrade")
+            if cumulative:
+                if cumulative["direction"] == "upgrade":
+                    if any(line.split(b"|", 1)[0].decode() in CUMULATIVE_MIGRATIONS
+                           for line in self.migration_before.splitlines()):
+                        # 只接受本工具已成功回滚保留的完整扩展账本；失败后的部分账本不能被自动接管。
+                        prior_proof = previous.get("compatibility", {})
+                        require(previous.get("action") == "rollback" and
+                                prior_proof.get("cumulative_upgrade", {}).get("direction") == "rollback",
+                                "E_MIGRATION", "旧运行账本已含新增迁移，但没有对应成功回滚记录")
+                        validate_compatibility_proof(prior_proof, previous["old"]["revision"], old["revision"],
+                                                     previous["old"]["version"], old["version"])
+                        self.cumulative_baseline = cumulative_ledger_baseline(self.migration_before)
+                        require(previous.get("migration_state_before") == migration_fingerprint(self.cumulative_baseline),
+                                "E_MIGRATION", "再次升级的原账本与成功回滚记录不一致")
+                    else:
+                        self.cumulative_baseline = self.migration_before
+                    self.observe_cumulative_prefix(self.migration_before)
+                else:
+                    self.cumulative_baseline = cumulative_ledger_baseline(self.migration_before)
+                    require(previous.get("migration_state_before") == migration_fingerprint(self.cumulative_baseline),
+                            "E_MIGRATION", "回滚账本的原有行与累计升级成功记录不一致")
+                atomic_private(self.directory / "migration-ledger-before.txt", self.migration_before)
+                self.save("preflight", migration_state_before=migration_fingerprint(self.cumulative_baseline))
             self.save("preflight", configuration={"before_sha256": sha(self.config_before), "after_sha256": sha(self.config_after),
                                                   "env_sha256": sha(self.env_before)}, dependencies=dependencies,
                       migration_state=migrations)
@@ -847,6 +1149,9 @@ class Deployment:
             self.guard_configuration()
             # 先取得旧镜像固定引用；旧标签没有不可变本地映射时禁止重建。
             self.metadata(self.inspect(old["image"], image=True), expected=old)
+            if cumulative:
+                require(self.migration_listing(dependencies["postgres"]) == self.migration_before,
+                        "E_MIGRATION", "新应用启动前迁移账本已经变化")
             atomic_private(self.compose_file, self.config_after)
             self.adapted = True
             candidate = self.configuration(resolved["image"])
@@ -857,9 +1162,15 @@ class Deployment:
             self.save("starting")
             self.started = True
             self.start(resolved)
-            actual = self.health(resolved, dependencies)
+            if cumulative and cumulative["direction"] == "upgrade":
+                migrated = self.migration_listing(dependencies["postgres"])
+                require(self.observe_cumulative_prefix(migrated) == len(CUMULATIVE_MIGRATIONS),
+                        "E_MIGRATION", "健康终态必须完成全部固定 251–254 迁移")
+                expected_migrations = migration_fingerprint(migrated)
+            actual = self.health(resolved, dependencies, expected_migrations)
             self.guard_configuration()
-            self.save("healthy_pending_commit", health_verified=True, observed_running=actual)
+            self.save("healthy_pending_commit", health_verified=True, observed_running=actual,
+                      migration_state=expected_migrations)
             atomic_private(self.selection, ("SUB2API_IMAGE=" + resolved["image"] + "\nSUB2API_DEPLOYMENT_ID=" + record_id + "\n").encode())
             self.save("success", completed_at=now(), exit_code=0)
             return self.public_result(), 0
@@ -882,22 +1193,34 @@ class Deployment:
                 committed = True
                 self.record["selection_observation_error"] = "E_PATH"
             if self.started and proof_valid and not committed:
+                restoring = False
                 try:
                     require_image_rollback(request["compatibility"])
                     self.guard_configuration()
                     self.dependencies(old["image"], dependencies)
-                    require(self.migration_state(dependencies["postgres"]) == self.record["migration_state"],
-                            "E_MIGRATION", "失败后迁移状态已变化，禁止自动镜像回滚")
+                    cumulative = request["compatibility"].get("cumulative_upgrade")
+                    recovery_migrations = (self.cumulative_recovery_state(request, old, dependencies) if cumulative
+                                           else self.record["migration_state"])
+                    if not cumulative:
+                        require(self.migration_state(dependencies["postgres"]) == recovery_migrations,
+                                "E_MIGRATION", "失败后迁移状态已变化，禁止自动镜像回滚")
                     self.save("rolling_back", error_code=code)
                     restored = self.metadata(self.inspect(old["image"], image=True), expected=old)
+                    restoring = True
                     self.start(restored)
-                    self.health(restored, dependencies)
+                    if cumulative:
+                        # 停止新应用的 replacement 期间仍可能完成下一笔固定事务；再次核对前缀。
+                        recovery_migrations = self.cumulative_recovery_state(request, old, dependencies)
+                    self.health(restored, dependencies, recovery_migrations)
                     self.guard_configuration()
                     atomic_private(self.compose_file, self.config_before)
                     self.adapted = False
                     self.record["rollback_status"] = "success"
+                    if cumulative:
+                        self.record["recovery_migration_state"] = recovery_migrations
                 except Exception as rollback_error:
-                    self.record["rollback_status"] = "blocked" if "forward_upgrade" in request["compatibility"] else "failed"
+                    blocked = "forward_upgrade" in request["compatibility"] or ("cumulative_upgrade" in request["compatibility"] and not restoring)
+                    self.record["rollback_status"] = "blocked" if blocked else "failed"
                     self.record["rollback_error"] = rollback_error.code if isinstance(rollback_error, DeployError) else "E_INTERNAL"
             elif self.adapted and not committed:
                 try:
