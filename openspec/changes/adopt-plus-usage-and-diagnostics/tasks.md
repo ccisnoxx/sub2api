@@ -2,7 +2,7 @@
 
 - 对应方案：[plan.md](plan.md)。
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 当前状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.4完成；S1.5、S3.5–S3.6及其余阶段未开始。S3.4本地应用`d23474171035320eda06a35d76d455d7f8d7aae4`扩展共用管理员错误详情，区分0/未知/部分统计并防止旧响应串记录；78项定向测试、lint/类型/build、两组页面流程与fresh只读复核通过。S2旧Personal CI仅证明原候选，合并、发布和生产部署未执行。
+- 当前状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.4完成；S3.5部分完成、完整验收受既有native WS P1阻断，S1.5、S3.6及其余阶段未开始。S3.5测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`仅新增两份测试；19顶层/32 PASS及WS race、旧/新16同oracle各25 PASS通过，额外后续turn换号probe确认误重放首包。S2旧Personal CI仅证明原候选，合并、发布和生产部署未执行。
 - `[x]` 表示本任务的交付与验证已经完成；`[ ]` 表示待执行。已具备的旧候选不等于本计划的新功能完成。
 - 每项勾选时记录最终候选 SHA、验证结果、覆盖入口及限制；涉及线上动作时另记真实版本和 digest。
 
@@ -91,7 +91,7 @@
 - [x] **S3.2 接入实际决策 producer。**从实际OpenAI advanced/legacy调度及限制owner生成完整快照；同ID池/过滤只计一次，保持0/NULL、partial、错误链及深副本，新评估清空旧数量。应用`cee1e908261c68880040b740aae8054410e03070`；HTTP/SSE请求、WS建连/逻辑turn及Grok音频重选归属接入，其他平台/独立旧入口/TokenCount未知。服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归及两组race通过；fresh只读复核四项确认问题全部关闭。见[覆盖](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)、[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)与[验证清单](evidence/s3.2-validation.json)。发送/终态及日志队列绑定、存储/DTO/页面留后续；下一项S3.3未自动开始。
 - [x] **S3.3 贯通错误存储与 DTO。**发送/终态按request/turn owner绑定不可变快照；日志队列校验及字节预算、nullable JSONB迁移252、单条/批量SQL与严格DTO读回贯通。仅管理员单记录可见，列表及用户白名单保持。应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`；定向14顶层/36 PASS、相关归因/用户回归、真实PG16/固定旧d9b06f4往返及race通过，fresh只读复核首turn P2已关闭。见[执行证据](implementation-evidence.md#s33-贯通错误存储与-dto)、[验证](evidence/s3.3-validation.json)与[复核](evidence/s3.3-reviews.json)。无新完整JWT服务器/页面或远端CI，S3.4–S3.6未自动执行。
 - [x] **S3.4 扩展现有错误详情。**共用管理员详情展示入口池、已知过滤及35原因、完整/部分/未知、层/原因和选择评估/WS轮次；保留原阶段、来源、责任方及根因/载荷。应用`d23474171035320eda06a35d76d455d7f8d7aae4`；78项定向、lint/类型/build和中文桌面/英文窄屏两组实际页面流程通过，旧响应覆盖反例关闭，fresh只读复核无确认阻断。合成API不作为真实JWT证明，既有运维深链接首次列表加载问题已登记且未扩展修改。见[执行证据](implementation-evidence.md#s34-扩展现有错误详情)、[验证](evidence/s3.4-validation.json)及[复核](evidence/s3.4-reviews.json)。下一项S3.5未自动开始。
-- [ ] **S3.5 验证归属与行为保持。**覆盖账号选择前拒绝、空池、筛选后耗尽、重试成功和 WS 多 turn；确认调度、冷却、切换和扣费结果不变。
+- [ ] **S3.5 验证归属与行为保持。**覆盖账号选择前拒绝、空池、筛选后耗尽、重试成功和 WS 多 turn；确认调度、冷却、切换和扣费结果不变。 **部分完成，完整验收阻断：**测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`，19顶层/32 PASS、WS race及旧/新16同oracle各25 PASS通过；选择前拒绝/空池/筛尽和存储/权限复用有效证据。额外native第2turn 429换号探针确认误重放首包，属于pre-S3既有P1（旧源码对照，未跑旧WS运行时）。先修复并复验，暂不勾选；[证据](evidence/s3.5-validation.json)、[复核/开放风险](evidence/s3.5-reviews.json)。
 - [ ] **S3.6 完成独立复核与交付。**复核快照归属、日志字段和数据可见范围；执行相关检查并登记实际发布/部署状态。
 
 完成条件：能用真实选择事实解释错误，不改变原故障处理决策。
@@ -134,5 +134,6 @@
 | S3.2 | 实际producer本地实现与验证完成 | 应用`cee1e908261c68880040b740aae8054410e03070`；personal来源S2.7 `88156f09`；OpenAI主调度及请求/WS owner | 服务17顶层/59 PASS、handler17顶层/22 PASS、既有调度回归、core/handler race及格式/diff检查通过 | 1次fresh只读复核，4项问题关闭；未接入平台未知，发送/日志/DB/DTO留S3.3；[清单](evidence/s3.2-validation.json) | 未执行；无push/PR更新/新CI |
 | S3.3 | 错误存储/DTO本地完成 | 应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`；personal来源S3.2 d9b06f4 | owner14顶层/36 PASS、归因/队列/用户、PG16/固定旧源码往返及race通过 | fresh只读复核首turn P2关闭；完整JWT服务器/多turn日志E2E/页面留后续；[证据](evidence/s3.3-validation.json) | 未执行 |
 | S3.4 | 管理员错误详情本地完成 | 应用`d23474171035320eda06a35d76d455d7f8d7aae4`；personal来源S3.3 032db7982；Usage/Ops共用组件 | 78项定向、lint/类型/build；中文1440亮/英文390暗四种状态、关闭/晚到/返回流程通过 | fresh只读复核无确认阻断；合成API、既有深链接加载限制及S3.5/S3.6边界保留；[证据](evidence/s3.4-validation.json) | 未执行；无push/PR更新/新CI |
+| S3.5 | 部分完成；既有P1阻断验收 | 测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`；personal来源S3.4 e3140a68；仅两份测试 | 新增/当前19顶层32 PASS、WS race；旧/新16同oracle各25 PASS；复用未变证据 | fresh只读reviewer确认native后续turn换号误重放首包；probe自然失败，先修复再复验；[证据](evidence/s3.5-validation.json) | 未执行；无push/PR更新/新CI |
 
 发布和部署栏在真实发生前保持“未执行”。运行进程、空输出、计划中的命令或已有其他候选的成功结果，都不作为本任务完成证据。

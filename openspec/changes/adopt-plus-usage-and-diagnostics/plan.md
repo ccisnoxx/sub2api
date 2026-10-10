@@ -1,10 +1,10 @@
 # KIN 借鉴 Plus 功能的实施计划
 
 - 编制日期：2026-10-09（America/Los_Angeles）。
-- 状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.4完成；S1.5、S3.5–S3.6及其余阶段未开始。S3.4本地应用`d23474171035320eda06a35d76d455d7f8d7aae4`扩展共用管理员错误详情，区分0/未知/部分统计并防止旧响应串记录；78项定向测试、lint/类型/build、两组页面流程与fresh只读复核通过。S2旧Personal CI仅证明原候选，合并、发布和生产部署未执行。
+- 状态：S0.1、S1.1–S1.4本地部分、S2.1–S2.7及S3.1–S3.4完成；S3.5部分完成、完整验收受既有native WS P1阻断，S1.5、S3.6及其余阶段未开始。S3.5测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`仅新增两份测试；19顶层/32 PASS及WS race、旧/新16同oracle各25 PASS通过，额外后续turn换号probe确认误重放首包。S2旧Personal CI仅证明原候选，合并、发布和生产部署未执行。
 - 执行入口：[任务清单](tasks.md)；当前结果见[执行证据](implementation-evidence.md)。
 - 推荐顺序：S0 现有修复交付 → S1 用量计时和请求完成状态 → S2 模型价格展示 → S3 错误诊断；S4 服务状态、S5 用户协助视图按使用规模另行排期。
-- 计划编制轮仅授权文档；历次结果保留在执行证据。本次仅执行S3.4，从personal来源S3.3完整032db7982续接为应用`d23474171035320eda06a35d76d455d7f8d7aae4`。共用错误详情、异步归属和定向页面验证已完成，下一项S3.5未开始；未push/修改PR，不执行合并、镜像发布或生产部署。
+- 计划编制轮仅授权文档；历次结果保留在执行证据。本次仅执行S3.5，从personal来源S3.4完整e3140a68续接为测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`。新增测试及行为对照通过，额外探针确认既有native后续turn换号误重放，S3.5保持未勾选；先修复并复验，S3.6未开始。未push/修改PR，不执行合并、镜像发布或生产部署。
 
 ## 1. 目标与范围
 
@@ -141,7 +141,7 @@ S2.1 已完成，查询选择、权限矩阵、目录外层、空值及个人倍
 
 ## 6. S3：错误诊断增强
 
-S3.1 [冻结合同](routing-diagnostics-contract.md)的v1语义保持。S3.2应用`cee1e908261c68880040b740aae8054410e03070`已接入OpenAI主调度advanced/legacy、渠道限制、Grok/阈值/compact、gwpool及图片fallback，并建立HTTP/SSE请求与WS逻辑turn owner、完整不可变结果/错误快照。公开OpenAI `SelectAccountWithLoadAwareness`纳入legacy；其他平台、独立旧入口与TokenCount未接入时保持未知。实际覆盖、验证和独立复核见[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)及[覆盖补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。S3.3应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`已贯通发送/终态、Ops队列、nullable JSONB及管理员单记录DTO；列表和用户白名单不扩展。[本轮证据](implementation-evidence.md#s33-贯通错误存储与-dto)记录真实PG、固定旧源码往返和独立复核边界。S3.4–S3.6未开始，当前没有新诊断页面。
+S3.1 [冻结合同](routing-diagnostics-contract.md)的v1语义保持。S3.2应用`cee1e908261c68880040b740aae8054410e03070`已接入OpenAI主调度advanced/legacy、渠道限制、Grok/阈值/compact、gwpool及图片fallback，并建立HTTP/SSE请求与WS逻辑turn owner、完整不可变结果/错误快照。公开OpenAI `SelectAccountWithLoadAwareness`纳入legacy；其他平台、独立旧入口与TokenCount未接入时保持未知。实际覆盖、验证和独立复核见[执行证据](implementation-evidence.md#s32-实际决策-producer-接入)及[覆盖补充](routing-diagnostics-contract.md#8-s32-实际-producer-覆盖与验证)。S3.3应用`ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`已贯通发送/终态、Ops队列、nullable JSONB及管理员单记录DTO；列表和用户白名单不扩展。[本轮证据](implementation-evidence.md#s33-贯通错误存储与-dto)记录真实PG、固定旧源码往返和独立复核边界。S3.4应用`d23474171035320eda06a35d76d455d7f8d7aae4`已扩展共用管理员详情。S3.5测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`完成定向检查与原有效证据复用，但native后续turn换号既有P1仍阻断完整验收，S3.6未开始；见[本轮证据](implementation-evidence.md#s35-验证归属与行为保持部分完成既有-p1-阻断)。
 
 在既有错误详情内增加可选 `routing_diagnostics`，由调度决策 owner 提供一次完整快照。拟记录选择层、选择原因、已观察的候选池数量、已知过滤数量及稳定过滤原因，不从自然语言错误信息推测。
 

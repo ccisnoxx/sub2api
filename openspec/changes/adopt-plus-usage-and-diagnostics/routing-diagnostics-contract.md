@@ -1,9 +1,9 @@
 # S3.1 结构化路由诊断合同
 
-- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1合同、S3.2 producer及S3.3日志/存储/DTO完成，S3.4–S3.6未开始。第1–7节保留冻结时来源，第8节为S3.2历史覆盖，第9节登记S3.3，v1语义未改。
+- 冻结日期：2026-10-09（America/Los_Angeles）；状态：S3.1–S3.4完成，S3.5部分验证完成但受既有native后续turn换号P1阻断，S3.6未开始。第1–7节保留冻结来源，第8–10节保留历史，第11节登记S3.5验证与开放风险；v1语义未改。
 - 应用来源：personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`；只读累计候选 `88156f09fcf980a771a8aab570f0dbaec5de25fb`，工作树 `/Users/sc/.codex/worktrees/verify-personal-ci-plus-catalog-s27/sub2api-kin`。
 - KIN 来源：`v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`；[草稿 PR #5](https://github.com/ccisnoxx/sub2api/pull/5) 未合并。
-- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s33-贯通错误存储与-dto)。第1–7节的“当前候选/未来”均指S3.1冻结候选；最新实现及边界以第9节为准。
+- 对应[计划](plan.md)、[任务](tasks.md)及[执行证据](implementation-evidence.md#s35-验证归属与行为保持部分完成既有-p1-阻断)。第1–7节的“当前候选/未来”均指S3.1冻结候选；最新验证及开放风险以第11节为准。
 
 ## 1. 已核实的事实与 owner
 
@@ -198,3 +198,9 @@ S3.1 已做来源/工作树/PR 核对、实际 owner 源码与既有测试边界
 详情与关联列表按show/errorId/errorType生成请求generation，关闭/切换/卸载后旧成功、错误与finally不得修改当前状态。78项定向、lint/类型/build及两组实际前端浏览器流程通过，fresh只读源码复核无确认阻断。浏览器使用合成GET API，并不证明完整JWT后端；Ops上游单记录别名仍走既有管理员GetErrorLogByID owner，关联列表仍裁剪诊断。
 
 既有Ops深链接首次列表不加载已登记，正常页面入口通过，未扩展修复；其他平台和未接入入口、综合行为及完整多turn日志验收仍依第8/9节边界。见[执行证据](implementation-evidence.md#s34-扩展现有错误详情)与[验证](evidence/s3.4-validation.json)。下一项S3.5未开始，S3.6交付及发布/生产仍未执行。
+
+## 11. S3.5 实际验证与开放验收风险
+
+测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`仅新增HTTP/WS测试。真实402/429恢复、native/passthrough首turn换号后多turn、native同账号首turn重建、后续未选号NULL及延后日志队列验证通过；旧/新16同oracle各25 PASS，标准费用/去重与调度/冷却/限次在选定范围一致。原S3.2/S3.3未变输入和原日志按范围复用；新覆盖和边界见[S3.5执行证据](implementation-evidence.md#s35-验证归属与行为保持部分完成既有-p1-阻断)。
+
+额外native后续turn换号探针自然失败：第2turn的429换号误重放建连第1turn，业务载荷/响应ID错配，日志仍属逻辑turn2。pre-S3整个forwarder及三个关键分支相同，按源码对照归类既有P1；旧WS动态复现未执行。生产源码未改，完整后续换号验收未通过，S3.5保持未勾选，先另行修复当前turn安全重放再复验，S3.6未开始。simple模式WS用量不替代标准扣费；帧内隐藏429没有恢复event入口，完整JWT/付费上游/生产及passthrough后续换号未伪称完成。

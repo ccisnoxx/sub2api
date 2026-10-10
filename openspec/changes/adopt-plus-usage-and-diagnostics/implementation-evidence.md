@@ -513,3 +513,33 @@ S3.2原13项输入及5份最终产物逐项校验；未变producer/scheduler/bui
 [候选清单](evidence/s3.4-candidate.json)、[验证与原日志索引](evidence/s3.4-validation.json)、[复核及限制](evidence/s3.4-reviews.json)、[保留/文档检查](evidence/s3.4-document-checks.json)及[委派摘要](evidence/s3.4-subagent-digest.md)。外部原证据目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s34`；应用、维护文档树及用户原指定位置同步登记，main只改文档。
 
 S3.4勾选，下一项**S3.5「验证归属与行为保持」**未开始。S3.5综合账号选择/冷却/切换/扣费及S3.6阶段交付未提前完成；完整JWT后端浏览器E2E、native/passthrough多turn日志E2E、新远端门禁继续未覆盖。本轮无push/PR更新/合并、镜像发布或生产部署。
+
+
+## S3.5 验证归属与行为保持（部分完成，既有 P1 阻断）
+
+本轮仅S3.5。先读取用户指定plan/tasks/journal，核对8个现存树HEAD、分支、未提交内容及来源；personal仍`9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，KIN `.5/c7aacf5d`，草稿PR #5仍旧S2.7 `88156f09`、OPEN/draft/未合并。复用已附加且干净的S3.4 personal应用树，从完整`e3140a68d245d6bb4bddbff509b30395ecaeeb19`新建`codex/plus-routing-behavior-s35`，原S3.4/S3.3分支固定。测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`仅新增HTTP/WS两份测试，不改生产调度、冷却、切换、计费、存储、权限或前端；未使用main维护应用源码。原S0的17项源码改动、其他树未提交内容及各自旧journal保留检查见机器清单。
+
+HTTP驱动真实Grok 402/429、选号/转发/冷却与Ops中间件：首失败属账号801/评估1，恢复成功属802/评估2；后续请求只发802、序号重置且已排队诊断不变。恢复行经过真实flush→RecordErrorBatch→仓库替身，以StatusCode=200留在失败SLA之外；权威查询按status_code≥400计失败，本轮未执行聚合SQL。该夹具是simple模式且usage repository为nil，不声称实际用量落库或数据库扣费。
+
+WS使用实际客户端及上游socket，native/dedicated与passthrough各两连接、每连接三turn：首turn隐藏429换号后客户端可见失败、第二turn成功、第三turn再失败。验证真实stream error→Ops中间件→队列的账号、消息、turn/评估与不可变JSON；第三turn未选号保持NULL。首连接队列保留至次连接完成后才消费。native另覆盖首turn下游尚未输出时同账号socket重建，发送序列、查询次数及6条用量/响应ID归属保持；用量经过真实AfterTurn/RecordUsage/Create。两种夹具均simple模式，标准扣费由独立service owner对照验证。Ops在连接退出才排队；帧内隐藏429未产生upstream error event，不能宣称WS恢复telemetry贯通，HTTP恢复证据单列。
+
+| 检查 | 实际结果与边界 |
+|---|---|
+| 新HTTP真实流程 | 1顶层/3 PASS，最终退出0；失败发送诊断不被恢复选择或后续请求覆盖，冷却与选号次数符合原行为 |
+| 新WS真实流程及race | 2顶层/4 PASS，最终unit-04/race-02退出0，无DATA RACE；通过范围为首turn换号/同账号恢复后多turn和延后队列消费 |
+| 旧/新行为对照 | 固定pre-S3 personal `88156f09`与当前使用16个相同测试oracle，各25 PASS；legacy/advanced选择、空池/模型筛尽、sticky、429限次/混合状态、402冷却、取消后停止切换、标准余额/订阅/atomic/legacy费用和去重一致；费用/切换owner及依赖哈希核实 |
+| 原证据复用 | 17个S3.3输入、6个producer/调度输入及12份原日志一致；复用S3.2选择前拒绝NULL/观察空池0/三路径筛尽/partial及S3.3发送、队列、SQL/真实PG16/旧应用兼容、admin单记录/用户白名单/race原边界；S3.4前端未变，不重复页面/build |
+| 外部后续turn探针 | probe-02自然退出1，确认native第2turn换号误发第1turn载荷；与通过候选分开，完整WS后续换号目标未通过 |
+| 独立复核 | fresh只读reviewer确认两份新增测试通过边界有效、无新增候选缺陷，并确认既有P1；未独立重跑测试，统计元数据及外部夹具问题关闭 |
+
+**既有P1：native后续turn换号误重放首包。**第1turn完成后，第2turn在下游尚未输出时收到429；实际发送`93501/turn-1成功→93501/turn-2 429→93502/turn-1误重放`。客户端期望`resp_session-1-turn-2`却收到`resp_session-1-turn-1`；真实失败snapshot/排队行属逻辑turn2、账号93502、诊断turn2/评估1，消息却来自旧turn1请求。native forwarder `openai_ws_forwarder_ingress.go:1918`返回finalErr未携带当前payload，handler `openai_gateway_handler.go:3260`获取不到包装而落到`:4039`首包fallback。pre-S3整个forwarder文件及三个关键分支与当前逐字相同，故按源码证据归类既有；仅当前运行时复现，旧WS运行时未执行。修复方向为native失败出口携带安全重放的当前turn载荷、沿用HTTP bridge安全判断；无法安全重放时显式终止。生产修复另行执行，本轮保存最小overlay/原日志和开放风险。
+
+HTTP首轮失败为手动队列读取不扣原子计数，WS早期失败为握手/turn及gwpool查询夹具期望；只修自有测试后重跑。probe-01同类收尾阻塞已终止，仅外部overlay改有界消费后probe-02得到上述真实失败。differential顶层统计误用Package斜杠已按Test字段修正，两边原日志不变、未重跑。没有无依据重试或全量门禁。
+
+passthrough后续turn换号、后续turn同账号重建、新完整JWT服务器/后台数据库消费/本次SLA聚合、旧native动态复现仍未覆盖。其他平台、独立旧入口、TokenCount和无新选择连接复用保持原未知；既有Ops深链接首次列表问题不在本轮修改范围。没有全量Go/新CI、付费上游/生产请求、push/PR更新/workflow dispatch、合并、镜像发布或生产部署。临时socket随检查退出，未启动常驻服务或改变容器/VPS；固定旧源码导出及复现夹具保留于外部证据目录。
+
+[候选](evidence/s3.5-candidate.json)、[验证与原日志](evidence/s3.5-validation.json)、[复核/开放P1](evidence/s3.5-reviews.json)、[文档/保留检查](evidence/s3.5-document-checks.json)、[委派摘要](evidence/s3.5-subagent-digest.md)。外部原证据目录`/Users/sc/.codex/validation/sub2api-kin/20261009-s35`；两处现存登记位置各自旧正文保留。子任务交付验收与审计closed/verify通过不代表S3.5整体通过。
+
+**S3.5保持未勾选。下一步先修复既有native后续turn换号payload错误并复验S3.5，再进入S3.6；本轮停止，不自动开始生产修复或下一阶段。**
+
+收尾发现开工时的五个历史工作树已移出磁盘和Git worktree列表；本轮没有删除/归档调用，移除来源未由本轮确认。相关分支仍在，按Codex snapshot对照原文件哈希，五树共22527个文件全部一致，包含原维护树未提交文档；未重建目录或改写snapshot。原维护文档位置已不存在，本轮只同步现存应用树和用户原指定目录。

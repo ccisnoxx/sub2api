@@ -1,5 +1,14 @@
 # 开发日志
 
+## 2026-10-09：KIN 借鉴 Plus S3.5 验证执行，既有 native WS P1 阻断完整验收
+
+- 本轮仅S3.5，复用干净personal来源S3.4完整e3140a68应用树，固定原分支后建立`codex/plus-routing-behavior-s35`；测试候选`3101cb41636a658dbac47e882ebdc37f34e84641`只新增HTTP/WS两份测试，生产源码不改。personal仍9397eb8af、草稿PR #5仍旧88156f09未合并；未使用main应用源码，原S0的17项改动及其他树旧正文/源码保留。
+- HTTP真实402/429选号、转发、冷却和Ops日志验证失败评估1与恢复评估2分开，后续请求/已排队行不串用，恢复StatusCode=200保持失败SLA外。native/passthrough真实socket各两连接三turn、首turn换号及native同账号重建，真实日志/队列/6条用量owner与后续未选号NULL检查通过。simple模式用量与标准扣费证据分开。
+- 新增及当前行为对照共19顶层/32 PASS，WS race通过；固定pre-S3 personal与当前16同oracle各25 PASS，调度、429限次、402冷却、取消停止切换及标准余额/订阅/atomic/legacy费用和去重一致。17个S3.3输入、6个producer输入和12份原日志核实后按原边界复用；前端未变，不重跑S3.4页面/build或全量CI。
+- 额外native第2turn 429换号探针自然退出1：误发第1turn载荷并收到旧响应ID，真实日志的逻辑turn2与旧请求结果错配。pre-S3整个forwarder和关键分支相同，按源码对照归类既有P1，旧运行时未执行。fresh只读reviewer确认问题及新测试边界，外部队列夹具阻塞和统计元数据已关闭；本轮未修生产源码，不把完整后续换号验收报通过。
+- [S3.5执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s35-验证归属与行为保持部分完成既有-p1-阻断)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-validation.json)、[复核/开放风险](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-reviews.json)及[审计摘要](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s3.5-subagent-digest.md)同步现存应用树和用户原指定目录。S3.5保持未勾选，先修复既有native当前turn安全重放再复验；S3.6未开始。无push/PR更新/合并、镜像发布或生产部署。
+- 收尾5个历史目录/Git worktree条目已移出，本轮无删除/归档；分支与snapshot保留，22527个原文件逐项哈希一致，包括维护树未提交记录。维护文档位置已不存在，未重建目录或覆盖snapshot；保留外部状态证据。
+
 ## 2026-10-09：KIN 借鉴 Plus S3.4 现有错误详情扩展完成
 
 - 本轮仅S3.4。核对personal9397eb8af、KlN `.5/c7aacf5d`及未合并草稿PR #5旧候选88156f09；复用干净S3.3 personal应用树032db7982，新建`codex/plus-routing-details-s34`，应用`d23474171035320eda06a35d76d455d7f8d7aae4`。原S3.3分支固定，main仅登记文档，原S0的17项源码改动、其他工作树和各自旧journal保留。
