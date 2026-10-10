@@ -1,0 +1,22 @@
+services:
+  s44-ws-fixture:
+    image: s44-ws-fixture:local
+    build:
+      context: .
+      network: none
+    command:
+      - serve
+      - --listen=0.0.0.0:8080
+      - --control-listen=0.0.0.0:8081
+      - --allow-cidr=${S44_FIXTURE_CIDR:?必须指定实际隔离网络的私网CIDR}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks:
+      s44-isolated:
+        aliases: [s44-ws-fixture]
+    # 不发布主机端口；控制接口仅同一隔离网络或 docker exec 的 loopback 可达。
+networks:
+  s44-isolated:
+    external: true
+    name: ${S44_NETWORK_NAME:?必须指定已存在的internal隔离网络}
