@@ -511,7 +511,8 @@ func (r *serviceStatusRepository) Snapshot(ctx context.Context, historyRange, pl
 	if err != nil {
 		return nil, service.ErrServiceStatusUnavailable
 	}
-	s.Incidents, err = loadStatusIncidents(ctx, tx, platforms, s.HistoryRange.Start, s.HistoryRange.End, true)
+	// 事件读取保留当前已完成分钟；展示的整点历史边界由隐私投影单独约束。
+	s.Incidents, err = loadStatusIncidents(ctx, tx, platforms, s.HistoryRange.Start, now.Truncate(time.Minute), true)
 	if err != nil {
 		return nil, service.ErrServiceStatusUnavailable
 	}
