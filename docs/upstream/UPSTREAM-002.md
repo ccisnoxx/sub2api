@@ -79,6 +79,8 @@ openspec/changes/adopt-plus-usage-and-diagnostics/spec.md
 openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md
 ```
 
+父任务另更新 `backend/internal/server/api_contract_test.go` 的既有 API fixture。
+
 本 docs 提交另增加 `docs/upstream/UPSTREAM-002.md`。两个 `openspec` 合同与固定旧 personal 的对应 blob 逐字节一致；其中旧前端和旧执行覆盖记录仅作为固定来源保存，本次新候选的执行证据以本报告为准。
 
 ## Tests run
@@ -115,9 +117,11 @@ git diff --check
 - 首次未指定 Docker host 的 integration 被 harness 跳过，不计通过；仅指定 Colima host 的一次执行因 Ryuk 把宿主 socket 路径当作 VM 挂载路径失败。按安装版 testcontainers-go v0.40.0 官方本地文档增加 socket override 后，上述 14 项实际执行通过，没有修改仓库 harness。
 - 非平凡第三方 API 已对安装版本核对：ent v0.14.5、gjson v1.18.0、coder/websocket v1.8.14、testcontainers-go v0.40.0；读过实际 API doc / 安装版 Colima 指南。
 
+远端首轮 PR CI `38127927159` 在既有 `TestAPIContracts/GET_/api/v1/usage_(paginated)` 失败：旧 inline JSON fixture 漏新增九列，并非运行行为与 S1 合同不一致。父任务补齐版本 0、NULL、unknown 的精确响应预期；`go test -tags=unit -run '^TestAPIContracts$' ./internal/server` 实际通过 12 项。lint、frontend、shell、release-helpers 和首轮安全扫描通过；失败候选不计阶段 CI 验收。最终候选及门禁结果以 PR #20 固定记录为准。
+
 ## Risks
 
-- 独立只读复核尚待父任务执行，重点应检查取消/终态 mutex 顺序、两类原有 parser 的接受来源、SQL 82 列排列和 response ID 隔离。本实现自检和测试不替代独立复核。
+- fresh `critical_reviewer` 独立只读复核运行候选 `2d21a1634228d3d0573ac266dacd726e2908e2de`，覆盖取消/终态 mutex 顺序、两类 parser 来源、SQL 82 列、异步复制与 response ID 隔离，未确认阻断代码问题。审查未重跑测试；成功 race/PG 原始 stdout 未保存，由父任务原 runtime 输出核验。
 - 原生 WS 未结算 turn、全零 terminal fallback、无法确认 ID/起点的 opaque binary 等路径维持既有记录 owner；不为补齐 S1 事实制造用量行。Chat Completions 转换、其他平台、独立图片/音频等媒体入口及 S1.5 未声明采集；CC→Responses fallback 已动态断言零值 `UsageTiming`，DTO 显式编码未知。
 - HTTP 错误返回没有既有可提交结果时，内部 timing 事实不会自动成为日志行；这正是保持“不新增失败计费行”的边界。
 - 本分工未修改/测试前端展示、CSV/Excel 或 S2–S4；固定 coverage 文档中旧前端验收不能视为本候选已验证。
@@ -143,7 +147,7 @@ git diff --check
 - [x] 最低 HTTP/JSON/SSE/透传/pooled WS/bridge/工具/推理/图片/音频路径有定向覆盖。
 - [x] observer 和异步用量复制实际跑 race；真实 SQL/ent/迁移兼容定向 integration 与项目 build 通过。
 - [x] 迁移、runner/白名单、依赖文件、前端、发布/部署/审计配置均无 diff；固定合同逐字节移入。
-- [ ] 父任务独立只读复核。
+- [x] 父任务 fresh 独立只读复核运行实现，无确认阻断；测试执行由父任务 runtime 证据核验。
 - [ ] 父任务同一固定候选的标准 PR CI + Security Scan；其他阶段验收按父任务授权范围执行。
 
 此 checklist 只记录本报告状态，没有修改 `REMEDIATION_PLAN.md` 的任务勾选。

@@ -12,3 +12,5 @@
 - 在冻结新 KIN 与已验收 MIG-001 之上重放原生 Responses 的严格首输出、末次 Token、完成状态、音频与用量来源；保留旧首字、计费/幂等、重试和异步 owner。
 - [阶段报告](upstream/UPSTREAM-002.md)登记 HTTP/SSE/透传、pooled WS 多 turn、WS→HTTP bridge、取消/未知边界，真实 SQL/Ent 集成和观察器/async race 的实际证据。包装 usage 与双 usage 音频缺失保持原 parser 选择和 NULL 语义。
 - 没有改迁移 251–254、出站身份、前端或发布控制面。维护者授权阶段标准 PR CI 与 Security Scan；最终 Personal CI/来源切换保留到 UPSTREAM-007。独立复核和远端固定候选结果以该阶段 PR 记录为准。
+
+- 首轮阶段 CI 发现旧用量 API fixture 未包含九个新增观测字段，补齐历史行的 NULL/unknown/version 0 预期；定向 API 合同 12 项通过。独立只读复核运行实现未确认阻断，最终阶段门禁绑定后续提交。
