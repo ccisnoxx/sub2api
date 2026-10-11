@@ -109,8 +109,8 @@ func PrivateServiceStatusSnapshot(s *ServiceStatusSnapshot) *ServiceStatusPrivat
 		for _, update := range incident.Updates {
 			allowed = allowed && coveredEvidence(incident.ServiceStatusScope, update.At)
 		}
+		// 提示只反映样本和合计裁剪，不能随隐藏事件的生命周期变化。
 		if !allowed {
-			out.PrivacySuppressed = true
 			continue
 		}
 		incident.DetectedAt = incident.DetectedAt.UTC().Truncate(time.Hour)

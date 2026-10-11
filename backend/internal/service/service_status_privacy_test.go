@@ -92,3 +92,25 @@ func TestServiceStatusPrivacyUsesConfiguredFloorAndProtectsIncidentTimes(t *test
 	s.Scopes[0].Qualified = 9
 	require.Empty(t, PrivateServiceStatusSnapshot(s).Scopes)
 }
+
+func TestServiceStatusPrivacyNoticeDoesNotTrackHiddenIncidentRecovery(t *testing.T) {
+	at := time.Date(2026, 10, 10, 12, 19, 0, 0, time.UTC)
+	scope := ServiceStatusScope{Platform: "openai", GroupID: 8, RequestedModel: "model"}
+	metrics := ServiceStatusMetrics{ServiceStatusCounts: ServiceStatusCounts{Success: 5}, Qualified: 5}
+	s := &ServiceStatusSnapshot{MinimumSamples: 1, Health: "operational",
+		Scopes:       []ServiceStatusLeaf{{ServiceStatusScope: scope, ServiceStatusMetrics: metrics, Health: "operational"}},
+		Platforms:    []ServiceStatusPlatform{{Platform: "openai", Health: "operational", ServiceStatusMetrics: metrics}},
+		HistoryRange: ServiceStatusInterval{Start: at.Truncate(time.Hour).Add(-24 * time.Hour), End: at.Truncate(time.Hour)},
+		Incidents:    []ServiceStatusIncident{{ServiceStatusScope: scope, ID: "hidden-current-hour", Phase: "recovering", DetectedAt: at.Add(-9 * time.Minute), LastEvidenceAt: at, LastAbnormalAt: at.Add(-9 * time.Minute)}},
+	}
+	for start := s.HistoryRange.Start; start.Before(s.HistoryRange.End); start = start.Add(time.Hour) {
+		s.History = append(s.History, ServiceStatusHistoryPoint{ServiceStatusScope: scope, ServiceStatusMetrics: metrics, ServiceStatusInterval: ServiceStatusInterval{Start: start, End: start.Add(time.Hour)}})
+	}
+	before := PrivateServiceStatusSnapshot(s)
+	require.Empty(t, before.Incidents)
+	s.Incidents[0].Phase, s.Incidents[0].ResolvedAt = "resolved", &at
+	after := PrivateServiceStatusSnapshot(s)
+	require.Empty(t, after.Incidents)
+	require.Equal(t, before.PrivacySuppressed, after.PrivacySuppressed, "提示不能暴露当前小时隐藏事件已恢复")
+	require.False(t, after.PrivacySuppressed, "全部样本足量，提示只反映样本和合计指标裁剪")
+}
