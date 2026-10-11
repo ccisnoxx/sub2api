@@ -76,6 +76,8 @@ type ServiceStatusPlatform struct {
 	ServiceStatusMetrics
 }
 type ServiceStatusSnapshot struct {
+	// 完整历史区间内的有界恢复事件展示候选，与底层事件读取合同独立。
+	HistoryIncidents         []ServiceStatusIncident     `json:"-"`
 	MinimumSamples           int                         `json:"-"`
 	SchemaVersion            int                         `json:"schema_version"`
 	ConfigVersion            int64                       `json:"config_version"`

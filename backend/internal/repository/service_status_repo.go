@@ -516,6 +516,11 @@ func (r *serviceStatusRepository) Snapshot(ctx context.Context, historyRange, pl
 	if err != nil {
 		return nil, service.ErrServiceStatusUnavailable
 	}
+	// 展示恢复事件单独占用有界名额，当前小时的隐藏恢复不能挤掉历史事件。
+	s.HistoryIncidents, err = loadStatusResolvedIncidents(ctx, tx, platforms, s.HistoryRange.Start, s.HistoryRange.End, true, true)
+	if err != nil {
+		return nil, service.ErrServiceStatusUnavailable
+	}
 	open := map[statusScope]*service.ServiceStatusIncident{}
 	for j := range s.Incidents {
 		i := &s.Incidents[j]

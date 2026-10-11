@@ -91,7 +91,14 @@ func PrivateServiceStatusSnapshot(s *ServiceStatusSnapshot) *ServiceStatusPrivat
 		}
 		return false
 	}
+	incidents := make([]ServiceStatusIncident, 0, len(s.Incidents)+len(s.HistoryIncidents))
 	for _, incident := range s.Incidents {
+		if incident.ResolvedAt == nil {
+			incidents = append(incidents, incident)
+		}
+	}
+	incidents = append(incidents, s.HistoryIncidents...)
+	for _, incident := range incidents {
 		allowed := visible[incident.ServiceStatusScope]
 		for _, at := range []time.Time{incident.DetectedAt, incident.LastEvidenceAt, incident.LastAbnormalAt} {
 			allowed = allowed && coveredEvidence(incident.ServiceStatusScope, at)
