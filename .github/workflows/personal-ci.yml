@@ -41,7 +41,7 @@ jobs:
     outputs:
       source_sha: ${{ steps.sha.outputs.source_sha }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ env.CANDIDATE_SHA }}
           fetch-depth: 0
@@ -70,14 +70,14 @@ jobs:
     needs: binding
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ needs.binding.outputs.source_sha }}
           persist-credentials: false
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: 9
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '20'
           cache: pnpm
@@ -93,7 +93,7 @@ jobs:
     needs: binding
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ needs.binding.outputs.source_sha }}
           persist-credentials: false
@@ -116,7 +116,7 @@ jobs:
           if failed:
               raise SystemExit(f'必要检查未通过：{failed}')
           PY
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ env.CANDIDATE_SHA }}
           fetch-depth: 0
