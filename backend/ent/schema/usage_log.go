@@ -142,6 +142,8 @@ func (UsageLog) Fields() []ent.Field {
 		field.String("completion_status").MaxLen(32).Default("unknown"),
 		field.Bool("is_complete").Optional().Nillable(),
 		field.String("usage_source").MaxLen(32).Default("unknown"),
+		// 内部源元数据使用可空 JSONB，历史不回填；不导入 service，避免 ORM 循环依赖。
+		field.JSON("service_status_observation", map[string]any{}).Optional(),
 		field.String("user_agent").
 			MaxLen(512).
 			Optional().

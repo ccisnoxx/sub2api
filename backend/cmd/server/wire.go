@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -130,6 +131,7 @@ func provideCleanup(
 	paymentOrderExpiry *service.PaymentOrderExpiryService,
 	channelMonitorRunner *service.ChannelMonitorRunner,
 	channelMonitorV2Aggregator *service.ChannelMonitorV2Aggregator,
+	serviceStatusAggregator *service.ServiceStatusAggregator,
 	quotaFlusher *service.UserPlatformQuotaUsageFlusher,
 	upstreamBillingProbe *service.UpstreamBillingProbeService,
 	ollamaCloudUsage *service.OllamaCloudUsageService,
@@ -320,6 +322,13 @@ func provideCleanup(
 				billingCache.Stop()
 				return nil
 			}},
+			{"OpsErrorLogWorkers", func() error {
+				if !handler.StopOpsErrorLogWorkers() {
+					service.MarkServiceStatusSourceError(time.Now())
+					return errors.New("SERVICE_STATUS_SOURCE_DRAIN_INCOMPLETE")
+				}
+				return nil
+			}},
 			{"UsageRecordWorkerPool", func() error {
 				if usageRecordWorkerPool != nil {
 					usageRecordWorkerPool.Stop()
@@ -456,6 +465,10 @@ func provideCleanup(
 		}
 
 		runParallel(parallelSteps)
+		// 所有请求源生产者与队列先停止；缺口最终写入必须早于数据库关闭。
+		if serviceStatusAggregator != nil {
+			runSequential([]cleanupStep{{"ServiceStatusAggregator", serviceStatusAggregator.Stop}})
+		}
 		runSequential(infraSteps)
 
 		// Check if context timed out

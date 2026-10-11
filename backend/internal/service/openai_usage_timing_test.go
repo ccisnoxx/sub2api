@@ -264,8 +264,12 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 	upstream := newStagedPassthroughConn()
 	svc := newPassthroughLifecycleService(passthroughLifecycleConfig(), upstream)
 	results := make(chan *OpenAIForwardResult, 2)
-	server, serverErr := startPassthroughLifecycleServerWithHooks(t, controlCtx, svc, passthroughLifecycleAccount(), func(*gin.Context) *OpenAIWSIngressHooks {
-		return &OpenAIWSIngressHooks{InitialTurnStartedAt: time.Now().Add(-2 * time.Second), AfterTurn: func(_ int, r *OpenAIForwardResult, e error) {
+	server, serverErr := startPassthroughLifecycleServerWithHooks(t, controlCtx, svc, passthroughLifecycleAccount(), func(c *gin.Context) *OpenAIWSIngressHooks {
+		c.Request = c.Request.WithContext(EnsureServiceStatusTurn(c.Request.Context(), 1))
+		return &OpenAIWSIngressHooks{BeforeRequest: func(turn int, _ []byte, _ string) error {
+			BeginOpsStreamTurn(c, turn)
+			return nil
+		}, InitialTurnStartedAt: time.Now().Add(-2 * time.Second), AfterTurn: func(_ int, r *OpenAIForwardResult, e error) {
 			if r != nil {
 				results <- r
 			}
@@ -283,6 +287,8 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 		require.NoError(t, e)
 	}
 	first := <-results
+	require.NotNil(t, first.UsageTiming.ServiceStatusObservation)
+	require.Equal(t, 1, *first.UsageTiming.ServiceStatusObservation.LogicalTurn)
 	require.EqualValues(t, 1, first.UsageTiming.TimingVersion)
 	require.GreaterOrEqual(t, *first.UsageTiming.StrictFirstTokenMs, 2000)
 	require.Equal(t, CompletionStatusCompleted, first.UsageTiming.CompletionStatus)
@@ -298,6 +304,9 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 	_, e := readPassthroughLifecycleFrame(t, client, time.Second)
 	require.NoError(t, e)
 	second := <-results
+	require.NotNil(t, second.UsageTiming.ServiceStatusObservation)
+	require.Equal(t, 2, *second.UsageTiming.ServiceStatusObservation.LogicalTurn)
+	require.NotEqual(t, first.UsageTiming.ServiceStatusObservation.ObservationKey, second.UsageTiming.ServiceStatusObservation.ObservationKey)
 	require.EqualValues(t, 1, second.UsageTiming.TimingVersion)
 	require.Nil(t, second.UsageTiming.StrictFirstTokenMs)
 	require.Equal(t, CompletionStatusCompleted, second.UsageTiming.CompletionStatus)

@@ -976,7 +976,11 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		},
 	}
 
-	turnTimings := &responsesWSTurnTimings{account: account, ctx: ctx}
+	turnTimingCtx := ctx
+	if c != nil && c.Request != nil {
+		turnTimingCtx = WithServiceStatusOwner(ctx, c.Request.Context())
+	}
+	turnTimings := &responsesWSTurnTimings{account: account, ctx: turnTimingCtx, source: serviceStatusOwner(turnTimingCtx)}
 	defer turnTimings.close()
 	completedTurns := atomic.Int32{}
 	turnLifecycle := newOpenAIWSPassthroughTurnLifecycle(true)
@@ -1162,6 +1166,7 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				SetOpsUpstreamModel(c, actualModel)
 				responseCreateAtCopy := responseCreateAt
 				acceptedTurnStartedAt.Store(&responseCreateAtCopy)
+				turnTimings.bindSource(c.Request.Context())
 				acceptedTurn = true
 			}
 			return out, blocked, policyErr
@@ -1656,7 +1661,14 @@ type responsesWSTurnTimings struct {
 	account      *Account
 	ctx          context.Context
 	turns        map[string]*responsesOutputTiming
+	source       *serviceStatusRequest
 	disconnected bool
+}
+
+func (r *responsesWSTurnTimings) bindSource(ctx context.Context) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.source = serviceStatusOwner(ctx)
 }
 
 func (r *responsesWSTurnTimings) observe(event openaiwsv2.RelayObservedEvent) {
@@ -1667,7 +1679,11 @@ func (r *responsesWSTurnTimings) observe(event openaiwsv2.RelayObservedEvent) {
 	}
 	o := r.turns[event.ResponseID]
 	if o == nil {
-		o = newResponsesOutputTiming(r.ctx, event.StartedAt, r.account)
+		observerCtx := r.ctx
+		if r.source != nil {
+			observerCtx = context.WithValue(observerCtx, serviceStatusRequestKey{}, r.source)
+		}
+		o = newResponsesOutputTiming(observerCtx, event.StartedAt, r.account)
 		if o == nil {
 			return
 		}

@@ -2295,6 +2295,16 @@ func UsageSourceContainsFold(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldContainsFold(FieldUsageSource, v))
 }
 
+// ServiceStatusObservationIsNil applies the IsNil predicate on the "service_status_observation" field.
+func ServiceStatusObservationIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldServiceStatusObservation))
+}
+
+// ServiceStatusObservationNotNil applies the NotNil predicate on the "service_status_observation" field.
+func ServiceStatusObservationNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldServiceStatusObservation))
+}
+
 // UserAgentEQ applies the EQ predicate on the "user_agent" field.
 func UserAgentEQ(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldUserAgent, v))

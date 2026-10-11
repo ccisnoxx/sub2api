@@ -24,7 +24,7 @@ func (s *openAIWSRoutingTurns) beginProxy(c *gin.Context) {
 	turn := s.current
 	s.mu.Unlock()
 	if c.Request != nil {
-		c.Request = c.Request.WithContext(service.EnsureRoutingDiagnosticsTurn(c.Request.Context(), turn))
+		c.Request = c.Request.WithContext(service.EnsureServiceStatusTurn(service.EnsureRoutingDiagnosticsTurn(c.Request.Context(), turn), turn))
 	}
 }
 

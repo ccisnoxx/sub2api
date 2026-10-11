@@ -223,10 +223,13 @@ func TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask_SearchCountUsesMandator
 func TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask_TimingSnapshot(t *testing.T) {
 	pool := newUsageRecordTestPool(t)
 	h := &OpenAIGatewayHandler{usageRecordWorkerPool: pool}
+	ctx := service.WithServiceStatusRequest(context.Background(), 2)
+	service.SetServiceStatusAttemptFailure(ctx, service.CompletionStatusClientDisconnected, "", time.Now())
+	fact := service.ServiceStatusFinalObservation(ctx, "")
 	first, last, output, audio := 7, 17, 3, 2
 	kind, complete := "audio", false
 	result := &service.OpenAIForwardResult{UsageTiming: service.UsageTiming{
-		TimingVersion: 1, StrictFirstTokenMs: &first, LastTokenMs: &last,
+		ServiceStatusObservation: fact, TimingVersion: 1, StrictFirstTokenMs: &first, LastTokenMs: &last,
 		FirstOutputMs: &output, FirstOutputKind: &kind, AudioOutputTokens: &audio,
 		CompletionStatus: service.CompletionStatusClientDisconnected, IsComplete: &complete,
 		UsageSource: service.UsageSourceUpstreamFinal,
@@ -235,7 +238,7 @@ func TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask_TimingSnapshot(t *testi
 	pool.Submit(func(context.Context) { close(queued); <-release })
 	<-queued
 	observed := make(chan service.UsageTiming, 1)
-	h.submitOpenAIUsageRecordTask(context.Background(), result, func(context.Context) {
+	h.submitOpenAIUsageRecordTask(ctx, result, func(context.Context) {
 		observed <- result.UsageTiming.Clone()
 	})
 	// 入队后生产者的旧指针与 worker 同时运行；异步 owner 只读取深复制快照。
@@ -243,6 +246,8 @@ func TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask_TimingSnapshot(t *testi
 	for i := 0; i < 1000; i++ {
 		first, last, output, audio = i, i, i, i
 		kind, complete = "text", true
+		*fact.LogicalTurn = i
+		*fact.TerminalKind = service.CompletionStatusCompleted
 	}
 	select {
 	case got := <-observed:
@@ -253,6 +258,9 @@ func TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask_TimingSnapshot(t *testi
 		require.Equal(t, "audio", *got.FirstOutputKind)
 		require.False(t, *got.IsComplete)
 		require.Equal(t, service.CompletionStatusClientDisconnected, got.CompletionStatus)
+		require.Equal(t, 2, *got.ServiceStatusObservation.LogicalTurn)
+		require.Equal(t, service.CompletionStatusClientDisconnected, *got.ServiceStatusObservation.TerminalKind)
+		require.Equal(t, got.ServiceStatusObservation, service.ServiceStatusFinalObservation(ctx, "provider_5xx"))
 	case <-time.After(time.Second):
 		t.Fatal("计时快照任务未执行")
 	}
