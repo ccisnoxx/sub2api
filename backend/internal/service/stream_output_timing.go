@@ -347,6 +347,12 @@ func (o *responsesOutputTiming) confirmNoAudio(payload []byte) {
 	if o == nil {
 		return
 	}
+	// 两类既有 parser 的 usage 优先级不同；帧中已有音频拆分时不能凭纯文本猜零。
+	for _, path := range []string{"usage.output_tokens_details.audio_tokens", "response.usage.output_tokens_details.audio_tokens"} {
+		if gjson.GetBytes(payload, path).Exists() {
+			return
+		}
+	}
 	if _, raw, ok := extractOpenAIUsageAndRawFromJSONBytes(payload); ok && raw.Get("output_tokens_details.audio_tokens").Exists() {
 		return
 	}

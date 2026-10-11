@@ -294,7 +294,7 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 	require.NoError(t, client.Write(writeCtx, coderws.MessageText, []byte(`{"type":"response.create","model":"gpt-5.1","input":"next"}`)))
 	stop()
 	requirePassthroughUpstreamWrite(t, upstream, time.Second)
-	upstream.Send(`{"type":"response.completed","response":{"id":"second","status":"completed","output":[],"usage":{"input_tokens":3,"output_tokens":4}}}`)
+	upstream.Send(`{"type":"response.completed","usage":{"input_tokens":99,"output_tokens":99},"response":{"id":"second","status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"answer"}]}],"usage":{"input_tokens":3,"output_tokens":4,"output_tokens_details":{"audio_tokens":-1}}}}`)
 	_, e := readPassthroughLifecycleFrame(t, client, time.Second)
 	require.NoError(t, e)
 	second := <-results
@@ -302,6 +302,7 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 	require.Nil(t, second.UsageTiming.StrictFirstTokenMs)
 	require.Equal(t, CompletionStatusCompleted, second.UsageTiming.CompletionStatus)
 	require.Equal(t, 3, second.Usage.InputTokens)
+	require.Nil(t, second.UsageTiming.AudioOutputTokens, "relay 选择的 response.usage 非法音频拆分不能被另一 usage 的缺失值改成零")
 	require.NoError(t, client.Close(coderws.StatusNormalClosure, "done"))
 	select {
 	case <-serverErr:
