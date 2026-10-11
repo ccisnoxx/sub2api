@@ -36,7 +36,7 @@
 - 用量计时和完成状态展示；当前采集重点覆盖原生 OpenAI Responses HTTP/SSE 与 WebSocket 路径。
 - 按用户授权组展示模型和价格目录。
 - 管理员错误详情中的结构化路由诊断。
-- 管理员可见的真实请求服务状态，默认关闭；仅代表本部署已观察请求，无请求或样本不足时保持未知。
+- 管理员可见的真实请求服务状态，默认关闭；仅代表本部署已观察请求，无请求或样本不足时保持未知。状态含义见 [API 合同](docs/service-status-api.md)，不代表供应商全局可用性或 SLA。
 - 本 fork 自行维护的同步、发布和部署控制，将源码 SHA、成功 Personal CI 和镜像 digest 绑定。
 
 当前 KIN 应用基线为 `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`，来源记录位于 [personal 分支](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)。Plus 参考的版本背景为 `v0.2.14+custom.002`，该标签实际指向 `a7749f5826ec0a5c6493c47fde9474dc31525f14`；适配时固定阅读提交为 `90da415c62b94c9417d9ce2b72b1507ed22f0303`。两者仅来源文档不同；完整来源见[来源矩阵](UPSTREAM.md)和 [NOTICE](NOTICE)，适配范围见[方案](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)和[交付记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)。这是选择性适配，不承诺同步上游的全部功能。

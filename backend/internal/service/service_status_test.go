@@ -29,41 +29,76 @@ func TestServiceStatusConfigValidation(t *testing.T) {
 func TestServiceStatusMetricsUnknownAndThresholds(t *testing.T) {
 	c := statusTestConfig()
 	for _, tt := range []struct {
+		name                string
 		counts              ServiceStatusCounts
 		gap, health, reason string
+		errorRate           float64
 	}{
-		{health: "unknown", reason: "no_recent_requests"}, {counts: ServiceStatusCounts{Excluded: 5}, health: "unknown", reason: "no_qualified_requests"},
-		{counts: ServiceStatusCounts{Success: 4}, health: "unknown", reason: "insufficient_samples"}, {counts: ServiceStatusCounts{Success: 5, Unknown: 1}, health: "unknown", reason: "terminal_unknown"},
-		{counts: ServiceStatusCounts{Success: 5}, gap: "source_error", health: "unknown", reason: "source_error"},
-		{counts: ServiceStatusCounts{Success: 19, Failure: 1}, health: "degraded"}, {counts: ServiceStatusCounts{Success: 1, Failure: 9}, health: "outage"}, {counts: ServiceStatusCounts{Success: 5, Excluded: 100}, health: "operational"},
+		{name: "零请求", health: "unknown", reason: "no_recent_requests"},
+		{name: "全排除", counts: ServiceStatusCounts{Excluded: 5}, health: "unknown", reason: "no_qualified_requests"},
+		{name: "全未知", counts: ServiceStatusCounts{Unknown: 5}, health: "unknown", reason: "terminal_unknown"},
+		{name: "成功不能抵消未知", counts: ServiceStatusCounts{Success: 10000, Unknown: 1}, health: "unknown", reason: "terminal_unknown"},
+		{name: "最低样本之前", counts: ServiceStatusCounts{Success: 4}, health: "unknown", reason: "insufficient_samples"},
+		{name: "排除不补足样本", counts: ServiceStatusCounts{Success: 4, Excluded: 100}, health: "unknown", reason: "insufficient_samples"},
+		{name: "最低样本边界", counts: ServiceStatusCounts{Success: 5}, health: "operational"},
+		{name: "warning之前", counts: ServiceStatusCounts{Success: 96, Failure: 4}, health: "operational", errorRate: .04},
+		{name: "warning边界", counts: ServiceStatusCounts{Success: 95, Failure: 5}, health: "degraded", errorRate: .05},
+		{name: "outage之前", counts: ServiceStatusCounts{Success: 11, Failure: 89}, health: "degraded", errorRate: .89},
+		{name: "outage边界", counts: ServiceStatusCounts{Success: 10, Failure: 90}, health: "outage", errorRate: .9},
+		{name: "全失败", counts: ServiceStatusCounts{Failure: 5}, health: "outage", errorRate: 1},
+		{name: "排除不计入分母", counts: ServiceStatusCounts{Success: 19, Failure: 1, Excluded: 100}, health: "degraded", errorRate: .05},
+		{name: "缺口优先于零请求", gap: "source_error", health: "unknown", reason: "source_error"},
+		{name: "缺口优先于未知终态", counts: ServiceStatusCounts{Unknown: 5}, gap: "coverage_gap", health: "unknown", reason: "coverage_gap"},
 	} {
-		m, h, r := ServiceStatusEvaluate(tt.counts, c, tt.gap)
-		require.Equal(t, tt.health, h)
-		require.Equal(t, tt.reason, r)
-		if h == "unknown" {
-			require.Nil(t, m.ErrorRate)
-			require.Nil(t, m.SuccessRate)
-		} else {
-			require.NotNil(t, m.ErrorRate)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			m, h, r := ServiceStatusEvaluate(tt.counts, c, tt.gap)
+			require.Equal(t, tt.health, h)
+			require.Equal(t, tt.reason, r)
+			require.Equal(t, tt.counts, m.ServiceStatusCounts)
+			require.Equal(t, tt.counts.Success+tt.counts.Failure, m.Qualified)
+			if h == "unknown" {
+				require.Nil(t, m.ErrorRate)
+				require.Nil(t, m.SuccessRate)
+			} else {
+				require.NotNil(t, m.ErrorRate)
+				require.NotNil(t, m.SuccessRate)
+				require.InDelta(t, tt.errorRate, *m.ErrorRate, 1e-12)
+				require.InDelta(t, 1-tt.errorRate, *m.SuccessRate, 1e-12)
+			}
+		})
 	}
 }
 func TestServiceStatusSummaryDoesNotWeightAwayUnknownOrIncident(t *testing.T) {
 	phase := "awaiting_data"
+	recovering := "recovering"
 	for _, tt := range []struct {
-		leaves []ServiceStatusLeaf
-		want   string
+		name         string
+		leaves       []ServiceStatusLeaf
+		want, reason string
 	}{
-		{[]ServiceStatusLeaf{{Health: "operational"}, {Health: "unknown"}}, "unknown"},
-		{[]ServiceStatusLeaf{{Health: "outage"}, {Health: "unknown"}}, "degraded"},
-		{[]ServiceStatusLeaf{{Health: "outage"}, {Health: "outage"}}, "outage"},
-		{[]ServiceStatusLeaf{{Health: "operational", IncidentPhase: &phase}, {Health: "operational"}}, "unknown"},
+		{"空范围", nil, "unknown", "no_recent_requests"},
+		{"全正常", []ServiceStatusLeaf{{Health: "operational"}, {Health: "operational"}}, "operational", ""},
+		{"正常与未知", []ServiceStatusLeaf{{Health: "operational", ServiceStatusMetrics: ServiceStatusMetrics{Qualified: 10000}}, {Health: "unknown"}}, "unknown", "awaiting_data"},
+		{"中断与未知", []ServiceStatusLeaf{{Health: "outage"}, {Health: "unknown"}}, "degraded", ""},
+		{"全中断", []ServiceStatusLeaf{{Health: "outage"}, {Health: "outage"}}, "outage", ""},
+		{"中断与正常", []ServiceStatusLeaf{{Health: "outage"}, {Health: "operational"}}, "degraded", ""},
+		{"告警与恢复", []ServiceStatusLeaf{{Health: "degraded"}, {Health: "recovering"}}, "degraded", ""},
+		{"未知优先于恢复", []ServiceStatusLeaf{{Health: "unknown"}, {Health: "recovering"}}, "unknown", "awaiting_data"},
+		{"恢复窗口未满", []ServiceStatusLeaf{{Health: "recovering"}, {Health: "operational"}}, "recovering", ""},
+		{"恢复事件", []ServiceStatusLeaf{{Health: "operational", IncidentPhase: &recovering}, {Health: "operational"}}, "recovering", ""},
+		{"等待新证据", []ServiceStatusLeaf{{Health: "operational", IncidentPhase: &phase}, {Health: "operational"}}, "unknown", "awaiting_data"},
 	} {
-		h, _ := ServiceStatusSummary(tt.leaves)
-		require.Equal(t, tt.want, h)
-		tt.leaves[0], tt.leaves[1] = tt.leaves[1], tt.leaves[0]
-		h, _ = ServiceStatusSummary(tt.leaves)
-		require.Equal(t, tt.want, h)
+		t.Run(tt.name, func(t *testing.T) {
+			h, reason := ServiceStatusSummary(tt.leaves)
+			require.Equal(t, tt.want, h)
+			require.Equal(t, tt.reason, reason)
+			if len(tt.leaves) == 2 {
+				tt.leaves[0], tt.leaves[1] = tt.leaves[1], tt.leaves[0]
+				h, reason = ServiceStatusSummary(tt.leaves)
+				require.Equal(t, tt.want, h)
+				require.Equal(t, tt.reason, reason)
+			}
+		})
 	}
 }
 
