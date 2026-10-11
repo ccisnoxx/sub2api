@@ -4,6 +4,7 @@
 
 - 从远端 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 的应用树重放 LEGAL-001/002 必需材料和构建配置，保留原始 LICENSE、KlN 来源记录、个人模块及全部迁移；没有更新上游基线。仅补充 NOTICE/来源矩阵、完整许可、实际分发依赖材料及归档/镜像源码绑定。
 - 保留用户授权的 Airwallex 禁用：不创建或启动新的付款，移除两项前端 SDK；历史订单、配置、查询、取消、退款与通知处理保留。认证订单绑定实际服务商，历史别名不能误入 Stripe，合法 Stripe 子方法仍可启动。
+- 独立复核发现保留的 Airwallex 实例可能与 EasyPay 共用自定义方法并参与新单负载均衡。修复仅在新单候选查询中排除 Airwallex，保留后置拒绝防线；生产构造器、真实 SQLite/负载均衡及 EasyPay 重定向回归在 least-amount 和 round-robin 策略下先以 403 失败，再验证有效订单、历史启用状态及配置读取保留。
 - PR #17 改为 personal 应用候选，保留现有候选历史并追加提交；不合并 PR、不修改受保护分支、不创建正式标签或发布镜像。验证在完整候选 SHA 上执行，Personal CI 需实际运行 recording race，最小 Linux amd64 Release dry-run 下载核验真实归档与 OCI 材料；最终结果及任务勾选以 PR 和 REMEDIATION_PLAN.md 的 LEGAL-002 记录为准。
 
 ## 2026-10-09：KIN 借鉴 Plus S4.3 独立聚合与展示完成
