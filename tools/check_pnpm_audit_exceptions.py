@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
 import sys
 from datetime import date
 
 
 HIGH_SEVERITIES = {"high", "critical"}
-REQUIRED_FIELDS = {"package", "advisory", "severity", "mitigation", "expires_on"}
+REQUIRED_FIELDS = {
+    "package", "advisory", "severity", "reason", "mitigation", "expires_on",
+    "owner", "evidence", "affected_version", "dependency_path",
+}
 
 
 def split_kv(line: str) -> tuple[str, str]:
@@ -75,7 +79,7 @@ def iter_vulns(data: dict):
                 or advisory.get("overview")
                 or advisory.get("url")
             )
-            yield name, severity, advisory_id, title
+            yield name, severity, advisory_id, title, advisory.get("findings", [])
 
     vulnerabilities = data.get("vulnerabilities")
     if isinstance(vulnerabilities, dict):
@@ -108,7 +112,7 @@ def iter_vulns(data: dict):
                 titles.append(via)
             title = "; ".join([t for t in titles if t])
             for advisory_id in [a for a in advisories if a]:
-                yield name, severity, advisory_id, title
+                yield name, severity, advisory_id, title, []
 
 
 def normalize_severity(severity: str) -> str:
@@ -148,10 +152,23 @@ def main() -> int:
     with open(args.audit, "r", encoding="utf-8") as handle:
         audit = json.load(handle)
 
-    # 读取异常清单并建立索引，便于快速匹配包名 + advisory。
+    # 审计服务错误或未知 JSON 结构必须失败，不能视为没有漏洞。
+    counts = audit.get("metadata", {}).get("vulnerabilities") if isinstance(audit, dict) else None
+    if (
+        not isinstance(audit, dict)
+        or "error" in audit
+        or not isinstance(counts, dict)
+        or any(type(counts.get(sev)) is not int or counts[sev] < 0 for sev in HIGH_SEVERITIES)
+        or not any(isinstance(audit.get(key), dict) for key in ("advisories", "vulnerabilities"))
+    ):
+        sys.stderr.write("审计报告无效或审计服务失败；请重新取得有效的 pnpm audit JSON。\n")
+        return 1
+
+    # 读取异常清单并建立索引，便于精确匹配包名、advisory、版本和路径。
     exceptions = parse_exceptions(args.exceptions)
     exception_index = {}
     errors = []
+    today = date.today()
 
     for exc in exceptions:
         missing = [field for field in REQUIRED_FIELDS if not exc.get(field)]
@@ -172,6 +189,21 @@ def main() -> int:
         if not exc_package or not exc_advisory:
             errors.append("Exception missing package or advisory value")
             continue
+        if not re.fullmatch(r"ghsa(?:-[a-z0-9]{4}){3}", exc_advisory):
+            errors.append(f"例外必须使用精确的 GHSA 标识：{exc_package}")
+        if exc_severity not in HIGH_SEVERITIES:
+            errors.append(f"例外严重等级无效：{exc_package}")
+        owner = exc["owner"]
+        if not re.fullmatch(r"@[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?", owner) or re.search(
+            r"your[-_]|example|placeholder|^@(?:todo|tbd|unknown)$", owner, re.IGNORECASE
+        ):
+            errors.append(f"例外 owner 必须是实际负责人的 GitHub 用户名：{exc_package}")
+        if exc_date < today:
+            errors.append(f"例外已过期：{exc_package} [{exc_advisory}] {exc_date.isoformat()}")
+        if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?", exc["affected_version"]):
+            errors.append(f"例外必须限定到精确版本：{exc_package}")
+        if not exc["dependency_path"].startswith(". > ") or "*" in exc["dependency_path"]:
+            errors.append(f"例外必须限定到完整依赖路径：{exc_package}")
         key = (exc_package, exc_advisory)
         if key in exception_index:
             errors.append(
@@ -184,15 +216,16 @@ def main() -> int:
             "expires_on": exc_date,
         }
 
-    today = date.today()
     missing_exceptions = []
-    expired_exceptions = []
 
-    # 去重处理：同一包名 + advisory 可能在不同字段重复出现。
+    # 每条发现都核对路径，不能按 advisory 去重而漏掉另一条依赖路径。
     seen = set()
-    for name, severity, advisory_id, title in iter_vulns(audit):
+    for name, severity, advisory_id, title, findings in iter_vulns(audit):
         sev = normalize_severity(severity)
-        if sev not in HIGH_SEVERITIES or not name:
+        if sev not in HIGH_SEVERITIES:
+            continue
+        if not name:
+            errors.append("高危漏洞缺少包名。")
             continue
         advisory_key = normalize_advisory(advisory_id)
         if not advisory_key:
@@ -201,8 +234,6 @@ def main() -> int:
             )
             continue
         key = (normalize_package(name), advisory_key)
-        if key in seen:
-            continue
         seen.add(key)
         exc = exception_index.get(key)
         if exc is None:
@@ -213,10 +244,17 @@ def main() -> int:
                 "Exception severity mismatch: "
                 f"{name} ({advisory_id}) expected {sev}, got {exc['severity']}"
             )
-        if exc["expires_on"] and exc["expires_on"] < today:
-            expired_exceptions.append(
-                (name, sev, advisory_id, exc["expires_on"].isoformat())
-            )
+        raw = exc["raw"]
+        if not findings or any(
+            finding.get("version") != raw["affected_version"]
+            or not finding.get("paths")
+            or any(path != raw["dependency_path"] for path in finding["paths"])
+            for finding in findings
+        ):
+            errors.append(f"例外版本或依赖路径不匹配：{name} [{advisory_id}]")
+
+    if (counts["high"] or counts["critical"]) and not seen:
+        errors.append("审计报告声称存在高危漏洞，但缺少可验证的漏洞明细。")
 
     if missing_exceptions:
         errors.append("High/Critical vulnerabilities missing exceptions:")
@@ -227,13 +265,6 @@ def main() -> int:
             if title:
                 label = f"{label}: {title}"
             errors.append(f"- {label}")
-
-    if expired_exceptions:
-        errors.append("Exceptions expired:")
-        for name, sev, advisory_id, expires_on in expired_exceptions:
-            errors.append(
-                f"- {name} ({sev}) [{advisory_id}] expired on {expires_on}"
-            )
 
     if errors:
         sys.stderr.write("\n".join(errors) + "\n")
