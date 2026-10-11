@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func routingTestAccount(id int64) Account {
+func routingDiagnosticsTestAccount(id int64) Account {
 	return Account{ID: id, Platform: PlatformOpenAI, Type: AccountTypeAPIKey, Status: StatusActive, Schedulable: true, Concurrency: 1}
 }
 
@@ -57,7 +57,7 @@ func TestOpenAIRoutingDiagnosticsAdvancedAndLegacyResults(t *testing.T) {
 				require.Equal(t, decision.RoutingDiagnostics, GetRoutingDiagnostics(ctx))
 			})
 			t.Run("duplicate_ids_first_exclusion", func(t *testing.T) {
-				bad, good := routingTestAccount(92001), routingTestAccount(92002)
+				bad, good := routingDiagnosticsTestAccount(92001), routingDiagnosticsTestAccount(92002)
 				bad.Schedulable = false
 				svc := routingTestService(mode, []Account{bad, bad, good}, schedulerTestConcurrencyCache{})
 				selection, decision, err := routingSelect(svc, context.Background(), "gpt-5.1", map[int64]struct{}{bad.ID: {}}, false)
@@ -68,14 +68,14 @@ func TestOpenAIRoutingDiagnosticsAdvancedAndLegacyResults(t *testing.T) {
 				require.Equal(t, decision.RoutingDiagnostics, selection.RoutingDiagnostics)
 			})
 			t.Run("duplicate_all_filtered", func(t *testing.T) {
-				account := routingTestAccount(92003)
+				account := routingDiagnosticsTestAccount(92003)
 				svc := routingTestService(mode, []Account{account, account}, schedulerTestConcurrencyCache{})
 				_, _, err := routingSelect(svc, context.Background(), "gpt-5.1", map[int64]struct{}{account.ID: {}}, false)
 				require.ErrorIs(t, err, ErrNoAvailableAccounts)
 				requireRoutingCounts(t, RoutingDiagnosticsFromError(err), 1, 1, "complete", "candidates_filtered", map[string]int{"excluded": 1})
 			})
 			t.Run("all_model_rejections", func(t *testing.T) {
-				accounts := []Account{routingTestAccount(92011), routingTestAccount(92012)}
+				accounts := []Account{routingDiagnosticsTestAccount(92011), routingDiagnosticsTestAccount(92012)}
 				for i := range accounts {
 					accounts[i].Credentials = map[string]any{"model_mapping": map[string]any{"only-model": "only-model"}}
 				}
@@ -85,7 +85,7 @@ func TestOpenAIRoutingDiagnosticsAdvancedAndLegacyResults(t *testing.T) {
 				requireRoutingCounts(t, RoutingDiagnosticsFromError(err), 2, 2, "complete", "candidates_filtered", map[string]int{"model_not_supported": 2})
 			})
 			t.Run("wait_is_not_capacity_exclusion", func(t *testing.T) {
-				account := routingTestAccount(92021)
+				account := routingDiagnosticsTestAccount(92021)
 				svc := routingTestService(mode, []Account{account}, schedulerTestConcurrencyCache{acquireResults: map[int64]bool{account.ID: false}})
 				selection, _, err := routingSelect(svc, context.Background(), "gpt-5.1", nil, false)
 				require.NoError(t, err)
@@ -94,7 +94,7 @@ func TestOpenAIRoutingDiagnosticsAdvancedAndLegacyResults(t *testing.T) {
 				requireRoutingCounts(t, selection.RoutingDiagnostics, 1, 0, "complete", "wait_plan", map[string]int{})
 			})
 			t.Run("compact_final_rejection", func(t *testing.T) {
-				account := routingTestAccount(92031)
+				account := routingDiagnosticsTestAccount(92031)
 				account.Extra = map[string]any{"openai_compact_supported": false}
 				svc := routingTestService(mode, []Account{account}, schedulerTestConcurrencyCache{})
 				_, _, err := routingSelect(svc, context.Background(), "gpt-5.1", nil, true)
@@ -119,7 +119,7 @@ func TestOpenAIRoutingDiagnosticsListFailureAndChannelClearPriorPool(t *testing.
 		t.Run(mode, func(t *testing.T) {
 			resetOpenAIAdvancedSchedulerSettingCacheForTest()
 			ctx := WithRoutingDiagnosticsRequest(context.Background(), 0)
-			svc := routingTestService(mode, []Account{routingTestAccount(92101)}, schedulerTestConcurrencyCache{})
+			svc := routingTestService(mode, []Account{routingDiagnosticsTestAccount(92101)}, schedulerTestConcurrencyCache{})
 			selection, _, err := routingSelect(svc, ctx, "gpt-5.1", nil, false)
 			require.NoError(t, err)
 			selection.ReleaseFunc()
@@ -157,7 +157,7 @@ func TestOpenAIRoutingDiagnosticsStickyAndLegacyTransportReevaluation(t *testing
 	for _, mode := range []string{"advanced", "legacy_batch", "legacy_plain"} {
 		t.Run(mode, func(t *testing.T) {
 			resetOpenAIAdvancedSchedulerSettingCacheForTest()
-			account := routingTestAccount(92201)
+			account := routingDiagnosticsTestAccount(92201)
 			svc := routingTestService(mode, []Account{account}, schedulerTestConcurrencyCache{})
 			ctx := WithRoutingDiagnosticsRequest(context.Background(), 0)
 			require.NoError(t, svc.setStickySessionAccountID(ctx, nil, "sticky", account.ID, time.Hour))
@@ -192,7 +192,7 @@ func TestOpenAIRoutingDiagnosticsStickyAndLegacyTransportReevaluation(t *testing
 
 func TestOpenAIRoutingDiagnosticsAdvancedPartialTopKAndCompactRecovery(t *testing.T) {
 	resetOpenAIAdvancedSchedulerSettingCacheForTest()
-	svc := routingTestService("advanced", []Account{routingTestAccount(92301), routingTestAccount(92302)}, schedulerTestConcurrencyCache{})
+	svc := routingTestService("advanced", []Account{routingDiagnosticsTestAccount(92301), routingDiagnosticsTestAccount(92302)}, schedulerTestConcurrencyCache{})
 	selection, decision, err := routingSelect(svc, context.Background(), "gpt-5.1", nil, false)
 	require.NoError(t, err)
 	selection.ReleaseFunc()
@@ -202,7 +202,7 @@ func TestOpenAIRoutingDiagnosticsAdvancedPartialTopKAndCompactRecovery(t *testin
 	for _, mode := range []string{"advanced", "legacy_batch", "legacy_plain"} {
 		t.Run(mode, func(t *testing.T) {
 			resetOpenAIAdvancedSchedulerSettingCacheForTest()
-			stale := routingTestAccount(92311)
+			stale := routingDiagnosticsTestAccount(92311)
 			stale.Extra = map[string]any{"openai_compact_supported": false}
 			fresh := stale
 			fresh.Extra = map[string]any{"openai_compact_supported": true}
@@ -220,7 +220,7 @@ func TestOpenAIRoutingDiagnosticsGrokObservedEntranceAndInPlaceFilter(t *testing
 	for _, filter := range []string{"free", "team_all", "team_partial", "model"} {
 		t.Run(filter, func(t *testing.T) {
 			resetOpenAIAdvancedSchedulerSettingCacheForTest()
-			a, b := routingTestAccount(92401), routingTestAccount(92402)
+			a, b := routingDiagnosticsTestAccount(92401), routingDiagnosticsTestAccount(92402)
 			a.Platform, b.Platform = PlatformGrok, PlatformGrok
 			a.Type, b.Type = AccountTypeOAuth, AccountTypeOAuth
 			a.Credentials = map[string]any{"team_id": "diagnostics-" + t.Name()}
@@ -278,7 +278,7 @@ func TestOpenAIRoutingDiagnosticsSchedulingThresholdPreservesOriginalPool(t *tes
 	pauseRepo := &rateLimitAccountRepoStub{}
 	rl := NewRateLimitService(pauseRepo, nil, &config.Config{}, nil, nil)
 	rl.SetSettingService(NewSettingService(settingsRepo, &config.Config{}))
-	account := routingTestAccount(92501)
+	account := routingDiagnosticsTestAccount(92501)
 	account.Extra = map[string]any{"codex_7d_used_percent": 91.5, "codex_7d_reset_at": time.Now().Add(time.Hour).Format(time.RFC3339)}
 	svc := routingTestService("legacy_plain", []Account{account}, schedulerTestConcurrencyCache{})
 	svc.rateLimitService = rl
@@ -306,7 +306,7 @@ func TestOpenAIRoutingDiagnosticsImagesFallbackAndProxySecondRound(t *testing.T)
 		t.Run(mode+"_images", func(t *testing.T) {
 			resetOpenAIAdvancedSchedulerSettingCacheForTest()
 			svc := routingTestService(mode, nil, schedulerTestConcurrencyCache{})
-			repo := &routingChangingListRepo{schedulerTestOpenAIAccountRepo: schedulerTestOpenAIAccountRepo{accounts: []Account{routingTestAccount(92601)}}}
+			repo := &routingChangingListRepo{schedulerTestOpenAIAccountRepo: schedulerTestOpenAIAccountRepo{accounts: []Account{routingDiagnosticsTestAccount(92601)}}}
 			svc.accountRepo = repo
 			selection, _, err := svc.SelectAccountWithSchedulerForImages(context.Background(), nil, "", "gpt-image-1", nil, OpenAIImagesCapabilityNative)
 			require.NoError(t, err)
@@ -318,7 +318,7 @@ func TestOpenAIRoutingDiagnosticsImagesFallbackAndProxySecondRound(t *testing.T)
 		t.Run(mode+"_proxy", func(t *testing.T) {
 			resetOpenAIAdvancedSchedulerSettingCacheForTest()
 			proxy := int64(92620)
-			account := routingTestAccount(92621)
+			account := routingDiagnosticsTestAccount(92621)
 			account.Type, account.ProxyID = AccountTypeOAuth, &proxy
 			svc := routingTestService(mode, []Account{account}, schedulerTestConcurrencyCache{})
 			svc.openaiProxyStreamCircuit = newOpenAIProxyStreamCircuit(openAIProxyStreamCircuitSettings{failureThreshold: 1, failureWindow: time.Minute, quarantineTTL: time.Hour, maxEntries: 16})
@@ -348,7 +348,7 @@ func TestOpenAIRoutingDiagnosticsGatewayPoolReevaluationAndDeduplication(t *test
 	group := int64(92700)
 	first := preferenceAccount(92701, group, 20)
 	first.Priority = -1
-	second := routingTestAccount(92702)
+	second := routingDiagnosticsTestAccount(92702)
 	second.GroupIDs = []int64{group}
 	fake := newGwpoolFakePool(t, "offline", 150)
 	fake.listGateways = []gwpoolFakeGateway{{Name: "unified-300", PairReady: true}}
@@ -375,7 +375,7 @@ func TestOpenAIRoutingDiagnosticsGatewayPoolReevaluationAndDeduplication(t *test
 
 	// 同凭证域账号在真实候选去重 owner 被移除，只计账号行，不暴露域。
 	resetOpenAIAdvancedSchedulerSettingCacheForTest()
-	accounts := []Account{routingTestAccount(92711), routingTestAccount(92712)}
+	accounts := []Account{routingDiagnosticsTestAccount(92711), routingDiagnosticsTestAccount(92712)}
 	svc = routingTestService("advanced", accounts, schedulerTestConcurrencyCache{})
 	ctx = context.WithValue(context.Background(), gatewayPoolCandidateDomainsKey{}, map[int64]string{accounts[0].ID: "private-domain", accounts[1].ID: "private-domain"})
 	selection, _, err = routingSelect(svc, ctx, "gpt-5.1", nil, false)
@@ -385,7 +385,7 @@ func TestOpenAIRoutingDiagnosticsGatewayPoolReevaluationAndDeduplication(t *test
 }
 
 func TestOpenAIRoutingDiagnosticsTokenCountRemainsUnobserved(t *testing.T) {
-	svc := routingTestService("legacy_plain", []Account{routingTestAccount(92801)}, schedulerTestConcurrencyCache{})
+	svc := routingTestService("legacy_plain", []Account{routingDiagnosticsTestAccount(92801)}, schedulerTestConcurrencyCache{})
 	ctx := WithRoutingDiagnosticsRequest(context.Background(), 0)
 	account, err := svc.SelectAccountForTokenCount(ctx, nil, "", "gpt-5.1", "", PlatformOpenAI)
 	require.NoError(t, err)
@@ -398,7 +398,7 @@ func TestOpenAIRoutingDiagnosticsAdvancedStickyOwnersAndSubscriptionPool(t *test
 		t.Run(owner, func(t *testing.T) {
 			resetOpenAIAdvancedSchedulerSettingCacheForTest()
 			group := int64(92900)
-			first, second := routingTestAccount(92901), routingTestAccount(92902)
+			first, second := routingDiagnosticsTestAccount(92901), routingDiagnosticsTestAccount(92902)
 			first.GroupIDs, second.GroupIDs = []int64{group}, []int64{group}
 			cfg := newSchedulerTestOpenAIWSV2Config()
 			first.Extra = map[string]any{"openai_apikey_responses_websockets_v2_enabled": true}
@@ -458,7 +458,7 @@ func TestOpenAIRoutingDiagnosticsAdvancedStickyOwnersAndSubscriptionPool(t *test
 
 func TestOpenAIRoutingDiagnosticsRepeatedDBRecheckExcludesOnce(t *testing.T) {
 	resetOpenAIAdvancedSchedulerSettingCacheForTest()
-	stale := routingTestAccount(93001)
+	stale := routingDiagnosticsTestAccount(93001)
 	fresh := stale
 	fresh.GroupIDs = []int64{93002} // DB 行已经移到其他分组，同一选择的重复复核均拒绝。
 	svc := routingTestService("advanced", []Account{fresh}, schedulerTestConcurrencyCache{})

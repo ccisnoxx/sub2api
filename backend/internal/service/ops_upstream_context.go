@@ -727,29 +727,28 @@ func ParseOpsUpstreamErrors(raw string) ([]*OpsUpstreamErrorEvent, error) {
 	if raw == "" {
 		return []*OpsUpstreamErrorEvent{}, nil
 	}
-	var out []*OpsUpstreamErrorEvent
-	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+	if raw == "null" {
+		return nil, nil
+	}
+	// 先按诊断接收边界裁掉无效对象，避免字段类型错误让真实事件无法解码。
+	normalized, err := normalizeOpsUpstreamErrorsJSON(raw)
+	if err != nil {
 		return nil, err
 	}
-	for i, ev := range out {
+	var out []*OpsUpstreamErrorEvent
+	if err := json.Unmarshal([]byte(normalized), &out); err != nil {
+		return nil, err
+	}
+	for _, ev := range out {
 		normalizeOpsUpstreamProxyAttribution(ev)
-		if ev != nil {
-			if encoded := gjson.Get(raw, strconv.Itoa(i)+".routing_diagnostics"); encoded.Exists() {
-				d, err := DecodeRoutingDiagnosticsJSON([]byte(encoded.Raw))
-				if err != nil {
-					log.Print("[Ops] 已拒绝无效的历史事件路由诊断")
-				}
-				ev.RoutingDiagnostics = d
-			}
-		}
 	}
 	return out, nil
 }
 
 // normalizeOpsUpstreamErrorsJSON materializes missing proxy attribution on
-// stored JSON for detail reads. It edits only the attribution keys of events
-// that lack them, so keys written by older struct versions and the original
-// key order survive; nothing is re-marshaled through the current struct.
+// stored JSON for detail reads, and validates optional routing diagnostics.
+// Other keys written by older struct versions and their original order survive;
+// events are not re-marshaled through the current struct.
 func normalizeOpsUpstreamErrorsJSON(raw string) (string, error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {

@@ -707,8 +707,12 @@ func (s *OpenAIGatewayService) handleStreamingResponseWithReasoning(ctx context.
 			// OpenAI Responses streams that terminate with an empty
 			// response.completed (no output, no usage, no error, nothing sent
 			// to the client) are silent upstream refusals: fail over instead of
-			// recording a successful 0/0 usage turn (issue #5009).
-			if account != nil && account.Platform == PlatformOpenAI &&
+			// recording a successful 0/0 usage turn (issue #5009). Grok
+			// subscriptions behind vendor gateways show the same silent-refusal
+			// shape on /v1/responses (forwardGrokResponses reaches this same
+			// handler), so cover PlatformGrok too — the passthrough-path guard
+			// is already unconditional.
+			if account != nil && (account.Platform == PlatformOpenAI || account.Platform == PlatformGrok) &&
 				(eventType == "response.completed" || eventType == "response.done") &&
 				!sawFailedEvent && !responsesSemanticOutputSeen && !clientOutputStarted &&
 				openAIResponsesCompletedEventIsEmpty(dataBytes, usage) {
@@ -1363,8 +1367,14 @@ func logOpenAISuccessMissingUsage(ctx context.Context, c *gin.Context, account *
 }
 
 func extractOpenAIUsageFromJSONBytes(body []byte) (OpenAIUsage, bool) {
+	usage, _, ok := extractOpenAIUsageAndRawFromJSONBytes(body)
+	return usage, ok
+}
+
+// 观察器与计费解析共享来源选择，包含兼容上游的 data 包装。
+func extractOpenAIUsageAndRawFromJSONBytes(body []byte) (OpenAIUsage, gjson.Result, bool) {
 	if len(body) == 0 || !gjson.ValidBytes(body) {
-		return OpenAIUsage{}, false
+		return OpenAIUsage{}, gjson.Result{}, false
 	}
 	// 部分 OpenAI 兼容上游（例如 Cline API）会将标准响应包在 data 字段中：
 	// {"data":{"choices": [...], "usage": {...}}, "success":true}。
@@ -1380,12 +1390,13 @@ func extractOpenAIUsageFromJSONBytes(body []byte) (OpenAIUsage, bool) {
 		{usagePath: "data.response.usage", imageUsagePath: "data.response.tool_usage.image_gen"},
 	}
 	for _, candidate := range candidates {
-		if usage, ok := openAIUsageFromGJSON(gjson.GetBytes(body, candidate.usagePath)); ok {
+		raw := gjson.GetBytes(body, candidate.usagePath)
+		if usage, ok := openAIUsageFromGJSON(raw); ok {
 			mergeHostedImageGenToolUsage(gjson.GetBytes(body, candidate.imageUsagePath), &usage)
-			return usage, true
+			return usage, raw, true
 		}
 	}
-	return OpenAIUsage{}, false
+	return OpenAIUsage{}, gjson.Result{}, false
 }
 
 // openAIResponsesCompletedEventIsEmpty reports whether a response.completed /

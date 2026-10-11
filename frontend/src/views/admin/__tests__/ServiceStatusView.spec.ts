@@ -63,6 +63,25 @@ beforeEach(() => {
 afterEach(() => { wrapper?.unmount() })
 
 describe('管理员服务状态的可见合同', () => {
+  it.each([[false, false], [true, false]])('认证 %s / 管理员 %s 时禁止读取配置与快照', async (authenticated, admin) => {
+    state.isAuthenticated = authenticated; state.isAdmin = admin
+    open(); await flushPromises()
+    expect(api.getConfig).not.toHaveBeenCalled()
+    expect(api.getSnapshot).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-testid="save-config"]').exists()).toBe(false)
+  })
+
+  it('未知或低样本状态即使携带比例也不可显示为成功率，未知机器码不回显', async () => {
+    const low = snapshot()
+    low.platforms[0] = { ...low.platforms[0]!, health: 'unknown', unknown_reason: 'private-future-code' }
+    low.scopes[0] = { ...low.scopes[0]!, health: 'unknown', unknown_reason: 'insufficient_samples', incident_phase: 'private-future-code' }
+    low.history[0] = { ...low.history[0]!, covered: true, unknown_reason: 'insufficient_samples', error_rate: 0, success_rate: 1 }
+    api.getSnapshot.mockResolvedValue(low)
+    open('en'); await flushPromises()
+    expect(wrapper.text()).not.toContain('100.0%')
+    expect(wrapper.text()).not.toContain('private-future-code')
+    expect(wrapper.text()).toContain('— (unavailable)')
+  })
   it('显示后端摘要而非加权比例，缺口灰显且不把恢复观察放入已恢复历史', async () => {
     open(); await flushPromises()
     expect(wrapper.get('[data-testid="status-summary"]').text()).toContain('服务异常')

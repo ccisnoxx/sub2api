@@ -645,11 +645,12 @@ readLoop:
 			continue
 		}
 		if responsesTimingMatchesID(&timingResponseID, message, eventType) {
+			observedAt := time.Now()
 			if reqStream || isOpenAIWSTerminalEvent(eventType) {
-				timing.observeEvent(message, eventType, time.Now())
+				timing.observeEvent(message, eventType, observedAt)
 			}
 			if !reqStream && isOpenAIWSTerminalEvent(eventType) && responseField.Exists() {
-				timing.observeJSON([]byte(responseField.Raw), time.Now())
+				timing.observeJSON([]byte(responseField.Raw), observedAt)
 			}
 			if eventType == "response.completed" || eventType == "response.done" {
 				timing.confirmNoAudio(message)

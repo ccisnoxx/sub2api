@@ -976,7 +976,11 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		},
 	}
 
-	turnTimings := &responsesWSTurnTimings{account: account, ctx: ctx, source: serviceStatusOwner(ctx)}
+	turnTimingCtx := ctx
+	if c != nil && c.Request != nil {
+		turnTimingCtx = WithServiceStatusOwner(ctx, c.Request.Context())
+	}
+	turnTimings := &responsesWSTurnTimings{account: account, ctx: turnTimingCtx, source: serviceStatusOwner(turnTimingCtx)}
 	defer turnTimings.close()
 	completedTurns := atomic.Int32{}
 	turnLifecycle := newOpenAIWSPassthroughTurnLifecycle(true)
@@ -1260,6 +1264,7 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 					UsageTiming: turnTimings.take(turn.RequestID),
 					Usage: OpenAIUsage{
 						InputTokens:              turn.Usage.InputTokens,
+						ImageInputTokens:         turn.Usage.ImageInputTokens,
 						OutputTokens:             turn.Usage.OutputTokens,
 						CacheCreationInputTokens: turn.Usage.CacheCreationInputTokens,
 						CacheReadInputTokens:     turn.Usage.CacheReadInputTokens,
@@ -1411,6 +1416,7 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		UsageTiming: turnTimings.take(relayResult.RequestID),
 		Usage: OpenAIUsage{
 			InputTokens:              relayResult.Usage.InputTokens,
+			ImageInputTokens:         relayResult.Usage.ImageInputTokens,
 			OutputTokens:             relayResult.Usage.OutputTokens,
 			CacheCreationInputTokens: relayResult.Usage.CacheCreationInputTokens,
 			CacheReadInputTokens:     relayResult.Usage.CacheReadInputTokens,

@@ -55,12 +55,7 @@ func (s *ServiceStatusService) Snapshot(ctx context.Context, historyRange, platf
 }
 
 func ServiceStatusPlatformKnown(platform string) bool {
-	switch platform {
-	case domain.PlatformOpenAI, domain.PlatformAnthropic, domain.PlatformGemini, domain.PlatformAntigravity, domain.PlatformGrok,
-		domain.PlatformKimi, domain.PlatformZhipu, domain.PlatformDeepseek, domain.PlatformMiniMax, domain.PlatformTypeSafe, domain.PlatformOpenCodeGo:
-		return true
-	}
-	return false
+	return domain.IsConcretePlatform(platform)
 }
 func ValidateServiceStatusConfig(c *ServiceStatusConfig) error {
 	if c == nil || c.Version < 1 || c.Platforms == nil || c.MinimumSamples < 1 || c.MinimumSamples > 10000 ||

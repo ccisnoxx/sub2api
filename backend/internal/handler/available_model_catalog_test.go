@@ -6,8 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -530,4 +532,50 @@ func TestAvailableModelCatalog_ResolverFailureReturnsNoPartialCatalog(t *testing
 	w := catalogRequest(t, f.handler, "?view=catalog", 1)
 	require.Equal(t, http.StatusInternalServerError, w.Code)
 	require.False(t, strings.Contains(w.Body.String(), `"data"`))
+}
+
+func TestAvailableModelCatalog_DuplicateAuthorizedBindingFailsRegardlessOfOrder(t *testing.T) {
+	for _, reversed := range []bool{false, true} {
+		t.Run(fmt.Sprintf("reversed=%t", reversed), func(t *testing.T) {
+			f := catalogFixtureForHTTP()
+			conflict := *f.channels.channels[0].Clone()
+			conflict.ID = 8731
+			conflict.Name = "conflicting-private-source"
+			f.channels.channels = append(f.channels.channels, conflict)
+			if reversed {
+				slices.Reverse(f.channels.channels)
+			}
+			w := catalogRequest(t, f.handler, "?view=catalog", 1)
+			require.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+			require.Contains(t, w.Body.String(), "CATALOG_CHANNEL_BINDING_CONFLICT")
+			require.NotContains(t, w.Body.String(), "8731")
+			require.NotContains(t, w.Body.String(), conflict.Name)
+			require.NotContains(t, w.Body.String(), `"data"`)
+			require.NotContains(t, f.events, "rates")
+		})
+	}
+}
+
+func TestAvailableModelCatalog_UnauthorizedAndInactiveConflictsDoNotAffectCatalog(t *testing.T) {
+	f := catalogFixtureForHTTP()
+	hidden := *f.channels.channels[1].Clone()
+	hidden.ID = 8732
+	inactive := *f.channels.channels[0].Clone()
+	inactive.ID = 8733
+	inactive.Status = "inactive"
+	f.channels.channels = append(f.channels.channels, hidden, inactive)
+	got := readCatalog(t, catalogRequest(t, f.handler, "?view=catalog", 1))
+	require.Len(t, got.Groups, 1)
+	require.Equal(t, int64(1), got.Groups[0].ID)
+	require.NotContains(t, string(mustCatalogJSON(t, got)), hidden.Name)
+}
+
+func TestAvailableModelCatalog_ChecksEveryAuthorizedBindingOnSharedChannel(t *testing.T) {
+	f := catalogFixtureForHTTP()
+	f.users.users[1].AllowedGroups = []int64{1, 2}
+	f.channels.channels[0].GroupIDs = []int64{1, 2}
+	w := catalogRequest(t, f.handler, "?view=catalog", 1)
+	require.Equal(t, http.StatusInternalServerError, w.Code, w.Body.String())
+	require.Contains(t, w.Body.String(), "CATALOG_CHANNEL_BINDING_CONFLICT")
+	require.NotContains(t, f.events, "rates")
 }

@@ -125,6 +125,19 @@ func TestResponsesOutputTiming_AudioUnknownAndUsageSource(t *testing.T) {
 	})
 }
 
+func TestResponsesOutputTiming_WrappedInvalidAudioRemainsUnknown(t *testing.T) {
+	start := time.Unix(100, 0)
+	o := newResponsesOutputTiming(context.Background(), start, &Account{Platform: PlatformOpenAI})
+	defer o.stop()
+	body := []byte(`{"object":"response","status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"answer"}]}],"data":{"usage":{"input_tokens":5,"output_tokens":7,"output_tokens_details":{"audio_tokens":-1}}}}`)
+	o.observeJSON(body, start.Add(time.Second))
+	o.observeUsage(body, "json", OpenAIUsage{})
+	o.confirmNoAudio(body)
+	got := o.snapshot(false)
+	require.Equal(t, UsageSourceUpstreamFinal, got.UsageSource)
+	require.Nil(t, got.AudioOutputTokens, "兼容包装里的非法拆分不能被纯文本检查改成零")
+}
+
 func TestResponsesOutputTiming_NonStreamingAndCompatibility(t *testing.T) {
 	start := time.Unix(100, 0)
 	o := newResponsesOutputTiming(context.Background(), start, &Account{Platform: PlatformOpenAI})

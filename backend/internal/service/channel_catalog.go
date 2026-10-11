@@ -3,9 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"slices"
 	"sort"
 	"strings"
+
+	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 )
 
 // ListCatalogChannels 在用户分组授权完成后读取目录的渠道配置快照。
@@ -25,16 +28,27 @@ func (s *ChannelService) ListCatalogChannels(ctx context.Context, authorizedGrou
 	if err != nil {
 		return nil, fmt.Errorf("读取目录渠道配置: %w", err)
 	}
+	bindings := make(map[int64]int64, len(allowed))
 	for i := range channels {
 		ch := &channels[i]
 		if !ch.IsActive() {
 			continue
 		}
+		included := false
 		for _, id := range ch.GroupIDs {
 			if _, ok := allowed[id]; ok {
-				out = append(out, *ch.Clone())
-				break
+				// 对齐 channel_groups 的唯一分组约束；不按仓库返回顺序猜报价。
+				if previous, exists := bindings[id]; exists && previous != ch.ID {
+					return nil, infraerrors.New(http.StatusInternalServerError,
+						"CATALOG_CHANNEL_BINDING_CONFLICT", "模型目录的渠道绑定存在冲突").
+						WithCause(fmt.Errorf("目录分组 %d 同时绑定渠道 %d 和 %d", id, previous, ch.ID))
+				}
+				bindings[id] = ch.ID
+				included = true
 			}
+		}
+		if included {
+			out = append(out, *ch.Clone())
 		}
 	}
 	return out, nil

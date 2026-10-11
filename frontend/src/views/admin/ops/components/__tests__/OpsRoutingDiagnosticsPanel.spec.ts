@@ -66,3 +66,14 @@ it('renders only known labels instead of echoing arbitrary code text', () => {
   expect(wrapper.text()).not.toContain('sensitive-code-sentinel')
   expect(wrapper.text()).toContain('本次重选排除')
 })
+
+it('未知覆盖和过滤原因保留未知计数，不伪造无过滤或回显机器码', () => {
+  const wrapper = render(snapshot({ filter_coverage: 'private-future-code' as OpsRoutingDiagnostics['filter_coverage'],
+    filter_reasons: { 'private-future-code': 2, 'another-future-code': 3 } }))
+  expect(wrapper.get('[data-routing-field="coverage"]').text()).toBe('未观察')
+  expect(wrapper.text()).not.toContain('private-future-code')
+  expect(wrapper.text()).not.toContain('another-future-code')
+  expect(wrapper.text()).not.toContain('本次观察未记录过滤')
+  expect(wrapper.text()).toContain('未知')
+  expect(wrapper.findAll('dd').at(-1)!.text()).toBe('5')
+})

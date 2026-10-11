@@ -1,20 +1,27 @@
 package service
 
-import (
-	"sort"
-	"time"
-)
+import "time"
 
 // Display-only local cooldown estimate. It neither predicts pool inventory nor
-// changes the bounded rest recheck deadline.
+// changes the durable rest latch.
 type GatewayPoolCooldownEstimate struct {
 	ResumeGateways int       `json:"resume_gateways"`
 	EligibleAt     time.Time `json:"eligible_at,omitzero"`
 }
 
-func (s *openAICodexCookieStore) gatewayPoolCooldownEstimate(identity string, account *Account, history openAIGatewayHistory, now time.Time) GatewayPoolCooldownEstimate {
+func (s *openAICodexCookieStore) gatewayPoolCooldownEstimate(identity string, account *Account, history openAIGatewayHistory, now time.Time, peers ...Account) GatewayPoolCooldownEstimate {
 	result := GatewayPoolCooldownEstimate{ResumeGateways: account.gatewayPoolResumeGateways()}
-	deadlines := make([]time.Time, 0, len(history.Seen))
+	projected := s.gatewayPoolDisplayCooldownDeadlines(identity, account, history, now)
+	var qualityGateways []string
+	if state := s.gatewayPoolRestSnapshot(account, identity, peers); state.Active && !account.GatewayPoolContinuousWaitEnabled() {
+		qualityGateways = state.QualityGateways
+	}
+	result.EligibleAt = gatewayPoolRecoveryDeadline(projected, result.ResumeGateways, qualityGateways)
+	return result
+}
+
+func (s *openAICodexCookieStore) gatewayPoolDisplayCooldownDeadlines(identity string, account *Account, history openAIGatewayHistory, now time.Time) map[string]time.Time {
+	deadlines := make(map[string]time.Time, len(history.Seen))
 	window := account.gatewayPoolGatewayWindow()
 	base := gatewayPoolCooldownBase(window)
 	clearAt := s.gatewayPoolCooldownClearAt(identity)
@@ -51,13 +58,8 @@ func (s *openAICodexCookieStore) gatewayPoolCooldownEstimate(identity string, ac
 			until = clearAt
 		}
 		if !until.IsZero() {
-			deadlines = append(deadlines, until)
+			deadlines[gateway] = until
 		}
 	}
-	if len(deadlines) == 0 {
-		return result // no local cooldown to wait for
-	}
-	sort.Slice(deadlines, func(i, j int) bool { return deadlines[i].Before(deadlines[j]) })
-	result.EligibleAt = deadlines[min(result.ResumeGateways, len(deadlines))-1]
-	return result
+	return deadlines
 }

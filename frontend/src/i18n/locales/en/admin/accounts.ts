@@ -81,6 +81,8 @@ export default {
       editAccount: 'Edit Account',
       deleteAccount: 'Delete Account',
       searchAccounts: 'Search accounts...',
+      moreFilters: 'More filters',
+      moreFiltersActive: 'More filters ({count} active)',
       notes: 'Notes',
       notesPlaceholder: 'Enter notes',
       notesHint: 'Notes are optional',
@@ -175,12 +177,15 @@ export default {
         },
         protocolRules: {
           title: 'Model protocol routing',
-          hint: 'In adaptive mode, each model is sent to a native upstream protocol. Use an exact ID or a trailing * glob (e.g. grok-*, qwen*). The first matching rule wins; unmatched models use Chat Completions.',
+          hint: 'In adaptive mode, each model is sent to a native upstream protocol. Use an exact ID or a trailing * glob (e.g. grok-*, qwen*). The first matching rule wins. If the inbound protocol is one the model also supports, the request passes through on that protocol without conversion; otherwise the selected protocol is used.',
           patternPlaceholder: 'grok-* or deepseek-v4-flash',
           add: 'Add rule',
           remove: 'Remove rule',
           restoreDefaults: 'Restore defaults',
+          alsoSupports: 'Also supports',
+          alsoSupportsHint: 'Requests arriving on one of these protocols are passed through unchanged, avoiding protocol conversion',
           fallback: 'Unmatched models → Chat Completions (/v1/chat/completions)',
+          catalogFallback: 'Unmatched models → protocols from the upstream model list (supported_endpoints in /models); Chat Completions when unavailable',
         },
         title: 'OpenCode Go usage',
         panelHint: 'Usage windows reported by the upstream OpenCode Go account. Refreshed on demand or automatically when enabled.',
@@ -205,7 +210,8 @@ export default {
         refreshSuccess: 'OpenCode Go usage refreshed',
         refreshFailed: 'Failed to refresh OpenCode Go usage',
         errors: {
-          OPENCODE_GO_USAGE_REFRESH_RATE_LIMITED: 'Refresh is limited. Try again in {retry_after_seconds} seconds.'
+          OPENCODE_GO_USAGE_REFRESH_RATE_LIMITED: 'Refresh is limited. Try again in {retry_after_seconds} seconds.',
+          forbidden: 'Upstream returned 403: could be a missing/expired OpenCode Go subscription or a WAF/access-policy block; check the network path and HTTP status.'
         }
       },
       types: {
@@ -286,7 +292,7 @@ export default {
         ungrouped: 'Ungrouped',
         hint: 'Displayed as "group / base score / sticky bonus". The base score is computed within the current filtered candidate set and includes priority, load, queue depth, error rate, first-token latency, reset window, quota headroom, billing rate, and related factors. The sticky bonus applies only when sticky weighting is enabled for previous_response_id or session_hash. Higher scores are preferred.'
       },
-      gatewayColumnHint: 'Landing gateways come from the route tickets delivered by the gateway pool (gwpool). The full-strength window applies to (upstream account × gateway), and a gateway is determined by (region × account), so this column is laid out by the nine regions: the first line is the current region and gateway, and each cell below is the gateway most recently landed on in that region. Amber means the gateway was used within the local ledger window (4 hours by default, adjustable in the gateway pool settings of that account) and is still cooling; grey means the window has elapsed and that region is usable again. Note that both the region and the gateway name are what the pool claimed on delivery, not the upstream landing point actually observed.',
+      gatewayColumnHint: 'Shows the current route ticket, measured full-strength usage and quality/ordinary candidate queues. Green is reserved for a live verified ticket; candidates remain neutral. Queue classification comes from backend evidence for the same member and model, using cached metadata and local cooldowns only. Missing or expired metadata displays — without fetching tickets or probing. Region and gateway names are the pool delivery labels, not proof of the actual upstream landing point.',
       usageWindowsHint: '"5h / 7d" are the upstream account\'s official rolling usage windows (e.g. OpenAI ChatGPT, Claude). They are imposed by the upstream provider on the account itself — not configured by sub2api, and unrelated to the models you map. Usage resets automatically once each window rolls over, and the limit cannot be lifted from within sub2api. Purple/amber rows are the Codex turn-states currently in effect for this account (one per model); the countdown is the remainder of the one-hour validity from minting, and amber means the ticket looks degraded.',
       ollamaCloud: {
         title: 'Ollama Cloud usage',
@@ -443,7 +449,7 @@ export default {
         cooldownRemaining: 'Local cooldown remaining',
         cooldownUnknown: 'Cannot estimate',
         cooldownFinished: 'Local cooldown expired; waiting for status synchronization',
-        cooldownEstimateHint: 'Resume at the {count}th local cooldown deadline, or after all known gateways when fewer are known. Pool inventory is not rechecked; ticket acquisition and quality verification still apply.',
+        cooldownEstimateHint: 'Resume when the nonempty quality cohort frozen on rest entry has fully cooled, or at the {count}th local cooldown deadline, whichever comes first. The count condition waits for all known gateways when fewer are known. With no quality cohort, only the count condition applies. Pool inventory is not rechecked; ticket acquisition and quality verification still apply.',
         poolRestPending: 'Resumes automatically when local cooldowns expire; pool candidate counts are not rechecked',
         remaining: 'Remaining',
         matchedKeyword: 'Matched Keyword',
@@ -638,43 +644,81 @@ export default {
       // OpenAI specific hints
       openai: {
         gwpoolCredentialScope: 'The same upstream credentials share verification and a ledger. Different workspace members stay isolated. Local observations and cooldown rules take priority; pool data is advisory.',
+        gatewayQueues: {
+          title: 'Candidate queues',
+          quality: 'Fast',
+          ordinary: 'Ordinary',
+          qualityHint: 'Fast queue: existing quality scores above the neutral 0.5 baseline, with measured yield ranking within the queue. Earlier attempts, not verified tickets or guaranteed speed.',
+          ordinaryHint: 'Ordinary queue: lower-yield or insufficiently measured candidates retain bounded exploration opportunities.',
+          hint: 'The dispatch policy projects attempt order, including exploration and regional soft deferral. Excludes cooldowns and the current ticket; up to 3 names per queue. New inventory or verdicts can change the order. Expiry keeps the last snapshot, without acquisition or probing.',
+          next: 'Next est. · {name}',
+          stale: 'Last snapshot',
+          staleHint: 'Metadata has expired or refresh is unfinished. The last successful directory remains visible, but does not confirm current inventory.',
+          candidateHint: '{name} · Candidate, not yet verified',
+          more: '{count} more candidates',
+          empty: 'No candidates',
+          unknown: 'No snapshot'
+        },
+        gatewayUsed: {
+          title: 'Used · {count}',
+          label: 'Used',
+          coolingCount: '{count} cooling',
+          cooledCount: '{count} cooled',
+          heldFull: 'full {duration}',
+          hint: 'The current ticket appears above. Up to two summary rows combine consecutive confirmed degraded tickets and retain measured full-strength history. Counts are deduplicated ticket records; incomplete history shows “at least”. Unknown results are not degraded. Duration is a measured full-strength window, not business-active time or the cycle total. All history retains per-gateway details; cooled does not guarantee availability or full strength.',
+          degradedTickets: '{count} degraded in a row',
+          degradedTicketsAtLeast: 'At least {count} degraded in a row',
+          allHistory: 'All history',
+          allRegions: 'All regions',
+          order: 'Live first · Latest use',
+          pagePrevious: 'Prev',
+          pageNext: 'Next',
+          current: 'Verified now',
+          previous: 'Previous',
+          recent: 'Recent',
+          earlier: 'Earlier',
+          live: 'Live',
+          cooling: 'CD {minutes}m',
+          cooled: 'Cooled'
+        },
         gatewayRuntime: {
-          durationHours: '{hours}h {minutes}m {seconds}s',
           live: 'Verified · {gateway} · probe models: {models}',
           unverified: 'not verified',
-          counts: 'Round verified / attempted {full} / {attempted} tickets',
-          active: 'Current-cycle full-strength use {duration}',
+          noTicket: 'No live ticket',
+          verifiedAt: 'verified {time}',
+          cycleFull: 'Cycle full',
+          totalFull: 'Total full',
+          cycleTickets: '{full}/{attempted}',
+          totalRounds: '{count} rounds',
+          incompleteHint: 'Some duration unobserved; actual is at least this value',
           activeHint: 'Counts active business intervals on verified tickets, with overlaps counted once. Excludes idle time, ticket preparation, verification and retry waits. Legacy durations are hidden.',
-          duration: '{minutes}m {seconds}s',
           history: 'Usage history',
           ended: '{full}/{attempted} tickets · full-strength use {duration} · ended {end}',
-          archived: 'Historical full-use total {duration} / {count} rounds',
-          archivedCounts: 'History: {count} rounds',
           legacy: 'Legacy · {model} · {full}/{attempted} tickets',
           legacyArchived: 'Legacy archive · {model} · {count} rounds · {full}/{attempted} tickets',
-          durationIncomplete: ' (some duration unobserved)',
           incomplete: ' (counts are lower bounds)'
         },
         gatewayProgress: {
-          run: 'Verification run #{id}',
-          idle: 'No active verification',
-          pending: 'Awaiting preparation',
+          run: 'probe {id}',
+          idle: 'Idle',
+          pending: 'Pending',
           count: 'Tried {attempt} tickets · {seconds}s',
+          elapsed: '{seconds}s',
           lastCount: 'Last observation: {attempt} / {limit} tickets · {seconds}s',
-          waiting: 'Waiting for a candidate / verification retry',
-          fetching: 'Fetching a candidate ticket',
-          verifying: 'Verifying a candidate ticket',
-          ready: 'Verified · queue paused',
+          waiting: 'Waiting to retry',
+          fetching: 'Fetching',
+          verifying: 'Verifying',
+          ready: 'Verified, paused',
           recentReady: 'Last verified',
-          exhausted: 'Verification ended · no usable ticket',
-          unknown: 'Verification ended · incomplete (supply, timeout or error)',
-          cancelled: 'Verification ended · request cancelled',
+          exhausted: 'No candidates',
+          unknown: 'Incomplete',
+          cancelled: 'Cancelled',
           rejected: '{count} did not pass',
           concurrent: '{count} requests in preflight (including this request)',
-          unavailable: 'Live verification progress unavailable'
+          unavailable: 'Progress unavailable'
         },
         gwpoolResumeGateways: 'Resume threshold',
-        gwpoolResumeGatewaysDesc: 'After exhaustion, resume at the Nth local cooldown deadline without rechecking pool inventory. Fewer than N waits for all known gateways; no history means no rest. Default 50.',
+        gwpoolResumeGatewaysDesc: 'Count fallback: after exhaustion, resume when the frozen quality cohort has fully cooled OR N known gateways have cooled. Without a quality cohort, only the count applies. Fewer than N means all known gateways; no history means no rest. No inventory recheck; tickets must still be acquired and verified. Default 50.',
         gwpoolCandidatesHint: 'Candidates are deliverable gateways outside local cooldown, not verified tickets. A failed listing is not zero.',
         gwpoolBulkHint: 'Only checked fields change; others keep each account’s own value. Clear a number for its default. An empty Key keeps the existing key. Runtime statistics are not copied.',
         gwpoolBulkApply: 'Change: {field}',
@@ -790,7 +834,7 @@ export default {
         codexImageToolBadgeDisabled: 'No hosted injection',
         codexImageToolBadgeBlock: 'Client image tools stripped',
         gwpool: 'Use the gateway pool for Codex routing',
-        gwpoolManualRetry: 'Clear cooldowns',
+        gwpoolManualRetry: 'Clear CD',
         gwpoolManualRetryPending: 'Processing…',
         gwpoolManualRetryHint: 'Clear only local cooldowns, backoff and pool rest. Keep live tickets and history. No ticket fetch or probe is sent; prepare when business traffic arrives. Authentication and upstream rate limits remain.',
         gwpoolManualRetryFailed: 'Failed to clear local cooldowns',
@@ -818,7 +862,7 @@ export default {
           'Default 10 seconds. Limits a single ticket-fetch network operation, not the entire candidate verification process.',
         gwpoolListTimeout: 'Single gateway-list timeout (s)',
         gwpoolListTimeoutDesc:
-          'Default 2 seconds. Limits the candidate-list request. On failure or timeout, the pool selects a gateway; local cooldown still applies.',
+          'Default 5 seconds. A directory timeout immediately retries without an extra 30-second wait or pool-side selection. Cancellation stops retries; explicit rate limits still honor Retry-After.',
         gwpoolDetails: 'Cooldown, trigger conditions and troubleshooting',
         gwpoolCooldownDetails:
           'Cooldown is tracked per member credential × gateway. Confirmed failure backs off through 1/2/4/6/8/10/12/16/20/24 hours; confirmed recovery ends the cycle. Two successes at the same interval in independent cycles lock it; another failure unlocks it. Network errors do not train it, and pool recommendations do not alter local cooldown.',
@@ -857,7 +901,6 @@ export default {
           feedbackTotals: 'Reports: {sent} sent, {pending} pending, {failed} permanent failures, {discarded} discarded',
           runtimeHint: 'Cumulative probe attempts only, not business traffic. Unknown is not degraded. These are not a business success rate or measured tokens/cost. Up to 64 queued reports, retained for 7 days while enabled.',
           empty: 'Gateway -',
-          current: 'Current',
           seen: '{n} used',
           // The tooltip's five segments are region-gateway-fullTime-state-verdict, each
           // carrying only the VALUE and no label: operators scan a column vertically, and
@@ -883,7 +926,6 @@ export default {
           // Two independent numbers, NO subtraction: "landings" comes from this row's ledger
           // (gateway names touched over the past window), "left in pool" is the current
           // deliverable listing reconciled against that ledger. The two sets do not nest.
-          windowUsage: 'Cooling {used} · cooled down {cooled}',
           // Without the pool listing, report only the landings: inventing a number is worse.
           poolSnapshot: 'Last inventory snapshot: {free} (not live)',
           windowUsageHint:

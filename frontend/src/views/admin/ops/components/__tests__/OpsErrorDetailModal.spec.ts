@@ -121,6 +121,15 @@ it('passes only the current single-detail snapshot and retains classification', 
   expect(wrapper.text()).toContain('platform')
   expect(wrapper.text()).toContain('gateway')
 })
+
+it('未知分类码不回显到详情', async () => {
+  mocks.getRequestErrorDetail.mockResolvedValue({ id: 1, phase: 'secret-future-code', error_owner: 'secret-future-code', error_source: 'secret-future-code' })
+  const wrapper = mountDetail()
+  await flushPromises()
+  expect(wrapper.text()).not.toContain('secret-future-code')
+  expect(wrapper.text()).toContain('admin.ops.errorDetail.routingDiagnostics.unknown')
+  wrapper.unmount()
+})
 it('clears and ignores pending detail and correlated rows after closing', async () => {
   const detail = deferred<Partial<OpsErrorDetail>>()
   const rows = deferred<{ items: Partial<OpsErrorDetail>[] }>()

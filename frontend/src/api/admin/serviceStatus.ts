@@ -1,10 +1,8 @@
 import { apiClient } from '../client'
+import { listPlatformIds } from '@/constants/platformCatalog'
 
 // 与后端具体平台目录一致；复合分组不是实际平台。
-export const SERVICE_STATUS_PLATFORMS = [
-  'openai', 'anthropic', 'gemini', 'antigravity', 'grok',
-  'kimi', 'zhipu', 'deepseek', 'minimax', 'typesafe', 'opencode_go'
-] as const
+export const SERVICE_STATUS_PLATFORMS = listPlatformIds()
 export type ServiceStatusRange = '24h' | '7d' | '30d'
 
 export interface ServiceStatusConfig {

@@ -11,13 +11,13 @@
         </div>
       </dl>
       <p class="mt-3 text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ t(`${prefix}.attemptHint`) }}</p>
-      <p class="mt-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ t(`${prefix}.coverageHints.${diagnostics.filter_coverage}`) }}</p>
+      <p class="mt-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ t(`${prefix}.coverageHints.${coverage}`) }}</p>
       <h4 class="mt-5 text-xs font-bold text-gray-700 dark:text-gray-200">{{ t(`${prefix}.filterReasons`) }}</h4>
       <p v-if="diagnostics.filter_reasons === null" class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ t(`${prefix}.filtersUnknown`) }}</p>
       <p v-else-if="!filterRows.length" class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ t(`${prefix}.noFilters`) }}</p>
       <dl v-else class="mt-2 space-y-2">
         <div v-for="row in filterRows" :key="row.code" class="flex items-start justify-between gap-4 text-sm">
-          <dt class="min-w-0 break-words text-gray-600 dark:text-gray-300">{{ t(`${prefix}.filters.${row.code}`) }}</dt>
+          <dt class="min-w-0 break-words text-gray-600 dark:text-gray-300">{{ row.code === 'unknown' ? t(`${prefix}.unknown`) : t(`${prefix}.filters.${row.code}`) }}</dt>
           <dd class="shrink-0 font-mono font-medium text-gray-900 dark:text-white">{{ row.count }}</dd>
         </div>
       </dl>
@@ -33,6 +33,8 @@ import type { OpsRoutingDiagnostics } from '@/api/admin/ops'
 const props = defineProps<{ diagnostics?: OpsRoutingDiagnostics | null }>()
 const { t } = useI18n()
 const prefix = 'admin.ops.errorDetail.routingDiagnostics'
+const coverage = computed(() => ['complete', 'partial', 'unobserved'].includes(props.diagnostics?.filter_coverage ?? '')
+  ? props.diagnostics!.filter_coverage : 'unobserved')
 const layers = ['channel_pricing', 'previous_response_id', 'guardian_parent', 'session_hash', 'load_balance', 'gateway_pool']
 const reasons = ['channel_pricing_restricted', 'sticky_hit', 'wait_plan', 'selection_failed', 'slot_acquired', 'pool_empty', 'candidates_filtered', 'compact_unsupported', 'selection_exhausted', 'account_list_failed', 'gateway_pool_restricted']
 // 只渲染冻结白名单的标签；未来或异常机器码不作为自由文本输出。
@@ -46,7 +48,7 @@ const fields = computed(() => {
   const result = [
     { key: 'candidatePool', value: d.candidate_pool ?? t(`${prefix}.unknown`) },
     { key: 'filteredCandidates', value: d.filtered_candidates ?? t(`${prefix}.unknown`) },
-    { key: 'coverage', value: t(`${prefix}.coverageValues.${d.filter_coverage}`) },
+    { key: 'coverage', value: t(`${prefix}.coverageValues.${coverage.value}`) },
     { key: 'selectionLayer', value: label(d.selection_layer, layers, 'layers') },
     { key: 'selectionReason', value: label(d.selection_reason, reasons, 'reasons') },
     { key: 'selectionAttempt', value: d.selection_attempt }
@@ -57,9 +59,13 @@ const fields = computed(() => {
 const filterRows = computed(() => {
   const d = props.diagnostics
   if (!d || d.schema_version !== 1 || d.filter_reasons === null) return []
-  return filters.flatMap(code => {
-    const count = d.filter_reasons?.[code]
-    return typeof count === 'number' && count > 0 ? [{ code, count }] : []
-  })
+  return Object.entries(d.filter_reasons).flatMap(([code, count]) =>
+    Number.isInteger(count) && count > 0 ? [{ code: filters.includes(code) ? code : 'unknown', count }] : []
+  ).reduce<Array<{ code: string; count: number }>>((rows, row) => {
+    const existing = rows.find(item => item.code === row.code)
+    if (existing) existing.count += row.count
+    else rows.push(row)
+    return rows
+  }, [])
 })
 </script>
