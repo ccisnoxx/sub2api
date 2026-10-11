@@ -10,6 +10,7 @@ SHA = "a" * 40
 BASE = "v0.2.14-klno.3"
 TAG = BASE + "-tps.1"
 RUN = {"id": 123, "workflow_id": 42, "path": ".github/workflows/personal-ci.yml",
+       "repository": {"full_name": release.REPOSITORY},
        "head_repository": {"full_name": release.REPOSITORY}, "head_branch": "personal",
        "head_sha": SHA, "status": "completed", "conclusion": "success", "event": "push",
        "display_title": f"Personal CI | {SHA} | base {SHA}", "check_suite_id": 7}
@@ -17,6 +18,15 @@ SOURCE = {"upstream_tag": BASE, "upstream_sha": "b" * 40}
 
 
 class PersonalReleaseTest(unittest.TestCase):
+    def setUp(self):
+        # 任何遗漏的远端桩都必须失败，测试不能访问真实发布接口。
+        network = patch.object(release, "urlopen", side_effect=AssertionError("测试禁止真实网络请求"))
+        network.start()
+        self.addCleanup(network.stop)
+        environment = patch.dict(os.environ, {"GITHUB_REPOSITORY": release.REPOSITORY})
+        environment.start()
+        self.addCleanup(environment.stop)
+
     def test_version_allocation_is_numeric_and_reuses_same_sha(self):
         existing = {BASE + "-tps.9": "c" * 40, BASE + "-tps.10": "d" * 40,
                     "v0.2.14-klno.5-tps.20": "e" * 40}
@@ -156,6 +166,105 @@ class PersonalReleaseTest(unittest.TestCase):
              patch.object(release, "output") as output:
             with self.assertRaisesRegex(release.SyncError, "基础变化"):
                 release.authorize(args)
+            output.assert_not_called()
+
+    def test_gate_rejects_invalid_sha_tag_and_untrusted_ci_at_the_call_boundary(self):
+        changes = ({"head_sha": "c" * 40}, {"conclusion": "failure"},
+                   {"conclusion": "cancelled"}, {"status": "in_progress"},
+                   {"head_repository": {"full_name": "other/sub2api"}},
+                   {"repository": {"full_name": "other/sub2api"}},
+                   {"event": "pull_request"}, {"workflow_id": 99},
+                   {"path": ".github/workflows/backend-ci.yml"},
+                   {"head_branch": "main"},
+                   {"display_title": f"Personal CI | {SHA} | base {'c' * 40}"})
+        for change in changes:
+            api, checks, git = self.gate_fixture()
+            def changed_api(path, *args, **kwargs):
+                return {**RUN, **change} if "/actions/runs/" in path else api(path, *args, **kwargs)
+            with self.subTest(change=change), patch.object(release, "api", side_effect=changed_api), \
+                 patch.object(release, "pages", return_value=checks), patch.object(release, "git", side_effect=git), \
+                 patch.object(release, "assert_base"), patch.object(release, "source_at", return_value=SOURCE):
+                with self.assertRaisesRegex(release.SyncError, "成功检查"):
+                    release.gate(SHA, "123")
+        for sha in ("", "a" * 39, "A" * 40):
+            with self.subTest(sha=sha), patch.object(release, "api") as api:
+                with self.assertRaisesRegex(release.SyncError, "完整源码 SHA"):
+                    release.gate(sha, "123")
+                api.assert_not_called()
+        with patch.object(release, "git", side_effect=[SHA, "c" * 40 + "\trefs/tags/" + BASE]), \
+             patch.object(release, "assert_base"), patch.object(release, "source_at", return_value=SOURCE), \
+             patch.object(release, "api") as api:
+            with self.assertRaisesRegex(release.SyncError, "实际发布标签"):
+                release.gate(SHA, "123")
+            api.assert_not_called()
+
+    def test_old_successful_ci_cannot_be_selected_automatically(self):
+        api, checks, git = self.gate_fixture()
+        old = {**RUN, "head_sha": "c" * 40}
+        def pages(path, key):
+            return [old] if key == "workflow_runs" else checks
+        with patch.object(release, "api", side_effect=api), patch.object(release, "pages", side_effect=pages), \
+             patch.object(release, "git", side_effect=git), patch.object(release, "assert_base"), \
+             patch.object(release, "source_at", return_value=SOURCE):
+            with self.assertRaisesRegex(release.SyncError, "没有可信"):
+                release.gate(SHA)
+
+    def test_authorize_rechecks_ci_and_tag_after_remote_publication_queries(self):
+        args = argparse.Namespace(sha=SHA, ci_run_id="123", tag=TAG)
+        for change in ("ci", "tag"):
+            with self.subTest(change=change), \
+                 patch.dict(os.environ, {"GITHUB_REF": "refs/heads/personal", "GITHUB_SHA": SHA}), \
+                 patch.object(release, "gate", side_effect=[(SOURCE, RUN),
+                     release.SyncError("CI 状态已变化") if change == "ci" else (SOURCE, RUN)]), \
+                 patch.object(release, "tags", side_effect=[{TAG: SHA}, {TAG: "c" * 40}]), \
+                 patch.object(release, "publication", return_value=(None, False)), \
+                 patch.object(release, "assert_base"), patch.object(release, "output") as output:
+                with self.assertRaises(release.SyncError):
+                    release.authorize(args)
+                output.assert_not_called()
+
+    def test_wrong_tag_or_workflow_sha_stops_before_remote_queries(self):
+        for tag, ref, workflow_sha in (("v0.2.14-klno.3", "refs/heads/personal", SHA),
+                                      (TAG, "refs/heads/personal", "c" * 40)):
+            with self.subTest(tag=tag, workflow_sha=workflow_sha), \
+                 patch.dict(os.environ, {"GITHUB_REF": ref, "GITHUB_SHA": workflow_sha}), \
+                 patch.object(release, "gate") as gate:
+                with self.assertRaises(release.SyncError):
+                    release.authorize(argparse.Namespace(sha=SHA, ci_run_id="123", tag=tag))
+                gate.assert_not_called()
+        other = "v0.2.14-klno.4-tps.1"
+        with patch.dict(os.environ, {"GITHUB_REF": "refs/heads/personal", "GITHUB_SHA": SHA}), \
+             patch.object(release, "gate", return_value=(SOURCE, RUN)), \
+             patch.object(release, "tags", return_value={other: SHA}), patch.object(release, "publication") as publish:
+            with self.assertRaisesRegex(release.SyncError, "来源版本"):
+                release.authorize(argparse.Namespace(sha=SHA, ci_run_id="123", tag=other))
+            publish.assert_not_called()
+
+    def test_ci_change_before_tag_creation_or_dispatch_prevents_that_write(self):
+        args = argparse.Namespace(sha=SHA, ci_run_id="123")
+        for existing in ({}, {TAG: SHA}):
+            def write(path, payload=None, **kwargs):
+                if path.endswith("git/refs"):
+                    existing[TAG] = payload["sha"]
+            with self.subTest(existing=existing), \
+                 patch.object(release, "gate", side_effect=[(SOURCE, RUN), release.SyncError("CI 状态已变化")]), \
+                 patch.object(release, "tags", return_value=existing), patch.object(release, "assert_base"), \
+                 patch.object(release, "publication", return_value=(None, False)), \
+                 patch.object(release, "api", side_effect=write) as api, patch.object(release, "output") as output:
+                with self.assertRaisesRegex(release.SyncError, "CI 状态已变化"):
+                    release.prepare(args)
+                api.assert_not_called()
+                output.assert_not_called()
+
+    def test_tag_moves_during_publication_queries_prevent_dispatch(self):
+        with patch.object(release, "gate", return_value=(SOURCE, RUN)), \
+             patch.object(release, "tags", side_effect=[{TAG: SHA}, {TAG: SHA}, {TAG: "c" * 40}]), \
+             patch.object(release, "publication", return_value=(None, False)), \
+             patch.object(release, "assert_base"), patch.object(release, "api") as api, \
+             patch.object(release, "output") as output:
+            with self.assertRaisesRegex(release.SyncError, "个人标签"):
+                release.prepare(argparse.Namespace(sha=SHA, ci_run_id="123"))
+            api.assert_not_called()
             output.assert_not_called()
 
 

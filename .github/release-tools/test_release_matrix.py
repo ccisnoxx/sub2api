@@ -145,7 +145,8 @@ class ReleaseMatrixTest(unittest.TestCase):
         self.assertEqual(output['owner_lower'], 'exampleowner')
         self.assertEqual(len(json.loads(output['matrix'])['include']), 5)
 
-    def image_commands(self, simple=False, dry_run=False, personal=False, reuse=False, gate_fail=False, proof_fail=False):
+    def image_commands(self, simple=False, dry_run=False, personal=False, reuse=False, gate_fail=False, proof_fail=False,
+                       gate_fail_at=0, digest_changed=False):
         fake_bin = Path('bin')
         fake_bin.mkdir(exist_ok=True)
         (Path(self.temp.name) / 'release-tools').mkdir(exist_ok=True)
@@ -161,9 +162,13 @@ if len(sys.argv) > 2 and sys.argv[1].endswith(('/personal_release.py', '/supply_
     with open(os.environ['DOCKER_LOG'], 'a') as out:
         out.write(sys.argv[2] + '\\n')
     if sys.argv[2] == 'authorize':
-        if os.environ['GATE_FAIL'] == 'true':
+        if '/release-guard/release-tools/' not in sys.argv[1]:
+            raise SystemExit('没有使用 main 控制面 guard')
+        count = open(os.environ['DOCKER_LOG']).read().splitlines().count('authorize')
+        if os.environ['GATE_FAIL'] == 'true' or count == int(os.environ['GATE_FAIL_AT']):
             raise SystemExit('personal 基础已变化')
-        print(json.dumps({{'reuse_image': os.environ['REUSE_IMAGE'] == 'true'}}))
+        digest = ('e' if os.environ['DIGEST_CHANGED'] == 'true' and count == 2 else 'd') * 64
+        print(json.dumps({{'reuse_image': os.environ['REUSE_IMAGE'] == 'true', 'digest': 'sha256:' + digest}}))
     elif sys.argv[2] == 'image':
         if os.environ['PROOF_FAIL'] == 'true':
             raise SystemExit('镜像证明缺失')
@@ -184,7 +189,10 @@ else:
                'GITHUB_REPOSITORY': 'ccisnoxx/sub2api' if personal else 'ExampleOwner/sub2api',
                'DRY_RUN': str(dry_run).lower(), 'SIMPLE_RELEASE': str(simple).lower(),
                'DOCKERHUB_USERNAME': 'skip', 'REUSE_IMAGE': str(reuse).lower(),
-               'GATE_FAIL': str(gate_fail).lower(), 'PROOF_FAIL': str(proof_fail).lower()}
+               'GATE_FAIL': str(gate_fail).lower(), 'PROOF_FAIL': str(proof_fail).lower(),
+               'GATE_FAIL_AT': str(gate_fail_at), 'DIGEST_CHANGED': str(digest_changed).lower()}
+        for name in ('GH_TOKEN', 'GITHUB_TOKEN', 'DOCKERHUB_TOKEN'):
+            env.pop(name, None)
         result = subprocess.run(['bash', str(ROOT / '.github/release-tools/release-images.sh')], env=env,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         return result, log_path.read_text()
@@ -239,6 +247,24 @@ else:
                     self.assertLess(log.index('\nimage\n'), log.index('authorize'))
                     self.assertLess(log.index('authorize'), log.index('oras cp --from-oci-layout'))
                     self.assertLess(log.index('oras cp --to-oci-layout'), log.index('oras tag'))
+
+    def test_personal_changes_or_digest_replacement_after_push_prevent_latest(self):
+        for change in ('source_or_ci', 'digest'):
+            with self.subTest(change=change):
+                result, log = self.image_commands(simple=True, personal=True,
+                    gate_fail_at=2 if change == 'source_or_ci' else 0, digest_changed=change == 'digest')
+                self.assertEqual(result.returncode, 1, result.stderr)
+                self.assertEqual(log.splitlines().count('authorize'), 2)
+                self.assertIn('oras cp --from-oci-layout', log)
+                self.assertNotIn('oras tag', log)
+
+    def test_personal_dry_run_needs_no_publication_guard_or_registry_permissions(self):
+        result, log = self.image_commands(simple=True, dry_run=True, personal=True, gate_fail=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log.count('buildx build'), 1)
+        self.assertNotIn('authorize', log)
+        self.assertNotIn('verify-image', log)
+        self.assertNotIn('oras ', log)
 
 
 if __name__ == '__main__':

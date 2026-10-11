@@ -71,6 +71,20 @@ jobs:
         run: |
           cp -R .github/release-tools "$RUNNER_TEMP/release-tools"
           cp -R .github/personal-sync "$RUNNER_TEMP/personal-sync"
+      - name: Checkout publication guard from main
+        if: env.DRY_RUN != 'true'
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: main
+          path: .release-control
+          persist-credentials: false
+      - name: Preserve trusted publication guard
+        if: env.DRY_RUN != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-guard"
+          cp -R .release-control/.github/release-tools "$RUNNER_TEMP/release-guard/release-tools"
+          cp -R .release-control/.github/personal-sync "$RUNNER_TEMP/release-guard/personal-sync"
+          git -C .release-control rev-parse HEAD > "$RUNNER_TEMP/release-guard/control-sha"
       - name: Checkout selected application source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -95,7 +109,7 @@ jobs:
           CI_RUN_ID: ${{ inputs.ci_run_id }}
         run: |
           [[ "$SIMPLE_RELEASE" == true ]] || { echo '个人发布必须选择 simple_release'; exit 1; }
-          python3 "$RUNNER_TEMP/release-tools/personal_release.py" authorize --sha "$SOURCE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
+          python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$SOURCE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
       - run: |
           python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
       - name: Resolve one source commit and target matrix
@@ -116,6 +130,13 @@ jobs:
         with:
           name: personal-sync-tooling
           path: ${{ runner.temp }}/personal-sync/
+          retention-days: 1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: env.DRY_RUN != 'true'
+        with:
+          name: release-guard
+          path: ${{ runner.temp }}/release-guard/
+          if-no-files-found: error
           retention-days: 1
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -331,8 +352,16 @@ jobs:
           python-version: '3.12.13'
       - run: |
           python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: env.DRY_RUN != 'true'
+        with:
+          name: release-guard
+          path: ${{ runner.temp }}/release-guard/
       - name: Verify transported control tooling imports
-        run: python "$RUNNER_TEMP/release-tools/personal_release.py" --help
+        if: env.DRY_RUN != 'true'
+        run: |
+          cat "$RUNNER_TEMP/release-guard/control-sha"
+          python "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" --help
       - name: Verify binary SBOM and provenance matrix
         run: |
           args=(--input release-input --evidence release-evidence/binaries --sha "$RELEASE_SHA" --version "$RELEASE_VERSION")
@@ -398,7 +427,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CI_RUN_ID: ${{ inputs.ci_run_id }}
-        run: python3 "$RUNNER_TEMP/release-tools/personal_release.py" authorize --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
+        run: python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
       - name: Build images and publish manifests
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME || 'skip' }}
@@ -410,7 +439,7 @@ jobs:
         if: env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 "$RUNNER_TEMP/release-tools/personal_release.py" verify-image --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" > publication.json
+        run: python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" verify-image --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" > publication.json
       - name: Save publication evidence
         if: env.DRY_RUN != 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -467,6 +496,11 @@ jobs:
           args=(publish --output "$RUNNER_TEMP/goreleaser.publisher.yaml")
           if [[ "$SIMPLE_RELEASE" == true ]]; then args+=(--simple); fi
           python "$RUNNER_TEMP/release-tools/release_matrix.py" config "${args[@]}"
+      - name: Recheck final source, CI and tag before Release publication
+        if: env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
       - name: Publish existing archives and release notes
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
