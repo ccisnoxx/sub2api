@@ -27,7 +27,7 @@ builds:
         goarch: arm64
     ldflags:
       - -s -w
-      - -X main.Commit={{.Commit}}
+      - -X main.Commit={{.FullCommit}}
       - -X main.Date={{.Date}}
       - -X main.BuildType=release
 
@@ -41,6 +41,11 @@ archives:
         format: zip
     files:
       - LICENSE*
+      - NOTICE
+      - SOURCE.json
+      - src: backend/internal/web/dist/THIRD_PARTY_LICENSES.txt
+        dst: .
+        strip_parent: true
       - README*
       - deploy/*
 
@@ -66,10 +71,16 @@ dockers:
     extra_files:
       - deploy/docker-entrypoint.sh
       - backend/resources
+      - LICENSE
+      - LICENSE-GPL-3.0.txt
+      - NOTICE
+      - SOURCE.json
+      - backend/internal/web/dist/THIRD_PARTY_LICENSES.txt
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.revision={{ .Commit }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPO_OWNER }}/{{ .Env.GITHUB_REPO_NAME }}"
 
   - id: arm64
     goos: linux
@@ -82,10 +93,16 @@ dockers:
     extra_files:
       - deploy/docker-entrypoint.sh
       - backend/resources
+      - LICENSE
+      - LICENSE-GPL-3.0.txt
+      - NOTICE
+      - SOURCE.json
+      - backend/internal/web/dist/THIRD_PARTY_LICENSES.txt
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.revision={{ .Commit }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPO_OWNER }}/{{ .Env.GITHUB_REPO_NAME }}"
 
   # GHCR images (owner must be lowercase)
   - id: ghcr-amd64
@@ -98,10 +115,15 @@ dockers:
     extra_files:
       - deploy/docker-entrypoint.sh
       - backend/resources
+      - LICENSE
+      - LICENSE-GPL-3.0.txt
+      - NOTICE
+      - SOURCE.json
+      - backend/internal/web/dist/THIRD_PARTY_LICENSES.txt
     build_flag_templates:
       - "--platform=linux/amd64"
       - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.revision={{ .Commit }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPO_OWNER }}/{{ .Env.GITHUB_REPO_NAME }}"
 
   - id: ghcr-arm64
@@ -114,10 +136,15 @@ dockers:
     extra_files:
       - deploy/docker-entrypoint.sh
       - backend/resources
+      - LICENSE
+      - LICENSE-GPL-3.0.txt
+      - NOTICE
+      - SOURCE.json
+      - backend/internal/web/dist/THIRD_PARTY_LICENSES.txt
     build_flag_templates:
       - "--platform=linux/arm64"
       - "--label=org.opencontainers.image.version={{ .Version }}"
-      - "--label=org.opencontainers.image.revision={{ .Commit }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.source=https://github.com/{{ .Env.GITHUB_REPO_OWNER }}/{{ .Env.GITHUB_REPO_NAME }}"
 
 # Docker manifests for multi-arch support
@@ -180,6 +207,10 @@ release:
     > AI API Gateway Platform - 将 AI 订阅配额分发和管理
 
     {{ .Env.TAG_MESSAGE }}
+
+    对应源码 SHA：`{{ .FullCommit }}`
+    [源码树](https://github.com/{{ .Env.GITHUB_REPO_OWNER }}/{{ .Env.GITHUB_REPO_NAME }}/tree/{{ .FullCommit }}) · [源码归档](https://github.com/{{ .Env.GITHUB_REPO_OWNER }}/{{ .Env.GITHUB_REPO_NAME }}/archive/{{ .FullCommit }}.tar.gz)
+    许可证与第三方声明位于归档根目录及镜像 `/usr/share/licenses/sub2api/`。
 
   footer: |
 

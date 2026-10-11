@@ -3,14 +3,20 @@ exceptions:
   - package: xlsx
     advisory: "GHSA-4r6h-8v6p-xvw6"
     severity: high
-    reason: "Write-only: admin UsageView lazily imports xlsx solely for XLSX.write export; the advisory requires parsing a crafted file and no XLSX.read path exists (CVE-2023-30533)"
-    mitigation: "Never parse untrusted spreadsheets with xlsx; no patched version on npm, migrate to SheetJS CDN build or another writer before expiry"
-    expires_on: "2027-01-06"
-    owner: "security@your-domain"
+    affected_version: "0.18.5"
+    dependency_path: ". > xlsx@0.18.5"
+    reason: "仅管理员用量导出使用；UsageView.vue 把后台 API 的字段数组写入工作簿，不读取表格文件。该原型污染漏洞要求解析特制文件。"
+    mitigation: "check:xlsx-write-only 限制 xlsx 只能在管理员 UsageView 中调用已核实的写出 API；禁止读入、解构、别名逃逸及其他导入路径。到期前迁移到修复版或其他写出库。"
+    evidence: "docs/security/SEC-002.md；frontend/src/views/admin/UsageView.vue 的 exportToExcel；https://cdn.sheetjs.com/advisories/CVE-2023-30533"
+    expires_on: "2026-11-09"
+    owner: "@ccisnoxx"
   - package: xlsx
     advisory: "GHSA-5pgg-2g8v-p4x9"
     severity: high
-    reason: "Write-only: admin UsageView lazily imports xlsx solely for XLSX.write export; the advisory requires parsing a crafted file and no XLSX.read path exists (CVE-2024-22363)"
-    mitigation: "Never parse untrusted spreadsheets with xlsx; no patched version on npm, migrate to SheetJS CDN build or another writer before expiry"
-    expires_on: "2027-01-06"
-    owner: "security@your-domain"
+    affected_version: "0.18.5"
+    dependency_path: ". > xlsx@0.18.5"
+    reason: "同一管理员用量写出路径只从后台 API 构造单元格，不解析用户上传表格；没有进入该 ReDoS 漏洞的文件解析路径。"
+    mitigation: "check:xlsx-write-only 限制 xlsx 只能在管理员 UsageView 中调用已核实的写出 API；禁止读入、解构、别名逃逸及其他导入路径。到期前迁移到修复版或其他写出库。"
+    evidence: "docs/security/SEC-002.md；frontend/src/views/admin/UsageView.vue 的 exportToExcel；https://cdn.sheetjs.com/advisories/CVE-2024-22363"
+    expires_on: "2026-11-09"
+    owner: "@ccisnoxx"

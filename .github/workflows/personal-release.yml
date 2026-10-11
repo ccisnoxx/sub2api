@@ -1,0 +1,63 @@
+name: Personal release
+run-name: Personal release | ${{ inputs.source_sha || github.event.workflow_run.head_sha }}
+
+on:
+  workflow_run:
+    workflows: ['Personal CI']
+    types: [completed]
+    branches: [personal]
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: '当前 personal 的完整源码 SHA'
+        required: true
+        type: string
+      ci_run_id:
+        description: '同一 personal SHA 的成功 Personal CI；留空自动查找'
+        required: false
+        type: string
+
+concurrency:
+  group: personal-release-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    if: >-
+      github.repository == 'ccisnoxx/sub2api' &&
+      vars.PERSONAL_RELEASE_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == 'personal' &&
+        (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      checks: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Preserve trusted control tooling
+        run: |
+          cp -R .github/release-tools "$RUNNER_TEMP/release-tools"
+          cp -R .github/personal-sync "$RUNNER_TEMP/personal-sync"
+      - name: Checkout trusted personal source
+        uses: actions/checkout@v6
+        with:
+          ref: personal
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Gate final SHA, allocate version and explicitly dispatch Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ inputs.source_sha || github.event.workflow_run.head_sha }}
+          CI_RUN_ID: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
+        run: python3 "$RUNNER_TEMP/release-tools/personal_release.py" prepare --sha "$SOURCE_SHA" --ci-run-id "$CI_RUN_ID"

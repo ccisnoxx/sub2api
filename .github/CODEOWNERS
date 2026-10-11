@@ -1,0 +1,13 @@
+# 发布、安全与 main 控制文件的维护协调归属。
+# 独立审查规则见 CONTRIBUTING_PERSONAL.md；本文件本身不启用分支保护。
+/.github/                  @ccisnoxx
+/deploy/                   @ccisnoxx
+/tools/                    @ccisnoxx
+/Dockerfile                @ccisnoxx
+/backend/Dockerfile        @ccisnoxx
+/Makefile                  @ccisnoxx
+/backend/Makefile          @ccisnoxx
+/backend/.golangci.yml     @ccisnoxx
+/.goreleaser.yaml          @ccisnoxx
+/.goreleaser.simple.yaml   @ccisnoxx
+/CONTRIBUTING_PERSONAL.md   @ccisnoxx

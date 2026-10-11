@@ -1,0 +1,127 @@
+name: Personal CI
+run-name: Personal CI | ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }} | base ${{ inputs.base_sha || github.event.pull_request.base.sha || github.sha }}
+
+on:
+  pull_request:
+    branches: [personal]
+  push:
+    branches: [personal]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: '被检查的完整 SHA，必须等于 dispatch ref 的 SHA'
+        type: string
+        required: true
+      base_sha:
+        description: '当前 personal 完整 SHA'
+        type: string
+        required: true
+      pr_number:
+        description: '候选 PR 编号；检查 personal 自身时留空'
+        type: string
+        required: false
+
+concurrency:
+  group: personal-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }}
+  BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.sha }}
+  PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+
+jobs:
+  binding:
+    if: github.repository == 'ccisnoxx/sub2api'
+    runs-on: ubuntu-latest
+    outputs:
+      source_sha: ${{ steps.sha.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify candidate and latest personal
+        id: sha
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 .github/personal-sync/check_binding.py
+          printf 'source_sha=%s\n' "$CANDIDATE_SHA" >> "$GITHUB_OUTPUT"
+
+  existing-ci:
+    needs: binding
+    uses: ./.github/workflows/backend-ci.yml
+    with:
+      source_sha: ${{ needs.binding.outputs.source_sha }}
+
+  existing-security:
+    needs: binding
+    uses: ./.github/workflows/security-scan.yml
+    with:
+      source_sha: ${{ needs.binding.outputs.source_sha }}
+
+  tps:
+    needs: binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.binding.outputs.source_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm --dir frontend install --frozen-lockfile
+      - name: TPS contracts and frontend build
+        run: |
+          pnpm --dir frontend exec vitest run src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/__tests__/HelpTooltip.spec.ts
+          pnpm --dir frontend exec eslint src/components/admin/usage/UsageTps.vue src/components/admin/usage/UsageTable.vue src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/HelpTooltip.vue src/components/common/__tests__/HelpTooltip.spec.ts src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts
+          pnpm --dir frontend run build
+
+  sync-contracts:
+    needs: binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.binding.outputs.source_sha }}
+          persist-credentials: false
+      - run: python3 -m unittest discover -s .github/personal-sync -p 'test_*.py'
+
+  personal-ready:
+    name: personal-ready
+    if: always()
+    needs: [binding, existing-ci, existing-security, tps, sync-contracts]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every selected check
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          results = json.loads(os.environ['RESULTS'])
+          failed = {name: value['result'] for name, value in results.items() if value['result'] != 'success'}
+          if failed:
+              raise SystemExit(f'必要检查未通过：{failed}')
+          PY
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Recheck candidate and current base after CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/personal-sync/check_binding.py

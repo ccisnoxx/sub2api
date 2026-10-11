@@ -191,4 +191,32 @@ describe('StripePaymentView', () => {
     expect(loadStripe).toHaveBeenCalledWith('pk_test')
     expect(wrapper.text()).toContain(formatPaymentAmount(103, 'HKD', 'zh-CN'))
   })
+
+  it.each(['airwallex', 'legacy_air_method'])('旧 Airwallex 订单密钥不能进入 Stripe 页面启动支付（%s）', async (paymentType) => {
+    routeState.query.client_secret = 'awx_cs'
+    routeState.query.method = 'alipay'
+    stripeInstance.confirmAlipayPayment.mockResolvedValue({})
+    getOrder.mockResolvedValue({ data: { ...orderFactory({ payment_type: paymentType }), provider_key: 'airwallex' } })
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(getOrder).toHaveBeenCalledWith(42)
+    expect(loadStripe).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('payment.airwallexDisabled')
+    expect(paymentStore.fetchConfig).not.toHaveBeenCalled()
+    expect(stripeInstance.confirmAlipayPayment).not.toHaveBeenCalled()
+    expect(stripeInstance.elements).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('真实 Stripe provider 的支付宝订单继续加载并确认支付', async () => {
+    routeState.query.method = 'alipay'
+    getOrder.mockResolvedValue({ data: { ...orderFactory({ payment_type: 'alipay' }), provider_key: 'stripe' } })
+    stripeInstance.confirmAlipayPayment.mockResolvedValue({})
+    const wrapper = mountView()
+    await flushPromises()
+    expect(loadStripe).toHaveBeenCalledWith('pk_test')
+    expect(stripeInstance.confirmAlipayPayment).toHaveBeenCalledWith('pi_secret_42', expect.any(Object))
+    wrapper.unmount()
+  })
 })

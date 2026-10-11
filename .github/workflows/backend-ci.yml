@@ -2,23 +2,27 @@ name: CI
 
 on:
   push:
-    # main 只是 sync-upstream.yml 的 cron 宿主，每天 03:17 UTC 被重建成
-    # upstream/main + 那一个工作流文件。上面跑的是上游的代码不是 klno 的，
-    # 每天白跑一整轮 CI 没有意义。
-    #
-    # 只写 branches-ignore、不写 tags，等于 tag push 也不再触发：sync-upstream
-    # 推 klno 时已经对同一棵树跑过一模一样的 CI，紧接着推的 <tag>-klno.N 再跑
-    # 一遍只是让 release.yml 多等十几分钟。
+    # personal 的完整检查由 Personal CI 调用，避免机器人 push 触发问题。
     branches-ignore:
       - main
+      - personal
+      - 'codex/sync-klno-*'
+      - 'codex/verify-personal-ci-*'
     paths-ignore:
       - '**.md'
       - 'LICENSE'
   pull_request:
+    branches-ignore:
+      - personal
+  workflow_call:
+    inputs:
+      source_sha:
+        required: true
+        type: string
 
 # 同一分支连续推送时取消还在跑的上一轮，只留最新的那次。
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: backend-ci-${{ github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
   cancel-in-progress: true
 
 permissions:
@@ -29,6 +33,9 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - name: Check deployment scripts
         run: |
           /bin/bash -n deploy/apple-container.sh
@@ -42,6 +49,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - name: Check Docker Compose simple mode environment
         run: /bin/sh deploy/tests/docker-compose-simple-mode-env-test.sh
       - uses: actions/setup-go@v6
@@ -52,7 +62,8 @@ jobs:
           cache-dependency-path: backend/go.sum
       - name: Verify Go version
         run: |
-          go version | grep -q 'go1.27.2'
+          expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: Unit tests
         working-directory: backend
         run: |
@@ -63,12 +74,23 @@ jobs:
         run: make test-integration
       - name: OpenAI recording concurrency checks
         working-directory: backend
-        run: go test -race -tags=unit -timeout=60s -run '^Test(Recorder|OpenAIRecording)' ./internal/pkg/upstreamrecord ./internal/service
+        env:
+          RECORDING_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          # Personal CI 的固定候选必须执行；普通 PR 只检查实际包含的功能。
+          if [ -n "$RECORDING_SOURCE_SHA" ] || [ -d internal/pkg/upstreamrecord ]; then
+            go test -race -tags=unit -timeout=60s -run '^Test(Recorder|OpenAIRecording)' ./internal/pkg/upstreamrecord ./internal/service
+          else
+            echo '当前源码未包含 OpenAI recording 模块，此定向检查不适用。'
+          fi
 
   frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
@@ -89,6 +111,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-go@v6
         with:
           go-version-file: backend/go.mod
@@ -97,7 +122,8 @@ jobs:
           cache-dependency-path: backend/go.sum
       - name: Verify Go version
         run: |
-          go version | grep -q 'go1.27.2'
+          expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
@@ -109,9 +135,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - name: Check documentation links and fork installation sources
+        run: |
+          python tools/check_doc_links.py
+          python deploy/tests/install-source-test.py
+          bash deploy/tests/install-github-token-test.sh
       - run: python -m pip install -r .github/release-tools/requirements-release.txt
-      - run: python -m unittest discover -s .github/release-tools -p 'test_release_matrix.py'
+      - run: python -m unittest discover -s .github/release-tools -p 'test_*.py'
       - run: bash -n .github/release-tools/release-images.sh

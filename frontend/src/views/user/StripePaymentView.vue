@@ -102,7 +102,7 @@ import { paymentAPI } from '@/api/payment'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { isMobileDevice } from '@/utils/device'
 import { formatPaymentAmount, normalizePaymentCurrency } from '@/components/payment/currency'
-import { PAYMENT_RECOVERY_STORAGE_KEY, readPaymentRecoverySnapshot } from '@/components/payment/paymentFlow'
+import { isPaymentMethodDisabled, PAYMENT_RECOVERY_STORAGE_KEY, readPaymentRecoverySnapshot } from '@/components/payment/paymentFlow'
 import type { PaymentOrder } from '@/types/payment'
 import type { Stripe, StripeElements } from '@stripe/stripe-js'
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -158,6 +158,10 @@ onMounted(async () => {
     }
     const res = await paymentAPI.getOrder(orderId)
     order.value = res.data
+    if (isPaymentMethodDisabled(res.data.provider_key || '') || isPaymentMethodDisabled(res.data.payment_type)) {
+      initError.value = t('payment.airwallexDisabled')
+      return
+    }
     if (res.data.currency) {
       currency.value = normalizePaymentCurrency(res.data.currency)
     }

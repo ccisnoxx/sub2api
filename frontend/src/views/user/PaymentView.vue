@@ -21,6 +21,7 @@
             :qr-code="paymentState.qrCode"
             :expires-at="paymentState.expiresAt"
             :payment-type="paymentState.paymentType"
+            :provider-key="paymentState.providerKey"
             :pay-url="paymentState.payUrl"
             :order-type="paymentState.orderType"
             :currency="paymentState.currency || selectedCurrency"
@@ -306,6 +307,7 @@ import {
   clearPaymentRecoverySnapshot,
   decidePaymentLaunch,
   getVisibleMethods,
+  isPaymentMethodDisabled,
   normalizeVisibleMethod,
   readPaymentRecoverySnapshot,
   type PaymentRecoverySnapshot,
@@ -776,7 +778,6 @@ const paymentButtonClass = computed(() => {
   if (isBuiltInAlipayMethod(m)) return 'btn-alipay'
   if (isBuiltInWxpayMethod(m)) return 'btn-wxpay'
   if (m === 'stripe') return 'btn-stripe'
-  if (m === 'airwallex') return 'btn-airwallex'
   return 'btn-primary'
 })
 
@@ -838,6 +839,10 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
   errorHintMessage.value = ''
   const requestType = normalizeVisibleMethod(options.paymentType || selectedMethod.value) || options.paymentType || selectedMethod.value
   try {
+    if (isPaymentMethodDisabled(requestType)) {
+      applyScenarioError({ reason: 'PAYMENT_DISABLED' }, requestType)
+      return
+    }
     const payload = buildCreateOrderPayload({
       amount: orderAmount,
       paymentType: requestType,
@@ -869,23 +874,13 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
     const stripeMethod = visibleMethod === 'stripe'
       ? ''
       : visibleMethod === 'wxpay' ? 'wechat_pay' : 'alipay'
-    const stripeRouteUrl = result.client_secret && visibleMethod !== 'airwallex'
+    const stripeRouteUrl = result.client_secret && !isPaymentMethodDisabled(result.payment_type || '')
       ? router.resolve({
         path: '/payment/stripe',
         query: {
           order_id: String(result.order_id),
           client_secret: result.client_secret,
           method: stripeMethod || undefined,
-          resume_token: result.resume_token || undefined,
-        },
-      }).href
-      : ''
-    const airwallexRouteUrl = result.client_secret && result.intent_id
-      ? router.resolve({
-        path: '/payment/airwallex',
-        query: {
-          order_id: String(result.order_id),
-          out_trade_no: result.out_trade_no || undefined,
           resume_token: result.resume_token || undefined,
         },
       }).href
@@ -899,7 +894,6 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
       mobilePrecreateDeepLink: checkout.value.alipay_mobile_precreate_deep_link === true,
       stripePopupUrl: stripeRouteUrl,
       stripeRouteUrl,
-      airwallexRouteUrl,
     })
 
     if (decision.kind === 'wechat_oauth' && decision.oauth?.authorize_url) {
@@ -913,7 +907,7 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
     }
 
     if (decision.kind === 'unhandled') {
-      applyScenarioError({ reason: 'UNHANDLED_PAYMENT_SCENARIO' }, visibleMethod)
+      applyScenarioError({ reason: 'UNHANDLED_PAYMENT_SCENARIO' }, result.payment_type || visibleMethod)
       return
     }
 
@@ -926,10 +920,6 @@ async function createOrder(orderAmount: number, orderType: OrderType, planId?: n
       return
     }
     if (decision.kind === 'stripe_route') {
-      window.location.href = decision.paymentState.payUrl
-      return
-    }
-    if (decision.kind === 'airwallex_route') {
       window.location.href = decision.paymentState.payUrl
       return
     }
@@ -1191,11 +1181,15 @@ onMounted(async () => {
         { resumeToken: routeResumeToken },
       )
       if (restored) {
-        paymentState.value = restored
+        // SDK 密钥不能靠历史 paymentType 判断归属，恢复前核实订单绑定。
+        const providerKey = restored.clientSecret
+          ? (await paymentAPI.getOrder(restored.orderId)).data.provider_key
+          : undefined
+        paymentState.value = { ...restored, providerKey }
         paymentPhase.value = 'paying'
         const restoredMethod = normalizeVisibleMethod(restored.paymentType)
           || (visibleMethods.value[restored.paymentType] ? restored.paymentType : '')
-        if (restoredMethod) {
+        if (restoredMethod && !isPaymentMethodDisabled(providerKey || '') && !isPaymentMethodDisabled(restoredMethod)) {
           selectedMethod.value = restoredMethod
         }
       } else {

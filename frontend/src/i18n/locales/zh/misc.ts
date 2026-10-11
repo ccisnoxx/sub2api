@@ -438,6 +438,7 @@ export default {
     stripeNotConfigured: 'Stripe 未配置',
     airwallexLoadFailed: 'Airwallex 支付组件加载失败，请刷新页面重试',
     airwallexMissingParams: '缺少 Airwallex 支付参数',
+    airwallexDisabled: 'Airwallex 支付已停用，无法继续付款。已有订单仍可查询状态。',
     errors: {
       tooManyPending: '待支付订单过多（最多 {max} 个），请先完成或取消现有订单',
       cancelRateLimited: '取消订单过于频繁，请稍后再试',

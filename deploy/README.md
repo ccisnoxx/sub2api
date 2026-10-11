@@ -1,132 +1,62 @@
-# Sub2API Deployment Files
+# Deployment of This Fork
 
-This directory contains files for deploying Sub2API on Linux servers and Apple-silicon Macs.
+This directory belongs to [ccisnoxx/sub2api](https://github.com/ccisnoxx/sub2api). `main` holds deployment control tools; `personal` holds application source. Build application code from `personal` or an application release tag.
 
-## Deployment Methods
+## Verified Deployment Methods
 
-| Method | Best For | Setup Wizard |
-|--------|----------|--------------|
-| **Docker Compose** | Quick setup, all-in-one | Not needed (auto-setup) |
-| **Apple container** | Native local stack on macOS 26 | Not needed (auto-setup) |
-| **Binary Install** | Production servers, systemd | Web-based wizard |
+Last verified: **2026-10-10**. [v0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2) is a prerelease whose published artifact is the Linux amd64 image in `ghcr.io/ccisnoxx/sub2api`.
 
-## Files
+| Method | Applicable environment | Verification coverage |
+|---|---|---|
+| Docker Compose with local directories | Linux x86_64, Docker Engine and the Compose plugin; data in the deployment directory | Template parsing, image origin and configuration contracts; recovery evidence in [BASELINE.md](../BASELINE.md) |
+| Docker Compose with named volumes | Same platform; data in Docker volumes | Template parsing, image origin and configuration contracts |
+| Existing hostdzire deployment tool | Registered Linux x86_64 host with the fixed configuration | Records and offline contract tests in the [tool guide](personal/README.md); not an installer for new hosts |
 
-| File | Description |
-|------|-------------|
-| `docker-compose.yml` | Docker Compose configuration (named volumes) |
-| `docker-compose.local.yml` | Docker Compose configuration (local directories, easy migration) |
-| `docker-deploy.sh` | **One-click Docker deployment script (recommended)** |
-| `apple-container.sh` | Native Apple `container` lifecycle script |
-| `APPLE_CONTAINER.md` | Apple `container` deployment and operations guide |
-| `.env.example` | Container environment variables template |
-| `DOCKER.md` | Docker Hub documentation |
-| `install.sh` | One-click binary installation script |
-| `install-datamanagementd.sh` | datamanagementd 一键安装脚本 |
-| `sub2api.service` | Systemd service unit file |
-| `sub2api-datamanagementd.service` | datamanagementd systemd service unit file |
-| `DATAMANAGEMENTD_CN.md` | datamanagementd 部署与联动说明（中文） |
-| `config.example.yaml` | Example configuration file |
-| `EDGE_SECURITY.md` | Reverse proxy, CDN/WAF, trusted proxy, and ingress hardening guide |
+Current releases have no binary attachments, Docker Hub publication target or native ARM64 image. Their installation tutorials have been removed. `install.sh` remains maintenance source and only downloads from this fork. The [Apple tool status](APPLE_CONTAINER.md) describes its development limitations. Source development instructions are in [README.md](../README.md#build-from-source-for-development).
 
----
+## Docker Compose Installation
 
-## Apple container Deployment
-
-Apple-silicon Macs running macOS 26 can run the complete Sub2API, PostgreSQL, and Redis stack with Apple `container` 1.1.0 or newer:
+Clone the application release tag and use its matching fixed image digest. This historical tag still has an upstream image in its templates, so **include both `-f` arguments in every operation**. Current `main` control templates have corrected defaults; existing tags are not rewritten.
 
 ```bash
-./apple-container.sh init
-./apple-container.sh up
-./apple-container.sh status
-./apple-container.sh logs app -f
-```
-
-The script uses Apple named volumes, starts dependencies in order, and performs live readiness checks. The application container supervises the Sub2API process so the Web UI's update-and-restart flow can relaunch an updated binary. It does not provide host-level automatic startup; run `./apple-container.sh up` after a host reboot. Docker Compose remains the recommended production deployment path.
-
-See [APPLE_CONTAINER.md](./APPLE_CONTAINER.md) for configuration, upgrades, persistence, networking behavior, and limitations.
-
----
-
-## Docker Deployment (Recommended)
-
-### Method 1: One-Click Deployment (Recommended)
-
-Use the automated preparation script for the easiest setup:
-
-```bash
-# Download and run the preparation script
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/docker-deploy.sh | bash
-
-# Or download first, then run
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/docker-deploy.sh -o docker-deploy.sh
-chmod +x docker-deploy.sh
-./docker-deploy.sh
-```
-
-**What the script does:**
-- Downloads `docker-compose.local.yml` and `.env.example`
-- Automatically generates secure secrets (JWT_SECRET, TOTP_ENCRYPTION_KEY, POSTGRES_PASSWORD)
-- Creates `.env` file with generated secrets
-- Creates necessary data directories (data/, postgres_data/, redis_data/)
-- **Displays generated credentials** (POSTGRES_PASSWORD, JWT_SECRET, etc.)
-
-**After running the script:**
-```bash
-# Start services
-docker compose -f docker-compose.local.yml up -d
-
-# View logs
-docker compose -f docker-compose.local.yml logs -f sub2api
-
-# If admin email/password were auto-generated, find them in logs:
-docker compose -f docker-compose.local.yml logs sub2api | grep "Generated admin"
-
-# Access Web UI
-# http://localhost:8080
-```
-
-### Method 2: Manual Deployment
-
-If you prefer manual control:
-
-```bash
-# Clone repository
-git clone https://github.com/Wei-Shaw/sub2api.git
+git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
-
-# Configure environment
 cp .env.example .env
 chmod 600 .env
-nano .env  # Set POSTGRES_PASSWORD and other required variables
-
-# Generate secure secrets (recommended)
-JWT_SECRET=$(openssl rand -hex 32)
-TOTP_ENCRYPTION_KEY=$(openssl rand -hex 32)
-echo "JWT_SECRET=${JWT_SECRET}" >> .env
-echo "TOTP_ENCRYPTION_KEY=${TOTP_ENCRYPTION_KEY}" >> .env
-
-# Create data directories
+nano .env
+cat > compose.personal.yml <<'YAML'
+services:
+  sub2api:
+    image: ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530
+    platform: linux/amd64
+YAML
 mkdir -p data postgres_data redis_data
-
-# Start all services using local directory version
-docker compose -f docker-compose.local.yml up -d
-
-# View logs (check for auto-generated admin email and password)
-docker compose -f docker-compose.local.yml logs -f sub2api
-
-# Access Web UI
-# http://localhost:8080
+docker compose -f docker-compose.local.yml -f compose.personal.yml config --images
+docker compose -f docker-compose.local.yml -f compose.personal.yml pull
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d
+docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 ```
 
-### Deployment Version Comparison
+Before startup, generate separate values for `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET` and `TOTP_ENCRYPTION_KEY` with `openssl rand -hex 32`. Configure your administrator privately and set `BIND_HOST=127.0.0.1`. Restrict `SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP` and `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS` according to your needs, and configure an HTTPS reverse proxy for remote access. Keep `.env` and credentials in logs private.
 
-| Version | Data Storage | Migration | Best For |
-|---------|-------------|-----------|----------|
-| **docker-compose.local.yml** | Local directories (./data, ./postgres_data, ./redis_data) | ✅ Easy (tar entire directory) | Production, need frequent backups/migration |
-| **docker-compose.yml** | Named volumes (/var/lib/docker/volumes/) | ⚠️ Requires docker commands | Simple setup, don't need migration |
+For named volumes, replace `docker-compose.local.yml` with `docker-compose.yml` in every command and retain the image override. `docker-compose.standalone.yml` is a configuration reference for existing external PostgreSQL/Redis; a fresh installation has not been verified, so no standalone installation tutorial is provided. `docker-compose.dev.yml` is for source development, not published-image installation.
 
-**Recommendation:** Use `docker-compose.local.yml` (deployed by `docker-deploy.sh`) for easier data management and migration.
+## Updates and Rollback
+
+Back up the database and application data, and save the previous image digest, Compose files and `.env`. Select a target tag from this fork's [Releases](https://github.com/ccisnoxx/sub2api/releases), verify the source SHA, Linux amd64 image digest and migration compatibility, then update `image` in `compose.personal.yml`.
+
+```bash
+docker compose -f docker-compose.local.yml -f compose.personal.yml config --images
+docker compose -f docker-compose.local.yml -f compose.personal.yml pull sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d --no-deps sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml ps
+```
+
+Pulling the same digest does not upgrade the application. Use this image update path: current releases have no binary attachments for dashboard updates or binary installation. Database migrations are forward-only; rolling back an image does not reverse a migration. Recovery procedures and the verified recovery point are in [BASELINE.md](../BASELINE.md).
+
+Supporting files include `.env.example`, `config.example.yaml`, the [image guide](DOCKER.md) and [edge security guide](EDGE_SECURITY.md). `docker-deploy.sh` remains a `main` template preparation tool that downloads this fork's control templates; it is not a release binary installer.
+
+---
 
 ### How Auto-Setup Works
 
@@ -143,7 +73,7 @@ When using Docker Compose with `AUTO_SETUP=true`:
 
 3. If `ADMIN_EMAIL` / `ADMIN_PASSWORD` are not set, check logs for the generated admin email (login username) and password:
    ```bash
-   docker compose logs sub2api | grep "Generated admin"
+   docker compose -f docker-compose.yml -f compose.personal.yml logs sub2api | grep "Generated admin"
    ```
 
 ### Startup and Database Recovery
@@ -206,23 +136,23 @@ For **local directory version** (docker-compose.local.yml):
 
 ```bash
 # Start services
-docker compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d
 
 # Stop services
-docker compose -f docker-compose.local.yml down
+docker compose -f docker-compose.local.yml -f compose.personal.yml down
 
 # View logs
-docker compose -f docker-compose.local.yml logs -f sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml logs -f sub2api
 
 # Restart Sub2API only
-docker compose -f docker-compose.local.yml restart sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml restart sub2api
 
-# Update to latest version
-docker compose -f docker-compose.local.yml pull
-docker compose -f docker-compose.local.yml up -d
+# Update after selecting the target fork digest in compose.personal.yml
+docker compose -f docker-compose.local.yml -f compose.personal.yml pull
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d
 
 # Remove all data (caution!)
-docker compose -f docker-compose.local.yml down
+docker compose -f docker-compose.local.yml -f compose.personal.yml down
 rm -rf data/ postgres_data/ redis_data/
 ```
 
@@ -230,23 +160,23 @@ For **named volumes version** (docker-compose.yml):
 
 ```bash
 # Start services
-docker compose up -d
+docker compose -f docker-compose.yml -f compose.personal.yml up -d
 
 # Stop services
-docker compose down
+docker compose -f docker-compose.yml -f compose.personal.yml down
 
 # View logs
-docker compose logs -f sub2api
+docker compose -f docker-compose.yml -f compose.personal.yml logs -f sub2api
 
 # Restart Sub2API only
-docker compose restart sub2api
+docker compose -f docker-compose.yml -f compose.personal.yml restart sub2api
 
-# Update to latest version
-docker compose pull
-docker compose up -d
+# Update after selecting the target fork digest in compose.personal.yml
+docker compose -f docker-compose.yml -f compose.personal.yml pull
+docker compose -f docker-compose.yml -f compose.personal.yml up -d
 
 # Remove all data (caution!)
-docker compose down -v
+docker compose -f docker-compose.yml -f compose.personal.yml down -v
 ```
 
 ### Environment Variables
@@ -277,7 +207,7 @@ When using `docker-compose.local.yml`, all data is stored in local directories, 
 ```bash
 # On source server: Stop services and create archive
 cd /path/to/deployment
-docker compose -f docker-compose.local.yml down
+docker compose -f docker-compose.local.yml -f compose.personal.yml down
 cd ..
 tar czf sub2api-complete.tar.gz deployment/
 
@@ -287,7 +217,7 @@ scp sub2api-complete.tar.gz user@new-server:/path/to/destination/
 # On new server: Extract and start
 tar xzf sub2api-complete.tar.gz
 cd deployment/
-docker compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.local.yml -f compose.personal.yml up -d
 ```
 
 Your entire deployment (configuration + data) is migrated!
@@ -391,144 +321,6 @@ GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-your-client-secret
 
 ---
 
-## Binary Installation
-
-For production servers using systemd.
-
-### One-Line Installation
-
-```bash
-curl -sSL https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy/install.sh | sudo bash
-```
-
-### Manual Installation
-
-1. Download the latest release from [GitHub Releases](https://github.com/Wei-Shaw/sub2api/releases)
-2. Extract and copy the binary to `/opt/sub2api/`
-3. Copy `sub2api.service` to `/etc/systemd/system/`
-4. Run:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl enable sub2api
-   sudo systemctl start sub2api
-   ```
-5. Open the Setup Wizard in your browser to complete configuration
-
-### Commands
-
-```bash
-# Install
-sudo ./install.sh
-
-# Upgrade
-sudo ./install.sh upgrade
-
-# Uninstall
-sudo ./install.sh uninstall
-```
-
-### Service Management
-
-```bash
-# Start the service
-sudo systemctl start sub2api
-
-# Stop the service
-sudo systemctl stop sub2api
-
-# Restart the service
-sudo systemctl restart sub2api
-
-# Check status
-sudo systemctl status sub2api
-
-# View logs
-sudo journalctl -u sub2api -f
-
-# Enable auto-start on boot
-sudo systemctl enable sub2api
-```
-
-### Configuration
-
-#### Server Address and Port
-
-During installation, you will be prompted to configure the server listen address and port. These settings are stored in the systemd service file as environment variables.
-
-To change after installation:
-
-1. Edit the systemd service:
-   ```bash
-   sudo systemctl edit sub2api
-   ```
-
-2. Add or modify:
-   ```ini
-   [Service]
-   Environment=SERVER_HOST=0.0.0.0
-   Environment=SERVER_PORT=3000
-   ```
-
-3. Reload and restart:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl restart sub2api
-   ```
-
-#### Gemini OAuth Configuration
-
-If you need to use AI Studio OAuth for Gemini accounts, add the OAuth client credentials to the systemd service file:
-
-1. Edit the service file:
-   ```bash
-   sudo nano /etc/systemd/system/sub2api.service
-   ```
-
-2. Add your OAuth credentials in the `[Service]` section (after the existing `Environment=` lines):
-   ```ini
-   Environment=GEMINI_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
-   Environment=GEMINI_OAUTH_CLIENT_SECRET=GOCSPX-your-client-secret
-   ```
-
-   如需使用“内置 Gemini CLI OAuth Client”（Code Assist / Google One），还需要注入：
-   ```ini
-   Environment=GEMINI_CLI_OAUTH_CLIENT_SECRET=GOCSPX-your-built-in-secret
-   ```
-
-3. Reload and restart:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl restart sub2api
-   ```
-
-> **Note:** Code Assist OAuth does not require any configuration - it uses the built-in Gemini CLI client.
-> See the [Gemini OAuth Configuration](#gemini-oauth-configuration) section above for detailed setup instructions.
-
-#### Application Configuration
-
-The main config file is at `/etc/sub2api/config.yaml` (created by Setup Wizard).
-
-### Prerequisites
-
-- Linux server (Ubuntu 20.04+, Debian 11+, CentOS 8+, etc.)
-- PostgreSQL 14+
-- Redis 6+
-- systemd
-
-### Directory Structure
-
-```
-/opt/sub2api/
-├── sub2api              # Main binary
-├── sub2api.backup       # Backup (after upgrade)
-└── data/                # Runtime data
-
-/etc/sub2api/
-└── config.yaml          # Configuration file
-```
-
----
-
 ## Troubleshooting
 
 ### Docker
@@ -537,19 +329,19 @@ For **local directory version**:
 
 ```bash
 # Check container status
-docker compose -f docker-compose.local.yml ps
+docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 
 # View detailed logs
-docker compose -f docker-compose.local.yml logs --tail=100 sub2api
+docker compose -f docker-compose.local.yml -f compose.personal.yml logs --tail=100 sub2api
 
 # Check database connection
-docker compose -f docker-compose.local.yml exec postgres pg_isready
+docker compose -f docker-compose.local.yml -f compose.personal.yml exec postgres pg_isready
 
 # Check Redis connection
-docker compose -f docker-compose.local.yml exec redis redis-cli ping
+docker compose -f docker-compose.local.yml -f compose.personal.yml exec redis redis-cli ping
 
 # Restart all services
-docker compose -f docker-compose.local.yml restart
+docker compose -f docker-compose.local.yml -f compose.personal.yml restart
 
 # Check data directories
 ls -la data/ postgres_data/ redis_data/
@@ -559,38 +351,19 @@ For **named volumes version**:
 
 ```bash
 # Check container status
-docker compose ps
+docker compose -f docker-compose.yml -f compose.personal.yml ps
 
 # View detailed logs
-docker compose logs --tail=100 sub2api
+docker compose -f docker-compose.yml -f compose.personal.yml logs --tail=100 sub2api
 
 # Check database connection
-docker compose exec postgres pg_isready
+docker compose -f docker-compose.yml -f compose.personal.yml exec postgres pg_isready
 
 # Check Redis connection
-docker compose exec redis redis-cli ping
+docker compose -f docker-compose.yml -f compose.personal.yml exec redis redis-cli ping
 
 # Restart all services
-docker compose restart
-```
-
-### Binary Install
-
-```bash
-# Check service status
-sudo systemctl status sub2api
-
-# View recent logs
-sudo journalctl -u sub2api -n 50
-
-# Check config file
-sudo cat /etc/sub2api/config.yaml
-
-# Check PostgreSQL
-sudo systemctl status postgresql
-
-# Check Redis
-sudo systemctl status redis
+docker compose -f docker-compose.yml -f compose.personal.yml restart
 ```
 
 ### Common Issues
@@ -598,7 +371,7 @@ sudo systemctl status redis
 1. **Port already in use**: Change `SERVER_PORT` in `.env` or systemd config
 2. **Database connection failed**: Check PostgreSQL is running and credentials are correct
 3. **Redis connection failed**: Check Redis is running and password is correct
-4. **Permission denied**: Ensure proper file ownership for binary install
+4. **Permission denied**: Check ownership of the container data directories
 
 ---
 

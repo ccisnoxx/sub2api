@@ -40,3 +40,9 @@
 - [阶段报告](upstream/UPSTREAM-006.md)记录UsageTable严格/旧计时、全时长文本TPS、12追加导出列、目录、管理员诊断和服务状态设置/历史、中英文及键盘/窄屏行为。
 - 正式前端与已测试/独立复核增量逐字节一致，复用263个Vitest、最终107个受影响测试、typecheck/lint/build和实际Chromium八环境/导出文件证据。正式后端不变，实际DTO/JWT/数据库与前端合同核对；共同owner的race/PG证据来自S4。
 - 本阶段不修改backend、SQL、依赖或控制面；浏览器合成API边界保留。同固定候选PR CI + Security Scan及直接前置全通过后才勾选任务，Personal CI和来源切换留007。
+
+## 2026-10-11：UPSTREAM-007 受控 personal 基线切换
+
+- 在已验收 S1–S5 的累计新 KIN 应用树之上，用真实 merge 连接旧 personal 历史；只适配固定 main 控制面和已验收许可/安全/安装补丁，来源切换为冻结新 KIN。旧稳定 tag、迁移身份和严格祖先/Personal CI 保护保留。
+- [切换验收说明](upstream/UPSTREAM-007.md)登记源提交、真实三路径与新/旧/新应用演练入口、精确源码 Release dry-run、产物审查、普通 PR 合并及回滚边界。实际结果以固定候选 PR checks 与任务完成记录为准。
+- 维护者明确授权关闭自动正式发布；本任务保持开关 false，只执行 dry-run，不创建正式发行 tag、不部署生产。

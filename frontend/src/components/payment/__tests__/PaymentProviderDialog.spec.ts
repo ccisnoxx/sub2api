@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import PaymentProviderDialog from '@/components/payment/PaymentProviderDialog.vue'
+import Select from '@/components/common/Select.vue'
+import ToggleSwitch from '@/components/payment/ToggleSwitch.vue'
 import { STRIPE_SDK_API_VERSION } from '@/components/payment/providerConfig'
 import type { ProviderInstance } from '@/types/payment'
 
@@ -96,6 +98,29 @@ function mountDialog(options: { editing?: ProviderInstance | null } = {}) {
 }
 
 describe('PaymentProviderDialog callback URLs', () => {
+  it('excludes Airwallex from new provider choices while retaining historical configuration editing', async () => {
+    const creating = mountDialog()
+    const creationOptions = creating.findComponent(Select).props('options') as { value: string }[]
+    expect(creationOptions.some(option => option.value === 'airwallex')).toBe(false)
+    expect(creationOptions.some(option => option.value === 'alipay')).toBe(true)
+    creating.unmount()
+
+    const provider = providerFactory({ config: { clientId: 'cid_123' } })
+    const editing = mountDialog({ editing: provider })
+    ;(editing.vm as unknown as { loadProvider: (provider: ProviderInstance) => void }).loadProvider(provider)
+    await nextTick()
+    const editOptions = editing.findComponent(Select).props('options') as { value: string }[]
+    expect(editOptions.some(option => option.value === 'airwallex')).toBe(true)
+    expect(editing.findComponent(Select).props('modelValue')).toBe('airwallex')
+    expect(editing.text()).toContain('payment.airwallexDisabled')
+    expect(editing.findAllComponents(ToggleSwitch)).toHaveLength(1)
+    await editing.find('form').trigger('submit.prevent')
+    expect(editing.emitted('save')?.[0]?.[0]).toMatchObject({
+      provider_key: 'airwallex', enabled: true, supported_types: ['airwallex'], config: { clientId: 'cid_123' },
+    })
+    editing.unmount()
+  })
+
   it.each([
     ['https://notify.example.com/', 'https://return.example.com///', 'https://notify.example.com', 'https://return.example.com'],
     [' https://notify.example.com/sub/ ', ' https://return.example.com/site/ ', 'https://notify.example.com/sub', 'https://return.example.com/site'],

@@ -123,8 +123,9 @@ func (lb *DefaultLoadBalancer) queryEnabledInstances(
 	providerKey string,
 	paymentType PaymentType,
 ) ([]*dbent.PaymentProviderInstance, error) {
+	// 此查询只用于发起新支付；保留 Airwallex 历史实例及配置读取能力。
 	query := lb.db.PaymentProviderInstance.Query().
-		Where(paymentproviderinstance.Enabled(true))
+		Where(paymentproviderinstance.Enabled(true), paymentproviderinstance.ProviderKeyNEQ(TypeAirwallex))
 	if providerKey != "" {
 		query = query.Where(paymentproviderinstance.ProviderKey(providerKey))
 	}

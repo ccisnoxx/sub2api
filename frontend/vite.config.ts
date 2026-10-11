@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import checker from 'vite-plugin-checker'
 import { resolve } from 'path'
+import { thirdPartyLicenses } from './vite-plugins/thirdPartyLicenses'
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({
@@ -89,7 +90,21 @@ export default defineConfig(({ mode }) => {
       checker({
         vueTsc: true
       }),
-      injectPublicSettings(backendUrl)
+      injectPublicSettings(backendUrl),
+      thirdPartyLicenses({
+        copiedPackages: [{
+          name: '@lobehub/icons',
+          usedIn: ['src/components/common/ModelIcon.vue', 'src/components/user/monitor/ProviderIcon.vue'],
+        }],
+        supplements: [{
+          name: '@vue/devtools-api',
+          version: '6.6.4',
+          files: [{
+            path: 'licenses/vue-devtools-api-6.6.4/LICENSE',
+            source: 'https://raw.githubusercontent.com/vuejs/devtools-v6/dd2ab5d4275187cbd81952a2a3d53c335643c1f4/LICENSE',
+          }],
+        }],
+      })
     ],
   resolve: {
     alias: {
