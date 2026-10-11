@@ -20,12 +20,13 @@ Files changed:
 Tests run:
 - `go test -tags=unit ./internal/handler -run '^TestAvailableModelCatalog_DuplicateAuthorizedBindingFailsRegardlessOfOrder$' -count=1`：修复前正序/逆序均因预期500、实际200失败，确认覆盖原缺陷；修复后冲突和无关冲突定向4项通过。
 - `go test -tags=unit ./internal/service ./internal/handler -run '^(TestAvailableModelCatalog_|TestCatalogPricing_|TestCatalogRateMultipliers_|TestResolveContextPricingSchedule_|TestPlazaSchedulePreservesCacheWrite1h|TestResolve_|TestConfiguredServiceTierMultiplier|TestChannelOverridePreservesCatalogFastRatioByDefault|TestAnthropicFastUsesDefaultMultiplierWithoutCatalogTier|TestCalculateTokenCostContextTierEnablement|TestCalculateTokenCostCombinesIntervalAndFastMultiplier)' -count=1`：143项通过。
-- `DOCKER_HOST=unix:///Users/sc/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock CI=true go test -tags=integration ./internal/repository -run '^TestAvailableCatalog' -count=1 -timeout=10m`：真实集成11项通过。首次运行仅设置宿主socket导致Ryuk无法挂载；按安装版Testcontainers的Colima文档修正环境后执行，未禁用清理器或修改harness。
+- Colima 环境下设置容器内 `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock` 和 `CI=true`，执行 `go test -tags=integration ./internal/repository -run '^TestAvailableCatalog' -count=1 -timeout=10m`（宿主 socket 由 `docker context inspect colima` 确認）：真实集成11项通过。首次运行仅设置宿主socket导致Ryuk无法挂载；按安装版Testcontainers的Colima文档修正环境后执行，未禁用清理器或修改harness。
 - `corepack pnpm@9.15.9 --dir frontend install --frozen-lockfile`：通过，未改依赖或锁文件。
 - `corepack pnpm@9.15.9 --dir frontend exec vitest run src/api/__tests__/channels.catalog.spec.ts src/components/channels/__tests__/ModelCatalogCard.spec.ts src/utils/__tests__/modelCatalog.spec.ts src/views/user/__tests__/AvailableChannelsView.spec.ts`：10项通过。
 - `corepack pnpm@9.15.9 --dir frontend typecheck`：通过。
 - 等价构建步骤 `corepack pnpm@9.15.9 --dir frontend exec vitest run src/i18n/__tests__/localeKeyCompleteness.spec.ts`、`corepack pnpm@9.15.9 --dir frontend exec vue-tsc -b`、`corepack pnpm@9.15.9 --dir frontend exec vite build`：3项文案检查、编译与生产构建通过。原build内裸pnpm误走主机pnpm11并中止，分步执行完全相同脚本解决工具版本问题，未修改项目配置。
 - `make -C backend build`：通过。Wire工具依赖在临时modfile解析，生成服务DI成功；仓库go.mod/go.sum保持原样。
+- 变更范围 `corepack pnpm@9.15.9 --dir frontend exec eslint`：通过。
 - `git diff HEAD --check`：通过。
 
 Risks:
