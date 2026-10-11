@@ -399,6 +399,18 @@ const routes: RouteRecordRaw[] = [
 
   // ==================== Admin Routes ====================
   {
+    path: '/admin/service-status',
+    name: 'AdminServiceStatus',
+    component: () => import('@/views/admin/ServiceStatusView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Service Status',
+      titleKey: 'admin.serviceStatus.title',
+      descriptionKey: 'admin.serviceStatus.description'
+    }
+  },
+  {
     path: '/admin',
     redirect: '/admin/dashboard'
   },

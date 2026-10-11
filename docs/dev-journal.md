@@ -34,3 +34,9 @@
 - [阶段报告](upstream/UPSTREAM-005.md)记录真实逻辑 turn 的匿名 source、独立 observation key、首可信终态/取消冻结、配置 version/epoch、事务聚合水位、可见性与新证据恢复、容量/隐私和严格管理员 JWT。
 - 正式累计依赖保留已验收 S1/S3 和 S2 目录 owner；按维护源重新生成 Ent/Wire，无生成漂移，Billing 注入与清理顺序保留。真实 PostgreSQL 整合检查和项目 build 通过；其余固定候选结果以阶段 PR 为准。
 - SQL251–254 原名原字节、runner、依赖和控制面未改；默认关闭，不在本阶段生产开启。阶段 PR CI + Security Scan 经维护者授权，Personal CI 与来源切换留007。
+
+## 2026-10-11：UPSTREAM-006 前端、导出与管理界面迁移
+
+- [阶段报告](upstream/UPSTREAM-006.md)记录UsageTable严格/旧计时、全时长文本TPS、12追加导出列、目录、管理员诊断和服务状态设置/历史、中英文及键盘/窄屏行为。
+- 正式前端与已测试/独立复核增量逐字节一致，复用263个Vitest、最终107个受影响测试、typecheck/lint/build和实际Chromium八环境/导出文件证据。正式后端不变，实际DTO/JWT/数据库与前端合同核对；共同owner的race/PG证据来自S4。
+- 本阶段不修改backend、SQL、依赖或控制面；浏览器合成API边界保留。同固定候选PR CI + Security Scan及直接前置全通过后才勾选任务，Personal CI和来源切换留007。
