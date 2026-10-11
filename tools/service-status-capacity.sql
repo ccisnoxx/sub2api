@@ -36,7 +36,7 @@ SELECT max(scope_rows) AS peak_observed_scopes_per_minute
 FROM (SELECT count(*) AS scope_rows FROM service_status_facts_1m GROUP BY bucket_start) minutes;
 
 SELECT count(*) FILTER (WHERE xact_start < clock_timestamp()-interval '60 seconds') AS long_transactions,
-       (SELECT rolsuper OR pg_has_role(current_user,'pg_read_all_stats','MEMBER')
+       (SELECT rolsuper OR pg_has_role(current_user,'pg_read_all_stats','USAGE')
         FROM pg_roles WHERE rolname=current_user) AS activity_complete
 FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid();
 SELECT stats_reset FROM pg_stat_database WHERE datname=current_database();

@@ -70,6 +70,12 @@ func TestServiceStatusMonitorFailureAlertAndRecovery(t *testing.T) {
 	require.Equal(t, int64(0), c.last(t, "service_status_aggregate").Fields["consecutive_failures"])
 	require.Equal(t, int64(3), c.last(t, "service_status_aggregate").Fields["failures_total"])
 	require.Equal(t, int64(12), c.last(t, "service_status_cleanup").Fields["facts_deleted"])
+	s.stage = "commit"
+	m.reportAggregate(s, errors.New("connection-lost-during-commit"), nil)
+	cleanup = c.last(t, "service_status_cleanup")
+	require.Equal(t, "commit_unconfirmed", cleanup.Fields["outcome"])
+	require.Equal(t, false, cleanup.Fields["commit_confirmed"])
+	require.Equal(t, int64(0), cleanup.Fields["facts_deleted"])
 }
 
 func TestServiceStatusMonitorTimeoutCancellationAndSlowRun(t *testing.T) {

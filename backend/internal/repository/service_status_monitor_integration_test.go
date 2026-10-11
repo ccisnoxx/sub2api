@@ -4,10 +4,12 @@ package repository
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/service"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,6 +38,34 @@ func TestServiceStatusMonitorSQLCapacityAndLogicalDailyRows(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, first.TodayRows, second.TodayRows)
 	require.Equal(t, first.YesterdayRows, second.YesterdayRows)
+}
+
+func TestServiceStatusMonitorSQLUninheritedStatsRoleIsIncomplete(t *testing.T) {
+	_, _, now := statusSQLFixture(t)
+	ctx := context.Background()
+	role := "status_monitor_" + strings.ReplaceAll(uuid.NewString(), "-", "")
+	_, err := integrationDB.ExecContext(ctx, `CREATE ROLE `+role+` NOINHERIT; GRANT pg_read_all_stats TO `+role+`; GRANT SELECT ON service_status_facts_1m TO `+role)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err := integrationDB.ExecContext(ctx, `DROP OWNED BY `+role+`; DROP ROLE `+role)
+		require.NoError(t, err)
+	})
+	conn, err := integrationDB.Conn(ctx)
+	require.NoError(t, err)
+	defer func() { _ = conn.Close() }()
+	_, err = conn.ExecContext(ctx, `SET ROLE `+role)
+	require.NoError(t, err)
+	defer func() {
+		_, err := conn.ExecContext(ctx, `RESET ROLE`)
+		require.NoError(t, err)
+	}()
+	var member, usable bool
+	require.NoError(t, conn.QueryRowContext(ctx, `SELECT pg_has_role(current_user,'pg_read_all_stats','MEMBER'),pg_has_role(current_user,'pg_read_all_stats','USAGE')`).Scan(&member, &usable))
+	require.True(t, member)
+	require.False(t, usable)
+	c, err := readStatusCapacity(ctx, conn, now)
+	require.NoError(t, err)
+	require.False(t, c.ActivityComplete, "成员身份不代表会话当前有权读取其他角色的事务详情")
 }
 
 func TestServiceStatusMonitorSQLRollbackAndCleanupFailure(t *testing.T) {

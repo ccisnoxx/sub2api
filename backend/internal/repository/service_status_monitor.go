@@ -89,10 +89,14 @@ func (m *statusMonitor) reportAggregate(s statusAggregateStats, err, ctxErr erro
 		outcome := "rolled_back"
 		if committed {
 			deleted, outcome = s.deleted, "committed"
+		} else if s.stage == "commit" {
+			// COMMIT 返回错误时，连接中断可能使服务端最终结果无法确认。
+			outcome = "commit_unconfirmed"
 		}
 		fields := []zap.Field{
 			zap.Bool(logger.OpsSystemLogSkipField, true), zap.String("event", "service_status_cleanup"),
 			zap.String("outcome", outcome), zap.String("failed_stage", s.stage),
+			zap.Bool("commit_confirmed", committed),
 			zap.Int64("duration_ms", s.cleanupDuration.Milliseconds()),
 			zap.Int64("facts_deleted", deleted[0]), zap.Int64("incidents_deleted", deleted[1]),
 			zap.Int64("scope_states_deleted", deleted[2]), zap.Int64("facts_delete_attempted", s.deleted[0]),
@@ -116,7 +120,12 @@ type statusCapacity struct {
 	ActivityComplete                       bool
 }
 
-func readStatusCapacity(ctx context.Context, db *sql.DB, now time.Time) (*statusCapacity, error) {
+// 支持绑定到单个连接，在权限测试中观察当前角色，而不污染数据库连接池。
+type statusCapacityDB interface {
+	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
+}
+
+func readStatusCapacity(ctx context.Context, db statusCapacityDB, now time.Time) (*statusCapacity, error) {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
 	if err != nil {
 		return nil, err
@@ -137,7 +146,7 @@ func readStatusCapacity(ctx context.Context, db *sql.DB, now time.Time) (*status
 		return nil, err
 	}
 	err = tx.QueryRowContext(ctx, `SELECT count(*) FILTER (WHERE xact_start < clock_timestamp()-interval '60 seconds'),
- (SELECT rolsuper OR pg_has_role(current_user,'pg_read_all_stats','MEMBER') FROM pg_roles WHERE rolname=current_user)
+ (SELECT rolsuper OR pg_has_role(current_user,'pg_read_all_stats','USAGE') FROM pg_roles WHERE rolname=current_user)
  FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid()`).Scan(&c.LongTransactions, &c.ActivityComplete)
 	if err != nil {
 		return nil, err
