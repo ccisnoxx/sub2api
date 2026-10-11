@@ -23,7 +23,7 @@ spec.loader.exec_module(supply)
 SHA = 'a' * 40
 DATE = '2026-10-11T12:00:00Z'
 ENV = {'GITHUB_REPOSITORY': 'ccisnoxx/sub2api', 'GITHUB_SHA': 'b' * 40,
-       'GITHUB_RUN_ID': '1234', 'CI_RUN_ID': '5678', 'DRY_RUN': 'true'}
+       'GITHUB_RUN_ID': '1234', 'GITHUB_RUN_ATTEMPT': '1', 'CI_RUN_ID': '5678', 'DRY_RUN': 'true'}
 
 
 def sbom():
@@ -118,7 +118,10 @@ class SupplyChainTest(unittest.TestCase):
         def wrong(kind, value):
             if kind == 'statements':
                 value[0]['subject'][0]['digest']['sha256'] = 'c' * 64
-        for mutate in (missing, empty, wrong):
+        def unbound(kind, value):
+            if kind == 'statements':
+                value[0]['subject'] = []
+        for mutate in (missing, empty, wrong, unbound):
             with self.subTest(mutate=mutate.__name__):
                 layout, _ = self.layout(mutate)
                 with self.assertRaises(ValueError):
@@ -136,9 +139,9 @@ class SupplyChainTest(unittest.TestCase):
         archive = self.directory / 'sub2api_9.8.7_linux_amd64.tar.gz'
         archive.write_bytes(b'actual archive')
         evidence = self.directory / 'binaries'
-        document = evidence / (archive.name + '.spdx.json')
+        document = evidence / (supply.binary_prefix(archive) + '.spdx.json')
         supply.save(document, sbom())
-        proof = evidence / (archive.name + '.provenance.json')
+        proof = evidence / (supply.binary_prefix(archive) + '.provenance.json')
         supply.save(proof, supply.provenance([supply.subject(archive), supply.subject(document)], SHA, '9.8.7', target, []))
         args = argparse.Namespace(input=str(self.directory), evidence=str(evidence), sha=SHA, version='9.8.7', simple=True)
         return args, archive, proof
@@ -173,7 +176,7 @@ class SupplyChainTest(unittest.TestCase):
         supply.image(args)
         final = argparse.Namespace(input=str(dest.parent), sha=SHA, version='9.8.7', simple=True)
         supply.finalize(final)
-        summary = json.loads((dest.parent / 'summary/release-summary.json').read_text())
+        summary = json.loads((dest.parent / ('summary/' + supply.run_prefix() + '.release-summary.json')).read_text())
         self.assertTrue(summary['dry_run'])
         self.assertEqual(summary['source_sha'], SHA)
         self.assertEqual(summary['images'][0]['digest'], digest)
@@ -184,6 +187,46 @@ class SupplyChainTest(unittest.TestCase):
             supply.image(args)
             with self.assertRaisesRegex(ValueError, 'CI run'):
                 supply.finalize(final)
+
+    def test_rerun_proof_assets_never_conflict_with_prior_partial_uploads(self):
+        layout, _ = self.layout()
+        evidence = self.directory / 'rerun-evidence'
+        prior_names = set()
+        for attempt in ('1', '2'):
+            dest = evidence / 'image-amd64-built'
+            with patch.dict(os.environ, {'GITHUB_RUN_ATTEMPT': attempt}):
+                supply.image(argparse.Namespace(layout=str(layout), sha=SHA, version='9.8.7', platforms=['linux/amd64'], created=DATE, output=str(dest)))
+                names = {p.name for p in dest.iterdir() if supply.run_prefix() in p.name}
+                self.assertTrue(names)
+                self.assertFalse(names & prior_names)
+                prior_names.update(names)
+                document = json.loads(next(p for p in dest.iterdir() if supply.run_prefix() in p.name and p.name.endswith('.spdx.json')).read_text())
+                supply.spdx(document)
+                proof = json.loads(next(p for p in dest.iterdir() if supply.run_prefix() in p.name and p.name.endswith('.spdx-attestation.json')).read_text())
+                self.assertEqual(proof['predicate'], document)
+
+    def test_failed_release_job_can_consume_prior_binary_attempt_without_asset_collision(self):
+        args, archive, proof = self.binary_evidence()
+        with patch.dict(os.environ, {'GITHUB_RUN_ATTEMPT': '2'}):
+            supply.verify_binaries(args)
+            layout, _ = self.layout()
+            evidence = Path(args.evidence).parent / 'release-evidence'
+            (evidence / 'binaries').mkdir(parents=True)
+            for path in Path(args.evidence).iterdir():
+                (evidence / 'binaries' / path.name).write_bytes(path.read_bytes())
+            output = evidence / 'image-amd64-built'
+            supply.image(argparse.Namespace(layout=str(layout), sha=SHA, version='9.8.7', platforms=['linux/amd64'], created=DATE, output=str(output)))
+            supply.finalize(argparse.Namespace(input=str(evidence), sha=SHA, version='9.8.7', simple=True))
+            publishing = json.loads((evidence / 'publish-assets.json').read_text())
+            producer_files = [a for a in publishing if '/binaries/' in a['glob']]
+            self.assertEqual(len(producer_files), 2)
+            for asset in producer_files:
+                self.assertNotEqual(asset['name_template'], Path(asset['glob']).name)
+                self.assertTrue(asset['name_template'].startswith('run-1234-attempt-2--'))
+            summary = json.loads(next((evidence / 'summary').glob('*.json')).read_text())
+            mapping = {asset['logical_name']: asset for asset in summary['assets']}
+            self.assertEqual(mapping[proof.name]['sha256'], supply.sha256(proof))
+            self.assertEqual(json.loads(proof.read_text())['predicate']['buildDefinition']['internalParameters']['run_attempt'], '1')
 
     def test_workflow_preserves_permissions_and_generates_dry_run_materials(self):
         workflow = yaml.safe_load((ROOT / '.github/workflows/release.yml').read_text())

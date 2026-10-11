@@ -71,6 +71,9 @@ class ReleaseMatrixTest(unittest.TestCase):
         self.assertIn('{{ .Env.RELEASE_DATE }}', '\n'.join(leaf['builds'][0]['ldflags']))
 
     def test_publication_config_has_no_compilation_or_docker_work(self):
+        Path('release-evidence').mkdir()
+        evidence = [{'glob': 'release-evidence/example.json', 'name_template': 'run-1234-attempt-1-example.json'}]
+        Path('release-evidence/publish-assets.json').write_text(json.dumps(evidence))
         for simple in (False, True):
             with self.subTest(simple=simple):
                 original = release.config(simple)
@@ -81,10 +84,11 @@ class ReleaseMatrixTest(unittest.TestCase):
                 self.assertFalse(data['dockers'])
                 self.assertEqual(data['release']['header'], original['release']['header'])
                 self.assertEqual(data['release']['footer'], original['release']['footer'])
+                self.assertEqual(data['release']['mode'], 'append')
                 if simple:
                     self.assertTrue(data['checksum']['disable'])
                     self.assertFalse(data['release']['skip_upload'])
-                    self.assertIn({'glob': 'release-evidence/*/*.json'}, data['release']['extra_files'])
+                    self.assertEqual(data['release']['extra_files'], evidence)
                 else:
                     self.assertEqual(data['checksum']['extra_files'], data['release']['extra_files'])
 
@@ -193,6 +197,7 @@ else:
         self.assertIn('linux/arm64', log)
         self.assertIn('--attest type=sbom,generator=', log)
         self.assertIn('--attest type=provenance,mode=max', log)
+        self.assertIn('--tag ghcr.io/exampleowner/sub2api:9.8.7-klno.3-tps.1-amd64', log)
         self.assertNotIn('oras ', log)
         self.assertNotIn('--push', log)
         self.assertNotIn('--load', log)

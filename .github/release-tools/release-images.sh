@@ -23,9 +23,11 @@ verify_image() {
 }
 for arch in "${arches[@]}"; do
   oci="$RUNNER_TEMP/sub2api-$arch.oci.tar"
+  image_name="${registries[0]}:$RELEASE_VERSION-$arch"
+  if [[ ${SIMPLE_RELEASE:-false} == true ]]; then image_name="${registries[0]}:$RELEASE_VERSION"; fi
   if [[ $personal != true || ${REUSE_IMAGE:-false} != true ]]; then
     # OCI 导出保留证明；docker --load 会丢失默认 image store 不支持的证明。
-    docker buildx build --platform "linux/$arch" --file ".release-context/$arch/Dockerfile" \
+    docker buildx build --tag "$image_name" --platform "linux/$arch" --file ".release-context/$arch/Dockerfile" \
       --label "org.opencontainers.image.version=$RELEASE_VERSION" \
       --label "org.opencontainers.image.revision=$RELEASE_SHA" \
       --label "org.opencontainers.image.source=https://github.com/$GITHUB_REPOSITORY" \

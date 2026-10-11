@@ -79,6 +79,17 @@ def identity():
     return repo, workflow_sha, run
 
 
+def run_prefix():
+    attempt = os.environ['GITHUB_RUN_ATTEMPT']
+    if not attempt.isdigit():
+        raise ValueError('Release run attempt 无效')
+    return f'run-{identity()[2]}-attempt-{attempt}'
+
+
+def binary_prefix(archive):
+    return archive.name + '.' + run_prefix()
+
+
 def provenance(subjects, sha, version, target, materials):
     repo, workflow_sha, run = identity()
     return {
@@ -89,7 +100,7 @@ def provenance(subjects, sha, version, target, materials):
                 'externalParameters': {'source': f'https://github.com/{repo}', 'source_sha': sha,
                                        'version': version, 'target': target},
                 'internalParameters': {'workflow_sha': workflow_sha, 'ci_run_id': os.environ.get('CI_RUN_ID') or None,
-                                       'dry_run': os.environ.get('DRY_RUN') == 'true'},
+                                       'dry_run': os.environ.get('DRY_RUN') == 'true', 'run_attempt': os.environ['GITHUB_RUN_ATTEMPT']},
                 'resolvedDependencies': materials,
             },
             'runDetails': {
@@ -124,7 +135,7 @@ def binary(args):
     installed('syft')
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
-    sbom = output / (archive.name + '.spdx.json')
+    sbom = output / (binary_prefix(archive) + '.spdx.json')
     # 扫描实际归档里的 Go 构建信息，并登记前端锁文件中的完整构建依赖。
     # 前端 lock 清单含开发依赖；不声称所有登记项均进入运行时 bundle。
     with tempfile.TemporaryDirectory() as directory:
@@ -153,7 +164,7 @@ def binary(args):
                  {'uri': 'binary-toolchain.json', 'digest': {'sha256': sha256(Path(args.toolchain))},
                   'annotations': {'actual': {**report['actual'], 'syft': json.loads(POLICY.read_text())['syft']['version']}, 'inputs_sha256': report['inputs_sha256']}},
                  {'uri': POLICY.name, 'digest': {'sha256': sha256(POLICY)}}]
-    save(output / (archive.name + '.provenance.json'), provenance([subject(archive), subject(sbom)], args.sha, args.version, target, materials))
+    save(output / (binary_prefix(archive) + '.provenance.json'), provenance([subject(archive), subject(sbom)], args.sha, args.version, target, materials))
 
 
 def verify_binaries(args):
@@ -161,17 +172,25 @@ def verify_binaries(args):
     expected = set()
     for target in targets(args.simple):
         archive = Path(args.input) / archive_name(args.version, target)
-        sbom = evidence / (archive.name + '.spdx.json')
-        proof = evidence / (archive.name + '.provenance.json')
+        proofs = list(evidence.glob(archive.name + '.run-' + identity()[2] + '-attempt-*.provenance.json'))
+        if len(proofs) != 1:
+            raise ValueError('每个目标必须含当前 run 的唯一二进制 provenance')
+        proof = proofs[0]
+        sbom = evidence / (proof.name.removesuffix('.provenance.json') + '.spdx.json')
         expected.update((sbom.name, proof.name))
         spdx(json.loads(sbom.read_text()))
         statement = json.loads(proof.read_text())
         definition = statement['predicate']['buildDefinition']
+        producer_attempt = definition['internalParameters']['run_attempt']
+        if not producer_attempt.isdigit() or not 1 <= int(producer_attempt) <= int(os.environ['GITHUB_RUN_ATTEMPT']):
+            raise ValueError('二进制生产 attempt 无效')
         if (statement['_type'] != STATEMENT or statement['predicateType'] != SLSA
                 or statement['subject'] != [subject(archive), subject(sbom)]
                 or definition['externalParameters'] != {'source': f'https://github.com/{identity()[0]}',
                     'source_sha': args.sha, 'version': args.version, 'target': target}
-                or definition['internalParameters']['workflow_sha'] != identity()[1]
+                or definition['buildType'] != f'https://github.com/{identity()[0]}/.github/workflows/release.yml@{identity()[1]}'
+                or definition['internalParameters'] != {'workflow_sha': identity()[1], 'ci_run_id': os.environ.get('CI_RUN_ID') or None,
+                    'dry_run': os.environ.get('DRY_RUN') == 'true', 'run_attempt': producer_attempt}
                 or statement['predicate']['runDetails']['metadata']['invocationId'] != f'https://github.com/{identity()[0]}/actions/runs/{identity()[2]}'):
             raise ValueError('二进制 SBOM/provenance 绑定不匹配')
     if {p.name for p in evidence.iterdir()} != expected:
@@ -263,15 +282,19 @@ def image(args):
               'workflow_sha': identity()[1], 'release_run': f'https://github.com/{identity()[0]}/actions/runs/{identity()[2]}'}
     subjects = [{'name': 'container-image', 'digest': {'sha256': digest.removeprefix('sha256:')}}]
     for name, leaf_digest in platforms.items():
-        prefix = dest.name + '-' + name.replace('/', '-')
+        prefix = dest.name + '-' + name.replace('/', '-') + '.' + run_prefix()
         for kind, statement in attestations[leaf_digest].items():
             suffix = 'spdx' if kind == SPDX else 'buildkit-provenance'
             output = dest / f'{prefix}.{suffix}.json'
-            save(output, statement)
+            save(output, statement['predicate'] if kind == SPDX else statement)
             subjects.append(subject(output))
+            if kind == SPDX:
+                attestation = dest / (prefix + '.spdx-attestation.json')
+                save(attestation, statement)
+                subjects.append(subject(attestation))
     materials = [{'uri': f'git+https://github.com/{identity()[0]}', 'digest': {'gitCommit': args.sha}}]
-    save(dest / (dest.name + '.pipeline-provenance.json'), provenance(subjects, args.sha, args.version, sorted(platforms), materials))
-    save(dest / (dest.name + '.verification.json'), report)
+    save(dest / (dest.name + '.' + run_prefix() + '.pipeline-provenance.json'), provenance(subjects, args.sha, args.version, sorted(platforms), materials))
+    save(dest / (dest.name + '.' + run_prefix() + '.verification.json'), report)
     print(digest)
 
 
@@ -298,9 +321,16 @@ def finalize(args):
                'release_run': f'https://github.com/{repo}/actions/runs/{run}',
                'dry_run': os.environ.get('DRY_RUN') == 'true', 'images': selected,
                'signature': 'unsigned; verify digest and trusted Actions artifact transport'}
-    save(directory / 'summary/release-summary.json', summary)
+    # 重跑 failed jobs 时成功 binary job 的证明仍属于原生产 attempt。
+    # 公开运输可使用本次 attempt 的新文件名；summary 登记逻辑名、公开名和相同内容哈希。
+    def public_name(path):
+        return path.name if run_prefix() in path.name else run_prefix() + '--' + path.name
+    summary['assets'] = [{'logical_name': p.name, 'public_name': public_name(p), 'sha256': sha256(p)} for p in files]
+    save(directory / ('summary/' + run_prefix() + '.release-summary.json'), summary)
     files = sorted(directory.glob('*/*.json'))
-    (directory / 'evidence-checksums.txt').write_text(''.join(f'{sha256(path)}  {path.name}\n' for path in files))
+    checksums = directory / (run_prefix() + '-evidence-checksums.txt')
+    checksums.write_text(''.join(f'{sha256(path)}  {public_name(path)}\n' for path in files))
+    save(directory / 'publish-assets.json', [{'glob': str(p), 'name_template': public_name(p)} for p in [*files, checksums]])
 
 
 def main():

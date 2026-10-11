@@ -451,8 +451,11 @@ jobs:
             TAG_MESSAGE+=$'\n'
             TAG_MESSAGE+="CI run: $CI_RUN_ID; Release run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           fi
-          TAG_MESSAGE+=$'\n\n构建证明与 SBOM：\n'
-          TAG_MESSAGE+=$(cat release-evidence/summary/release-summary.json)
+          TAG_MESSAGE+=$'\n\n本次完整构建证明与 SBOM：\n'
+          TAG_MESSAGE+="材料前缀：run-$GITHUB_RUN_ID-attempt-$GITHUB_RUN_ATTEMPT"
+          TAG_MESSAGE+=$'\n'
+
+          TAG_MESSAGE+=$(cat release-evidence/summary/*.release-summary.json)
           DELIMITER="TAG_MESSAGE_$(openssl rand -hex 16)"
           {
             echo "message<<$DELIMITER"
