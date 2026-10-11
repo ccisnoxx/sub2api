@@ -83,3 +83,16 @@ test('拒绝 TypeScript import equals 的 XLSX 解析路径', async () => {
     assert.ok(result.messages.some(message => message.ruleId === 'xlsx-policy/write-only'))
   }
 })
+
+test('拒绝 Vite query/hash 和相对 XLSX 发行包导入', async () => {
+  for (const code of [
+    "import { read } from 'xlsx?audit'; read(await file.arrayBuffer())",
+    "const sheet = await import('xlsx?audit'); sheet.read(await file.arrayBuffer())",
+    "import { read } from 'xlsx#audit'; read(await file.arrayBuffer())",
+    "import sheet from '../node_modules/xlsx/dist/xlsx.full.min.js'; sheet.read(await file.arrayBuffer())",
+    "const sheet = await import('../node_modules/xlsx'); sheet.read(await file.arrayBuffer())",
+  ]) {
+    const [result] = await checker.lintText(code, { filePath: 'src/Upload.js' })
+    assert.ok(result.messages.some(message => message.ruleId === 'xlsx-policy/write-only'), code)
+  }
+})

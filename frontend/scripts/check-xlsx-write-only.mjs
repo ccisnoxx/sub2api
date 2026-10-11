@@ -19,7 +19,12 @@ export const writeOnlyRule = {
   create(context) {
     const bindings = []
     const report = node => context.report({ node, messageId: 'forbidden' })
-    const isXlsx = source => typeof source?.value === 'string' && /(^xlsx(?:\/|$)|sheetjs|xlsx\.(?:mjs|js))/.test(source.value)
+    const isXlsx = source => {
+      if (typeof source?.value !== 'string') return false
+      // Vite 的 query/hash 不改变包归属；目录和发行 bundle 使用同一个判断。
+      const modulePath = source.value.split(/[?#]/, 1)[0]
+      return /(^|\/)xlsx(?:[\/.@]|$)|sheetjs/.test(modulePath)
+    }
     const rejectImport = node => { if (isXlsx(node.source)) report(node) }
     const scriptVisitor = {
       ImportDeclaration: rejectImport,
