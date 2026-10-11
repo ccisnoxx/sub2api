@@ -121,6 +121,7 @@ func ApplyLegacyRequestFields(requestType RequestType, fallbackStream bool, fall
 }
 
 type UsageLog struct {
+	UsageTiming
 	ID        int64
 	UserID    int64
 	APIKeyID  int64
@@ -296,4 +297,16 @@ func (u *UsageLog) SyncRequestTypeAndLegacyFields() {
 	requestType := u.EffectiveRequestType()
 	u.RequestType = requestType
 	u.Stream, u.OpenAIWSMode = ApplyLegacyRequestFields(requestType, u.Stream, u.OpenAIWSMode)
+}
+
+// CanonicalUsageTiming 保持未接入采集器的零值记录为未知，不推断完成状态或用量来源。
+func (u *UsageLog) CanonicalUsageTiming() UsageTiming {
+	timing := u.UsageTiming
+	if timing.CompletionStatus == "" {
+		timing.CompletionStatus = CompletionStatusUnknown
+	}
+	if timing.UsageSource == "" {
+		timing.UsageSource = UsageSourceUnknown
+	}
+	return timing
 }

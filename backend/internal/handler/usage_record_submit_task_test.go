@@ -219,3 +219,41 @@ func TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask_SearchCountUsesMandator
 
 	require.True(t, called.Load(), "search surcharge usage task must be mandatory when async submit is dropped")
 }
+
+func TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask_TimingSnapshot(t *testing.T) {
+	pool := newUsageRecordTestPool(t)
+	h := &OpenAIGatewayHandler{usageRecordWorkerPool: pool}
+	first, last, output, audio := 7, 17, 3, 2
+	kind, complete := "audio", false
+	result := &service.OpenAIForwardResult{UsageTiming: service.UsageTiming{
+		TimingVersion: 1, StrictFirstTokenMs: &first, LastTokenMs: &last,
+		FirstOutputMs: &output, FirstOutputKind: &kind, AudioOutputTokens: &audio,
+		CompletionStatus: service.CompletionStatusClientDisconnected, IsComplete: &complete,
+		UsageSource: service.UsageSourceUpstreamFinal,
+	}}
+	queued, release := make(chan struct{}), make(chan struct{})
+	pool.Submit(func(context.Context) { close(queued); <-release })
+	<-queued
+	observed := make(chan service.UsageTiming, 1)
+	h.submitOpenAIUsageRecordTask(context.Background(), result, func(context.Context) {
+		observed <- result.UsageTiming.Clone()
+	})
+	// 入队后生产者的旧指针与 worker 同时运行；异步 owner 只读取深复制快照。
+	close(release)
+	for i := 0; i < 1000; i++ {
+		first, last, output, audio = i, i, i, i
+		kind, complete = "text", true
+	}
+	select {
+	case got := <-observed:
+		require.Equal(t, 7, *got.StrictFirstTokenMs)
+		require.Equal(t, 17, *got.LastTokenMs)
+		require.Equal(t, 3, *got.FirstOutputMs)
+		require.Equal(t, 2, *got.AudioOutputTokens)
+		require.Equal(t, "audio", *got.FirstOutputKind)
+		require.False(t, *got.IsComplete)
+		require.Equal(t, service.CompletionStatusClientDisconnected, got.CompletionStatus)
+	case <-time.After(time.Second):
+		t.Fatal("计时快照任务未执行")
+	}
+}
