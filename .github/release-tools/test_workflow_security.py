@@ -83,7 +83,9 @@ def policy_errors(name, workflow):
                 paths = settings.get("path", "").splitlines()
                 if policy is None or ([p for p in paths if not p.startswith("!")] != policy[1] or settings.get("retention-days") != str(policy[0])):
                     errors.append(f"{job_id}：artifact 路径或保留期未获授权")
-                if not EXCLUSIONS.issubset(paths) or settings.get("include-hidden-files") != "false":
+                # 相对 glob 以 workspace 为根，不能排除 runner.temp 中的文件。
+                exclusions = {p.replace("!**/", "!${{ runner.temp }}/**/") for p in EXCLUSIONS} if policy and policy[1][0].startswith("${{ runner.temp }}/") else EXCLUSIONS
+                if not exclusions.issubset(paths) or settings.get("include-hidden-files") != "false":
                     errors.append(f"{job_id}：artifact 缺少敏感文件排除")
     if name == "release.yml":
         if workflow["concurrency"] != {"group": RELEASE_GROUP, "cancel-in-progress": "false"}:
@@ -160,6 +162,12 @@ class WorkflowSecurityTests(unittest.TestCase):
         flow = load("release.yml")
         flow["on"]["pull_request"] = {}
         self.assertTrue(any("只能" in e for e in policy_errors("release.yml", flow)))
+
+    def test_relative_exclusions_cannot_protect_runner_temp_artifacts(self):
+        flow = load("release.yml")
+        step = next(s for s in flow["jobs"]["prepare"]["steps"] if s.get("with", {}).get("name") == "release-tooling")
+        step["with"]["path"] = step["with"]["path"].replace("!${{ runner.temp }}/**/", "!**/")
+        self.assertIn("prepare：artifact 缺少敏感文件排除", policy_errors("release.yml", flow))
 
 
 if __name__ == "__main__":

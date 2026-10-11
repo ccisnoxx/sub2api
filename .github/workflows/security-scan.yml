@@ -75,17 +75,17 @@ jobs:
           name: security-toolchain
           path: |
             ${{ runner.temp }}/security-toolchain.json
-            !**/.env
-            !**/.env.*
-            !**/*.env
-            !**/*.sql
-            !**/*.dump
-            !**/*.backup
-            !**/*.bak
-            !**/*.db
-            !**/*.sqlite*
-            !**/*.log
-            !**/.git/**
+            !${{ runner.temp }}/**/.env
+            !${{ runner.temp }}/**/.env.*
+            !${{ runner.temp }}/**/*.env
+            !${{ runner.temp }}/**/*.sql
+            !${{ runner.temp }}/**/*.dump
+            !${{ runner.temp }}/**/*.backup
+            !${{ runner.temp }}/**/*.bak
+            !${{ runner.temp }}/**/*.db
+            !${{ runner.temp }}/**/*.sqlite*
+            !${{ runner.temp }}/**/*.log
+            !${{ runner.temp }}/**/.git/**
           if-no-files-found: error
           include-hidden-files: false
           retention-days: 30
