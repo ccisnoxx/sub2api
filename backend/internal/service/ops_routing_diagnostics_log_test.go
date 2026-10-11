@@ -166,6 +166,25 @@ func TestOpsRoutingDiagnosticsHistoryAndListProjection(t *testing.T) {
 	require.Contains(t, normalized, "real failure")
 }
 
+func TestOpsRoutingDiagnosticsParserPreservesFailureWhenDiagnosticTypeIsInvalid(t *testing.T) {
+	events, err := ParseOpsUpstreamErrors(" null ")
+	require.NoError(t, err)
+	require.Nil(t, events, "历史整体 null 保持原解析合同")
+	for _, raw := range []string{
+		`{"schema_version":1,"turn":null,"selection_attempt":1.5,"selection_layer":null,"selection_reason":null,"candidate_pool":null,"filtered_candidates":null,"filter_reasons":null,"filter_coverage":"unobserved"}`,
+		`"invalid-diagnostic"`,
+		`[1,2]`,
+	} {
+		events, err := ParseOpsUpstreamErrors(`[{"account_id":42,"upstream_status_code":502,"message":"真实上游失败","routing_diagnostics":` + raw + `}]`)
+		require.NoError(t, err, "非法诊断不能丢弃真实错误事件")
+		require.Len(t, events, 1)
+		require.EqualValues(t, 42, events[0].AccountID)
+		require.Equal(t, 502, events[0].UpstreamStatusCode)
+		require.Equal(t, "真实上游失败", events[0].Message)
+		require.Nil(t, events[0].RoutingDiagnostics)
+	}
+}
+
 func TestOpsRoutingDiagnosticsTurnOwnerCannotReuseConnectionBinding(t *testing.T) {
 	c, _ := gin.CreateTestContext(httptest.NewRecorder())
 	c.Request = httptest.NewRequest("GET", "/v1/responses", nil)

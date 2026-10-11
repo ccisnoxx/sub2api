@@ -3,6 +3,10 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"github.com/Wei-Shaw/sub2api/internal/config"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -295,4 +299,72 @@ func TestServiceStatusSourceUsageFailureBeforePersistenceIsObservable(t *testing
 	})
 	require.Error(t, err)
 	require.True(t, ServiceStatusSourceErrorSince(before))
+}
+
+func TestServiceStatusSourceHTTPBridgeUsesActualUpstreamFailure(t *testing.T) {
+	for _, tc := range []struct {
+		name, reason string
+		transport    bool
+	}{
+		{name: "transport", reason: "service_transport", transport: true},
+		{name: "http_500", reason: "provider_5xx"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := WithServiceStatusRequest(context.Background(), 1)
+			upstream := &httpUpstreamRecorder{}
+			if tc.transport {
+				upstream.err = io.EOF
+			} else {
+				upstream.resp = &http.Response{StatusCode: 500, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"error":{"code":"server_error","message":"failure"}}`))}
+			}
+			svc := &OpenAIGatewayService{cfg: &config.Config{}, httpUpstream: upstream}
+			c, _ := gin.CreateTestContext(httptest.NewRecorder())
+			c.Request = httptest.NewRequest(http.MethodGet, "/v1/responses", nil).WithContext(ctx)
+			payload := []byte(`{"type":"response.create","model":"gpt-5","input":"hi"}`)
+			result, err := svc.proxyOpenAIWSHTTPBridgeTurn(ctx, c, &Account{ID: 9, Platform: PlatformOpenAI, Type: AccountTypeAPIKey, Concurrency: 1}, "sk-test", payload, len(payload), "gpt-5", "", "", "", "", 1, func([]byte) error { return nil })
+			require.Error(t, err)
+			require.Nil(t, result, "失败不能制造用量结果")
+			fact := ServiceStatusFinalObservation(ctx, "")
+			require.Equal(t, CompletionStatusUpstreamError, *fact.TerminalKind)
+			require.Equal(t, tc.reason, *fact.ReasonCode, "只采纳实际上游请求 owner 的事实")
+		})
+	}
+}
+
+func TestServiceStatusSourceHTTPBridgeRepairUsesRecoveredTerminal(t *testing.T) {
+	ctx := WithServiceStatusRequest(context.Background(), 2)
+	upstream := &httpUpstreamSequenceRecorder{responses: []*http.Response{
+		{StatusCode: 400, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"error":{"code":"invalid_parameter","param":"truncation","message":"Unsupported parameter: truncation"}}`))},
+		{StatusCode: 200, Header: http.Header{"Content-Type": []string{"text/event-stream"}}, Body: io.NopCloser(strings.NewReader("data: {\"type\":\"response.completed\",\"response\":{\"id\":\"resp_retry\",\"status\":\"completed\",\"usage\":{\"input_tokens\":0,\"output_tokens\":0}}}\n\n"))},
+	}}
+	svc := &OpenAIGatewayService{cfg: &config.Config{}, httpUpstream: upstream}
+	c, _ := gin.CreateTestContext(httptest.NewRecorder())
+	c.Request = httptest.NewRequest(http.MethodGet, "/v1/responses", nil).WithContext(ctx)
+	payload := []byte(`{"type":"response.create","model":"gpt-5","input":"hi","truncation":"auto"}`)
+	result, err := svc.proxyOpenAIWSHTTPBridgeTurn(ctx, c, &Account{ID: 9, Platform: PlatformOpenAI, Type: AccountTypeAPIKey, Concurrency: 1}, "sk-test", payload, len(payload), "gpt-5", "", "", "", "", 2, func([]byte) error { return nil })
+	require.NoError(t, err)
+	require.Equal(t, 2, upstream.callCount)
+	require.Equal(t, CompletionStatusCompleted, *result.UsageTiming.ServiceStatusObservation.TerminalKind)
+	CommitServiceStatusObservation(ctx, result.UsageTiming.ServiceStatusObservation)
+	require.Equal(t, result.UsageTiming.ServiceStatusObservation, ServiceStatusFinalObservation(ctx, ""), "已恢复终态不能保留修复前失败")
+}
+
+func TestServiceStatusSourcePassthroughInterleavedResponseIDs(t *testing.T) {
+	start := time.Now().UTC()
+	firstCtx := WithServiceStatusRequest(context.Background(), 1)
+	secondCtx := EnsureServiceStatusTurn(firstCtx, 2)
+	r := &responsesWSTurnTimings{ctx: firstCtx, account: &Account{Platform: PlatformOpenAI}, source: serviceStatusOwner(firstCtx)}
+	defer r.close()
+	r.observe(openaiwsv2.RelayObservedEvent{ResponseID: "first", StartedAt: start, ObservedAt: start.Add(time.Millisecond), Payload: []byte(`{"type":"response.output_text.delta","delta":"first"}`)})
+	r.bindSource(secondCtx)
+	r.observe(openaiwsv2.RelayObservedEvent{ResponseID: "second", StartedAt: start.Add(time.Second), ObservedAt: start.Add(time.Second + time.Millisecond), Payload: []byte(`{"type":"response.output_text.delta","delta":"second"}`)})
+	r.observe(openaiwsv2.RelayObservedEvent{ResponseID: "first", StartedAt: start, ObservedAt: start.Add(2 * time.Second), Payload: []byte(`{"type":"response.completed","response":{"status":"completed"}}`)})
+	r.disconnect()
+	first, second := r.take("first"), r.take("second")
+	require.Equal(t, 1, *first.ServiceStatusObservation.LogicalTurn)
+	require.Equal(t, 2, *second.ServiceStatusObservation.LogicalTurn)
+	require.NotEqual(t, first.ServiceStatusObservation.ObservationKey, second.ServiceStatusObservation.ObservationKey)
+	require.Equal(t, CompletionStatusCompleted, *first.ServiceStatusObservation.TerminalKind)
+	require.Equal(t, CompletionStatusClientDisconnected, *second.ServiceStatusObservation.TerminalKind)
+	require.Equal(t, start.Add(2*time.Second), first.ServiceStatusObservation.ObservedAt)
 }

@@ -486,3 +486,49 @@ func TestServiceStatusRepositoryVisibilityLockAndBaseline(t *testing.T) {
 		require.False(t, baseline.Before(releasedAt), "新基线必须在可见性事务获锁后形成")
 	})
 }
+
+func TestServiceStatusRepositoryGroupPlatformOwnerAndNewConcretePlatforms(t *testing.T) {
+	r, ordinary, now := statusSQLFixture(t)
+	ctx := context.Background()
+	var composite int64
+	require.NoError(t, integrationDB.QueryRowContext(ctx, `INSERT INTO groups(name,platform) VALUES($1,'composite') RETURNING id`, uuid.NewString()).Scan(&composite))
+	t.Cleanup(func() {
+		_, err := integrationDB.ExecContext(ctx, `DELETE FROM ops_error_logs WHERE group_id=$1`, composite)
+		require.NoError(t, err)
+		_, err = integrationDB.ExecContext(ctx, `DELETE FROM groups WHERE id=$1`, composite)
+		require.NoError(t, err)
+	})
+	epochs, err := json.Marshal(map[string]time.Time{"openai": now.Add(-3 * time.Hour), "command_code": now.Add(-3 * time.Hour), "cline": now.Add(-3 * time.Hour)})
+	require.NoError(t, err)
+	_, err = integrationDB.ExecContext(ctx, `UPDATE service_status_config SET enabled=true,platforms='["openai","command_code","cline"]',observation_starts=$1`, string(epochs))
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		accountPlatform, factPlatform string
+		group                         int64
+	}{
+		{"anthropic", "openai", ordinary},
+		{"command_code", "command_code", composite},
+		{"cline", "cline", composite},
+	} {
+		user, key, account := committedUsageLogTestResources(t, tc.accountPlatform)
+		at := now.Add(-time.Minute + time.Second)
+		metadata := statusRow(uuid.NewString(), "completed", "", at).metadata
+		// 长请求的日志创建时点在额外关联区间，终态在最近完整分钟。
+		_, err = integrationDB.ExecContext(ctx, `INSERT INTO usage_logs(user_id,api_key_id,account_id,group_id,request_id,model,requested_model,completion_status,is_complete,created_at,service_status_observation) VALUES($1,$2,$3,$4,$5,'gpt','gpt','completed',true,$6,$7)`, user.ID, key.ID, account.ID, tc.group, uuid.NewString(), now.Add(-80*time.Minute), string(metadata))
+		require.NoError(t, err)
+	}
+	metadata := statusRow(uuid.NewString(), "upstream_error", "provider_5xx", now.Add(-time.Minute+2*time.Second)).metadata
+	_, err = integrationDB.ExecContext(ctx, `INSERT INTO ops_error_logs(group_id,platform,model,requested_model,error_phase,error_type,created_at,service_status_observation) VALUES($1,'openai','missing-account','missing-account','upstream','test',$2,$3)`, composite, now.Add(-time.Minute+2*time.Second), string(metadata))
+	require.NoError(t, err)
+	require.NoError(t, r.Aggregate(ctx, now))
+	for _, platform := range []string{"openai", "command_code", "cline"} {
+		var success int
+		require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT SUM(success) FROM service_status_facts_1m WHERE platform=$1`, platform).Scan(&success))
+		require.Equal(t, 1, success, platform)
+	}
+	var unknown int
+	var gap string
+	require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT unknown,gap_code FROM service_status_facts_1m WHERE platform='' AND group_id=$1`, composite).Scan(&unknown, &gap))
+	require.Equal(t, 1, unknown)
+	require.Equal(t, "scope_unavailable", gap, "复合组缺实际账号不能借 Ops 平台猜测归属")
+}

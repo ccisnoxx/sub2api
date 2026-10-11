@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   averageUsageTps, displayedFirstTokenMs, strictFirstTokenMs,
-  usageCompletionStatus, usageTimingExportValues, type UsageTimingRow,
+  usageCompletionStatus, usageTimingExportHeaders, usageTimingExportValues, type UsageTimingRow,
 } from '../usageTiming'
 
 const textRow: UsageTimingRow = {
@@ -13,6 +13,22 @@ const newRow: UsageTimingRow = { ...textRow, timing_version: 1, audio_output_tok
 const t = (key: string) => key
 
 describe('用量计时共享合同', () => {
+  it.each([undefined, 0])('计时版本 %s 保留历史首字且不解释严格字段', timing_version => {
+    const row = { ...textRow, timing_version, strict_first_token_ms: 0 }
+    expect(displayedFirstTokenMs(row)).toBe(9000)
+    expect(strictFirstTokenMs(row)).toBeNull()
+  })
+
+  it('追加导出列顺序固定，毫秒零值、空值和 false 各自保持', () => {
+    expect(usageTimingExportHeaders(t)).toEqual([
+      'usage.averageTpsExport', 'usage.averageTpsNote', 'usage.timingVersion', 'usage.strictFirstTokenMs',
+      'usage.lastTokenMs', 'usage.firstOutputMs', 'usage.firstOutputKind', 'usage.imageOutputTokens',
+      'usage.audioOutputTokens', 'usage.completionStatus', 'usage.isComplete', 'usage.usageSource',
+    ])
+    expect(usageTimingExportValues({ ...newRow, strict_first_token_ms: 0, first_output_ms: 0, last_token_ms: null, is_complete: false }, t)).toEqual([
+      50, 'usage.partialResponse', 1, 0, '', 0, '', 0, 0, 'unknown', false, 'unknown',
+    ])
+  })
   it.each([
     { strict_first_token_ms: null, last_token_ms: null },
     { strict_first_token_ms: 9990, last_token_ms: 9991 },

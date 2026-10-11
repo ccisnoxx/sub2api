@@ -157,7 +157,7 @@ func gatewayPoolQualityScores(candidates []gwpool.Gateway, state gatewayPoolCont
 		if row, ok := evidence[candidate.Name]; ok {
 			scores[candidate.Name] = gatewayPoolRankScore(row, prior)
 		} else if global {
-			scores[candidate.Name] = 0.5 // existing global fallback, never an invented failure
+			scores[candidate.Name] = gatewayPoolNeutralQualityScore // unknown is neutral, not a failure
 		}
 	}
 	return scores

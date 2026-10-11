@@ -546,8 +546,6 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 	if c != nil && c.Request != nil {
 		timingCtx = WithServiceStatusOwner(ctx, c.Request.Context())
 	}
-	timing := newResponsesOutputTiming(timingCtx, turnStart, account)
-	defer timing.stop()
 	timingResponseID := ""
 	rejectedFieldRetryState := newOpenAIResponsesRejectedFieldRetryState(body)
 	var resp *http.Response
@@ -556,8 +554,12 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 		if buildErr != nil {
 			return nil, buildErr
 		}
+		beginServiceStatusAttempt(timingCtx)
 		resp, err = s.doOpenAIUpstream(upstreamReq, proxyURL, account)
 		if err != nil {
+			if account.Platform == PlatformOpenAI {
+				observeServiceStatusTransportError(timingCtx, err)
+			}
 			if turn == 1 || account.UsesGatewayPool() {
 				return nil, s.handleOpenAIUpstreamTransportError(ctx, c, account, err, true)
 			}
@@ -574,6 +576,9 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 
 		respBody, _ := io.ReadAll(io.LimitReader(resp.Body, openAIWSHTTPBridgeErrorBodyLimitBytes))
 		_ = resp.Body.Close()
+		if account.Platform == PlatformOpenAI {
+			SetServiceStatusAttemptFailure(timingCtx, CompletionStatusUpstreamError, ServiceStatusProviderReason(resp.StatusCode, extractUpstreamErrorCode(respBody)), time.Now())
+		}
 		markOpenAICyberPolicyEvent(c, respBody, resp.StatusCode, nil)
 		if resp.StatusCode == http.StatusBadRequest &&
 			extractUpstreamErrorCode(respBody) == openAIWSFallbackReasonInvalidEncryptedContent {
@@ -620,6 +625,10 @@ func (s *OpenAIGatewayService) proxyOpenAIWSHTTPBridgeTurn(
 		}
 		return nil, fmt.Errorf("upstream http bridge error: status=%d message=%s", resp.StatusCode, upstreamMsg)
 	}
+	// 协议修复尝试先由实际 HTTP owner 记录；进入成功响应后再交给 S1 观察器。
+	// 新观察器清除已恢复尝试的候选，不能让旧失败成为逻辑 turn 终态。
+	timing := newResponsesOutputTiming(timingCtx, turnStart, account)
+	defer timing.stop()
 	defer func() { _ = resp.Body.Close() }()
 	stopCancelBody := context.AfterFunc(ctx, func() { _ = resp.Body.Close() })
 	defer stopCancelBody()

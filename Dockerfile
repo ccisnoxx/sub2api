@@ -108,9 +108,13 @@ FROM ${POSTGRES_IMAGE} AS pg-client
 FROM ${ALPINE_IMAGE}
 
 # Labels
+ARG VERSION
+ARG COMMIT
 LABEL maintainer="Wei-Shaw <github.com/Wei-Shaw>"
 LABEL description="Sub2API - AI API Gateway Platform"
-LABEL org.opencontainers.image.source="https://github.com/Wei-Shaw/sub2api"
+LABEL org.opencontainers.image.source="https://github.com/ccisnoxx/sub2api"
+LABEL org.opencontainers.image.revision="${COMMIT}"
+LABEL org.opencontainers.image.version="${VERSION}"
 
 # Install runtime dependencies
 RUN apk add --no-cache \
@@ -141,6 +145,10 @@ WORKDIR /app
 # Copy binary/resources with ownership to avoid extra full-layer chown copy
 COPY --from=backend-builder --chown=sub2api:sub2api /app/sub2api /app/sub2api
 COPY --from=backend-builder --chown=sub2api:sub2api /app/backend/resources /app/resources
+
+# 构建内生成的前端声明与项目原有许可一并保留
+COPY LICENSE LICENSE-GPL-3.0.txt NOTICE /usr/share/licenses/sub2api/
+COPY --from=frontend-builder /app/backend/internal/web/dist/THIRD_PARTY_LICENSES.txt /usr/share/licenses/sub2api/THIRD_PARTY_LICENSES.txt
 
 # Create data directory
 RUN mkdir -p /app/data && chown sub2api:sub2api /app/data

@@ -1,5 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises, shallowMount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises, shallowMount } from '@vue/test-utils'
+
+enableAutoUnmount(afterEach)
+afterEach(() => { vi.clearAllTimers(); vi.useRealTimers() })
 
 const routeState = vi.hoisted(() => ({
   query: {} as Record<string, unknown>,
@@ -101,7 +104,7 @@ describe('StripePaymentView', () => {
       client_secret: 'pi_secret_42',
     }
     routerPush.mockReset()
-    getOrder.mockReset()
+    getOrder.mockReset().mockResolvedValue({ data: orderFactory() })
     paymentStore.config = { stripe_publishable_key: 'pk_test' }
     paymentStore.fetchConfig.mockReset().mockResolvedValue(undefined)
     paymentStore.pollOrderStatus.mockReset()
@@ -118,6 +121,63 @@ describe('StripePaymentView', () => {
     window.localStorage.clear()
   })
 
+  it.each(['alipay', 'wechat_pay', ''])('does not start %s payment after leaving during SDK loading', async (method) => {
+    routeState.query.method = method
+    let resolveSDK!: (value: typeof stripeInstance) => void
+    loadStripe.mockReturnValueOnce(new Promise((resolve) => { resolveSDK = resolve }))
+    const wrapper = mountView()
+    await flushPromises()
+    await flushPromises()
+    expect(loadStripe).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+    resolveSDK(stripeInstance)
+    await flushPromises()
+    await flushPromises()
+    expect(stripeInstance.confirmAlipayPayment).not.toHaveBeenCalled()
+    expect(stripeInstance.confirmWechatPayPayment).not.toHaveBeenCalled()
+    expect(stripeInstance.elements).not.toHaveBeenCalled()
+  })
+
+  it('does not restart polling when a WeChat QR result arrives after leaving', async () => {
+    vi.useFakeTimers()
+    routeState.query.method = 'wechat_pay'
+    let resolvePayment!: (value: unknown) => void
+    stripeInstance.confirmWechatPayPayment.mockReturnValueOnce(new Promise((resolve) => { resolvePayment = resolve }))
+    const wrapper = mountView()
+    await flushPromises()
+    await flushPromises()
+    expect(stripeInstance.confirmWechatPayPayment).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+    resolvePayment({ paymentIntent: { status: 'requires_action', next_action: {
+      wechat_pay_display_qr_code: { image_data_url: 'data:image/png;base64,test' }
+    } } })
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(paymentStore.pollOrderStatus).not.toHaveBeenCalled()
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it.each([false, true])('handles a completed poll with page unmounted=%s', async (unmounted) => {
+    vi.useFakeTimers()
+    routeState.query.method = 'wechat_pay'
+    stripeInstance.confirmWechatPayPayment.mockResolvedValueOnce({ paymentIntent: {
+      status: 'requires_action', next_action: { wechat_pay_display_qr_code: { image_data_url: 'data:image/png;base64,test' } }
+    } })
+    let resolvePoll!: (value: PaymentOrder) => void
+    paymentStore.pollOrderStatus.mockReturnValueOnce(new Promise((resolve) => { resolvePoll = resolve }))
+    const wrapper = mountView()
+    await flushPromises()
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(paymentStore.pollOrderStatus).toHaveBeenCalledTimes(1)
+    if (unmounted) wrapper.unmount()
+    resolvePoll(orderFactory({ status: 'PAID' }))
+    await flushPromises()
+    await vi.advanceTimersByTimeAsync(2000)
+    expect(routerPush).toHaveBeenCalledTimes(unmounted ? 0 : 1)
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
   it('本地恢复快照缺失时使用订单接口返回的 Stripe 币种展示金额', async () => {
     getOrder.mockResolvedValue({
       data: orderFactory({ currency: 'HKD', pay_amount: 103 }),
@@ -130,5 +190,33 @@ describe('StripePaymentView', () => {
     expect(getOrder).toHaveBeenCalledWith(42)
     expect(loadStripe).toHaveBeenCalledWith('pk_test')
     expect(wrapper.text()).toContain(formatPaymentAmount(103, 'HKD', 'zh-CN'))
+  })
+
+  it.each(['airwallex', 'legacy_air_method'])('旧 Airwallex 订单密钥不能进入 Stripe 页面启动支付（%s）', async (paymentType) => {
+    routeState.query.client_secret = 'awx_cs'
+    routeState.query.method = 'alipay'
+    stripeInstance.confirmAlipayPayment.mockResolvedValue({})
+    getOrder.mockResolvedValue({ data: { ...orderFactory({ payment_type: paymentType }), provider_key: 'airwallex' } })
+    const wrapper = mountView()
+    await flushPromises()
+
+    expect(getOrder).toHaveBeenCalledWith(42)
+    expect(loadStripe).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('payment.airwallexDisabled')
+    expect(paymentStore.fetchConfig).not.toHaveBeenCalled()
+    expect(stripeInstance.confirmAlipayPayment).not.toHaveBeenCalled()
+    expect(stripeInstance.elements).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('真实 Stripe provider 的支付宝订单继续加载并确认支付', async () => {
+    routeState.query.method = 'alipay'
+    getOrder.mockResolvedValue({ data: { ...orderFactory({ payment_type: 'alipay' }), provider_key: 'stripe' } })
+    stripeInstance.confirmAlipayPayment.mockResolvedValue({})
+    const wrapper = mountView()
+    await flushPromises()
+    expect(loadStripe).toHaveBeenCalledWith('pk_test')
+    expect(stripeInstance.confirmAlipayPayment).toHaveBeenCalledWith('pi_secret_42', expect.any(Object))
+    wrapper.unmount()
   })
 })

@@ -125,7 +125,7 @@
 
         <div v-for="field in classificationFields" :key="field.key" class="rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
           <div class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ t(`admin.ops.errorDetail.classificationKeys.${field.key}`) }}</div>
-          <div class="mt-1 break-words font-mono text-sm font-medium text-gray-900 dark:text-white">{{ field.value || '—' }}</div>
+          <div class="mt-1 break-words text-sm font-medium text-gray-900 dark:text-white">{{ field.value }}</div>
         </div>
       </div>
 
@@ -267,10 +267,13 @@ const detail = ref<OpsErrorDetail | null>(null)
 
 const showUpstreamList = computed(() => props.errorType === 'request')
 
+function classificationLabel(code: string | undefined, allowed: string[], prefix: string): string {
+  return code && allowed.includes(code) ? t(`${prefix}.${code}`) : t('admin.ops.errorDetail.routingDiagnostics.unknown')
+}
 const classificationFields = computed(() => [
-  { key: 'phase', value: detail.value?.phase },
-  { key: 'owner', value: detail.value?.error_owner },
-  { key: 'source', value: detail.value?.error_source }
+  { key: 'phase', value: classificationLabel(detail.value?.phase, ['request', 'auth', 'account_auth', 'routing', 'upstream', 'network', 'internal'], 'admin.ops.errorDetails.phase') },
+  { key: 'owner', value: classificationLabel(detail.value?.error_owner, ['client', 'provider', 'platform'], 'admin.ops.errorDetails.owner') },
+  { key: 'source', value: classificationLabel(detail.value?.error_source, ['client_request', 'upstream_http', 'gateway'], 'admin.ops.errorDetail.source') }
 ])
 
 const requestId = computed(() => detail.value?.request_id || detail.value?.client_request_id || '')

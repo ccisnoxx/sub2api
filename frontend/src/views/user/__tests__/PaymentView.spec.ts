@@ -4,6 +4,7 @@ import PaymentView from '../PaymentView.vue'
 import { PAYMENT_RECOVERY_STORAGE_KEY } from '@/components/payment/paymentFlow'
 import { formatPaymentAmount } from '@/components/payment/currency'
 import AmountInput from '@/components/payment/AmountInput.vue'
+import PaymentStatusPanel from '@/components/payment/PaymentStatusPanel.vue'
 import SubscriptionPlanCard from '@/components/payment/SubscriptionPlanCard.vue'
 import en from '@/i18n/locales/en'
 import zh from '@/i18n/locales/zh'
@@ -24,6 +25,7 @@ const showError = vi.hoisted(() => vi.fn())
 const showInfo = vi.hoisted(() => vi.fn())
 const showWarning = vi.hoisted(() => vi.fn())
 const getCheckoutInfo = vi.hoisted(() => vi.fn())
+const getOrder = vi.hoisted(() => vi.fn())
 const bridgeInvoke = vi.hoisted(() => vi.fn())
 const translate = vi.hoisted(() => vi.fn((key: string) => key))
 // Public settings live in a reactive holder so tests can flip feature flags after mount
@@ -99,6 +101,7 @@ vi.mock('@/stores', async () => {
 vi.mock('@/api/payment', () => ({
   paymentAPI: {
     getCheckoutInfo,
+    getOrder,
   },
 }))
 
@@ -580,6 +583,42 @@ describe('PaymentView payment recovery', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-test="method-selector"]').text()).toBe('ldc')
+  })
+
+  it.each(['airwallex', 'legacy_air_method'])('restores a historical Airwallex snapshot for order status without changing stored fields or starting payment (%s)', async (paymentType) => {
+    getCheckoutInfo.mockResolvedValue(checkoutInfoFixture())
+    getOrder.mockReset().mockResolvedValue({ data: { payment_type: paymentType, provider_key: 'airwallex' } })
+    const snapshot = JSON.stringify({
+      orderId: 889,
+      amount: 66,
+      qrCode: '',
+      expiresAt: '2099-01-01T00:10:00.000Z',
+      paymentType,
+      payUrl: '/payment/airwallex?order_id=889',
+      outTradeNo: 'sub2_awx_889',
+      clientSecret: 'awx_cs',
+      intentId: 'int_awx',
+      currency: 'CNY',
+      countryCode: 'CN',
+      paymentEnv: 'demo',
+      payAmount: 66,
+      orderType: 'balance',
+      paymentMode: '',
+      resumeToken: 'resume-awx',
+      createdAt: Date.now(),
+    })
+    window.localStorage.setItem(PAYMENT_RECOVERY_STORAGE_KEY, snapshot)
+    const wrapper = shallowMount(PaymentView, {
+      global: { stubs: { AppLayout: { template: '<div><slot /></div>' }, Teleport: true, Transition: false } },
+    })
+    await flushPromises()
+    const panel = wrapper.findComponent(PaymentStatusPanel)
+    expect(getOrder).toHaveBeenCalledWith(889)
+    expect(panel.props()).toMatchObject({ orderId: 889, paymentType, providerKey: 'airwallex', outTradeNo: 'sub2_awx_889' })
+    expect(window.localStorage.getItem(PAYMENT_RECOVERY_STORAGE_KEY)).toBe(snapshot)
+    expect(createOrder).not.toHaveBeenCalled()
+    expect(routerResolve).not.toHaveBeenCalled()
+    wrapper.unmount()
   })
 })
 

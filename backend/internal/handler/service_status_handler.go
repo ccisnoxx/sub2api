@@ -39,6 +39,11 @@ func (h *ServiceStatusHandler) authorize(c *gin.Context) bool {
 		response.Forbidden(c, "需要管理员权限")
 		return false
 	}
+	// 本入口只接受现有管理员 JWT owner；管理 API Key 不能读取全站聚合。
+	if c.GetString("auth_method") != "jwt" {
+		response.Forbidden(c, "需要管理员 JWT 认证")
+		return false
+	}
 	return true
 }
 

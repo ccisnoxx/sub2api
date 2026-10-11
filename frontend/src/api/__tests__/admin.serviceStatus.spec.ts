@@ -27,6 +27,13 @@ describe('独立服务状态 API 的实际 Axios 合同', () => {
     expect(urls[1]).toMatch(/\/admin\/service-status\/snapshot\?range=7d&platform=openai$/)
   })
 
+  it('服务状态以外的 GET 继续附加时区', async () => {
+    let url = ''
+    installAdapter(request => { url = apiClient.getUri(request); return [] })
+    await apiClient.get('/usage')
+    expect(new URL(url, 'http://fixture.local').searchParams.get('timezone')).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  })
+
   it('disabled 配置可读，完整 PUT 保留版本及全部可编辑字段', async () => {
     let written: unknown
     installAdapter(request => {

@@ -43,9 +43,6 @@ export const useAppStore = defineStore('app', () => {
   const latestVersion = ref<string>('')
   const hasUpdate = ref<boolean>(false)
   const buildType = ref<string>('source')
-  const updateMode = ref<VersionInfo['update_mode']>('manual')
-  const releaseRepository = ref<string>('')
-  const versionWarning = ref<string>('')
   const releaseInfo = ref<ReleaseInfo | null>(null)
   const upstreamVersion = ref<UpstreamVersionInfo | null>(null)
 
@@ -253,9 +250,6 @@ export const useAppStore = defineStore('app', () => {
         latest_version: latestVersion.value,
         has_update: hasUpdate.value,
         build_type: buildType.value,
-        update_mode: updateMode.value,
-        release_repository: releaseRepository.value,
-        warning: versionWarning.value || undefined,
         release_info: releaseInfo.value || undefined,
         upstream: upstreamVersion.value || undefined,
         cached: true
@@ -274,16 +268,12 @@ export const useAppStore = defineStore('app', () => {
       latestVersion.value = data.latest_version
       hasUpdate.value = data.has_update
       buildType.value = data.build_type || 'source'
-      updateMode.value = data.update_mode
-      releaseRepository.value = data.release_repository
-      versionWarning.value = data.warning || ''
       releaseInfo.value = data.release_info || null
       upstreamVersion.value = data.upstream || null
       versionLoaded.value = true
       return data
     } catch (error) {
       console.error('Failed to fetch version:', error)
-      versionWarning.value = 'VERSION_CHECK_FAILED'
       return null
     } finally {
       versionLoading.value = false
@@ -296,7 +286,6 @@ export const useAppStore = defineStore('app', () => {
   function clearVersionCache(): void {
     versionLoaded.value = false
     hasUpdate.value = false
-    versionWarning.value = ''
   }
 
   // ==================== Public Settings Management ====================
@@ -476,9 +465,6 @@ export const useAppStore = defineStore('app', () => {
     latestVersion,
     hasUpdate,
     buildType,
-    updateMode,
-    releaseRepository,
-    versionWarning,
     releaseInfo,
     upstreamVersion,
 

@@ -138,4 +138,29 @@ describe('HelpTooltip', () => {
 
     wrapper.unmount()
   })
+
+  it('Esc 和关闭按钮将焦点还给实际触发按钮', async () => {
+    const wrapper = mount(HelpTooltip, {
+      attachTo: document.body,
+      props: { content: 'details', trigger: 'click' },
+      slots: { trigger: '<button type="button">Timing details</button>' },
+    })
+    const trigger = wrapper.get('button').element as HTMLButtonElement
+    trigger.focus()
+    trigger.click()
+    await nextTick()
+    const close = getTooltipElement().querySelector('button')!
+    close.focus()
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await nextTick()
+    expect(getTooltipElement().style.display).toBe('none')
+    expect(document.activeElement).toBe(trigger)
+    trigger.click()
+    await nextTick()
+    close.focus()
+    close.click()
+    await nextTick()
+    expect(document.activeElement).toBe(trigger)
+    wrapper.unmount()
+  })
 })

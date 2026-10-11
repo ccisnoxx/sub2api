@@ -438,6 +438,8 @@ export default {
     },
     firstTokenDescription: '首字表示本次转发开始到记录的首个响应事件或输出之间的等待时间。采集口径因平台和设置而异，可能包含响应元数据、推理或工具调用，不一定是最终可见正文的第一个字。未采集该耗时的记录显示 -。',
     latencyDuration: '总耗时',
+    outputTps: '输出 TPS',
+    outputTpsHint: '输出 Token ÷ 总耗时（包含首字等待），单位 tok/s。输出 Token 可能包含推理 Token。',
     latencyTps: 'TPS',
     averageOutputTps: '平均输出 TPS',
     averageTpsExport: '平均 TPS',

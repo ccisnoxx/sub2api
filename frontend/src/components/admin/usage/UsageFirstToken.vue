@@ -57,7 +57,7 @@ const strictTime = (ms: number | null | undefined): string => strict.value
   </span>
   <span
     data-testid="usage-first-token-value"
-    class="font-medium tabular-nums"
+    class="text-right font-medium tabular-nums"
     :class="firstMs == null ? 'text-gray-400 dark:text-gray-500' : LATENCY_TEXT_CLASSES[firstTokenSeverity(firstMs)]"
   >{{ formatUsageTimingDuration(firstMs) }}</span>
 </template>

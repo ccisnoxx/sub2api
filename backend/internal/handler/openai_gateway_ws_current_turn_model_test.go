@@ -25,19 +25,22 @@ import (
 // 真实 socket 和生产选号、渠道映射、定价及用量 owner 共同保护换号后的请求归属。
 func TestOpenAIWSCurrentTurnModelFailover(t *testing.T) {
 	t.Run("select_only_current_model_account", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, true, false, false)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, true, false, false, false)
 	})
 	t.Run("requested_price", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, false, false)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, false, false, false)
 	})
 	t.Run("channel_mapped_price", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceChannelMapped, false, false, false)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceChannelMapped, false, false, false, false)
 	})
 	t.Run("current_image_intent_requires_responses", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, true, false)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, true, false, false)
+	})
+	t.Run("current_group_rate", func(t *testing.T) {
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, false, false, false, true)
 	})
 	t.Run("current_string_input", func(t *testing.T) {
-		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, true, false, true)
+		runOpenAIWSCurrentTurnModelFailover(t, service.BillingModelSourceRequested, true, false, true, false)
 	})
 }
 
@@ -47,7 +50,7 @@ type openAIWSCurrentTurnModelHit struct {
 	input     string
 }
 
-func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, restrictReplacement, imageIntent, currentStringInput bool) {
+func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, restrictReplacement, imageIntent, currentStringInput, refreshGroupRate bool) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	const (
@@ -231,6 +234,12 @@ func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, res
 		User:  &service.User{ID: 93607, Status: service.StatusActive},
 		Group: &service.Group{ID: groupID, Platform: service.PlatformOpenAI, Status: service.StatusActive, RateMultiplier: 1, AllowImageGeneration: true},
 	}
+	var pricingRepo *wsGroupPricingAPIKeyRepoStub
+	if refreshGroupRate {
+		apiKey.Key = wsGroupPricingKey
+		pricingRepo = &wsGroupPricingAPIKeyRepoStub{apiKey: *apiKey, group: *apiKey.Group}
+		h.apiKeyService = newWSGroupPricingAPIKeyService(pricingRepo)
+	}
 	finished := make(chan struct{}, 1)
 	router := gin.New()
 	router.Use(func(c *gin.Context) {
@@ -243,6 +252,12 @@ func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, res
 	client := dialRoutingDiagnosticsWS(t, router)
 	firstSelectionListCalls := 0
 	for i, model := range []string{modelA, modelB} {
+		if refreshGroupRate && i == 1 {
+			pricingRepo.mu.Lock()
+			pricingRepo.group.RateMultiplier = 0.25
+			pricingRepo.mu.Unlock()
+			h.apiKeyService.InvalidateAuthCacheByGroupID(context.Background(), groupID)
+		}
 		input := []string{"turn-a", "turn-b"}[i]
 		payload := fmt.Sprintf(`{"type":"response.create","model":%q,"input":[{"role":"user","content":%q}],"stream":false}`, model, input)
 		if currentStringInput && i == 1 {
@@ -288,11 +303,11 @@ func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, res
 			t.Fatal("用量未持久化")
 		}
 	}
-	oracle := func(model string) *service.CostBreakdown {
+	oracle := func(model string, rate float64) *service.CostBreakdown {
 		cost, err := billing.CalculateCostUnified(service.CostInput{
 			Ctx: context.Background(), Model: model, GroupID: &apiKey.Group.ID, Group: apiKey.Group,
 			Tokens: service.UsageTokens{InputTokens: 11, OutputTokens: 2}, RequestCount: 1,
-			RateMultiplier: 1, Resolver: resolver,
+			RateMultiplier: rate, Resolver: resolver,
 		})
 		require.NoError(t, err)
 		return cost
@@ -301,7 +316,14 @@ func runOpenAIWSCurrentTurnModelFailover(t *testing.T, billingSource string, res
 	if billingSource == service.BillingModelSourceChannelMapped {
 		priceModelA, priceModelB = routeA, routeB
 	}
-	oldCost, currentCost := oracle(priceModelA), oracle(priceModelB)
+	currentRate := 1.0
+	if refreshGroupRate {
+		currentRate = 0.25
+	}
+	oldCost, currentCost := oracle(priceModelA, 1), oracle(priceModelB, currentRate)
+	if refreshGroupRate {
+		require.InDelta(t, 0.25, logs[modelB].RateMultiplier, 1e-12, "重启 proxy 的局部首轮必须保留逻辑当前轮次已冻结的分组倍率")
+	}
 	require.NotEqual(t, oldCost.ActualCost, currentCost.ActualCost, "A/B 的真实定价 owner 必须产生不同费用")
 	for _, expected := range []struct {
 		model, route string

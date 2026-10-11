@@ -255,6 +255,7 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry, laterTur
 			require.Equal(t, firstTurnListCalls[session-1], repo.selectorCalls(), "后续 turn 不能因诊断追加账号查询或重新选号")
 		}
 	}
+	failedObservations := make(map[string]*service.ServiceStatusObservation)
 	for session, snapshot := range snapshots {
 		require.Nil(t, snapshot.current, "第3 turn 未重新选号，不得借用建连或重试的选择快照")
 		require.Len(t, snapshot.errors, 2)
@@ -280,6 +281,10 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry, laterTur
 			require.Nil(t, first.RoutingDiagnostics, "连接复用或同账号重建不能把握手选择伪装成 turn 选择")
 		}
 		require.Nil(t, last.RoutingDiagnostics, "后续真实失败必须保持本 turn 的未知诊断")
+		require.NotNil(t, first.ServiceStatusObservation)
+		require.Equal(t, firstFailureTurn, *first.ServiceStatusObservation.LogicalTurn)
+		require.NotNil(t, last.ServiceStatusObservation)
+		require.Equal(t, 3, *last.ServiceStatusObservation.LogicalTurn, "局部 Proxy 轮次重置不能改写真实逻辑 turn")
 		lastLocalTurn := 3
 		if laterTurnFailover && session == 0 {
 			lastLocalTurn = 2
@@ -293,6 +298,12 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry, laterTur
 			require.Equal(t, http.StatusBadRequest, job.entry.StatusCode)
 			require.Equal(t, healthyAccountID, *job.entry.AccountID)
 			require.EqualValues(t, service.RequestTypeWSV2, *job.entry.RequestType)
+			require.NotNil(t, job.entry.ServiceStatusObservationJSON)
+			fact, factErr := service.DecodeServiceStatusObservation([]byte(*job.entry.ServiceStatusObservationJSON))
+			require.NoError(t, factErr)
+			require.Equal(t, streamErr.ServiceStatusObservation, fact, "源终态随延后消费队列保持不可变")
+			input := fmt.Sprintf("session-%d-turn-%d", session+1, *fact.LogicalTurn)
+			failedObservations["resp_"+input] = fact
 			if streamErr.RoutingDiagnostics == nil {
 				require.Nil(t, job.entry.RoutingDiagnosticsJSON)
 			} else {
@@ -310,6 +321,7 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry, laterTur
 	}
 
 	var usageIDs []string
+	observationKeys := make(map[string]bool)
 	for i := 0; i < 6; i++ {
 		select {
 		case usage := <-usageRepo.created:
@@ -320,6 +332,14 @@ func runS35WSRoutingBehavior(t *testing.T, mode string, transportRetry, laterTur
 			require.Equal(t, expectedAccountID, usage.AccountID)
 			require.Equal(t, 11, usage.InputTokens)
 			require.Equal(t, 2, usage.OutputTokens)
+			require.NotNil(t, usage.ServiceStatusObservation)
+			require.Equal(t, i%3+1, *usage.ServiceStatusObservation.LogicalTurn)
+			require.Equal(t, usage.CompletionStatus, *usage.ServiceStatusObservation.TerminalKind)
+			require.False(t, observationKeys[usage.ServiceStatusObservation.ObservationKey], "每个真实逻辑 turn 使用独立服务端键")
+			observationKeys[usage.ServiceStatusObservation.ObservationKey] = true
+			if fact := failedObservations[usage.RequestID]; fact != nil {
+				require.Equal(t, fact, usage.ServiceStatusObservation, "同一可见失败的 Ops 与用量必须采用同一首终态")
+			}
 			usageIDs = append(usageIDs, usage.RequestID)
 		case <-time.After(5 * time.Second):
 			t.Fatal("真实 AfterTurn 用量没有落入既有 RecordUsage owner")

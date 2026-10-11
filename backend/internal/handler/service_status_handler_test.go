@@ -47,6 +47,7 @@ func serviceStatusHandlerContext(method, target, body, role string) (*gin.Contex
 	if role != "" {
 		c.Set(string(middleware.ContextKeyUser), middleware.AuthSubject{UserID: 17})
 		c.Set(string(middleware.ContextKeyUserRole), role)
+		c.Set("auth_method", "jwt")
 	}
 	return c, r
 }
@@ -141,4 +142,35 @@ func TestServiceStatusHandlerPreservesFixedErrorsAndNullRatios(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, string(raw), `"error_rate":null`)
 	require.Contains(t, string(raw), `"success_rate":null`)
+}
+
+func TestServiceStatusConfigRejectsQueryAndOversizedBodyBeforeRead(t *testing.T) {
+	valid := `{"version":1,"enabled":false,"platforms":[],"minimum_samples":5,"warning_error_rate":0.05,"outage_error_rate":0.9,"abnormal_windows":2,"recovery_windows":3}`
+	for _, tc := range []struct{ method, target, body string }{
+		{http.MethodGet, "/config?platform=openai", ""},
+		{http.MethodPut, "/config?version=1", valid},
+		{http.MethodPut, "/config", valid + strings.Repeat(" ", 8192)},
+	} {
+		s := &serviceStatusHandlerStub{}
+		c, r := serviceStatusHandlerContext(tc.method, tc.target, tc.body, service.RoleAdmin)
+		h := &ServiceStatusHandler{service: s}
+		if tc.method == http.MethodGet {
+			h.GetConfig(c)
+		} else {
+			h.UpdateConfig(c)
+		}
+		require.Equal(t, http.StatusBadRequest, r.Code)
+		require.Zero(t, s.calls)
+	}
+}
+
+func TestServiceStatusHandlerRequiresAdministratorJWT(t *testing.T) {
+	for _, method := range []string{"", "admin_api_key", "passkey"} {
+		s := &serviceStatusHandlerStub{}
+		c, r := serviceStatusHandlerContext(http.MethodGet, "/config", "", service.RoleAdmin)
+		c.Set("auth_method", method)
+		(&ServiceStatusHandler{service: s}).GetConfig(c)
+		require.Equal(t, http.StatusForbidden, r.Code)
+		require.Zero(t, s.calls)
+	}
 }

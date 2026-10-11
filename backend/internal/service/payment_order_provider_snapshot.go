@@ -20,6 +20,17 @@ type paymentOrderProviderSnapshot struct {
 	Currency           string
 }
 
+// PaymentOrderProviderKey 返回订单持久化的服务商身份，不将用户支付方法名当作服务商。
+func PaymentOrderProviderKey(order *dbent.PaymentOrder) string {
+	if order == nil {
+		return ""
+	}
+	if snapshot := psOrderProviderSnapshot(order); snapshot != nil && snapshot.ProviderKey != "" {
+		return snapshot.ProviderKey
+	}
+	return strings.TrimSpace(psStringValue(order.ProviderKey))
+}
+
 func psOrderProviderSnapshot(order *dbent.PaymentOrder) *paymentOrderProviderSnapshot {
 	if order == nil || len(order.ProviderSnapshot) == 0 {
 		return nil

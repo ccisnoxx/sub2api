@@ -22,7 +22,7 @@
           </label>
           <Select
             v-model="form.provider_key"
-            :options="(!!editing ? allKeyOptions : enabledKeyOptions) as SelectOption[]"
+            :options="(!!editing ? allKeyOptions : creatableKeyOptions) as SelectOption[]"
             :disabled="!!editing"
             @change="onKeyChange"
           />
@@ -31,7 +31,7 @@
 
       <!-- Toggles + Payment mode + Supported types (single row) -->
       <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <ToggleSwitch :label="t('common.enabled')" :checked="form.enabled" @toggle="form.enabled = !form.enabled" />
+        <ToggleSwitch v-if="!isPaymentMethodDisabled(form.provider_key)" :label="t('common.enabled')" :checked="form.enabled" @toggle="form.enabled = !form.enabled" />
         <ToggleSwitch :label="t('admin.settings.payment.refundEnabled')" :checked="form.refund_enabled" @toggle="form.refund_enabled = !form.refund_enabled; if (!form.refund_enabled) form.allow_user_refund = false" />
         <ToggleSwitch v-if="form.refund_enabled" :label="t('admin.settings.payment.allowUserRefund')" :checked="form.allow_user_refund" @toggle="form.allow_user_refund = !form.allow_user_refund" />
         <div v-if="supportsPaymentMode" class="flex items-center gap-2">
@@ -69,6 +69,10 @@
           </div>
         </div>
       </div>
+
+      <p v-if="isPaymentMethodDisabled(form.provider_key)" class="text-sm text-gray-500 dark:text-gray-400">
+        {{ t('payment.airwallexDisabled') }}
+      </p>
 
       <div v-if="form.provider_key === 'easypay'" class="space-y-3 rounded-lg border border-gray-100 p-3 dark:border-dark-700">
         <div class="flex items-center justify-between gap-3">
@@ -313,6 +317,7 @@ import Select from '@/components/common/Select.vue'
 import type { SelectOption } from '@/components/common/Select.vue'
 import ToggleSwitch from './ToggleSwitch.vue'
 import type { ProviderInstance } from '@/types/payment'
+import { isPaymentMethodDisabled } from './paymentFlow'
 import type { EasyPayCustomMethod, TypeOption } from './providerConfig'
 import {
   PROVIDER_CONFIG_FIELDS,
@@ -414,6 +419,7 @@ const easyPayCustomMethods = reactive<EasyPayCustomMethod[]>([])
 
 // --- Computed ---
 const defaultBaseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+const creatableKeyOptions = computed(() => props.enabledKeyOptions.filter(option => !isPaymentMethodDisabled(option.value)))
 
 const providerWebhookHintMap: Record<string, string> = {
   stripe: 'admin.settings.payment.stripeWebhookHint',

@@ -433,6 +433,8 @@ export default {
     },
     firstTokenDescription: 'First is the wait from the start of forwarding to the first recorded response event or output. Depending on the provider and settings, this may include response metadata, reasoning, or a tool call, rather than the first character of the final visible answer. Records without this timing show -.',
     latencyDuration: 'Total',
+    outputTps: 'Output TPS',
+    outputTpsHint: 'Output tokens divided by total duration, including first-token wait, in tok/s. Output tokens may include reasoning tokens.',
     latencyTps: 'TPS',
     averageOutputTps: 'Avg output TPS',
     averageTpsExport: 'Average TPS',

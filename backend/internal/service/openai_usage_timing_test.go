@@ -149,10 +149,95 @@ func TestResponsesUsageTiming_HTTPFailureCancellationAndRetryIsolation(t *testin
 	}
 }
 
+func TestResponsesUsageTiming_HTTPMissingTerminal(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	account := &Account{Platform: PlatformOpenAI, Type: AccountTypeAPIKey}
+	partial := passthroughSSEData(`{"type":"response.output_text.delta","delta":"partial"}`) + passthroughSSEData(`{"type":"response.in_progress","response":{"usage":{"input_tokens":5,"output_tokens":2}}}`)
+	for _, pass := range []bool{false, true} {
+		for _, body := range []string{"", partial} {
+			name := map[bool]string{false: "normal", true: "passthrough"}[pass]
+			if body == "" {
+				name += "/empty"
+			} else {
+				name += "/partial"
+			}
+			t.Run(name, func(t *testing.T) {
+				c, resp := timingHTTPContext(body)
+				svc := timingTestService()
+				var timing UsageTiming
+				if pass {
+					r, err := svc.handleStreamingResponsePassthrough(context.Background(), resp, c, account, time.Now(), "gpt-5.1", "gpt-5.1")
+					require.Error(t, err)
+					timing = r.usageTiming
+				} else {
+					r, err := svc.handleStreamingResponse(context.Background(), resp, c, account, time.Now(), "gpt-5.1", "gpt-5.1")
+					require.Error(t, err)
+					timing = r.usageTiming
+				}
+				require.EqualValues(t, 1, timing.TimingVersion)
+				require.Nil(t, timing.AudioOutputTokens)
+				if body == "" {
+					require.Equal(t, CompletionStatusUnknown, timing.CompletionStatus)
+					require.Equal(t, UsageSourceUnknown, timing.UsageSource)
+					require.Nil(t, timing.StrictFirstTokenMs)
+					require.Nil(t, timing.IsComplete)
+				} else {
+					require.Equal(t, CompletionStatusInterrupted, timing.CompletionStatus)
+					require.Equal(t, UsageSourceUpstreamPartial, timing.UsageSource)
+					require.NotNil(t, timing.StrictFirstTokenMs)
+					require.False(t, *timing.IsComplete)
+				}
+			})
+		}
+	}
+}
+
+func TestResponsesUsageTiming_HTTPWrappedUsageKeepsNewKINAccountingSource(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, path := range []string{"data", "data.response"} {
+		t.Run(path, func(t *testing.T) {
+			usage := `{"usage":{"input_tokens":5,"output_tokens":7,"input_tokens_details":{"image_tokens":3},"output_tokens_details":{"audio_tokens":2}},"tool_usage":{"image_gen":{"output_tokens_details":{"image_tokens":4}}}}`
+			if path == "data.response" {
+				usage = `{"response":` + usage + `}`
+			}
+			body := `{"id":"resp_wrapped","object":"response","status":"completed","output":[{"type":"message","content":[{"type":"output_audio","data":"bytes"}]}],"data":` + usage + `}`
+			for _, pass := range []bool{false, true} {
+				c, resp := timingHTTPContext(body)
+				resp.Header.Set("Content-Type", "application/json")
+				svc := timingTestService()
+				account := &Account{Platform: PlatformOpenAI, Type: AccountTypeAPIKey}
+				var timing UsageTiming
+				var billed *OpenAIUsage
+				if pass {
+					r, err := svc.handleNonStreamingResponsePassthrough(context.Background(), resp, c, account, "gpt-5.1", "gpt-5.1", time.Now())
+					require.NoError(t, err)
+					timing, billed = r.usageTiming, r.usage
+				} else {
+					r, err := svc.handleNonStreamingResponse(context.Background(), resp, c, account, "gpt-5.1", "gpt-5.1", time.Now())
+					require.NoError(t, err)
+					timing, billed = r.usageTiming, r.usage
+				}
+				require.Equal(t, 5, billed.InputTokens)
+				require.Equal(t, 7, billed.OutputTokens)
+				require.Equal(t, 3, billed.ImageInputTokens)
+				require.Equal(t, 4, billed.ImageOutputTokens)
+				require.Equal(t, UsageSourceUpstreamFinal, timing.UsageSource)
+				require.Equal(t, 2, *timing.AudioOutputTokens)
+				require.Equal(t, "audio", *timing.FirstOutputKind)
+				require.Nil(t, timing.StrictFirstTokenMs)
+			}
+		})
+	}
+}
+
 func TestResponsesUsageTiming_WSHTTPBridgeSeparateTurnsAndIDs(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	account := &Account{ID: 1, Platform: PlatformOpenAI, Type: AccountTypeAPIKey, Concurrency: 1}
-	for i, body := range []string{passthroughSSEData(`{"type":"response.created","response":{"id":"resp_timing"}}`) + passthroughSSEData(`{"type":"response.output_text.delta","response_id":"other","delta":"foreign"}`) + passthroughSSEData(`{"type":"response.output_text.delta","response_id":"resp_timing","delta":"answer"}`) + passthroughSSEData(timingFinalEvent), passthroughSSEData(timingFinalEvent)} {
+	for i, body := range []string{
+		passthroughSSEData(`{"type":"response.created","response":{"id":"resp_timing"}}`) + passthroughSSEData(`{"type":"response.output_text.delta","response_id":"other","delta":"foreign"}`) + passthroughSSEData(`{"type":"response.output_text.delta","response_id":"resp_timing","delta":"answer"}`) + passthroughSSEData(timingFinalEvent),
+		passthroughSSEData(`{"type":"response.created","response":{"id":"resp_timing"}}`) + passthroughSSEData(`{"type":"response.output_text.delta","response_id":"other","delta":"foreign"}`) + passthroughSSEData(`{"type":"response.image_generation_call.partial_image","response_id":"resp_timing","partial_image_b64":"bytes"}`) + passthroughSSEData(timingFinalEvent),
+		passthroughSSEData(timingFinalEvent),
+	} {
 		svc := timingTestService()
 		svc.httpUpstream = &httpUpstreamRecorder{resp: &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"text/event-stream"}}, Body: io.NopCloser(strings.NewReader(body))}}
 		c, _ := timingHTTPContext("")
@@ -165,6 +250,9 @@ func TestResponsesUsageTiming_WSHTTPBridgeSeparateTurnsAndIDs(t *testing.T) {
 			require.NotNil(t, result.UsageTiming.StrictFirstTokenMs)
 		} else {
 			require.Nil(t, result.UsageTiming.StrictFirstTokenMs)
+			if i == 1 {
+				require.Equal(t, "image", *result.UsageTiming.FirstOutputKind, "其他 response ID 的文本不能污染本轮媒体计时")
+			}
 		}
 	}
 }
@@ -176,8 +264,12 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 	upstream := newStagedPassthroughConn()
 	svc := newPassthroughLifecycleService(passthroughLifecycleConfig(), upstream)
 	results := make(chan *OpenAIForwardResult, 2)
-	server, serverErr := startPassthroughLifecycleServerWithHooks(t, controlCtx, svc, passthroughLifecycleAccount(), func(*gin.Context) *OpenAIWSIngressHooks {
-		return &OpenAIWSIngressHooks{InitialTurnStartedAt: time.Now().Add(-2 * time.Second), AfterTurn: func(_ int, r *OpenAIForwardResult, e error) {
+	server, serverErr := startPassthroughLifecycleServerWithHooks(t, controlCtx, svc, passthroughLifecycleAccount(), func(c *gin.Context) *OpenAIWSIngressHooks {
+		c.Request = c.Request.WithContext(EnsureServiceStatusTurn(c.Request.Context(), 1))
+		return &OpenAIWSIngressHooks{BeforeRequest: func(turn int, _ []byte, _ string) error {
+			BeginOpsStreamTurn(c, turn)
+			return nil
+		}, InitialTurnStartedAt: time.Now().Add(-2 * time.Second), AfterTurn: func(_ int, r *OpenAIForwardResult, e error) {
 			if r != nil {
 				results <- r
 			}
@@ -195,6 +287,8 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 		require.NoError(t, e)
 	}
 	first := <-results
+	require.NotNil(t, first.UsageTiming.ServiceStatusObservation)
+	require.Equal(t, 1, *first.UsageTiming.ServiceStatusObservation.LogicalTurn)
 	require.EqualValues(t, 1, first.UsageTiming.TimingVersion)
 	require.GreaterOrEqual(t, *first.UsageTiming.StrictFirstTokenMs, 2000)
 	require.Equal(t, CompletionStatusCompleted, first.UsageTiming.CompletionStatus)
@@ -206,14 +300,18 @@ func TestResponsesUsageTiming_WSPassthroughAdmittedTurns(t *testing.T) {
 	require.NoError(t, client.Write(writeCtx, coderws.MessageText, []byte(`{"type":"response.create","model":"gpt-5.1","input":"next"}`)))
 	stop()
 	requirePassthroughUpstreamWrite(t, upstream, time.Second)
-	upstream.Send(`{"type":"response.completed","response":{"id":"second","status":"completed","output":[],"usage":{"input_tokens":3,"output_tokens":4}}}`)
+	upstream.Send(`{"type":"response.completed","usage":{"input_tokens":99,"output_tokens":99},"response":{"id":"second","status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"answer"}]}],"usage":{"input_tokens":3,"output_tokens":4,"output_tokens_details":{"audio_tokens":-1}}}}`)
 	_, e := readPassthroughLifecycleFrame(t, client, time.Second)
 	require.NoError(t, e)
 	second := <-results
+	require.NotNil(t, second.UsageTiming.ServiceStatusObservation)
+	require.Equal(t, 2, *second.UsageTiming.ServiceStatusObservation.LogicalTurn)
+	require.NotEqual(t, first.UsageTiming.ServiceStatusObservation.ObservationKey, second.UsageTiming.ServiceStatusObservation.ObservationKey)
 	require.EqualValues(t, 1, second.UsageTiming.TimingVersion)
 	require.Nil(t, second.UsageTiming.StrictFirstTokenMs)
 	require.Equal(t, CompletionStatusCompleted, second.UsageTiming.CompletionStatus)
 	require.Equal(t, 3, second.Usage.InputTokens)
+	require.Nil(t, second.UsageTiming.AudioOutputTokens, "relay 选择的 response.usage 非法音频拆分不能被另一 usage 的缺失值改成零")
 	require.NoError(t, client.Close(coderws.StatusNormalClosure, "done"))
 	select {
 	case <-serverErr:

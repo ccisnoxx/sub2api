@@ -62,7 +62,7 @@
               <span class="rounded-md px-2 py-1 text-xs" :class="healthClass(item.health)">{{ healthLabel(item.health) }}</span>
             </div>
             <p v-if="item.unknown_reason" class="mb-3 text-xs text-gray-500">{{ reasonLabel(item.unknown_reason) }}</p>
-            <ServiceStatusMetrics :metrics="item" />
+            <ServiceStatusMetrics :metrics="item" :unavailable="item.health === 'unknown' || !!item.unknown_reason" />
           </article>
         </section>
 
@@ -89,7 +89,7 @@
                 <tr v-for="item in snapshot.scopes" :key="scopeKey(item)" class="border-t border-gray-100 dark:border-dark-700">
                   <td class="max-w-[260px] break-words py-4 pr-4 align-top"><div class="font-semibold">{{ item.group_name }} (#{{ item.group_id }})</div><div>{{ item.platform }}</div><div class="mt-1 font-mono">{{ item.requested_model || '—' }}</div></td>
                   <td class="max-w-[260px] py-4 pr-4 align-top"><span class="rounded-md px-2 py-1 text-xs" :class="healthClass(item.health)">{{ healthLabel(item.health) }}</span><p v-if="item.unknown_reason" class="mt-2 text-xs text-gray-500">{{ reasonLabel(item.unknown_reason) }}</p><p v-if="item.incident_phase" class="mt-2 text-xs">{{ phaseLabel(item.incident_phase) }}</p><p class="mt-2 text-xs text-gray-500">{{ t('admin.serviceStatus.lastEvidence') }}: {{ timestamp(item.last_evidence_at) }}</p></td>
-                  <td class="min-w-[280px] py-4 align-top"><ServiceStatusMetrics :metrics="item" /></td>
+                  <td class="min-w-[280px] py-4 align-top"><ServiceStatusMetrics :metrics="item" :unavailable="item.health === 'unknown' || !!item.unknown_reason" /></td>
                 </tr>
               </tbody>
             </table>
@@ -320,7 +320,7 @@ function timestamp(value: string | null): string {
 function interval(value: ServiceStatusInterval) { return `${timestamp(value.start)} → ${timestamp(value.end)}` }
 function scopeKey(value: ServiceStatusScope) { return `${value.platform}:${value.group_id}:${value.requested_model}` }
 function healthLabel(value: string) { return t(`admin.serviceStatus.health.${te(`admin.serviceStatus.health.${value}`) ? value : 'unknown'}`) }
-function phaseLabel(value: string) { return te(`admin.serviceStatus.phases.${value}`) ? t(`admin.serviceStatus.phases.${value}`) : t('admin.serviceStatus.phases.awaiting_data') }
+function phaseLabel(value: string) { return te(`admin.serviceStatus.phases.${value}`) ? t(`admin.serviceStatus.phases.${value}`) : t('admin.serviceStatus.unknown') }
 function reasonLabel(value?: string) { return t(`admin.serviceStatus.reasons.${value && te(`admin.serviceStatus.reasons.${value}`) ? value : 'unknown'}`) }
 function healthClass(value: string) {
   if (value === 'operational') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
@@ -329,7 +329,7 @@ function healthClass(value: string) {
   return 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-300'
 }
 function historyUnknown(value: ServiceStatusHistoryPoint) {
-  return !value.covered || value.unknown > 0 || value.success_rate === null || value.error_rate === null
+  return !value.covered || !!value.unknown_reason || value.unknown > 0 || value.success_rate === null || value.error_rate === null
 }
 
 watch([platform, range], () => { void loadSnapshot() })

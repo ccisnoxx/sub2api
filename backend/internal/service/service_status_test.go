@@ -4,6 +4,8 @@ import (
 	"math"
 	"testing"
 
+	"github.com/Wei-Shaw/sub2api/internal/domain"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -62,5 +64,19 @@ func TestServiceStatusSummaryDoesNotWeightAwayUnknownOrIncident(t *testing.T) {
 		tt.leaves[0], tt.leaves[1] = tt.leaves[1], tt.leaves[0]
 		h, _ = ServiceStatusSummary(tt.leaves)
 		require.Equal(t, tt.want, h)
+	}
+}
+
+func TestServiceStatusPlatformCatalogUsesConcreteDomainOwner(t *testing.T) {
+	for _, platform := range domain.ConcretePlatformIDs() {
+		t.Run(platform, func(t *testing.T) {
+			require.True(t, ServiceStatusPlatformKnown(platform))
+			cfg := statusTestConfig()
+			cfg.Platforms = []string{platform}
+			require.NoError(t, ValidateServiceStatusConfig(&cfg))
+		})
+	}
+	for _, platform := range []string{"composite", "unknown", "", "OPENAI"} {
+		require.False(t, ServiceStatusPlatformKnown(platform))
 	}
 }

@@ -80,6 +80,8 @@ export default {
       editAccount: '编辑账号',
       deleteAccount: '删除账号',
       searchAccounts: '搜索账号...',
+      moreFilters: '更多筛选',
+      moreFiltersActive: '更多筛选（已启用 {count} 项）',
       notes: '备注',
       notesPlaceholder: '请输入备注',
       notesHint: '备注可选',
@@ -134,7 +136,7 @@ export default {
         ungrouped: '未分组',
         hint: '显示格式为“分组名 / 基础分 / 粘性加分”。基础分按当前筛选条件限定的候选账号计算，包含优先级、负载、排队、错误率、首包延迟、重置窗口、额度余量、计费倍率等因子；粘性加分只在开启粘性加权时用于 previous_response_id 或 session_hash。分数越大越优先。'
       },
-      gatewayColumnHint: '网关落点来自网关池（gwpool）下发的路由票。满血窗口的作用单位是（上游账号 × 网关），而网关由（大区 × 账号）决定，所以这一列按九个大区摊开：第一行是当前大区与当前网关，下面每格是该大区最近一次落在哪个网关上。琥珀色表示该网关在本地账本窗口（默认 4 小时，可在账号的网关池配置里调）内打过、仍在冷却；灰色表示已过窗口，该大区可以再用。括注：大区与网关名均为网关池交付时的口径，不代表上游实际落点。',
+      gatewayColumnHint: '展示当前路由票、满血使用统计与优质/普通候选队列。只有当前有效且已验满的票显示绿色，候选一律中性，不代表已经恢复满血。队列按同成员、同模型的后端证据分类，只读已有目录与本地冷却；无有效快照显示—，不为页面额外取票或探测。大区与网关名是池端交付口径，不等于已观测的上游实际落点。',
       usageWindowsHint: '“5h / 7d”是上游账号（如 OpenAI ChatGPT、Claude）官方的滚动用量窗口限制，由上游对账号设定，并非 sub2api 配置，也与你映射的模型无关。窗口滚动到期后用量会自动重置，无法在 sub2api 端解除该限制。紫色/琥珀色的条目是该账号当前生效的 Codex Turn-State（按模型分），倒计时是这张票自铸造起 1 小时的剩余有效期；琥珀色代表这张票疑似降智。',
       ollamaCloud: {
         title: 'Ollama Cloud 用量',
@@ -381,12 +383,15 @@ export default {
         },
         protocolRules: {
           title: '模型协议分流',
-          hint: '自适应模式下按模型匹配上游协议。支持精确 ID 或末尾 * 通配（如 grok-*、qwen*）；自上而下第一条命中生效；未命中走 Chat Completions。',
+          hint: '自适应模式下按模型匹配上游协议。支持精确 ID 或末尾 * 通配（如 grok-*、qwen*）；自上而下第一条命中生效。入站协议是模型也支持的协议时同协议直通、不做转换，否则走所选协议。',
           patternPlaceholder: 'grok-* 或 deepseek-v4-flash',
           add: '添加规则',
           remove: '删除规则',
           restoreDefaults: '恢复默认',
+          alsoSupports: '也支持',
+          alsoSupportsHint: '以这些协议进来的请求同协议直通，免去协议转换',
           fallback: '未命中以上规则 → Chat Completions（/v1/chat/completions）',
+          catalogFallback: '未命中以上规则 → 按上游模型列表（/models 的 supported_endpoints）选协议；列表不可用时走 Chat Completions',
         },
         title: 'OpenCode Go 用量',
         panelHint: '上游 OpenCode Go 账号上报的用量窗口。可手动刷新，或开启自动刷新。',
@@ -411,7 +416,8 @@ export default {
         refreshSuccess: 'OpenCode Go 用量已刷新',
         refreshFailed: '刷新 OpenCode Go 用量失败',
         errors: {
-          OPENCODE_GO_USAGE_REFRESH_RATE_LIMITED: '刷新过于频繁，请在 {retry_after_seconds} 秒后重试。'
+          OPENCODE_GO_USAGE_REFRESH_RATE_LIMITED: '刷新过于频繁，请在 {retry_after_seconds} 秒后重试。',
+          forbidden: '上游返回 403：可能是订阅缺失/失效，也可能是 WAF 或访问策略拦截，请结合网络路径与 HTTP 状态排查。'
         }
       },
       types: {
@@ -491,7 +497,7 @@ export default {
         cooldownRemaining: '本地冷却剩余',
         cooldownUnknown: '无法估计',
         cooldownFinished: '本地冷却已到期，等待状态同步',
-        cooldownEstimateHint: '按第 {count} 个本地冷却截止恢复；已知数量不足时等全部已知网关冷却结束。不复查池端库存，取票与满血验证仍照常执行。',
+        cooldownEstimateHint: '入休息时固定的非空优质名单全部冷却，或第 {count} 个本地冷却到期，先满足者恢复；已知数量不足门槛时，数量条件按全部已知网关计算。无优质名单仅走数量条件。不复查池端库存，取票与满血验证仍照常执行。',
         poolRestPending: '等待本地冷却到期后自动恢复；不再复查池端候选数量',
         remaining: '剩余时间',
         matchedKeyword: '匹配关键词',
@@ -755,43 +761,81 @@ export default {
       // OpenAI specific hints
       openai: {
         gwpoolCredentialScope: '同一套上游凭据共享验票和账本；同一工作区的不同成员独立记账。本地实测和冷却规则优先，池端数据仅供参考。',
+        gatewayQueues: {
+          title: '候选队列',
+          quality: '快速',
+          ordinary: '普通',
+          qualityHint: '快速队列：现有质量评分高于中性分0.5的候选，动态收益用于队内排序。表示优先尝试，不代表已经验满或响应更快。',
+          ordinaryHint: '普通队列：低收益或证据不足的候选，保留有限探索机会，不永久排除。',
+          hint: '按同一调度规则预览候选，排除本地冷却和当前票。序号包含探索轮次与地区软降权，每组最多展示3个；库存或判定变化会更新顺序。过期保留上次目录，不额外取票或探测。',
+          next: '预计下一 · {name}',
+          stale: '上次快照',
+          staleHint: '目录已过期或刷新尚未成功，保留最后成功的目录供查看；不能据此确认当前库存。',
+          candidateHint: '{name} · 候选，尚未验满',
+          more: '另有 {count} 个候选',
+          empty: '暂无候选',
+          unknown: '暂无快照'
+        },
+        gatewayUsed: {
+          title: '已使用 · {count}',
+          label: '已使用',
+          coolingCount: '{count} 冷却中',
+          cooledCount: '{count} 已冷却',
+          heldFull: '满血 {duration}',
+          hint: '当前票在上方显示，外层合并连续明确判降票并保留有满血时长的历史，最多两行。张数按票级记录去重，历史不完整时标“至少”；未知不算降智。时长为实测满血窗口，不是业务耗时或当前周期累计。全部历史保留逐网关明细；已冷却不保证有票或满血。',
+          degradedTickets: '连续{count}张降智票',
+          degradedTicketsAtLeast: '至少连续{count}张降智票',
+          allHistory: '全部历史',
+          allRegions: '全部大区',
+          order: '当前置顶 · 使用倒序',
+          pagePrevious: '上一页',
+          pageNext: '下一页',
+          current: '当前已验满',
+          previous: '上一',
+          recent: '最近',
+          earlier: '更早',
+          live: '在用',
+          cooling: '冷却{minutes}m',
+          cooled: '已冷却'
+        },
         gatewayRuntime: {
-          durationHours: '{hours}小时{minutes}分{seconds}秒',
           live: '已验证 · {gateway} · 验证模型：{models}',
           unverified: '尚未验证',
-          counts: '本轮验满 / 尝试 {full} / {attempted} 张',
-          active: '当前周期满血使用 {duration}',
+          noTicket: '暂无可用票',
+          verifiedAt: '{time}验满',
+          cycleFull: '本轮满血用时',
+          totalFull: '累计满血用时',
+          cycleTickets: '{full}/{attempted}张',
+          totalRounds: '{count}轮',
+          incompleteHint: '部分时长未观测，实际不少于此值',
           activeHint: '仅统计已验满票承载业务的活跃区间，并发去重；不含空闲、找票、验证和重试等待。旧口径时长不再展示。',
-          duration: '{minutes}分{seconds}秒',
           history: '使用历史',
           ended: '{full}/{attempted}张 · 满血使用 {duration} · {end}结束',
-          archived: '历史满血累计 {duration} / {count}轮',
-          archivedCounts: '历史记录 {count}轮',
           legacy: '旧统计 · {model} · {full}/{attempted}张',
           legacyArchived: '旧归档 · {model} · {count}轮 · {full}/{attempted}张',
-          durationIncomplete: '（部分时长未观测）',
           incomplete: '（计数为下界）'
         },
         gatewayProgress: {
-          run: '验证 #{id}',
-          idle: '当前无验证请求',
-          pending: '待重新准备',
+          run: '第{id}次验票',
+          idle: '暂无验证',
+          pending: '待准备',
           count: '已试{attempt}张 · 用时{seconds}秒',
+          elapsed: '用时{seconds}s',
           lastCount: '上次试票 {attempt} / {limit} 张 · 用时{seconds}秒',
-          fetching: '正在获取候选票',
-          verifying: '正在验证候选票',
-          waiting: '等待候选 / 验证重试',
-          ready: '已验满 · 队列暂停验证',
+          fetching: '取票中',
+          verifying: '验票中',
+          waiting: '等待重试',
+          ready: '满血暂停中',
           recentReady: '最近验满',
-          exhausted: '验证已结束 · 未找到可用票',
-          unknown: '验证已结束 · 未完成（缺票、超时或异常）',
-          cancelled: '验证已结束 · 请求取消',
+          exhausted: '候选耗尽',
+          unknown: '验证未完成',
+          cancelled: '已取消',
           rejected: '{count}张未通过',
           concurrent: '{count}个请求正在预检（含当前请求）',
-          unavailable: '实时验证进度暂不可用'
+          unavailable: '进度不可用'
         },
         gwpoolResumeGateways: '恢复门槛',
-        gwpoolResumeGatewaysDesc: '候选耗尽后，等第N个本地冷却到期恢复，不复查池端库存；已知不足N则等全部结束，无记录则不休息。默认50。',
+        gwpoolResumeGatewaysDesc: '数量兜底门槛：候选耗尽后，固定优质名单全部冷却，或N个已知网关冷却，任一满足即恢复。无优质名单仅走数量条件；已知不足N按全部计算，无记录不造休息。不复查池端库存，仍需取票验满。默认50。',
         gwpoolCandidatesHint: '候选指可取且未冷却的网关，不代表已验满；清单读取失败不按零处理。',
         gwpoolBulkHint: '逐项勾选才修改；未选字段保留各账号原值。数字清空恢复默认；Key留空保留原Key，不复制任一账号的运行统计。',
         gwpoolBulkApply: '修改：{field}',
@@ -925,7 +969,7 @@ export default {
           '默认 10 秒。仅限制单次取票网络等待，不是整个候选验证过程的总时限。',
         gwpoolListTimeout: '单次网关清单超时（秒）',
         gwpoolListTimeoutDesc:
-          '默认 2 秒。限制获取候选网关清单的等待；失败或超时后交给池子选择，仍遵守本地冷却。',
+          '默认 5 秒。目录超时后立即重新查询，不额外等待30秒，也不回退由池子选票；取消立即停止，明确限频仍遵守 Retry-After。',
         gwpoolDetails: '查看冷却、触发条件与排障说明',
         gwpoolCooldownDetails:
           '冷却按成员凭据×网关分别计算。明确未恢复时依次退避到 1/2/4/6/8/10/12/16/20/24 小时；确认恢复后结束本周期。同一档位在两个独立周期成功后固定，再次失败会解除固定。网络错误不参与学习，池端建议不改变本地冷却。',
@@ -964,7 +1008,6 @@ export default {
           feedbackTotals: '反馈：已发送 {sent}，待重试 {pending}，永久失败 {failed}，已丢弃 {discarded}',
           runtimeHint: '仅累计验证请求尝试，不含业务请求；未知不算降级，不代表业务满血率或实际 token/金额。待发送最多 64 条，启用期间保留 7 天。',
           empty: '网关 -',
-          current: '当前',
           seen: '打过 {n} 个',
           // tooltip 的五段是「区域-网关名-满血时间-状态-判定」，每段只放**值**不带标签：
           // 运营方竖着扫一列看，每行重复一遍「窗口内打过，仍在冷却」会把真正要比的那几个
@@ -983,7 +1026,6 @@ export default {
           legend: '✓ 当前票已验证 · ! 本地冷却中 · 灰 可再试；历史满血不代表当前可用',
           // 两个数各报各的，**不做减法**：历史落点来自本地账本（过去一个窗口碰过的网关名），
           // 池子剩余是「此刻可交付的清单」现对本地账本得出的，两个集合不是包含关系。
-          windowUsage: '冷却中 {used} · 冷却完毕 {cooled}',
           poolSnapshot: '最近库存快照：{free}（非实时）',
           windowUsageHint:
             '「冷却中」和「冷却完毕」按本行历史中各网关的冷却截止时间实时计算；时间未知不计入完毕。' +

@@ -4056,7 +4056,7 @@
                       </tr>
                     </thead>
                     <tbody class="space-y-2">
-                      <tr v-for="p in (['anthropic', 'openai', 'gemini', 'antigravity', 'grok', 'typesafe'] as const)" :key="p" class="align-top">
+                      <tr v-for="p in platformQuotaRows(form.default_platform_quotas)" :key="p" class="align-top">
                         <td class="pr-4 py-1">
                           <span class="font-mono text-xs text-gray-700 dark:text-gray-300">{{ p }}</span>
                         </td>
@@ -4391,7 +4391,7 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <tr v-for="p in (['anthropic', 'openai', 'gemini', 'antigravity', 'grok', 'typesafe'] as const)" :key="`${authSource.source}-pq-${p}`" class="align-top">
+                            <tr v-for="p in platformQuotaRows(authSourceDefaults[authSource.source].platform_quotas)" :key="`${authSource.source}-pq-${p}`" class="align-top">
                               <td class="pr-4 py-1">
                                 <span class="font-mono text-xs text-gray-700 dark:text-gray-300">{{ p }}</span>
                               </td>
@@ -8977,6 +8977,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from "vue";
+import { listPlatformIds } from "@/constants/platformCatalog";
 import { useI18n } from "vue-i18n";
 import { adminAPI } from "@/api";
 import {
@@ -9053,7 +9054,7 @@ import { affiliatesAPI, type AffiliateAdminEntry, type SimpleUser as AffiliateSi
 import { extractApiErrorMessage, extractI18nErrorMessage } from "@/utils/apiError";
 import { useAppStore } from "@/stores";
 import { useAdminSettingsStore } from "@/stores/adminSettings";
-import { normalizeVisibleMethod } from "@/components/payment/paymentFlow";
+import { isPaymentMethodDisabled, normalizeVisibleMethod } from "@/components/payment/paymentFlow";
 import {
   isRegistrationEmailSuffixDomainValid,
   normalizeRegistrationEmailSuffixDomain,
@@ -9760,12 +9761,18 @@ type SettingsForm = Omit<
   payment_recharge_bonus_tiers: RechargeBonusTierDraft[];
   payment_recharge_bonus_mode: RechargeBonusMode;
   payment_recharge_bonus_notice: string;
-  // 系统全局平台限额 map；form 内始终归一化为全 4 平台对象（模板非空绑定依赖此不变量）
+  // 系统全局平台限额 map；form 内始终归一化为全部平台对象（模板非空绑定依赖此不变量）
   default_platform_quotas: DefaultPlatformQuotasMap;
   account_scheduling_thresholds: ReturnType<typeof normalizeAccountSchedulingThresholdsMap>;
 };
 
 const schedulingThresholdPlatforms = SCHEDULING_THRESHOLD_PLATFORMS;
+
+// 平台限额表格的行：平台清单顺序中、已在归一化 map 里的平台（清单晚于设置加载时
+// 不渲染尚未归一化的平台，保持模板非空绑定）。
+function platformQuotaRows(map: DefaultPlatformQuotasMap | undefined): string[] {
+  return listPlatformIds().filter((platform) => !!map?.[platform]);
+}
 
 const form = reactive<SettingsForm>({
   registration_enabled: true,
@@ -12558,7 +12565,6 @@ const allPaymentTypes = computed(() => [
   { value: "alipay", label: t("payment.methods.alipay") },
   { value: "wxpay", label: t("payment.methods.wxpay") },
   { value: "stripe", label: t("payment.methods.stripe") },
-  { value: "airwallex", label: t("payment.methods.airwallex") },
 ]);
 
 function isPaymentTypeEnabled(type: string): boolean {
@@ -12566,7 +12572,7 @@ function isPaymentTypeEnabled(type: string): boolean {
 }
 
 const hasAnyPaymentTypeEnabled = computed(
-  () => form.payment_enabled_types.length > 0,
+  () => allPaymentTypes.value.some((option) => isPaymentTypeEnabled(option.value)),
 );
 
 function togglePaymentType(type: string) {
@@ -12620,7 +12626,7 @@ const providerKeyOptions = computed(() => [
 
 const enabledProviderKeyOptions = computed(() => {
   const enabled = form.payment_enabled_types;
-  return providerKeyOptions.value.filter((opt) => enabled.includes(opt.value));
+  return providerKeyOptions.value.filter((opt) => enabled.includes(opt.value) && !isPaymentMethodDisabled(opt.value));
 });
 
 const loadBalanceOptions = computed(() => [

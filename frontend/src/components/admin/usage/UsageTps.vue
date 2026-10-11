@@ -35,10 +35,10 @@ const explanation = computed(() =>
   </span>
   <span
     data-testid="usage-tps-value"
-    class="whitespace-nowrap font-medium tabular-nums"
+    class="text-right whitespace-nowrap font-medium tabular-nums"
     :class="result.value == null ? 'text-gray-400 dark:text-gray-500' : 'text-cyan-600 dark:text-cyan-400'"
   >
     {{ displayValue }}
-    <span v-if="result.partial" data-testid="usage-partial-response" class="ml-1 text-[10px] text-amber-600 dark:text-amber-400">{{ t('usage.partialResponse') }}</span>
+    <span v-if="result.partial" data-testid="usage-partial-response" class="block text-[10px] text-amber-600 dark:text-amber-400 lg:ml-1 lg:inline">{{ t('usage.partialResponse') }}</span>
   </span>
 </template>

@@ -94,6 +94,9 @@ temp/
 dist/
 build/
 release/
+# 发布候选的精确源码与许可摘要，由 release_matrix.py 生成
+/SOURCE.json
+/.release-context/
 
 # 后端嵌入的前端构建产物
 # Keep a placeholder file so `//go:embed all:dist` always has a match in CI/lint,
@@ -122,6 +125,9 @@ tests
 CLAUDE.md
 .claude
 scripts
+!frontend/scripts/
+!frontend/scripts/check-xlsx-write-only.mjs
+!frontend/scripts/check-xlsx-write-only.test.mjs
 !backend/scripts/
 !backend/scripts/resolve-version.sh
 .code-review-state
@@ -164,3 +170,6 @@ issues/
 
 # Python unit-test orchestration cache
 /tools/__pycache__/
+
+!docs/security/
+!docs/security/SEC-002.md
