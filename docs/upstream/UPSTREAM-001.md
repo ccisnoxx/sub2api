@@ -41,7 +41,7 @@ Git 远端 tag ref、peeled ref 与 GitHub tag object API 三者一致；`releas
 | S1 / UPSTREAM-002 | UPSTREAM-001、MIG-001 | 用量计时、终态与音频 Token；保留旧首字、计费及异步 owner | 提交标题包含 `UPSTREAM-002`；报告保存该阶段完整基准/候选 SHA、差异、测试与回滚 | JSON、SSE/透传、HTTP↔WS、多 turn/交错 response ID、取消/失败/缺终态；观察器及异步复制 `go test -race` |
 | S2 / UPSTREAM-003 | UPSTREAM-001、UPSTREAM-002 | 授权模型及可解释价格目录；保持 opt-in 和旧接口行为 | 提交标题包含 `UPSTREAM-003`；报告单独绑定候选及前置 S1 SHA | 授权组/渠道、不可计算价格 unknown、无上游请求/结算副作用、前端目录及旧接口 |
 | S3 / UPSTREAM-004 | UPSTREAM-001、MIG-001 | 真实选择的不可变诊断、存储及管理员展示；保持调度/重试/计费 owner | 提交标题包含 `UPSTREAM-004`；报告单独绑定候选，接入累计分支时复查与 S1/S2 的交集 | 候选池/过滤原因、异步深复制、管理员与普通用户边界、历史 NULL、native WS 重试/恢复 |
-| S4 / UPSTREAM-005 | UPSTREAM-001、MIG-001、UPSTREAM-004 | 真实请求服务状态、聚合与事故；独立开关，保留 V1/V2 | 提交标题包含 `UPSTREAM-005`；报告单独绑定候选及前置诊断 SHA | 终态与未知、时间窗口/水位、幂等/缺口、管理员权限、数据库集成与状态展示 |
+| S4 / UPSTREAM-005 | UPSTREAM-001、MIG-001、UPSTREAM-002、UPSTREAM-004 | 真实请求服务状态、聚合与事故；独立开关，保留 V1/V2 | 提交标题包含 `UPSTREAM-005`；报告单独绑定候选及前置计时、诊断 SHA | 终态与未知、时间窗口/水位、幂等/缺口、管理员权限、数据库集成与状态展示 |
 
 以上测试入口以 [来源清单](../../UPSTREAM.md#模块证据与重放入口)及各任务完整验收为起点。它们属于固定旧应用的入口；新 KIN 适配时必须重新定位实际 owner、测试路径和调用边界，不能将旧报告直接当作新候选通过。S3 可以在迁移审计后独立准备，但接入累计分支必须基于当时固定的已验收 HEAD，不能覆盖其他阶段。
 
