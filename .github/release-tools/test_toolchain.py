@@ -93,6 +93,17 @@ class ToolchainPolicyTests(unittest.TestCase):
         self.assertNotIn("go install", script)
         self.assertNotIn("git push", script)
 
+    def test_binary_build_and_report_use_the_explicitly_installed_executable(self):
+        steps = yaml.safe_load((ROOT / ".github/workflows/release.yml").read_text())["jobs"]["build-binaries"]["steps"]
+        install = next(i for i, step in enumerate(steps) if step.get("name") == "Install pinned binary build tool")
+        build = next(i for i, step in enumerate(steps) if step.get("name") == "Build and archive without publishing")
+        report = next(i for i, step in enumerate(steps) if step.get("name") == "Record binary build tool versions")
+        self.assertIs(steps[install]["with"]["install-only"], True)
+        self.assertEqual(steps[install]["with"]["version"], PINS["goreleaser"])
+        self.assertLess(install, build)
+        self.assertLess(build, report)
+        self.assertTrue(steps[build]["run"].startswith("goreleaser release "))
+
 
 class ToolchainReportTests(unittest.TestCase):
     def setUp(self):
