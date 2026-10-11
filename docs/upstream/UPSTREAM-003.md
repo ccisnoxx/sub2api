@@ -36,6 +36,7 @@ Risks:
 - 维护者在2026-10-11明确授权UPSTREAM-002—006使用固定候选标准PR CI及Security Scan；现有Personal CI的旧personal祖先/PR base/source绑定保持，来源切换及最终Personal CI留UPSTREAM-007。
 
 正式整合后附加检查（代码配置环境固定）：
+- 首轮 PR CI `38129024988` 的 golangci-lint v2.14.0 在新增报价分支触发 `QF1003`（按同一平台的 if/else 应使用 tagged switch）；原 CI 不计通过。仅将该二分支改为等价 switch，保留档位和回退语义，不改 lint 配置。修正后 `go test -tags=unit ./internal/service -run '^(TestCatalogPricing_|TestCatalogRateMultipliers_)' -count=1` 通过；最终固定门禁以 PR #22 为准。
 - 上述 S2 service/handler 定向命令同时加入 `./internal/server`、`TestOpenAIUsageTiming_` 与 `TestAPIContracts$`：161 项通过，覆盖新 KIN 计费 owner、S1 观测隔离与旧接口 fixture。
 - 同一真实 PostgreSQL/Redis 集成命令 `CI=true go test -tags=integration ./internal/repository -run '^TestAvailableCatalog' -count=1 -timeout=10m`：退出 0；不存在 Docker 跳过，原 11 个目录合同用例执行。
 - 正式整合树 `make -C backend build`：退出 0，验证当前 Wire 注入和 S1/S2 共享依赖。
