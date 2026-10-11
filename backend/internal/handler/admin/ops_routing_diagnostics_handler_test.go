@@ -19,6 +19,36 @@ type s33OpsDetailRepo struct {
 	reads  int
 }
 
+func TestOpsRoutingDiagnosticsLegacyOptionalEventsDoNotHideRealError(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	for _, raw := range []string{`{"legacy":"payload","routing_diagnostics":{"candidate_pool":1}}`, `"legacy payload"`, `null`} {
+		t.Run(raw, func(t *testing.T) {
+			diagnostics := &service.RoutingDiagnostics{SchemaVersion: 1}
+			repo := &s33OpsDetailRepo{detail: &service.OpsErrorLogDetail{
+				OpsErrorLog: service.OpsErrorLog{ID: 1, Message: "real historical failure"},
+				ErrorBody:   "real historical body", UpstreamErrors: raw, RoutingDiagnostics: diagnostics,
+			}}
+			h := NewOpsHandler(service.NewOpsService(repo, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil))
+			router := gin.New()
+			router.GET("/errors/:id", h.GetErrorLogByID)
+			router.GET("/request-errors/:id", h.GetRequestError)
+			router.GET("/upstream-errors/:id", h.GetUpstreamError)
+			for _, path := range []string{"/errors/1", "/request-errors/1", "/upstream-errors/1"} {
+				recorder := httptest.NewRecorder()
+				router.ServeHTTP(recorder, httptest.NewRequest("GET", path, nil))
+				require.Equal(t, 200, recorder.Code, recorder.Body.String())
+				require.Contains(t, recorder.Body.String(), "real historical failure")
+				require.Contains(t, recorder.Body.String(), "real historical body")
+				require.NotContains(t, recorder.Body.String(), "upstream_errors")
+				require.NotContains(t, recorder.Body.String(), "routing_diagnostics")
+				require.NotContains(t, recorder.Body.String(), "candidate_pool")
+			}
+			require.Equal(t, raw, repo.detail.UpstreamErrors)
+			require.Same(t, diagnostics, repo.detail.RoutingDiagnostics)
+		})
+	}
+}
+
 func (r *s33OpsDetailRepo) GetErrorLogByID(context.Context, int64) (*service.OpsErrorLogDetail, error) {
 	r.reads++
 	return r.detail, nil

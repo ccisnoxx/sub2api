@@ -49,8 +49,8 @@ func (h *OpsHandler) GetErrorLogByID(c *gin.Context) {
 	copy.RoutingDiagnostics = nil
 	copy.UpstreamErrors, err = service.OpsUpstreamErrorsWithoutRoutingDiagnostics(copy.UpstreamErrors)
 	if err != nil {
-		response.Error(c, http.StatusServiceUnavailable, "无法裁剪上游事件诊断")
-		return
+		log.Print("[Ops] 详情无法裁剪上游事件路由诊断，已隐藏事件正文")
+		copy.UpstreamErrors = ""
 	}
 	response.Success(c, &copy)
 }
