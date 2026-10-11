@@ -99,6 +99,15 @@ func TestUsageLogRepositoryCreateSyncRequestTypeAndLegacyFields(t *testing.T) {
 			sqlmock.AnyArg(), // billing_tier
 			sqlmock.AnyArg(), // billing_mode
 			sqlmock.AnyArg(), // account_stats_cost
+			int16(0),         // timing_version
+			nil,              // strict_first_token_ms
+			nil,              // last_token_ms
+			nil,              // first_output_ms
+			nil,              // first_output_kind
+			nil,              // audio_output_tokens
+			service.CompletionStatusUnknown,
+			nil, // is_complete
+			service.UsageSourceUnknown,
 			sqlmock.AnyArg(), // upstream_request_id
 			sqlmock.AnyArg(), // session_id
 			log.NativeCompactionV2,
@@ -205,6 +214,15 @@ func TestUsageLogRepositoryCreate_PersistsServiceTier(t *testing.T) {
 			sqlmock.AnyArg(), // billing_tier
 			sqlmock.AnyArg(), // billing_mode
 			sqlmock.AnyArg(), // account_stats_cost
+			int16(0),         // timing_version
+			nil,              // strict_first_token_ms
+			nil,              // last_token_ms
+			nil,              // first_output_ms
+			nil,              // first_output_kind
+			nil,              // audio_output_tokens
+			service.CompletionStatusUnknown,
+			nil, // is_complete
+			service.UsageSourceUnknown,
 			sqlmock.AnyArg(), // upstream_request_id
 			sqlmock.AnyArg(), // session_id
 			log.NativeCompactionV2,
@@ -980,6 +998,15 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},
 			sql.NullString{},
 			sql.NullFloat64{},
+			int16(0),         // timing_version
+			sql.NullInt64{},  // strict_first_token_ms
+			sql.NullInt64{},  // last_token_ms
+			sql.NullInt64{},  // first_output_ms
+			sql.NullString{}, // first_output_kind
+			sql.NullInt64{},  // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
 			sql.NullString{}, // upstream_request_id
 			sql.NullString{},
 			false,            // native_compaction_v2
@@ -1071,20 +1098,29 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_tier
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
-			sql.NullString{},  // upstream_request_id
-			sql.NullString{},  // session_id
-			false,             // native_compaction_v2
-			sql.NullString{},  // turn_state
-			sql.NullBool{},    // turn_state_overridden
-			sql.NullString{},  // turn_state_source
-			sql.NullString{},  // turn_state_sent
-			sql.NullBool{},    // safety_buffering_enabled
-			sql.NullString{},  // safety_buffering_faster_model
-			sql.NullString{},  // route_gateway
-			sql.NullString{},  // route_pair
-			sql.NullBool{},    // route_pair_overridden
-			sql.NullString{},  // route_pair_pool_gateway
-			sql.NullString{},  // route_pair_pool_version
+			int16(0),          // timing_version
+			sql.NullInt64{},   // strict_first_token_ms
+			sql.NullInt64{},   // last_token_ms
+			sql.NullInt64{},   // first_output_ms
+			sql.NullString{},  // first_output_kind
+			sql.NullInt64{},   // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
+			sql.NullString{}, // upstream_request_id
+			sql.NullString{}, // session_id
+			false,            // native_compaction_v2
+			sql.NullString{}, // turn_state
+			sql.NullBool{},   // turn_state_overridden
+			sql.NullString{}, // turn_state_source
+			sql.NullString{}, // turn_state_sent
+			sql.NullBool{},   // safety_buffering_enabled
+			sql.NullString{}, // safety_buffering_faster_model
+			sql.NullString{}, // route_gateway
+			sql.NullString{}, // route_pair
+			sql.NullBool{},   // route_pair_overridden
+			sql.NullString{}, // route_pair_pool_gateway
+			sql.NullString{}, // route_pair_pool_version
 			now,
 		}})
 		require.NoError(t, err)
@@ -1145,20 +1181,29 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_tier
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
-			sql.NullString{},  // upstream_request_id
-			sql.NullString{},  // session_id
-			true,              // native_compaction_v2
-			sql.NullString{},  // turn_state
-			sql.NullBool{},    // turn_state_overridden
-			sql.NullString{},  // turn_state_source
-			sql.NullString{},  // turn_state_sent
-			sql.NullBool{},    // safety_buffering_enabled
-			sql.NullString{},  // safety_buffering_faster_model
-			sql.NullString{},  // route_gateway
-			sql.NullString{},  // route_pair
-			sql.NullBool{},    // route_pair_overridden
-			sql.NullString{},  // route_pair_pool_gateway
-			sql.NullString{},  // route_pair_pool_version
+			int16(0),          // timing_version
+			sql.NullInt64{},   // strict_first_token_ms
+			sql.NullInt64{},   // last_token_ms
+			sql.NullInt64{},   // first_output_ms
+			sql.NullString{},  // first_output_kind
+			sql.NullInt64{},   // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
+			sql.NullString{}, // upstream_request_id
+			sql.NullString{}, // session_id
+			true,             // native_compaction_v2
+			sql.NullString{}, // turn_state
+			sql.NullBool{},   // turn_state_overridden
+			sql.NullString{}, // turn_state_source
+			sql.NullString{}, // turn_state_sent
+			sql.NullBool{},   // safety_buffering_enabled
+			sql.NullString{}, // safety_buffering_faster_model
+			sql.NullString{}, // route_gateway
+			sql.NullString{}, // route_pair
+			sql.NullBool{},   // route_pair_overridden
+			sql.NullString{}, // route_pair_pool_gateway
+			sql.NullString{}, // route_pair_pool_version
 			now,
 		}})
 		require.NoError(t, err)
@@ -1220,20 +1265,29 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_tier
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
-			sql.NullString{},  // upstream_request_id
-			sql.NullString{},  // session_id
-			false,             // native_compaction_v2
-			sql.NullString{},  // turn_state
-			sql.NullBool{},    // turn_state_overridden
-			sql.NullString{},  // turn_state_source
-			sql.NullString{},  // turn_state_sent
-			sql.NullBool{},    // safety_buffering_enabled
-			sql.NullString{},  // safety_buffering_faster_model
-			sql.NullString{},  // route_gateway
-			sql.NullString{},  // route_pair
-			sql.NullBool{},    // route_pair_overridden
-			sql.NullString{},  // route_pair_pool_gateway
-			sql.NullString{},  // route_pair_pool_version
+			int16(0),          // timing_version
+			sql.NullInt64{},   // strict_first_token_ms
+			sql.NullInt64{},   // last_token_ms
+			sql.NullInt64{},   // first_output_ms
+			sql.NullString{},  // first_output_kind
+			sql.NullInt64{},   // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
+			sql.NullString{}, // upstream_request_id
+			sql.NullString{}, // session_id
+			false,            // native_compaction_v2
+			sql.NullString{}, // turn_state
+			sql.NullBool{},   // turn_state_overridden
+			sql.NullString{}, // turn_state_source
+			sql.NullString{}, // turn_state_sent
+			sql.NullBool{},   // safety_buffering_enabled
+			sql.NullString{}, // safety_buffering_faster_model
+			sql.NullString{}, // route_gateway
+			sql.NullString{}, // route_pair
+			sql.NullBool{},   // route_pair_overridden
+			sql.NullString{}, // route_pair_pool_gateway
+			sql.NullString{}, // route_pair_pool_version
 			now,
 		}})
 		require.NoError(t, err)

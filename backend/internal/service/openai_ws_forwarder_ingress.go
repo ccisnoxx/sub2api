@@ -1021,6 +1021,9 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 			return nil, errors.New("upstream websocket lease is nil")
 		}
 		turnStart := time.Now()
+		timing := newResponsesOutputTiming(ctx, turnStart, account)
+		defer timing.stop()
+		timingResponseID := ""
 		wroteDownstream := false
 		// 双开：turn-state 走帧内、顶层字段序对齐真客户端。放在发送边界。HTTP 桥接路径
 		// 不经过这里：桥是网关自造形态（WS 客户端 → HTTP 上游，默认关闭），它出站的
@@ -1090,6 +1093,12 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 			}
 
 			eventType, eventResponseID, _ := parseOpenAIWSEventEnvelope(upstreamMessage)
+			if responsesTimingMatchesID(&timingResponseID, upstreamMessage, eventType) {
+				timing.observeEvent(upstreamMessage, eventType, time.Now())
+				if eventType == "response.completed" || eventType == "response.done" {
+					timing.confirmNoAudio(upstreamMessage)
+				}
+			}
 			responseModelObserver.ObserveOpenAI(upstreamMessage, eventType)
 			if responseID == "" && eventResponseID != "" {
 				responseID = eventResponseID
@@ -1102,6 +1111,9 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 				lastEventType = eventType
 			}
 			if openAIWSMessageShouldParseUsage(eventType, upstreamMessage) {
+				if responsesTimingMatchesID(&timingResponseID, upstreamMessage, eventType) {
+					timing.observeUsage(upstreamMessage, eventType, usage)
+				}
 				parseOpenAIWSResponseUsageFromCompletedEvent(upstreamMessage, &usage)
 			}
 			if eventType == "error" || eventType == "response.failed" {
@@ -1253,6 +1265,7 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 				if err := writeClientMessage(clientMessage); err != nil {
 					if isOpenAIWSClientDisconnectError(err) {
 						clientDisconnected = true
+						timing.clientDisconnected()
 						closeStatus, closeReason := summarizeOpenAIWSReadCloseError(err)
 						logOpenAIWSModeInfo(
 							"ingress_ws_client_disconnected_drain account_id=%d turn=%d conn_id=%s close_status=%s close_reason=%s",
@@ -1305,6 +1318,7 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 				result := &OpenAIForwardResult{
 					RequestID:                     responseID,
 					Usage:                         usage,
+					UsageTiming:                   timing.snapshot(clientDisconnected),
 					Model:                         originalModel,
 					UpstreamModel:                 mappedModel,
 					UpstreamResponseModel:         responseModelObserver.Model(),

@@ -256,6 +256,7 @@ type OpenAIForwardResult struct {
 	// 由转发入口的 sink 在返回前 publish；零值 = 没注入（非推理面、没接管、没活票都落零值）。
 	GatewayPoolApplied OpenAIGatewayPoolApplied
 	Usage              OpenAIUsage
+	UsageTiming        UsageTiming
 	Model              string // 原始模型（用于响应和日志显示）
 	// BillingModel is the model used for cost calculation.
 	// When non-empty, CalculateCost uses this instead of Model.

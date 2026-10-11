@@ -107,6 +107,7 @@ func TestForwardResponsesChatCompletionsFallbackKeepsFunctionArgumentsSingle(t *
 	result, err := svc.Forward(context.Background(), c, account, body)
 	require.NoError(t, err)
 	require.NotNil(t, result)
+	require.Equal(t, UsageTiming{}, result.UsageTiming, "转换入口尚未采集 S1，不能将合成 Responses 事件当成原生采集")
 
 	const wantArgs = `{"cmd":"echo hi"}`
 	events := collectSSEDataPayloads(t, rec.Body.String())

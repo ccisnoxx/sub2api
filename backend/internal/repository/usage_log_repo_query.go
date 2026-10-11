@@ -19,7 +19,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/service"
 )
 
-const usageLogSelectColumns = "id, user_id, api_key_id, account_id, request_id, model, requested_model, upstream_model, upstream_response_model, upstream_model_mismatch, group_id, subscription_id, input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens, image_output_tokens, image_output_cost, image_input_tokens, image_input_cost, input_cost, output_cost, cache_creation_cost, cache_read_cost, total_cost, actual_cost, rate_multiplier, account_rate_multiplier, billing_type, request_type, stream, openai_ws_mode, duration_ms, first_token_ms, user_agent, ip_address, image_count, image_size, image_input_size, image_output_size, image_size_source, image_size_breakdown, video_count, video_resolution, video_duration_seconds, service_tier, reasoning_effort, requested_reasoning_effort, inbound_endpoint, upstream_endpoint, cache_ttl_overridden, long_context_billing_applied, channel_id, model_mapping_chain, billing_tier, billing_mode, account_stats_cost, upstream_request_id, session_id, native_compaction_v2, turn_state, turn_state_overridden, turn_state_source, turn_state_sent, safety_buffering_enabled, safety_buffering_faster_model, route_gateway, route_pair, route_pair_overridden, route_pair_pool_gateway, route_pair_pool_version, created_at"
+const usageLogSelectColumns = "id, user_id, api_key_id, account_id, request_id, model, requested_model, upstream_model, upstream_response_model, upstream_model_mismatch, group_id, subscription_id, input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens, image_output_tokens, image_output_cost, image_input_tokens, image_input_cost, input_cost, output_cost, cache_creation_cost, cache_read_cost, total_cost, actual_cost, rate_multiplier, account_rate_multiplier, billing_type, request_type, stream, openai_ws_mode, duration_ms, first_token_ms, user_agent, ip_address, image_count, image_size, image_input_size, image_output_size, image_size_source, image_size_breakdown, video_count, video_resolution, video_duration_seconds, service_tier, reasoning_effort, requested_reasoning_effort, inbound_endpoint, upstream_endpoint, cache_ttl_overridden, long_context_billing_applied, channel_id, model_mapping_chain, billing_tier, billing_mode, account_stats_cost, timing_version, strict_first_token_ms, last_token_ms, first_output_ms, first_output_kind, audio_output_tokens, completion_status, is_complete, usage_source, upstream_request_id, session_id, native_compaction_v2, turn_state, turn_state_overridden, turn_state_source, turn_state_sent, safety_buffering_enabled, safety_buffering_faster_model, route_gateway, route_pair, route_pair_overridden, route_pair_pool_gateway, route_pair_pool_version, created_at"
 
 func (r *usageLogRepository) GetByID(ctx context.Context, id int64) (log *service.UsageLog, err error) {
 	query := "SELECT " + usageLogSelectColumns + " FROM usage_logs WHERE id = $1"
@@ -500,6 +500,15 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 		billingTier               sql.NullString
 		billingMode               sql.NullString
 		accountStatsCost          sql.NullFloat64
+		timingVersion             int16
+		strictFirstTokenMs        sql.NullInt64
+		lastTokenMs               sql.NullInt64
+		firstOutputMs             sql.NullInt64
+		firstOutputKind           sql.NullString
+		audioOutputTokens         sql.NullInt64
+		completionStatus          string
+		isComplete                sql.NullBool
+		usageSource               string
 		upstreamRequestID         sql.NullString
 		sessionID                 sql.NullString
 		nativeCompactionV2        bool
@@ -577,6 +586,15 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 		&billingTier,
 		&billingMode,
 		&accountStatsCost,
+		&timingVersion,
+		&strictFirstTokenMs,
+		&lastTokenMs,
+		&firstOutputMs,
+		&firstOutputKind,
+		&audioOutputTokens,
+		&completionStatus,
+		&isComplete,
+		&usageSource,
 		&upstreamRequestID,
 		&sessionID,
 		&nativeCompactionV2,
@@ -597,6 +615,11 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 	}
 
 	log := &service.UsageLog{
+		UsageTiming: service.UsageTiming{
+			TimingVersion:    timingVersion,
+			CompletionStatus: completionStatus,
+			UsageSource:      usageSource,
+		},
 		ID:                        id,
 		UserID:                    userID,
 		APIKeyID:                  apiKeyID,
@@ -654,6 +677,28 @@ func scanUsageLog(scanner interface{ Scan(...any) error }) (*service.UsageLog, e
 	if firstTokenMs.Valid {
 		value := int(firstTokenMs.Int64)
 		log.FirstTokenMs = &value
+	}
+	if strictFirstTokenMs.Valid {
+		value := int(strictFirstTokenMs.Int64)
+		log.StrictFirstTokenMs = &value
+	}
+	if lastTokenMs.Valid {
+		value := int(lastTokenMs.Int64)
+		log.LastTokenMs = &value
+	}
+	if firstOutputMs.Valid {
+		value := int(firstOutputMs.Int64)
+		log.FirstOutputMs = &value
+	}
+	if firstOutputKind.Valid {
+		log.FirstOutputKind = &firstOutputKind.String
+	}
+	if audioOutputTokens.Valid {
+		value := int(audioOutputTokens.Int64)
+		log.AudioOutputTokens = &value
+	}
+	if isComplete.Valid {
+		log.IsComplete = &isComplete.Bool
 	}
 	if userAgent.Valid {
 		log.UserAgent = &userAgent.String
