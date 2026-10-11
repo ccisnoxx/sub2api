@@ -122,6 +122,9 @@ tests
 CLAUDE.md
 .claude
 scripts
+!frontend/scripts/
+!frontend/scripts/check-xlsx-write-only.mjs
+!frontend/scripts/check-xlsx-write-only.test.mjs
 !backend/scripts/
 !backend/scripts/resolve-version.sh
 .code-review-state
@@ -144,6 +147,8 @@ docs/*
 !docs/codex-credits.md
 !docs/legal/
 !docs/legal/*.md
+!docs/security/
+!docs/security/SEC-002.md
 !docs/screenshots/
 docs/screenshots/*
 !docs/screenshots/mobile-account-actions-menu.png
