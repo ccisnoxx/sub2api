@@ -3,7 +3,7 @@
 Task: UPSTREAM-003
 
 Summary:
-- 从固定旧 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 中抽取 S2 范围，适配新 KIN `ca686de5e5ac14834e12701c156831abd5ec6b71`。准备树基线为 MIG-001 `c0e7ab68b8479fc9d6f3b888d548eca4f4192974`；正式候选须从验收后的 UPSTREAM-002 候选整合。本节记录准备树的本地验证，不冒充后续正式候选或远端门禁。
+- 从固定旧 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 中抽取 S2 范围，适配新 KIN `ca686de5e5ac14834e12701c156831abd5ec6b71`。准备树基线为 MIG-001 `c0e7ab68b8479fc9d6f3b888d548eca4f4192974`；正式分支 `codex/upstream-003-s2-catalog` 以 UPSTREAM-002 固定候选 `ee415b62ea9076b7f682ab73fd94203478ca363a` 为直接父基准，小范围重放 S2，没有合并旧历史。当前已完成整合定向检查；前置与阶段门禁最终结果以对应 PR 固定记录为准。
 - 保留精确单个 `view=catalog` 的显式选择；无参数、重复或未知 view 继续返回旧数组。目录使用真实当前用户、活跃组和有效订阅授权 owner，不根据展示可见性授予访问权。
 - 授权后只读一次活跃渠道快照，价格解析复用现有计费 owner，基础价格与用户/时段倍率分开。请求或响应依赖、未明确的媒体单位、缺失价格返回带原因的 unknown；明确零价及个人零倍率保留。
 - DTO 使用显式白名单，不序列化 Group/Channel、内部模型映射、渠道 ID 或账号信息。报价标识由配置身份生成，不携带凭据。
@@ -30,10 +30,16 @@ Tests run:
 - `git diff HEAD --check`：通过。
 
 Risks:
-- 本地准备树尚不构成正式任务验收；前置S1、正式候选复核和同SHA远端门禁分别记录于阶段交付。
+- fresh `critical_reviewer` 对准备候选 `898afb11105cf84246b6b8bac36602c188db9ff0` 完成独立只读权限、价格、DTO 和冲突复核，无确认阻断；未重跑测试。S1/S2 运行代码没有同文件交叉修改，正式整合后补核共享 billing/resolver → RecordUsage、DI、API、实际目录报价对照；独立结论可复用相同运行代码。前置 S1 和本阶段同 SHA 远端门禁仍须由 PR 固定记录。
 - 实际付费上游与线上结算未执行；目录契约及账单对照用真实服务/解析owner和隔离数据库验证，不发起上游请求。
 - 冻结KIN的AGENTS引用的出站身份conventions缺失；本任务没有改出站身份。
 - 维护者在2026-10-11明确授权UPSTREAM-002—006使用固定候选标准PR CI及Security Scan；现有Personal CI的旧personal祖先/PR base/source绑定保持，来源切换及最终Personal CI留UPSTREAM-007。
+
+正式整合后附加检查（代码配置环境固定）：
+- 上述 S2 service/handler 定向命令同时加入 `./internal/server`、`TestOpenAIUsageTiming_` 与 `TestAPIContracts$`：161 项通过，覆盖新 KIN 计费 owner、S1 观测隔离与旧接口 fixture。
+- 同一真实 PostgreSQL/Redis 集成命令 `CI=true go test -tags=integration ./internal/repository -run '^TestAvailableCatalog' -count=1 -timeout=10m`：退出 0；不存在 Docker 跳过，原 11 个目录合同用例执行。
+- 正式整合树 `make -C backend build`：退出 0，验证当前 Wire 注入和 S1/S2 共享依赖。
+- 目录前端、依赖/锁与准备候选逐字节一致，复用原 Vitest/typecheck/build 证据；SQL、runner、CI 与来源控制面无修改。
 
 Database impact:
 - none。未改SQL、迁移runner或251–254身份；只读目录不写用量、余额或上游数据。多渠道冲突检测遵守已有唯一绑定约束。
@@ -47,4 +53,5 @@ Acceptance checklist:
 - [x] 不可确定价格明确返回原因，零价与缺失分别保留。
 - [x] 无view=catalog的旧接口行为保持。
 - [x] 多渠道绑定冲突不依赖顺序，未授权/停用配置不泄漏。
-- [ ] 正式候选已绑定验收的S1并完成独立复核及同SHA阶段远端门禁。
+- [x] 正式候选接入固定 S1，共享 owner、Wire、目录 HTTP/账单价格对照补核通过；相同运行代码独立复核无确认阻断。
+- [ ] 前置 S1 及本阶段同 SHA 的标准 PR CI + Security Scan 全部成功，结果绑定阶段 PR 后才勾选任务。
