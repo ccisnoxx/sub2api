@@ -11,6 +11,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+import zipfile
 from unittest.mock import patch
 
 import yaml
@@ -32,21 +33,33 @@ class ReleaseMatrixTest(unittest.TestCase):
             shutil.copyfile(ROOT / name, name)
         Path('backend/cmd/server').mkdir(parents=True)
         release.VERSION_FILE.write_text('9.8.7\n')
+        for name, path in release.legal_paths().items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f'{name}: copyright and license fixture\n')
 
     def fixture_artifacts(self, simple=False):
         directory = Path('release-input')
         directory.mkdir()
+        with patch.object(subprocess, 'check_output', return_value='a' * 40 + '\n'):
+            release.materials(argparse.Namespace(sha='a' * 40, version='9.8.7'))
+        content = {name: path.read_bytes() for name, path in release.legal_paths().items()}
+        content['SOURCE.json'] = Path('SOURCE.json').read_bytes()
         for target in release.targets(simple):
             name = release.archive_name('9.8.7', target)
             archive = directory / name
-            if target['goos'] == 'linux':
+            binary = 'sub2api.exe' if target['goos'] == 'windows' else 'sub2api'
+            files = {binary: b'fixture', **content}
+            if target['goos'] != 'windows':
                 with tarfile.open(archive, 'w:gz') as out:
-                    info = tarfile.TarInfo('sub2api')
-                    info.size = 7
-                    info.mode = 0o755
-                    out.addfile(info, io.BytesIO(b'fixture'))
+                    for filename, data in files.items():
+                        info = tarfile.TarInfo(filename)
+                        info.size = len(data)
+                        info.mode = 0o755 if filename == binary else 0o644
+                        out.addfile(info, io.BytesIO(data))
             else:
-                archive.write_bytes(b'fixture archive')
+                with zipfile.ZipFile(archive, 'w') as out:
+                    for filename, data in files.items():
+                        out.writestr(filename, data)
             metadata = {'version': '9.8.7', 'sha': 'a' * 40, 'target': target,
                         'archive': name, 'sha256': release.sha256(archive)}
             (directory / f"manifest-{target['goos']}-{target['goarch']}.json").write_text(json.dumps(metadata))
@@ -109,6 +122,24 @@ class ReleaseMatrixTest(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             release.verify(args)
 
+    def test_windows_archive_rejects_non_regular_license(self):
+        args = self.fixture_artifacts()
+        path = next(Path(args.input).glob('*.zip'))
+        with zipfile.ZipFile(path) as archive:
+            content = {name: archive.read(name) for name in archive.namelist()}
+        with zipfile.ZipFile(path, 'w') as archive:
+            for name, data in content.items():
+                info = zipfile.ZipInfo(name)
+                if name == 'NOTICE':
+                    info.external_attr = (0o020644 << 16)  # 特殊文件不能作为许可材料
+                archive.writestr(info, data)
+        manifest = Path(args.input) / 'manifest-windows-amd64.json'
+        metadata = json.loads(manifest.read_text())
+        metadata['sha256'] = release.sha256(path)
+        manifest.write_text(json.dumps(metadata))
+        with self.assertRaisesRegex(ValueError, '普通文件: NOTICE'):
+            release.verify(args)
+
     def test_linux_context_preserves_binary_executable_mode(self):
         args = self.fixture_artifacts()
         Path('Dockerfile.goreleaser').write_text('FROM scratch\nCOPY sub2api /sub2api\n')
@@ -121,6 +152,53 @@ class ReleaseMatrixTest(unittest.TestCase):
             binary = Path('contexts') / arch / 'sub2api'
             self.assertEqual(binary.read_bytes(), b'fixture')
             self.assertEqual(binary.stat().st_mode & 0o777, 0o755)
+            for name in release.MATERIAL_FILES:
+                path = Path('contexts') / arch / ('backend/internal/web/dist/' + name if name == 'THIRD_PARTY_LICENSES.txt' else name)
+                self.assertTrue(path.read_bytes().strip())
+            self.assertEqual(json.loads((binary.parent / 'SOURCE.json').read_text())['sha'], 'a' * 40)
+
+    def test_materials_require_matching_source_and_complete_licenses(self):
+        args = argparse.Namespace(sha='a' * 40, version='9.8.7')
+        with patch.object(subprocess, 'check_output', return_value='b' * 40):
+            with self.assertRaisesRegex(ValueError, '源码 SHA'):
+                release.materials(args)
+        Path('NOTICE').write_text('')
+        with patch.object(subprocess, 'check_output', return_value='a' * 40):
+            with self.assertRaisesRegex(ValueError, 'NOTICE'):
+                release.materials(args)
+
+    def test_archive_rejects_missing_license_and_mismatched_source_even_with_new_checksum(self):
+        args = self.fixture_artifacts(True)
+        path = next(Path(args.input).glob('*.tar.gz'))
+        content = release.archive_materials(path, {'goos': 'linux', 'goarch': 'amd64'})
+        for change in ('missing', 'source', 'license', 'duplicate', 'symlink'):
+            with self.subTest(change=change):
+                files = {**content, 'sub2api': b'fixture'}
+                if change == 'missing':
+                    del files['NOTICE']
+                elif change == 'source':
+                    metadata = json.loads(files['SOURCE.json'])
+                    metadata['sha'] = 'b' * 40
+                    files['SOURCE.json'] = json.dumps(metadata).encode()
+                elif change == 'license':
+                    files['LICENSE'] = b'changed copyright'
+                with tarfile.open(path, 'w:gz') as out:
+                    for name, data in files.items():
+                        info = tarfile.TarInfo(name)
+                        info.size = len(data)
+                        if name == 'NOTICE' and change == 'symlink':
+                            info.type = tarfile.SYMTYPE
+                            info.linkname = '../NOTICE'
+                            info.size = 0
+                        out.addfile(info, io.BytesIO(data))
+                        if name == 'NOTICE' and change == 'duplicate':
+                            out.addfile(info, io.BytesIO(data))
+                manifest = next(Path(args.input).glob('manifest-*.json'))
+                metadata = json.loads(manifest.read_text())
+                metadata['sha256'] = release.sha256(path)
+                manifest.write_text(json.dumps(metadata))
+                with self.assertRaises(ValueError):
+                    release.verify(args)
 
     def test_plan_requires_a_tag_for_publication(self):
         args = argparse.Namespace(ref='main', dry_run=False, simple=False)
