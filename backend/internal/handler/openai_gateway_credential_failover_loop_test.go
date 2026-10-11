@@ -320,9 +320,13 @@ type grokCredentialHandlerUpstream struct {
 	rateLimitIDs  map[int64]bool
 	failureStatus map[int64]int
 	cancelRequest context.CancelFunc
+	onRequest     func(*http.Request)
 }
 
 func (u *grokCredentialHandlerUpstream) Do(req *http.Request, _ string, accountID int64, _ int) (*http.Response, error) {
+	if u.onRequest != nil {
+		u.onRequest(req)
+	}
 	var requestBody []byte
 	if req.Body != nil {
 		requestBody, _ = io.ReadAll(req.Body)
@@ -839,7 +843,7 @@ func findHandlerRefresherStarted(router *gin.Engine) <-chan struct{} {
 	return value.(chan struct{})
 }
 
-func newGrokCredentialFailoverHandler(t *testing.T, mode string) (*OpenAIGatewayHandler, *grokCredentialHandlerRepo, *grokCredentialHandlerUpstream, *gin.Engine, func()) {
+func newGrokCredentialFailoverHandler(t *testing.T, mode string, observers ...gin.HandlerFunc) (*OpenAIGatewayHandler, *grokCredentialHandlerRepo, *grokCredentialHandlerUpstream, *gin.Engine, func()) {
 	t.Helper()
 	groupID := int64(901)
 	accounts := []service.Account{
@@ -945,6 +949,7 @@ func newGrokCredentialFailoverHandler(t *testing.T, mode string) (*OpenAIGateway
 		c.Set(string(middleware.ContextKeyUser), middleware.AuthSubject{UserID: apiKey.User.ID, Concurrency: 1})
 		c.Next()
 	})
+	router.Use(observers...)
 	router.POST("/openai/v1/responses", h.Responses)
 	router.GET("/openai/v1/responses", h.ResponsesWebSocket)
 	router.POST("/openai/v1/messages", h.Messages)
