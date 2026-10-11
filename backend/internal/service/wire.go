@@ -991,6 +991,8 @@ var ProviderSet = wire.NewSet(
 	NewChannelMonitorQuotaFetcher,
 	ProvideChannelMonitorV2Service,
 	ProvideChannelMonitorV2Aggregator,
+	NewServiceStatusService,
+	ProvideServiceStatusAggregator,
 	NewChannelMonitorRequestTemplateService,
 	ProvideUserPlatformQuotaUsageFlusher,
 )
@@ -1092,4 +1094,13 @@ func ProvideClaudeResetCreditService(accounts AccountRepository, tokens *ClaudeT
 	s := NewClaudeResetCreditService(accounts, tokens, proxies, settings)
 	s.ConfigureRedemption(idem, locks)
 	return s
+}
+
+// ProvideServiceStatusAggregator 启动独立的真实请求聚合与保留清理。
+func ProvideServiceStatusAggregator(repo ServiceStatusRepository) *ServiceStatusAggregator {
+	aggregator := NewServiceStatusAggregator(repo)
+	aggregator.sourceReporter = newServiceStatusSourceReporter(repo)
+	SetServiceStatusSourceErrorReporter(aggregator.sourceReporter.report)
+	aggregator.Start()
+	return aggregator
 }

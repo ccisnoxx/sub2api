@@ -57,9 +57,10 @@ INSERT INTO ops_error_logs (
   time_to_first_token_ms,
   created_at,
   api_key_prefix,
-  routing_diagnostics
+  routing_diagnostics,
+  service_status_observation
 ) VALUES (
-  $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39
+  $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,$40
 )`
 
 func NewOpsRepository(db *sql.DB) service.OpsRepository {
@@ -170,6 +171,7 @@ func opsInsertErrorLogArgs(input *service.OpsInsertErrorLogInput) []any {
 		input.CreatedAt,
 		opsNullString(input.APIKeyPrefix),
 		opsNullString(input.RoutingDiagnosticsJSON),
+		opsNullString(input.ServiceStatusObservationJSON),
 	}
 }
 
@@ -453,7 +455,8 @@ SELECT
   COALESCE(e.api_key_prefix, ''),
   COALESCE(ak.name, ''),
   ak.deleted_at,
-  e.routing_diagnostics::text
+  e.routing_diagnostics::text,
+  e.service_status_observation::text
 FROM ops_error_logs e
 LEFT JOIN users u ON e.user_id = u.id
 LEFT JOIN accounts a ON e.account_id = a.id
@@ -481,6 +484,7 @@ LIMIT 1`
 	var detailAPIKeyName string
 	var detailAPIKeyDeletedAt sql.NullTime
 	var routingDiagnostics sql.NullString
+	var sourceObservation sql.NullString
 
 	err := r.db.QueryRowContext(ctx, q, id).Scan(
 		&out.ID,
@@ -530,6 +534,7 @@ LIMIT 1`
 		&detailAPIKeyName,
 		&detailAPIKeyDeletedAt,
 		&routingDiagnostics,
+		&sourceObservation,
 	)
 	if err != nil {
 		return nil, err
@@ -595,6 +600,13 @@ LIMIT 1`
 	out.APIKeyName = detailAPIKeyName
 	out.APIKeyDeleted = detailAPIKeyDeletedAt.Valid
 
+	if sourceObservation.Valid {
+		var decodeErr error
+		out.ServiceStatusObservation, decodeErr = service.DecodeServiceStatusObservation([]byte(sourceObservation.String))
+		if decodeErr != nil {
+			service.MarkServiceStatusSourceError(time.Now())
+		}
+	}
 	if routingDiagnostics.Valid {
 		diagnostics, decodeErr := service.DecodeRoutingDiagnosticsJSON([]byte(routingDiagnostics.String))
 		if decodeErr != nil {

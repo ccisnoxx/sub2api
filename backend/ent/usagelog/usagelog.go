@@ -100,6 +100,8 @@ const (
 	FieldIsComplete = "is_complete"
 	// FieldUsageSource holds the string denoting the usage_source field in the database.
 	FieldUsageSource = "usage_source"
+	// FieldServiceStatusObservation holds the string denoting the service_status_observation field in the database.
+	FieldServiceStatusObservation = "service_status_observation"
 	// FieldUserAgent holds the string denoting the user_agent field in the database.
 	FieldUserAgent = "user_agent"
 	// FieldIPAddress holds the string denoting the ip_address field in the database.
@@ -221,6 +223,7 @@ var Columns = []string{
 	FieldCompletionStatus,
 	FieldIsComplete,
 	FieldUsageSource,
+	FieldServiceStatusObservation,
 	FieldUserAgent,
 	FieldIPAddress,
 	FieldImageCount,

@@ -123,6 +123,7 @@ func TestUsageLogRepositoryCreateSyncRequestTypeAndLegacyFields(t *testing.T) {
 			sqlmock.AnyArg(), // route_pair_pool_gateway
 			sqlmock.AnyArg(), // route_pair_pool_version
 			createdAt,
+			nil, // service_status_observation 保持历史 SQL NULL
 		).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at"}).AddRow(int64(99), createdAt))
 
@@ -238,6 +239,7 @@ func TestUsageLogRepositoryCreate_PersistsServiceTier(t *testing.T) {
 			sqlmock.AnyArg(), // route_pair_pool_gateway
 			sqlmock.AnyArg(), // route_pair_pool_version
 			createdAt,
+			nil, // service_status_observation 保持历史 SQL NULL
 		).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at"}).AddRow(int64(100), createdAt))
 
@@ -318,9 +320,9 @@ func TestPrepareUsageLogInsert_PersistsNativeCompactionV2WithoutChangingRequestT
 	prepared := prepareUsageLogInsert(log)
 
 	require.Len(t, prepared.args, len(usageLogInsertArgTypes))
-	// 尾部：native_compaction_v2 在 turn_state ×4、safety_buffering ×2 与 route_* ×5 之前，倒数第 13
-	require.Equal(t, "boolean", usageLogInsertArgTypes[len(usageLogInsertArgTypes)-13])
-	require.Equal(t, true, prepared.args[len(prepared.args)-13])
+	// 尾部：native_compaction_v2 在 turn_state ×4、safety_buffering ×2 与 route_* ×5 之前，新增源元数据之后的倒数第 14
+	require.Equal(t, "boolean", usageLogInsertArgTypes[len(usageLogInsertArgTypes)-14])
+	require.Equal(t, true, prepared.args[len(prepared.args)-14])
 	require.Equal(t, int16(service.RequestTypeStream), prepared.args[30])
 	require.Equal(t, service.RequestTypeStream, log.RequestType)
 	require.True(t, log.Stream)
@@ -1022,6 +1024,7 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{}, // route_pair_pool_gateway
 			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.Equal(t, 2, log.ImageCount)
@@ -1122,6 +1125,7 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{}, // route_pair_pool_gateway
 			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.NotNil(t, log.ServiceTier)
@@ -1205,6 +1209,7 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{}, // route_pair_pool_gateway
 			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.NotNil(t, log.ServiceTier)
@@ -1289,6 +1294,7 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{}, // route_pair_pool_gateway
 			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.NotNil(t, log.ServiceTier)

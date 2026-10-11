@@ -23,8 +23,9 @@ type OpsSystemLog struct {
 }
 
 type OpsErrorLog struct {
-	ID        int64     `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
+	ServiceStatusObservation *ServiceStatusObservation `json:"-"`
+	ID                       int64                     `json:"id"`
+	CreatedAt                time.Time                 `json:"created_at"`
 
 	// Standardized classification
 	// - phase: request|auth|account_auth|routing|upstream|network|internal
