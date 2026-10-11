@@ -47,8 +47,14 @@ type ResolvedPricing struct {
 // ModelPricingResolver 统一模型定价解析器。
 // 解析链：Group → Channel → LiteLLM → Fallback。
 type ModelPricingResolver struct {
-	channelService *ChannelService
-	billingService *BillingService
+	channelService       *ChannelService
+	channelPricingSource modelPricingChannelSource
+	billingService       *BillingService
+}
+
+// modelPricingChannelSource 让只读目录使用已读取的渠道快照，避免再次读取热缓存。
+type modelPricingChannelSource interface {
+	GetChannelModelPricing(context.Context, int64, string) *ChannelModelPricing
 }
 
 // NewModelPricingResolver 创建定价解析器实例
@@ -85,7 +91,7 @@ func (r *ModelPricingResolver) Resolve(ctx context.Context, input PricingInput) 
 	}
 
 	var chPricing *ChannelModelPricing
-	if input.GroupID != nil && r.channelService != nil {
+	if input.GroupID != nil && r.hasChannelPricingSource() {
 		chPricing = r.lookupChannelPricingNormalized(ctx, *input.GroupID, input.Model)
 		if chPricing != nil {
 			mode := chPricing.BillingMode
@@ -121,7 +127,7 @@ func (r *ModelPricingResolver) Resolve(ctx context.Context, input PricingInput) 
 		resolved.Source = PricingSourceChannel
 		resolved.channelPricing = chPricing
 		r.applyTokenOverrides(chPricing, resolved)
-	} else if input.GroupID != nil && r.channelService != nil {
+	} else if input.GroupID != nil && r.hasChannelPricingSource() {
 		r.applyChannelOverrides(ctx, *input.GroupID, input.Model, resolved)
 	}
 
@@ -189,17 +195,28 @@ func (r *ModelPricingResolver) resolveBasePricing(model string) (*ModelPricing, 
 // 字面名优先，保证管理员对具体变体的显式配价不被基名覆盖；非 OpenAI 模型
 // normalizeKnownOpenAICodexModel 返回空串，此处天然 no-op。
 func (r *ModelPricingResolver) lookupChannelPricingNormalized(ctx context.Context, groupID int64, model string) *ChannelModelPricing {
-	if r.channelService == nil {
+	if !r.hasChannelPricingSource() {
 		return nil
 	}
-	if pricing := r.channelService.GetChannelModelPricing(ctx, groupID, model); pricing != nil {
+	if pricing := r.channelModelPricing(ctx, groupID, model); pricing != nil {
 		return pricing
 	}
 	normalized := normalizeKnownOpenAICodexModel(model)
 	if normalized == "" || strings.EqualFold(normalized, strings.TrimSpace(model)) {
 		return nil
 	}
-	return r.channelService.GetChannelModelPricing(ctx, groupID, normalized)
+	return r.channelModelPricing(ctx, groupID, normalized)
+}
+
+func (r *ModelPricingResolver) hasChannelPricingSource() bool {
+	return r.channelPricingSource != nil || r.channelService != nil
+}
+
+func (r *ModelPricingResolver) channelModelPricing(ctx context.Context, groupID int64, model string) *ChannelModelPricing {
+	if r.channelPricingSource != nil {
+		return r.channelPricingSource.GetChannelModelPricing(ctx, groupID, model)
+	}
+	return r.channelService.GetChannelModelPricing(ctx, groupID, model)
 }
 
 // applyChannelOverrides 应用渠道定价覆盖
