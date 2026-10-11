@@ -26,3 +26,5 @@
 - 在冻结新 KIN 与 MIG-001 上重放实际调度评估快照、HTTP/WS turn 隔离、可空持久化和管理员单记录详情边界；保留 sticky、guardian、previous response、等待与 gateway pool owner。
 - [阶段报告](upstream/UPSTREAM-004.md)记录候选池/过滤事实、非法诊断不得丢失真实错误、实际 socket/WS 计费 owner、真实 PostgreSQL 和 JWT 权限测试；定向 race 与项目 `make -C backend build` 通过。
 - 迁移 251–254 原名原字节、runner 和依赖未变。独立复核与固定候选阶段 PR CI / Security Scan 由父任务完成；Personal CI 与来源切换留到 UPSTREAM-007。
+
+- 阶段 lint v2.14.0 报新增报价平台分支 QF1003，局部等价 switch 修正；报价/倍率定向检查通过，未修改 lint 配置。最终阶段验收使用修正候选。
