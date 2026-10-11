@@ -49,3 +49,5 @@ prepare 选定的 CI run ID 在发布全过程保持固定，原 run 失效时�
 CI-004 的负向测试与只读 dry-run 边界见 [CI-004](../../docs/ci/CI-004.md)。正式发布需要先将经审查的控制增量合入 main，再按同步规则更新 personal；候选分支不会自动替换 main 的生产 guard。各外部服务间没有原子事务，最后一次检查之后的并发变更仍可能留下部分发布，恢复时必须保留 tag/SHA/digest，不能覆盖既有版本。
 
 新标签的第一次包默认可能 private；创建后使用包设置将其公开，并验证匿名完整拉取。最终运行记录保存 tag、source/workflow SHA、上游标签/SHA、CI/Release run、平台及 OCI digest。P3 不访问生产服务器。
+
+正式 Release 在应用 checkout 后、任何 artifact 下载与输出写入前移除已知生成入口及 symlink，再由可信流程创建上下文与发布材料，避免应用输出路径将写入引向保存的 main guard。

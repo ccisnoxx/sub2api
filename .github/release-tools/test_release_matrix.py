@@ -127,6 +127,43 @@ class ReleaseMatrixTest(unittest.TestCase):
             self.assertEqual(binary.read_bytes(), b'fixture')
             self.assertEqual(binary.stat().st_mode & 0o777, 0o755)
 
+    def test_application_output_symlinks_cannot_overwrite_the_main_guard(self):
+        args = self.fixture_artifacts(True)
+        Path(args.input).rename('verified-input')
+        args.input = 'verified-input'
+        args.output = '.release-context'
+        Path('Dockerfile.goreleaser').write_text('FROM scratch\nCOPY sub2api /sub2api\n')
+        Path('deploy').mkdir()
+        Path('deploy/docker-entrypoint.sh').write_text('#!/bin/sh\nexec /app/sub2api\n')
+        Path('backend/resources').mkdir()
+        Path('backend/resources/personal_release.py').write_text('raise SystemExit("应用 guard 被执行")\n')
+        guard = Path(self.temp.name) / 'runner/release-guard/release-tools/personal_release.py'
+        guard.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / '.github/release-tools/personal_release.py', guard)
+        original = guard.read_bytes()
+        resource_output = Path('.release-context/amd64/backend/resources')
+        resource_output.parent.mkdir(parents=True)
+        resource_output.symlink_to(guard.parent, target_is_directory=True)
+        directories = ('release-input', 'release-evidence', 'dist')
+        files = ('publication.json', 'publication-toolchain.json')
+        for name in directories:
+            Path(name).symlink_to(guard.parent, target_is_directory=True)
+        for name in files:
+            Path(name).symlink_to(guard)
+        steps = yaml.safe_load((ROOT / '.github/workflows/release.yml').read_text())['jobs']['release']['steps']
+        cleanup = next((s for s in steps if s.get('name') == 'Prepare owned publication outputs'), None)
+        if cleanup is not None:
+            subprocess.run(['bash', '-e', '-c', cleanup['run']], check=True, capture_output=True)
+        release.contexts(args)
+        self.assertEqual(guard.read_bytes(), original, '应用输出 symlink 改写了 main guard')
+        for name in (*directories, *files):
+            self.assertFalse(Path(name).exists(), name)
+            self.assertFalse(Path(name).is_symlink(), name)
+        self.assertEqual((Path(args.output) / 'amd64/sub2api').read_bytes(), b'fixture')
+        cleanup_index = steps.index(cleanup)
+        first_download = next(i for i, s in enumerate(steps) if s.get('uses', '').startswith('actions/download-artifact@'))
+        self.assertLess(cleanup_index, first_download)
+
     def test_plan_requires_a_tag_for_publication(self):
         args = argparse.Namespace(ref='main', dry_run=False, simple=False)
         with patch.object(subprocess, 'check_output', return_value='a' * 40 + '\n'):
