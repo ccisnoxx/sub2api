@@ -53,3 +53,5 @@ CI-004 的负向测试与只读 dry-run 边界见 [CI-004](../../docs/ci/CI-004.
 正式 Release 在应用 checkout 后、任何 artifact 下载与输出写入前移除已知生成入口及 symlink，再由可信流程创建上下文与发布材料，避免应用输出路径将写入引向保存的 main guard。
 
 正式 prepare/release 中的 Python 模块安装、内联 JSON 解析和最终 stdin 检查使用 `-I`，排除应用当前目录、PYTHONPATH 与 user site 的隐式模块导入；保存的工具脚本继续使用可信绝对路径。
+
+工作流最小权限、唯一 Git push 凭据例外、PR secrets 隔离、artifact 路径/保留期和正式发布并发规则见 [CI-005](../../docs/ci/CI-005.md)。所有上传均排除环境文件、数据库备份和完整运行日志；dry-run OCI 保留一天，脱敏发布证明保留九十天。正式发布和 dry-run 分组串行，彼此不替换 pending run。

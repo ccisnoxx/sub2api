@@ -73,9 +73,22 @@ jobs:
         if: always()
         with:
           name: security-toolchain
-          path: ${{ runner.temp }}/security-toolchain.json
+          path: |
+            ${{ runner.temp }}/security-toolchain.json
+            !**/.env
+            !**/.env.*
+            !**/*.env
+            !**/*.sql
+            !**/*.dump
+            !**/*.backup
+            !**/*.bak
+            !**/*.db
+            !**/*.sqlite*
+            !**/*.log
+            !**/.git/**
           if-no-files-found: error
-          retention-days: 90
+          include-hidden-files: false
+          retention-days: 30
 
   frontend-security:
     runs-on: ubuntu-latest
