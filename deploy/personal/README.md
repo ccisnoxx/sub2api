@@ -2,6 +2,8 @@
 
 本目录是本机部署控制工具。入口从当前仓库读取个人发布标签与来源记录，通过既有 `ssh hostdzire`、`scp` 将标准库 Python 执行器上传到私密临时目录，在服务器执行一次完整操作。工具不依赖本机 Docker daemon，不修改 SSH 配置或 host key 检查。
 
+最后验证日期：**2026-10-10**。固定 Linux x86_64 现场的恢复验证见 [BASELINE.md](../../BASELINE.md)；本任务只重跑离线合同测试，不执行生产部署。
+
 ## 使用前提与固定现场
 
 本机需要 Python 3.9 或以上、Git、OpenSSH，`origin` 指向 `ccisnoxx/sub2api`，并持有个人发布标签、上游基线标签以及当前运行 revision 的完整 Git 对象。浅克隆需先获取这些对象；工具遇到缺失对象会停止。服务器需要 Python 3.9 或以上、Linux x86_64、Docker Compose 的 JSON 配置与 `--wait`/`--wait-timeout` 能力、curl。已核实的服务器 Python 为 3.11、Compose 为 v5.1.3。

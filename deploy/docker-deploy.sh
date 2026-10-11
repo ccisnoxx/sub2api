@@ -9,7 +9,7 @@
 #   - Creates necessary data directories
 #
 # After running this script, you can start services with:
-#   docker-compose up -d
+#   docker compose up -d
 # =============================================================================
 
 set -e
@@ -22,7 +22,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # GitHub raw content base URL
-GITHUB_RAW_URL="https://raw.githubusercontent.com/Wei-Shaw/sub2api/main/deploy"
+# main 保存本 fork 的部署控制模板；应用镜像由模板中的个人发行版本选择。
+GITHUB_RAW_URL="https://raw.githubusercontent.com/ccisnoxx/sub2api/main/deploy"
 
 # Print colored message
 print_info() {
@@ -87,7 +88,7 @@ main() {
     # Download docker-compose.local.yml and save as docker-compose.yml
     print_info "Downloading docker-compose.yml..."
     if command_exists curl; then
-        curl -sSL "${GITHUB_RAW_URL}/docker-compose.local.yml" -o docker-compose.yml
+        curl -fsSL "${GITHUB_RAW_URL}/docker-compose.local.yml" -o docker-compose.yml
     elif command_exists wget; then
         wget -q "${GITHUB_RAW_URL}/docker-compose.local.yml" -O docker-compose.yml
     else
@@ -99,7 +100,7 @@ main() {
     # Download .env.example
     print_info "Downloading .env.example..."
     if command_exists curl; then
-        curl -sSL "${GITHUB_RAW_URL}/.env.example" -o .env.example
+        curl -fsSL "${GITHUB_RAW_URL}/.env.example" -o .env.example
     else
         wget -q "${GITHUB_RAW_URL}/.env.example" -O .env.example
     fi
@@ -167,10 +168,10 @@ main() {
     echo "Next steps:"
     echo "  1. (Optional) Edit .env to customize configuration"
     echo "  2. Start services:"
-    echo "     docker-compose up -d"
+    echo "     docker compose up -d"
     echo ""
     echo "  3. View logs:"
-    echo "     docker-compose logs -f sub2api"
+    echo "     docker compose logs -f sub2api"
     echo ""
     echo "  4. Access Web UI:"
     echo "     http://localhost:8080"

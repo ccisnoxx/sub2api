@@ -173,8 +173,8 @@
 </tr>
 
 <tr>
-<td width="180"><a href="https://www.swiftproxy.net/?ref=sub2api"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></a></td>
-<td>Swiftproxy は開発者向けの高性能プロキシソリューションで、安定して信頼できるレジデンシャルおよび静的レジデンシャルプロキシサービスを提供します。9,000 万以上のクリーンな住宅 IP を保有し、グローバルカバレッジ、柔軟なローテーション、精密なジオターゲティングにより、Web スクレイピング、AI オートメーション、ブラウザ自動化、SEO モニタリング、マルチアカウント管理などのプロジェクトがアクセス制限を克服し、ワークフロー効率を向上させます。HTTP(S) および SOCKS5 プロトコルに対応し、Playwright、Selenium、Puppeteer などの主要な自動化ツールと統合可能。動的プロキシトラフィックは使い切るまで期限切れなし、無料テストも利用可能 — <a href="https://www.swiftproxy.net/?ref=sub2api">今すぐ無料テストを開始</a>！</td>
+<td width="180"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></td>
+<td>Swiftproxy は開発者向けの高性能プロキシソリューションで、安定して信頼できるレジデンシャルおよび静的レジデンシャルプロキシサービスを提供します。9,000 万以上のクリーンな住宅 IP を保有し、グローバルカバレッジ、柔軟なローテーション、精密なジオターゲティングにより、Web スクレイピング、AI オートメーション、ブラウザ自動化、SEO モニタリング、マルチアカウント管理などのプロジェクトがアクセス制限を克服し、ワークフロー効率を向上させます。HTTP(S) および SOCKS5 プロトコルに対応し、Playwright、Selenium、Puppeteer などの主要な自動化ツールと統合可能。動的プロキシトラフィックは使い切るまで期限切れなし、無料テストも利用可能 — 今すぐ無料テストを開始！</td>
 </tr>
 
 <tr>
@@ -256,6 +256,8 @@ Nginx はデフォルトでアンダースコアを含むヘッダー（例: `se
 
 ### Docker Compose: Linux amd64 への新規インストール（推奨）
 
+最終確認：**2026-10-10**（公開イメージのメタデータと Compose 設定。新規インストールは今回未実行）。更新とテンプレートの確認は[デプロイ手順](deploy/README.md)を参照してください。
+
 Linux x86_64、Docker Engine、`docker compose` プラグインを使用します。公開済みのソースタグと固定イメージ digest を組み合わせる新規インストール例です。既存環境の更新では、バックアップ、移行互換性、対象リリースの説明を別途確認してください。
 
 ```bash
@@ -268,7 +270,7 @@ nano .env
 
 起動前にテンプレートの PostgreSQL パスワードを変更し、`POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` にそれぞれ `openssl rand -hex 32` で生成した異なる値を設定してください。管理者アカウントを非公開で設定し、`BIND_HOST=127.0.0.1` としてください。明示的に必要な場合を除き、`SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP=false` と `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS=false` を設定します。`.env` のアクセスを制限し、外部アクセスには設定済みの HTTPS リバースプロキシを使用してください。
 
-継承した Compose テンプレートには上流のイメージが残っています。以下の上書きファイルでこの fork のイメージを選択します。**すべての Compose 操作で両方の `-f` を指定してください。** 起動前に `config --images` に以下の `ghcr.io/ccisnoxx/sub2api@sha256:...` と PostgreSQL、Redis が表示されることを確認します。
+固定した過去タグの Compose テンプレートには上流のイメージが残っています。現在の main の制御テンプレートはこの fork を選択します。以下の上書きファイルでこの fork のイメージを選択します。**すべての Compose 操作で両方の `-f` を指定してください。** 起動前に `config --images` に以下の `ghcr.io/ccisnoxx/sub2api@sha256:...` と PostgreSQL、Redis が表示されることを確認します。
 
 ```bash
 cat > compose.personal.yml <<'YAML'
@@ -289,6 +291,8 @@ docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 更新時は新しい fork リリースのソースと digest を選び、互換性とバックアップ要件を確認して上書きファイルを更新します。同じ digest の再取得では更新されません。現在のリリースには上流のバイナリ用ワンクリックインストールや管理画面からのバイナリ更新はなく、公開イメージによるネイティブ ARM64/macOS コンテナインストールもありません。
 
 ### 開発用のソースビルド
+
+最終確認：**2026-10-10**。以下の固定ソースタグの公開イメージと紐付いた [Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726) を根拠とします。開発用ビルドであり、追加のバイナリ配布経路ではありません。
 
 
 開発やカスタマイズのためにソースコードからビルドして実行します。
@@ -480,7 +484,7 @@ go generate ./cmd/server
 
 ## Antigravity サポート
 
-Sub2API は [Antigravity](https://antigravity.so/) アカウントをサポートしています。認証後、Claude および Gemini モデル用の専用エンドポイントが利用可能になります。
+Sub2API は [Antigravity](https://antigravity.google/) アカウントをサポートしています。認証後、Claude および Gemini モデル用の専用エンドポイントが利用可能になります。
 
 ### 専用エンドポイント
 
@@ -529,10 +533,10 @@ sub2api/
     ├── docker-compose.yml    # Docker Compose 設定
     ├── .env.example          # Docker Compose 用環境変数
     ├── config.example.yaml   # バイナリデプロイ用フル設定ファイル
-    └── install.sh            # ワンクリックインストールスクリプト
+    └── install.sh            # 保守用ソース。現在バイナリ配布はありません
 ```
 
-## スター履歴
+## 原始上流のスター履歴
 
 <a href="https://star-history.dera.page/#Wei-Shaw/sub2api&Date">
  <picture>

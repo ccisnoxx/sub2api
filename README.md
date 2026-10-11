@@ -171,8 +171,8 @@ Please read the following carefully before using this project:
 </tr>
 
 <tr>
-<td width="180"><a href="https://www.swiftproxy.net/?ref=sub2api"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></a></td>
-<td>Swiftproxy is a high-performance proxy solution built for developers, providing stable and reliable residential and static residential proxy services. With 90M+ clean residential IPs, global coverage, flexible rotation, and precise geo-targeting, it helps projects such as web scraping, AI automation, browser automation, SEO monitoring, and multi-account management overcome access restrictions and improve workflow efficiency. It supports HTTP(S) and SOCKS5 protocols, integrates with popular automation tools like Playwright, Selenium, and Puppeteer, with dynamic proxy traffic that never expires until used and free testing available — <a href="https://www.swiftproxy.net/?ref=sub2api">start your free test now</a>!</td>
+<td width="180"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></td>
+<td>Swiftproxy is a high-performance proxy solution built for developers, providing stable and reliable residential and static residential proxy services. With 90M+ clean residential IPs, global coverage, flexible rotation, and precise geo-targeting, it helps projects such as web scraping, AI automation, browser automation, SEO monitoring, and multi-account management overcome access restrictions and improve workflow efficiency. It supports HTTP(S) and SOCKS5 protocols, integrates with popular automation tools like Playwright, Selenium, and Puppeteer, with dynamic proxy traffic that never expires until used and free testing available — start your free test now!</td>
 </tr>
 
 <tr>
@@ -255,6 +255,8 @@ Nginx drops headers containing underscores by default (e.g. `session_id`), which
 
 ### Docker Compose: New Linux amd64 Installation (Recommended)
 
+Last verified: **2026-10-10** (published image metadata and Compose configuration; this task does not perform a fresh installation). See the [deployment guide](deploy/README.md) for image updates and template checks.
+
 Use Docker Engine with the `docker compose` plugin on Linux x86_64. The following example pairs the published application source tag with its fixed image digest. It prepares a new installation; review backups, migration compatibility, and the target release notes separately for an existing deployment.
 
 ```bash
@@ -267,7 +269,7 @@ nano .env
 
 Before starting, replace the template PostgreSQL password and set `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` to separate random values generated with `openssl rand -hex 32`. Configure your administrator account privately, set `BIND_HOST=127.0.0.1`, and set `SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP=false` and `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS=false` unless your deployment explicitly needs those endpoints. Keep `.env` private. Expose the service through a configured HTTPS reverse proxy for remote access.
 
-The inherited Compose template still names an upstream image. The following override selects this fork's published image; **include both `-f` arguments in every Compose operation**. The `config --images` output must contain the `ghcr.io/ccisnoxx/sub2api@sha256:...` reference below, plus PostgreSQL and Redis, before starting.
+The Compose template at the fixed historical tag still names an upstream image; current main control templates select this fork. The following override selects this fork's published image; **include both `-f` arguments in every Compose operation**. The `config --images` output must contain the `ghcr.io/ccisnoxx/sub2api@sha256:...` reference below, plus PostgreSQL and Redis, before starting.
 
 ```bash
 cat > compose.personal.yml <<'YAML'
@@ -288,6 +290,8 @@ Open `http://127.0.0.1:8080` locally, or use your configured HTTPS endpoint. App
 For upgrades, select the new fork release's matching source and image digest, review compatibility and backup requirements, and update the image override. Pulling the same digest does not upgrade the application. This fork's current release path does not provide upstream one-click binary installation or dashboard binary updates, and its published image does not provide a native ARM64/macOS container installation.
 
 ### Build from Source for Development
+
+Last verified: **2026-10-10**, using the published image and its bound [Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726) for the fixed source tag below. This is a development build path, not an additional binary release channel.
 
 
 Build and run from source code for development or customization.
@@ -668,7 +672,7 @@ The built-in `jev-latest` price is `$0.042` per million input tokens and `$0` fo
 
 ## Antigravity Support
 
-Sub2API supports [Antigravity](https://antigravity.so/) accounts. After authorization, dedicated endpoints are available for Claude and Gemini models.
+Sub2API supports [Antigravity](https://antigravity.google/) accounts. After authorization, dedicated endpoints are available for Claude and Gemini models.
 
 ### Dedicated Endpoints
 
@@ -717,10 +721,10 @@ sub2api/
     ├── docker-compose.yml    # Docker Compose configuration
     ├── .env.example          # Environment variables for Docker Compose
     ├── config.example.yaml   # Full config file for binary deployment
-    └── install.sh            # One-click installation script
+    └── install.sh            # Retained installer source; no binary release assets
 ```
 
-## Star History
+## Original Upstream Star History
 
 <a href="https://star-history.dera.page/#Wei-Shaw/sub2api&Date">
  <picture>

@@ -43,6 +43,24 @@ if "${SCRIPT}" up >/dev/null 2>&1; then
 fi
 chmod 600 "${ENV_FILE}"
 
+if missing_image_output="$("${SCRIPT}" up 2>&1)"; then
+    fail "up accepted an unspecified fork ARM64 image"
+fi
+[[ "${missing_image_output}" == *"Set APPLE_CONTAINER_SUB2API_IMAGE"* ]] || \
+    fail "up did not explain the missing fork ARM64 image"
+printf '\nAPPLE_CONTAINER_SUB2API_IMAGE=weishaw/sub2api:latest\n' >>"${ENV_FILE}"
+for command in up pull; do
+    if old_image_output="$("${SCRIPT}" "${command}" 2>&1)"; then
+        fail "${command} accepted the old upstream image from an existing env file"
+    fi
+    [[ "${old_image_output}" == *"Replace the old upstream default"* ]] || \
+        fail "${command} did not explain the inherited upstream image"
+    grep -q '^APPLE_CONTAINER_SUB2API_IMAGE=weishaw/sub2api:latest$' "${ENV_FILE}" || \
+        fail "${command} modified the existing env file on rejection"
+    assert_missing "${STATE_DIR}/containers/sub2api-apple"
+done
+printf '\nAPPLE_CONTAINER_SUB2API_IMAGE=ghcr.io/ccisnoxx/sub2api:local-arm64\n' >>"${ENV_FILE}"
+
 "${SCRIPT}" up
 assert_exists "${STATE_DIR}/containers/sub2api-apple"
 assert_exists "${STATE_DIR}/containers/sub2api-apple-postgres"
@@ -61,6 +79,29 @@ grep -q '^APPLE_CONTAINER_SUB2API_IMAGE_ID=fake-image-id$' "${STATE_DIR}/env-fil
 [[ ! -s "${STATE_DIR}/network-subnets/sub2api-apple" ]] || \
     fail "up passed a subnet when APPLE_CONTAINER_NETWORK_SUBNET was unset"
 "${SCRIPT}" status >/dev/null
+
+cp "${ENV_FILE}" "${TEST_ROOT}/valid.env"
+printf '\nAPPLE_CONTAINER_SUB2API_IMAGE=weishaw/sub2api:latest\n' >>"${ENV_FILE}"
+cp "${ENV_FILE}" "${TEST_ROOT}/old-image.env"
+if restart_output="$("${SCRIPT}" restart 2>&1)"; then
+    fail "restart accepted the old upstream image from an existing env file"
+fi
+[[ "${restart_output}" == *"Replace the old upstream default"* ]] || \
+    fail "restart did not explain the inherited upstream image"
+cmp -s "${ENV_FILE}" "${TEST_ROOT}/old-image.env" || \
+    fail "restart modified the existing env file on rejection"
+for service in sub2api-apple sub2api-apple-postgres sub2api-apple-redis; do
+    assert_exists "${STATE_DIR}/running/${service}"
+done
+for volume in sub2api-apple-data sub2api-apple-postgres-data sub2api-apple-redis-data; do
+    assert_exists "${STATE_DIR}/volumes/${volume}"
+done
+assert_exists "${STATE_DIR}/networks/sub2api-apple"
+cp "${TEST_ROOT}/valid.env" "${ENV_FILE}"
+"${SCRIPT}" restart
+for service in sub2api-apple sub2api-apple-postgres sub2api-apple-redis; do
+    assert_exists "${STATE_DIR}/running/${service}"
+done
 
 "${SCRIPT}" up --recreate
 assert_exists "${STATE_DIR}/running/sub2api-apple"

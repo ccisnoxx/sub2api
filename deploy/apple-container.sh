@@ -411,10 +411,18 @@ validate_env_file_security() {
         die "Environment file must not be readable by group or others. Run: chmod 600 '${ENV_FILE}'"
 }
 
+read_application_image() {
+    APP_IMAGE="$(read_env_value APPLE_CONTAINER_SUB2API_IMAGE)"
+    [[ -n "${APP_IMAGE}" ]] || die "Set APPLE_CONTAINER_SUB2API_IMAGE to a locally built fork ARM64 image; current fork releases only provide linux/amd64."
+    # 旧模板自动写入的原上游镜像必须重新选择，不能把继承值当成显式选择。
+    [[ "${APP_IMAGE}" != "weishaw/sub2api:latest" ]] || \
+        die "Replace the old upstream default in APPLE_CONTAINER_SUB2API_IMAGE with a locally built fork ARM64 image."
+}
+
 prepare_environment() {
     validate_env_file_security
+    read_application_image
 
-    APP_IMAGE="$(read_env_value APPLE_CONTAINER_SUB2API_IMAGE weishaw/sub2api:latest)"
     POSTGRES_IMAGE="$(read_env_value APPLE_CONTAINER_POSTGRES_IMAGE postgres:18-alpine)"
     REDIS_IMAGE="$(read_env_value APPLE_CONTAINER_REDIS_IMAGE redis:8-alpine)"
     BIND_HOST="$(read_env_value BIND_HOST 0.0.0.0)"
@@ -770,6 +778,9 @@ cmd_down() {
 }
 
 cmd_restart() {
+    # 镜像不符合安装来源要求时，先拒绝操作，保留现有服务运行。
+    validate_env_file_security
+    read_application_image
     cmd_down
     cmd_up
 }
