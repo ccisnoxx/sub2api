@@ -147,25 +147,26 @@ func GroupFromServiceAdmin(g *service.Group) *AdminGroup {
 		return nil
 	}
 	out := &AdminGroup{
-		Group:                       groupFromServiceBase(g),
-		ForceOpenAIFast:             g.ForceOpenAIFast,
-		FreeOpenAIFast:              g.FreeOpenAIFast,
-		ProfitControlEnabled:        g.ProfitControlEnabled,
-		ProfitMinMargin:             g.ProfitMinMargin,
-		ProfitSafetyBuffer:          g.ProfitSafetyBuffer,
-		ModelPricing:                g.ModelPricing,
-		ModelRouting:                g.ModelRouting,
-		ModelRoutingEnabled:         g.ModelRoutingEnabled,
-		MCPXMLInject:                g.MCPXMLInject,
-		DefaultMappedModel:          g.DefaultMappedModel,
-		MessagesDispatchModelConfig: g.MessagesDispatchModelConfig,
-		ModelAllowlist:              g.ModelAllowlist,
-		CodexModelsManifestConfig:   g.CodexModelsManifestConfig,
-		SupportedModelScopes:        g.SupportedModelScopes,
-		AccountCount:                g.AccountCount,
-		ActiveAccountCount:          g.ActiveAccountCount,
-		RateLimitedAccountCount:     g.RateLimitedAccountCount,
-		SortOrder:                   g.SortOrder,
+		Group:                           groupFromServiceBase(g),
+		ForceOpenAIFast:                 g.ForceOpenAIFast,
+		FreeOpenAIFast:                  g.FreeOpenAIFast,
+		OpenAIGatewayPoolActiveAccounts: g.GatewayPoolActiveAccountLimit(),
+		ProfitControlEnabled:            g.ProfitControlEnabled,
+		ProfitMinMargin:                 g.ProfitMinMargin,
+		ProfitSafetyBuffer:              g.ProfitSafetyBuffer,
+		ModelPricing:                    g.ModelPricing,
+		ModelRouting:                    g.ModelRouting,
+		ModelRoutingEnabled:             g.ModelRoutingEnabled,
+		MCPXMLInject:                    g.MCPXMLInject,
+		DefaultMappedModel:              g.DefaultMappedModel,
+		MessagesDispatchModelConfig:     g.MessagesDispatchModelConfig,
+		ModelAllowlist:                  g.ModelAllowlist,
+		CodexModelsManifestConfig:       g.CodexModelsManifestConfig,
+		SupportedModelScopes:            g.SupportedModelScopes,
+		AccountCount:                    g.AccountCount,
+		ActiveAccountCount:              g.ActiveAccountCount,
+		RateLimitedAccountCount:         g.RateLimitedAccountCount,
+		SortOrder:                       g.SortOrder,
 	}
 	if len(g.AccountGroups) > 0 {
 		out.AccountGroups = make([]AccountGroup, 0, len(g.AccountGroups))
@@ -426,6 +427,13 @@ func redactAccountManagedExtra(extra map[string]any) map[string]any {
 			service.OpenCodeGoUsageAutoRefreshExtraKey,
 			service.OpenCodeGoUsageSnapshotExtraKey:
 			continue
+		case service.OpenAIGatewayPoolConsumerKeyExtraKey:
+			// 网关池凭据与 access_token 同级：只回「配过没有」，原值不出响应。
+			// 页面据此把输入框显示成「已保存，留空不修改」；原样提交回来的 bool
+			// 在服务侧按「没提」处理（service.mergeOpenAIGatewayPoolConsumerKey）。
+			if raw, ok := value.(string); ok && strings.TrimSpace(raw) != "" {
+				redacted[key] = true
+			}
 		default:
 			redacted[key] = value
 		}
@@ -682,6 +690,7 @@ func AccountSummaryFromService(a *service.Account) *AccountSummary {
 }
 
 func usageLogFromServiceUser(l *service.UsageLog) UsageLog {
+	timing := l.CanonicalUsageTiming()
 	// 普通用户 DTO：严禁包含管理员字段（例如 account_rate_multiplier、account、upstream_model）。
 	requestType := l.EffectiveRequestType()
 	stream, openAIWSMode := service.ApplyLegacyRequestFields(requestType, l.Stream, l.OpenAIWSMode)
@@ -722,6 +731,15 @@ func usageLogFromServiceUser(l *service.UsageLog) UsageLog {
 		NativeCompactionV2:        l.NativeCompactionV2,
 		DurationMs:                l.DurationMs,
 		FirstTokenMs:              l.FirstTokenMs,
+		TimingVersion:             timing.TimingVersion,
+		StrictFirstTokenMs:        timing.StrictFirstTokenMs,
+		LastTokenMs:               timing.LastTokenMs,
+		FirstOutputMs:             timing.FirstOutputMs,
+		FirstOutputKind:           timing.FirstOutputKind,
+		AudioOutputTokens:         timing.AudioOutputTokens,
+		CompletionStatus:          timing.CompletionStatus,
+		IsComplete:                timing.IsComplete,
+		UsageSource:               timing.UsageSource,
 		ImageCount:                l.ImageCount,
 		ImageSize:                 l.ImageSize,
 		ImageInputSize:            l.ImageInputSize,
@@ -765,19 +783,30 @@ func UsageLogFromServiceAdmin(l *service.UsageLog) *AdminUsageLog {
 	usageLog := usageLogFromServiceUser(l)
 	usageLog.UpstreamEndpoint = l.UpstreamEndpoint
 	return &AdminUsageLog{
-		UsageLog:                usageLog,
-		UpstreamModel:           l.UpstreamModel,
-		UpstreamReasoningEffort: adminUpstreamReasoningEffort(l),
-		UpstreamResponseModel:   l.UpstreamResponseModel,
-		UpstreamModelMismatch:   l.UpstreamModelMismatch,
-		ChannelID:               l.ChannelID,
-		ModelMappingChain:       l.ModelMappingChain,
-		UpstreamRequestID:       l.UpstreamRequestID,
-		BillingTier:             l.BillingTier,
-		AccountRateMultiplier:   l.AccountRateMultiplier,
-		AccountStatsCost:        l.AccountStatsCost,
-		IPAddress:               l.IPAddress,
-		Account:                 AccountSummaryFromService(l.Account),
+		UsageLog:                   usageLog,
+		UpstreamModel:              l.UpstreamModel,
+		UpstreamReasoningEffort:    adminUpstreamReasoningEffort(l),
+		UpstreamResponseModel:      l.UpstreamResponseModel,
+		UpstreamModelMismatch:      l.UpstreamModelMismatch,
+		ChannelID:                  l.ChannelID,
+		ModelMappingChain:          l.ModelMappingChain,
+		UpstreamRequestID:          l.UpstreamRequestID,
+		TurnState:                  l.TurnState,
+		TurnStateOverridden:        l.TurnStateOverridden,
+		TurnStateSource:            l.TurnStateSource,
+		TurnStateSent:              l.TurnStateSent,
+		SafetyBufferingEnabled:     l.SafetyBufferingEnabled,
+		SafetyBufferingFasterModel: l.SafetyBufferingFasterModel,
+		RouteGateway:               l.RouteGateway,
+		RoutePair:                  l.RoutePair,
+		RoutePairOverridden:        l.RoutePairOverridden,
+		RoutePairPoolGateway:       l.RoutePairPoolGateway,
+		RoutePairPoolVersion:       l.RoutePairPoolVersion,
+		BillingTier:                l.BillingTier,
+		AccountRateMultiplier:      l.AccountRateMultiplier,
+		AccountStatsCost:           l.AccountStatsCost,
+		IPAddress:                  l.IPAddress,
+		Account:                    AccountSummaryFromService(l.Account),
 	}
 }
 

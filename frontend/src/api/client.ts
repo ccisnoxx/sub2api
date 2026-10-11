@@ -51,8 +51,8 @@ apiClient.interceptors.request.use(
       config.headers['Accept-Language'] = getLocale()
     }
 
-    // Attach timezone for all GET requests (backend may use it for default date ranges)
-    if (config.method === 'get') {
+    // 服务状态使用 UTC 且拒绝额外查询参数；其他 GET 保留客户端时区。
+    if (config.method === 'get' && !['/admin/service-status/config', '/admin/service-status/snapshot'].includes(config.url ?? '')) {
       if (!config.params) {
         config.params = {}
       }

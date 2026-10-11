@@ -71,6 +71,10 @@ const messages: Record<string, string> = {
   'usage.preparingExport': 'Preparing export',
   'usage.exportSuccess': 'Export success',
   'usage.exportFailed': 'Export failed',
+  'usage.averageTpsExport': 'Average TPS',
+  'usage.averageTpsNote': 'Average TPS note',
+  'usage.partialResponse': 'Partial response',
+  'usage.tpsMediaUnknown': 'Media token counts are incomplete.',
   'common.refresh': 'Refresh',
   'common.reset': 'Reset',
 }
@@ -397,10 +401,11 @@ describe('user UsageView', () => {
     expect(clickSpy).toHaveBeenCalled()
     expect(showSuccess).toHaveBeenCalled()
     expect(csvContent.startsWith('\uFEFF')).toBe(true)
-    expect(csvContent.slice(1)).toBe([
-      'Time,API Key Name,Model,Reasoning Effort,Inbound Endpoint,IP Address,Type,Billing Mode,Input Tokens,Output Tokens,Cache Read Tokens,Cache Creation Tokens,Rate Multiplier,Billed Cost,Original Cost,First Token (ms),Duration (ms)',
-      '2026-03-08T00:00:00Z,demo-key,gpt-5.4,-,,203.0.113.10,Sync,Token,4057,101,278272,4,1,0.09288300,0.09288300,12,345',
-    ].join('\n'))
+    const [header, row] = csvContent.slice(1).split('\n').map(line => line.split(','))
+    expect(header.slice(0, 17).join(',')).toBe('Time,API Key Name,Model,Reasoning Effort,Inbound Endpoint,IP Address,Type,Billing Mode,Input Tokens,Output Tokens,Cache Read Tokens,Cache Creation Tokens,Rate Multiplier,Billed Cost,Original Cost,First Token (ms),Duration (ms)')
+    expect(row.slice(0, 17).join(',')).toBe('2026-03-08T00:00:00Z,demo-key,gpt-5.4,-,,203.0.113.10,Sync,Token,4057,101,278272,4,1,0.09288300,0.09288300,12,345')
+    expect(header.slice(17, 19)).toEqual(['Average TPS', 'Average TPS note'])
+    expect(row.slice(17)).toEqual(['292.7536231884058', '', '', '', '', '', '', '', '', 'unknown', '', 'unknown'])
     expect(csvContent).toContain('IP Address')
     expect(csvContent).toContain('203.0.113.10')
     expect(csvContent).toContain('Billed Cost')
@@ -413,6 +418,53 @@ describe('user UsageView', () => {
     window.URL.revokeObjectURL = originalRevokeObjectURL
     vi.unstubAllGlobals()
     clickSpy.mockRestore()
+  })
+
+  it('CSV 导出新混合部分响应的原始数值，未知音频/状态保持空值和 unknown', async () => {
+    query.mockResolvedValue({
+      items: [{
+        ...usageLog, timing_version: 1, image_count: 1, image_output_tokens: 30,
+        audio_output_tokens: 20, strict_first_token_ms: 300, last_token_ms: 302,
+        first_output_ms: 25, first_output_kind: 'image', completion_status: 'client_disconnected',
+        is_complete: false, usage_source: 'upstream_partial',
+      }, {
+        ...usageLog, timing_version: 1, image_output_tokens: 0, audio_output_tokens: null,
+        strict_first_token_ms: null, last_token_ms: null, first_output_ms: null,
+        first_output_kind: null, completion_status: 'unknown', is_complete: null, usage_source: 'unknown',
+      }], total: 2, pages: 1,
+    })
+    const wrapper = mountUsageView()
+    await flushPromises()
+    let csvContent = ''
+    const OriginalBlob = globalThis.Blob
+    vi.stubGlobal('Blob', vi.fn((parts: BlobPart[], options?: BlobPropertyBag) => {
+      csvContent = parts.map(part => String(part)).join('')
+      return new OriginalBlob(parts, options)
+    }))
+    const originalCreateObjectURL = window.URL.createObjectURL
+    const originalRevokeObjectURL = window.URL.revokeObjectURL
+    window.URL.createObjectURL = vi.fn(() => 'blob:usage-export')
+    window.URL.revokeObjectURL = vi.fn()
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    try {
+      await (wrapper.vm as any).exportToCSV()
+      const [, partial, unknown] = csvContent.slice(1).split('\n').map(line => line.split(','))
+      expect(partial.slice(15, 17)).toEqual(['12', '345'])
+      expect(partial.slice(17)).toEqual([
+        '147.82608695652175', 'Partial response', '1', '300', '302', '25', 'image', '30', '20',
+        'client_disconnected', 'false', 'upstream_partial',
+      ])
+      expect(unknown.slice(17)).toEqual([
+        '', 'Media token counts are incomplete.', '1', '', '', '', '', '0', '', 'unknown', '', 'unknown',
+      ])
+      expect(showSuccess).toHaveBeenCalled()
+    } finally {
+      window.URL.createObjectURL = originalCreateObjectURL
+      window.URL.revokeObjectURL = originalRevokeObjectURL
+      vi.unstubAllGlobals()
+      clickSpy.mockRestore()
+      wrapper.unmount()
+    }
   })
 
   it('keeps formula-injection protection for dangerous exported values', async () => {

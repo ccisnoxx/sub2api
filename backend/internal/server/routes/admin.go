@@ -119,6 +119,9 @@ func RegisterAdminRoutes(
 		registerChannelMonitorRoutes(admin, h, settingService)
 		registerChannelMonitorV2Routes(admin, h, settingService)
 
+		// 真实请求服务状态使用独立配置，继承管理员认证、限流与审计。
+		registerServiceStatusRoutes(admin, h)
+
 		// 风控中心
 		registerContentModerationRoutes(admin, h)
 
@@ -358,6 +361,8 @@ func registerAccountRoutes(admin *gin.RouterGroup, h *handler.Handlers, stepUpAu
 	accounts := admin.Group("/accounts")
 	{
 		accounts.GET("", h.Admin.Account.List)
+		accounts.GET("/gateway-pool-progress", h.Admin.Account.GatewayPoolProgress)
+		accounts.POST("/:id/gateway-pool-retry", h.Admin.Account.RetryGatewayPool)
 		accounts.GET("/upstream-billing-rates", h.Admin.Account.GetUpstreamBillingRates)
 		accounts.GET("/upstream-billing-probe/settings", h.Admin.Account.GetUpstreamBillingProbeSettings)
 		accounts.PUT("/upstream-billing-probe/settings", h.Admin.Account.UpdateUpstreamBillingProbeSettings)
@@ -897,4 +902,11 @@ func channelMonitorModeV2Guard(settingService *service.SettingService) gin.Handl
 		}
 		c.Next()
 	}
+}
+
+func registerServiceStatusRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	status := admin.Group("/service-status")
+	status.GET("/config", h.ServiceStatus.GetConfig)
+	status.PUT("/config", h.ServiceStatus.UpdateConfig)
+	status.GET("/snapshot", h.ServiceStatus.Snapshot)
 }

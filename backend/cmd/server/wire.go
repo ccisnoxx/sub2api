@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"sync"
@@ -50,6 +51,9 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 		// Privacy client factory for OpenAI training opt-out
 		providePrivacyClientFactory,
 
+		// Codex backend client factory (quota face; no browser impersonation)
+		provideCodexBackendClientFactory,
+
 		// BuildInfo provider
 		provideServiceBuildInfo,
 		providePluginHostInfo,
@@ -65,6 +69,10 @@ func initializeApplication(buildInfo handler.BuildInfo) (*Application, error) {
 
 func providePrivacyClientFactory() service.PrivacyClientFactory {
 	return repository.CreatePrivacyReqClient
+}
+
+func provideCodexBackendClientFactory() service.CodexBackendClientFactory {
+	return repository.CreateCodexBackendReqClient
 }
 
 func provideServiceBuildInfo(buildInfo handler.BuildInfo) service.BuildInfo {
@@ -102,6 +110,7 @@ func provideCleanup(
 	claudeCodeVersionSync *service.ClaudeCodeVersionSyncService,
 	proxyExpiry *service.ProxyExpiryService,
 	subscriptionExpiry *service.SubscriptionExpiryService,
+	turnStateHunter *service.OpenAITurnStateHunterService,
 	usageCleanup *service.UsageCleanupService,
 	idempotencyCleanup *service.IdempotencyCleanupService,
 	batchImageCleanup *service.BatchImageCleanupService,
@@ -122,6 +131,7 @@ func provideCleanup(
 	paymentOrderExpiry *service.PaymentOrderExpiryService,
 	channelMonitorRunner *service.ChannelMonitorRunner,
 	channelMonitorV2Aggregator *service.ChannelMonitorV2Aggregator,
+	serviceStatusAggregator *service.ServiceStatusAggregator,
 	quotaFlusher *service.UserPlatformQuotaUsageFlusher,
 	upstreamBillingProbe *service.UpstreamBillingProbeService,
 	ollamaCloudUsage *service.OllamaCloudUsageService,
@@ -131,6 +141,10 @@ func provideCleanup(
 	promptAudit *securityaudit.PromptService,
 	pluginManager *service.PluginManager,
 ) func() {
+	// 仅应用生命周期启动持久反馈；构造服务本身不启动扫描任务。
+	if openAIGateway != nil {
+		openAIGateway.StartGatewayPoolReporter()
+	}
 	return func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -286,6 +300,10 @@ func provideCleanup(
 				subscriptionExpiry.Stop()
 				return nil
 			}},
+			{"OpenAITurnStateHunterService", func() error {
+				turnStateHunter.Stop()
+				return nil
+			}},
 			{"SubscriptionService", func() error {
 				if subscriptionService != nil {
 					subscriptionService.Stop()
@@ -302,6 +320,13 @@ func provideCleanup(
 			}},
 			{"BillingCacheService", func() error {
 				billingCache.Stop()
+				return nil
+			}},
+			{"OpsErrorLogWorkers", func() error {
+				if !handler.StopOpsErrorLogWorkers() {
+					service.MarkServiceStatusSourceError(time.Now())
+					return errors.New("SERVICE_STATUS_SOURCE_DRAIN_INCOMPLETE")
+				}
 				return nil
 			}},
 			{"UsageRecordWorkerPool", func() error {
@@ -334,7 +359,9 @@ func provideCleanup(
 			}},
 			{"OpenAIWSPool", func() error {
 				if openAIGateway != nil {
+					openAIGateway.StopGatewayPoolReporter()
 					openAIGateway.CloseOpenAIWSPool()
+					return openAIGateway.StopOpenAIRecording(ctx)
 				}
 				return nil
 			}},
@@ -438,6 +465,10 @@ func provideCleanup(
 		}
 
 		runParallel(parallelSteps)
+		// 所有请求源生产者与队列先停止；缺口最终写入必须早于数据库关闭。
+		if serviceStatusAggregator != nil {
+			runSequential([]cleanupStep{{"ServiceStatusAggregator", serviceStatusAggregator.Stop}})
+		}
 		runSequential(infraSteps)
 
 		// Check if context timed out

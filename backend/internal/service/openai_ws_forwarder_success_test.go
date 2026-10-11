@@ -147,6 +147,10 @@ func TestOpenAIGatewayService_Forward_WSv2_SuccessAndBindSticky(t *testing.T) {
 	result, err := svc.Forward(context.Background(), c, account, body)
 	require.NoError(t, err)
 	require.NotNil(t, result)
+	require.EqualValues(t, 1, result.UsageTiming.TimingVersion)
+	require.Equal(t, CompletionStatusCompleted, result.UsageTiming.CompletionStatus)
+	require.Equal(t, UsageSourceUpstreamFinal, result.UsageTiming.UsageSource)
+	require.Nil(t, result.UsageTiming.StrictFirstTokenMs, "无完整文本内容时非流式也不补造首 Token")
 	require.Equal(t, 12, result.Usage.InputTokens)
 	require.Equal(t, 7, result.Usage.OutputTokens)
 	require.Equal(t, 3, result.Usage.CacheReadInputTokens)
@@ -443,7 +447,7 @@ func TestOpenAIGatewayService_BuildOpenAIWSHeadersDeviceModePreservesNamespacedC
 	c.Request.Header.Set("x-client-request-id", "client-request")
 
 	account := newTestOAuthAccount(1300, map[string]any{codexFingerprintModeExtraKey: "device"})
-	ids := resolveCodexFingerprintIDsFromRequest(account, c.Request.Header)
+	ids := resolveCodexFingerprintIDsFromRequest(c, account, nil)
 	require.NotNil(t, ids)
 	stageCodexFingerprintIDs(c, ids)
 
@@ -597,6 +601,8 @@ func TestOpenAIGatewayService_Forward_WSv2_ResponseFailedIsNotSchedulingSuccess(
 
 	require.NoError(t, err)
 	require.NotNil(t, result)
+	require.Equal(t, CompletionStatusUpstreamError, result.UsageTiming.CompletionStatus)
+	require.False(t, *result.UsageTiming.IsComplete)
 	require.Equal(t, "response.failed", result.UpstreamTerminalEvent)
 	require.False(t, result.SucceededForScheduling())
 	require.True(t, svc.isOpenAIAccountModelRuntimeBlocked(account, "gpt-5.5"))
@@ -1536,9 +1542,11 @@ func TestOpenAIGatewayService_PrewarmReadHonorsParentContext(t *testing.T) {
 	start := time.Now()
 	err := svc.performOpenAIWSGeneratePrewarm(
 		ctx,
+		nil,
 		lease,
 		OpenAIWSProtocolDecision{Transport: OpenAIUpstreamTransportResponsesWebsocketV2},
 		payload,
+		"",
 		"",
 		map[string]any{"model": "gpt-5.1"},
 		account,
@@ -1955,6 +1963,7 @@ type openAIWSCaptureConn struct {
 	events     [][]byte
 	lastWrite  map[string]any
 	writes     []map[string]any
+	rawWrites  [][]byte // 原始字节：键序与转义只能在这里断言
 	closed     bool
 }
 
@@ -1969,18 +1978,21 @@ func (c *openAIWSCaptureConn) WriteJSON(ctx context.Context, value any) error {
 	case map[string]any:
 		c.lastWrite = cloneMapStringAny(payload)
 		c.writes = append(c.writes, cloneMapStringAny(payload))
+		c.rawWrites = append(c.rawWrites, []byte(requestToJSONString(payload)))
 	case json.RawMessage:
 		var parsed map[string]any
 		if err := decodeOpenAIJSONUseNumber(payload, &parsed); err == nil {
 			c.lastWrite = cloneMapStringAny(parsed)
 			c.writes = append(c.writes, cloneMapStringAny(parsed))
 		}
+		c.rawWrites = append(c.rawWrites, append([]byte(nil), payload...))
 	case []byte:
 		var parsed map[string]any
 		if err := decodeOpenAIJSONUseNumber(payload, &parsed); err == nil {
 			c.lastWrite = cloneMapStringAny(parsed)
 			c.writes = append(c.writes, cloneMapStringAny(parsed))
 		}
+		c.rawWrites = append(c.rawWrites, append([]byte(nil), payload...))
 	}
 	return nil
 }

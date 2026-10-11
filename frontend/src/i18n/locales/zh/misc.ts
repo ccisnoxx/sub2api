@@ -31,6 +31,9 @@ export default {
     refresh: '刷新',
     sourceMode: '源码构建',
     sourceModeHint: '源码构建请使用 git pull 更新',
+    containerModeHint: '个人镜像请按既有部署流程以固定 digest 更新；回滚须先确认数据兼容性并使用已验证部署记录。',
+    checkPending: '尚未完成版本检查',
+    checkFailed: '版本检查失败，请刷新重试',
     updateNow: '立即更新',
     updating: '正在更新...',
     updateComplete: '更新完成',
@@ -55,7 +58,12 @@ export default {
     deployScript: '脚本部署',
     deployDocker: 'Docker',
     dockerEditCompose: '修改 docker-compose.yml 中的镜像版本',
-    dockerRecreate: '重新创建容器'
+    dockerRecreate: '重新创建容器',
+    upstreamLabel: '上游',
+    forkLabel: '二开',
+    personalLabel: '个人镜像',
+    upstreamUpdateAvailable: '上游已发布 v{version}，这里只提示，升级要等二开跟进',
+    upstreamUpToDate: '上游已是最新版本'
   },
 
   // Recharge / Subscription Page

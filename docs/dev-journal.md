@@ -1,29 +1,10 @@
 # 开发日志
 
-## 2026-10-10：S4.4 完成，正式个人版本部署及生产 S4 启用验收通过
+## 2026-10-11：LEGAL-002 许可材料纳入 personal 应用候选
 
-- personal累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`经PR #7合入，最终`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的11项必要CI38049101726全部成功；正式Release38050231176发布`0.2.14-klno.5-tps.2`，固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`，实际标签与唯一linux/amd64绑定一致。main工具/文档与personal应用分开维护，原13项应用未提交文件及无关工作树保留。
-- 固定旧9397在真实PG18扩展schema读写及实际JWT/HTTP/批量/幂等/fallback后切回新候选；实际WS多轮、重试失败、取消后上游完成、无新证据冻结与三批新证据恢复完成，21场景按真实或未变边界关联。正式发布镜像隔离复验10个不同终态：成功8/供应商失败1/客户端断连排除1，与JWT/API/DB/browser一致。CSP与两个测试覆盖P2均关闭；未把TODO skip计通过。
-- hostdzire原生部署记录20261010T120908Z-b497b80ee8a6成功，数据库/应用数据备份校验及完整兼容证明通过；仅换应用，PG18.6/Redis身份保持，原账本不变并追加251–254。生产先S4关闭核对版本/revision/digest、基础交互与8条真实WS终态，再启用v2/默认阈值。水位12:24UTC无gap/聚合错误；12:19–12:24UTC成功10/失败0/排除0/未知0，与浏览器一致。有请求分组正常，空请求分组及平台未知；后续窗口成功7，不将样本移出解释成故障。
-- 生产管理员及个人用量TPS独立说明、首Token说明与Escape关闭通过，个人页面使用同一管理员自身会话。真实生产故障/回滚/数据库恢复未演练；故障与恢复反例由隔离环境证明，其他协议/平台仍待S1.5。
-- 前一中断独立复核未留下执行/summary报告，精确终态未知，未计验收；重新完成的复核有效。完整SUBAGENT_EXECUTION_DIGEST生成/审计finalize失败，明确保留缺口及失败日志，不伪造统计。定时同步的上游祖先失败留独立维护，固定.5来源未变。
-- [任务清单](../openspec/changes/adopt-plus-usage-and-diagnostics/tasks.md)、[最终验收](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s44-最终发布与生产验收)、[运行验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-runtime-validation.json)与[场景映射](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-scenario-map.json)登记main。S0.2/S0.3/S4.4全部勾选；下一项S1.5.1“接入Chat Completions及转换链路”，本会话不继续，S5未排期。
-
-## 2026-10-10：S4.4 真实运行验收完成，发布门禁仍在收敛
-
-- 固定旧应用在隔离PG18扩展schema上读写并切回新候选，实际JWT/HTTP/多轮WS、重试失败取消drain、无新请求冻结与新增成功恢复完成；生产未演练故障。
-- 前四轮必要CI分别暴露构造/lint、nil上下文、共享fixture/恢复窗口与分钟旧源缺口；第五轮独立复核发现NULL比例覆盖缺口，已取消该轮并提交4babebf补齐无缺口快照。变异红绿证明断言有效；第六轮候选CI仍在进行。
-- main控制c04c24e部署工具CI通过；PR #7仍draft，生产仍9397eb8/.5-tps.1且S4表不存在。不得把旧候选CI或隔离结果作为最终personal发布/生产验收。
-- [执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s44-发布前候选-ci-与复核收敛)、[运行验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-runtime-validation.json)和[场景映射](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-scenario-map.json)登记main；原历史与工作树改动保留。
-
-## 2026-10-10：KIN 借鉴 Plus S4.4 隔离 PG18 与真实 JWT/浏览器贯通完成
-
-- 本轮仅S4.4第一步。开工核对五处工作树/未提交改动，续用personal应用`35962a802fdc499639c9c861072f25774ccba50b`、工作树`plus-service-status-s43`/分支`codex/plus-service-status-s43`，未改应用源码；main维护应用与原17项改动、旧候选保留。79项源码/179份前端构建指纹相符，S4.3未变边界证据复用。
-- 经用户授权，hostdzire创建`/root/sub2api-kin-s44-validation`独立Compose项目，PG18/Redis复用生产固定image ID但使用独立卷/网络/数据库/随机凭据，测试管理员与普通用户共2个；仅应用回环10444，SSH本地4244，DB/Redis不发布端口。512/384/96MiB资源限制，三容器healthy；生产三容器ID/image/StartedAt/restarts/网/卷前后一致。仅服务器本地验证镜像，无正式镜像发布/生产部署。
-- 真实浏览器登录取得后端JWT；用户授权后，仅测试管理员在真实合规门禁提交电子确认。中文1440浏览器将独立配置从默认关闭v1保存为启用v2/最低6样本，真实PG18直接读回、浏览器刷新仍保持；无源/无请求显示未知。普通用户真实JWT GET/PUT403、匿名401、旧version409、未知query400；英文390管理员/最终用户dashboard及展开导航通过，无横向溢出/未捕获页面异常。没有API替换或身份注入。
-- 保留首次内部网络未发布端口与浏览器汇总漏计3个预期423的失败证据；仅修正隔离网络和汇总分类，不重跑成功写入。刷新另确认既有304/CSP nonce冲突，公有设置注入被拦截；相关源码与生产9397eb8一致，当前贯通经真实API正常。记录P2为正式发布前修复项，本步未降低CSP或改应用。
-- fresh只读复核及[执行证据](../openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md#s44-隔离实例与真实-jwtpg18浏览器贯通)、[候选](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-candidate.json)、[验证](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-validation.json)、[复核](../openspec/changes/adopt-plus-usage-and-diagnostics/evidence/s4.4-isolated-reviews.json)增量登记；审计摘要校验闭包。隔离实例与SSH转发保留供后续验证，私有凭据0600，不写入仓库。
-- S4.4.1勾选；S4.4总体进行中、保持未勾选。下一项S4.4.2固定旧应用PG18兼容，真实多轮WS/源终态/故障恢复/部署入口覆盖与SS01–SS21最终登记仍待；不自动继续。未push/PR更新、新CI、合并、镜像发布或生产部署，未启用生产S4。
+- 从远端 personal `3d5e1fde82707900a21f2b5538b112c7bab3c04a` 的应用树重放 LEGAL-001/002 必需材料和构建配置，保留原始 LICENSE、KlN 来源记录、个人模块及全部迁移；没有更新上游基线。仅补充 NOTICE/来源矩阵、完整许可、实际分发依赖材料及归档/镜像源码绑定。
+- 保留用户授权的 Airwallex 禁用：不创建或启动新的付款，移除两项前端 SDK；历史订单、配置、查询、取消、退款与通知处理保留。认证订单绑定实际服务商，历史别名不能误入 Stripe，合法 Stripe 子方法仍可启动。
+- PR #17 改为 personal 应用候选，保留现有候选历史并追加提交；不合并 PR、不修改受保护分支、不创建正式标签或发布镜像。验证在完整候选 SHA 上执行，Personal CI 需实际运行 recording race，最小 Linux amd64 Release dry-run 下载核验真实归档与 OCI 材料；最终结果及任务勾选以 PR 和 REMEDIATION_PLAN.md 的 LEGAL-002 记录为准。
 
 ## 2026-10-09：KIN 借鉴 Plus S4.3 独立聚合与展示完成
 
@@ -192,50 +173,6 @@
 - 从已验收 personal 029cd8fb 创建 codex/personal-release；读取默认 main 最新阶段记录，未合并 main 应用源码。来源仍为 v0.2.14-klno.3/de08df02，TPS 保留，未处理 .5 历史升级或连接生产。
 - 复用 Release matrix、前端单次构建、archive 来源及校验；增加个人来源/最终 SHA/完整 CI 门禁、串行 tps.N 分配、显式 Release dispatch 与镜像占用校验。已完成版本跳过，部分发布复用镜像，文档变化不分配版本，个人 VERSION 不写回 main。
 - 当前为实现候选，PERSONAL_RELEASE_ENABLED 尚未开启；实际 CI、simple dry run、独立复核、首次 GHCR 发布与匿名拉取仍需取得远端证据。完成结果继续只登记 main，不改变已发布源码 SHA。
-
-## 2026-10-08：KlN .5、TPS 展示对齐及安全补丁统一上线完成
-
-- 按维护者“先整合 .5，再统一发布上线”的授权完成，未发布此前 .3展示候选。普通合并c00保留个人与固定官方c7双方历史，120历史冲突按实际净改动归属处理并逐一核对blob/mode；官方164路径与个人34路径无重叠。[PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 按strict personal-ready/App15368、merge-only保护合入personal `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92`，无管理员绕过/强推/main应用树混入。
-- TPS标签、有效青色/不可用灰色短横线、三段紧凑数字/tok/s及首字旁唯一说明入口完成；公式仍为output_tokens×1000÷duration_ms，不扣首字，不改变原有适用范围/原因、耗时或色条。获准安全补丁采用Go1.27.2、x/net0.60等最小依赖及精确HTTP/2 lint规则，没有改变业务代码来压制弃用告警。
-- 最终 [Personal CI37879317375](https://github.com/ccisnoxx/sub2api/actions/runs/37879317375) 完整success；97项TPS/表格/提示与静态构建、.5额外121项前端合同、最终构建四组1440/390明暗及触屏/键盘页面预览通过。P4本地与[Linux CI37879304327](https://github.com/ccisnoxx/sub2api/actions/runs/37879304327) 43项合同通过，状态调查/实现/fresh独立复核审计closed/verify passed，确认问题已关闭。
-- 既有流程分配并发布 [v0.2.14-klno.5-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.1)，[Release37880741133](https://github.com/ccisnoxx/sub2api/actions/runs/37880741133)成功。固定amd64镜像digest `sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6` 与9397/source/version一致，公开匿名完整导出及二进制Go/依赖核验通过；原标签、原digest及main VERSION未改变。
-- main77的P4工具在备份后仅切换hostdzire应用，记录 `20261009T035515Z-193d1b92933e` success，UTC03:55:46完成。PG备份60,739,634字节、应用数据12,936,600字节，记录目录700/文件600；应用healthy、/health=ok，配置、PG/Redis容器及启动时间、303条迁移指纹均不变。仅应用顺序替换，中断未精确计时。状态复核确认 .3会丢弃 .5新网关JSON，工具仅允许固定 .3→.5向前升级，跨基线自动/显式旧镜像回退禁止，不恢复数据库。
-- 实际管理员/我的账户两页面的新及上线前历史记录、颜色、说明入口/完整提示和click/Enter/Escape通过。一次官方Codex CLI0.159.0请求HTTP200、完整OK、exit0；唯一记录150264为5 output/1819ms、首字1751ms，用户页显示2.7 tok/s、1.75s/1.82s，不扣首字。两页面筛选已恢复近24小时；未伪造官方指纹或重试模型请求。
-- P2.9/P2.11与P5.1–P5.8完成。独立普通用户身份、实际数据库恢复、所有客户端重连及外部池成员协议（现场启用池为0）仍未验证；启用池前需专门验收。**前端展示对齐完成，Plus完整计时能力尚未引入**，没有新增首输出/末token/完成状态等后端字段。最终四份文档只回写main，详情见[实施证据第10节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md#10-kln-5-整合及统一发布已完成)。
-
-## 2026-10-08：TPS 展示候选完成，等待精确 lint 兼容补丁范围决定
-
-- 从最新 main `1c2e51bee` 读取阶段记录，从 personal `896de21b` 建立 codex/tps-display-alignment；[PR #4](https://github.com/ccisnoxx/sub2api/pull/4) 当前候选 `e5acf91d204c6dc56516e88cf2ba906d9fb7c59e`，未绕过 strict personal-ready / App15368、管理员约束和 merge-only。控制工具和证据继续留在 main，未合入 main 应用树。
-- Plus 固定参考90da415c：TPS标签、有效青色、不可用灰色 -、三段紧凑数字和tok/s；唯一说明按钮移至首字旁，复用 HelpTooltip。保留整段平均公式、首字不扣除、原适用范围/不可用原因、首字/总耗时/色条。未引入 Plus 完整计时字段或严格首字判定，业务源码、数据库和计费不变。
-- 97项定向组件/表格/提示测试、六文件lint、i18n/类型/Vite构建通过。实际构建预览管理员/用户、1440px/390px、明暗主题、13类合成记录和鼠标/键盘/触屏提示交互通过；修复窄屏关闭按钮与文字重叠，截图和结果留在Git外。
-- 动态安全扫描先报告既有Go1.27.0的12项可达漏洞，再报告x/net五项。用户分别明确授权最小Go1.27.2和依赖安全升级；最低八个x/*模块、16条新增校验行，无业务代码修改。x/tools0.50和lint2.14.0修复Go导出数据V5兼容，原失败schema用例已通过。
-- 三轮fresh独立只读复核修复 main 版本断言及普通deploy反向恢复漏洞，最终无确认阻断；审计 `20261009T015946Z-tps-display-alignment-safe-release-8ee15421` closed/verify通过。main `50290816c` 保存workflow更新，`4629a8ad7` 保存四文件完整字节清单及34项部署合同测试。
-- 最终 [Personal CI37873707977](https://github.com/ccisnoxx/sub2api/actions/runs/37873707977) 安全扫描与单元测试已通过，lint因现有HTTP/2接口弃用SA1019失败，集成/recording仍待结束。精确三规则、五文件的配置补丁在Git外准备，官方配置校验与受影响三包staticcheck为0 issues；维护配置未改。其新增 lint 文件超出此前go.mod/go.sum限定，已请求范围决定，尚未收到授权。
-- P5.1–P5.5完成；P5.6–P5.8未完成，尚未合并、分配版本、发布GHCR或部署，hostdzire仍是tps.1固定digest。线上预核对覆盖现有管理员会话的两个页面，仍为旧格式，不算新版本验收或独立普通用户身份验收。KlN .5升级和Plus完整计时能力保持独立事项。完整事实见[实施证据第9节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。
-
-## 2026-10-08：P4 部署工具、hostdzire tps.1 上线与 P4.9 验收完成
-
-- 从最新 main `59e07a09a` 创建 `codex/personal-deploy`，工具与阶段结果留在 main 控制线；提交 `2e5da44431efe152b4b6105a80b7a84f233436a6` 快进 main 后普通 push，没有绕过 personal 保护。personal 和 `v0.2.14-klno.3-tps.1` 仍为固定应用 SHA `896de21b4be7f4ec4b4236f4df663b47371665b0`，未合入 main 应用树、移动标签或重发镜像，未处理 KlN .5。
-- 实现固定来源/digest/platform 输入、生命周期 flock、现场预检、私密配置/数据备份、仅应用 Compose 更新、健康后原子选择/成功记录、失败诊断与明确退出、相同完整后端/迁移基线的自动和显式镜像回滚。工具没有 force 兼容开关，不恢复数据库、不更新 PG/Redis 或删除卷。
-- [Linux/Python 3.11 Actions](https://github.com/ccisnoxx/sub2api/actions/runs/37828364221) 通过 28 项合同测试及 shell 语法。两次 fresh 只读复核确认并关闭 gzip footer 完整性和 QA 同名资源检查问题，坏 CRC 回归先红后绿；审计 `20261008T183220Z-personal-deploy-p4-d413702c` closed/verify passed。
-- hostdzire 独立空数据库/卷/10089 临时栈完成真实旧镜像→tps.1→旧镜像回滚；两个核心记录 success。最初临时 stop 漏传 image.env 导致外层退出1，按成功选择补传后 stop 成功，没有重复切换，保留 QA 卷与私密证据；生产三容器身份/启动未变。
-- 正式部署记录 `20261008T190259Z-2bb5bc1b6d52` success，生产应用一次切换：旧 KlN digest `sha256:c0ec609deaf0fb6f323de660ed7d43cf2030b4c4083c6fc4bef506d28f08ad8c` → 固定 tps.1 digest `sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。实际版本、revision、容器健康、/health、SELECT 1/PONG 均通过；仅 Compose 应用 image 一行变化，原 .env、挂载、PG/Redis、网络保留，303 条迁移指纹相同。
-- 私密备份在正式记录目录，PG custom dump 60,157,925 字节、应用归档 12,619,793 字节；tar/gzip CRC 和 pg_restore 全部解码通过，没有实际数据库恢复演练。记录/数据文件600、目录700，旧镜像和备份保留。兼容条件仍成立时使用 `deploy/personal/deploy-hostdzire.sh --rollback 20261008T190259Z-2bb5bc1b6d52`；生产未执行回滚。
-- 健康采样中断约1–2秒，切换区间 UTC19:03:16，未跟踪所有客户端断连。首次自写 HTTP 烟测收到403，无成功记录，当时未重试；上线后既有 WebSocket 客户端实际产生9条正输出/耗时记录。后续经 Ops 的 auth/client_request/client 字段、固定源码与日志确认403来自本地官方客户端限制检测，`missing_engine_fingerprint`，先前“上游403”的归因已纠正。
-- 用户随后完成登录，复用生产域名的既有管理员会话，实际检查管理员 `/admin/usage` 和我的账户 `/usage` 的新记录及上线前历史记录。两个页面 TPS、首字/总耗时和说明按钮交互通过，恢复原近24小时筛选；独立普通用户身份未验证。只读原始计时核对：历史 113/7156ms=15.79 tok/s、925/27053ms=34.19；上线后 1143/29015ms=39.39、141/3143ms=44.86，与实际页面相同。截图只包含耗时/提示区域，保存在 Git 外私密目录，控制台未捕获 error/warn。此前“已登录”的页面验收没有发起第二次文本请求或再次部署，固定镜像仍 healthy、启动时间未变。
-- 用户要求继续解决 P4.9 后，从干净 main/origin/main `0c425fee89636b0c41e61d14020e2d4ca24985aa` 创建 `codex/p49-gateway-acceptance`。使用真实 Codex CLI 0.159.0，自然生成官方客户端指纹；本次文本请求禁用工具、WebSocket 和重试，临时 loopback 中继最多转发一次。最终本地接收器验证通过，第二次 POST=409，故意400导致 CLI exit=1 属于模拟预期；此前工具声明未清空的候选断言失败如实保留，未向生产发送模型请求。
-- 修正后的唯一生产请求 UTC `20:02:41–20:02:49`，HTTP200、SSE完成、CLI exit=0且仅回复 OK；响应客户端请求 ID 关联唯一使用记录 `149251`，5 output / 1675 ms = 2.99 tok/s，首字1607ms。管理员与我的账户页面都实际显示同条记录：2.99 tok/s、首字1.61s、总耗时1.68s，与原始值一致。对应日志确认官方客户端匹配和请求200。现场应用仍为指定 tps.1 digest/version/revision且启动时间未变，PG/Redis healthy、SELECT 1/PONG通过；没有改变检测策略、凭据或生产配置，没有再次部署或增加应用中断。
-- P4.1–P4.10 完成，P4.9 已勾选；当前页面证据仍使用管理员会话，独立普通用户身份未验证，不等同权限隔离验收。实际数据库恢复及逐客户端重连也未验证。P2.9 真实 .5 升级和 P2.11 未处理；本次只更新 main 的四份阶段文档，未移动个人源码/标签/镜像。完整方法、实际/模拟边界、回滚条件、中断和剩余事项见 [实施证据第8节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。
-
-## 2026-10-08：个人镜像发布，P3 已完成
-
-- 从已验收 personal 029cd8fb 建立发布分支，保留原 KlN v0.2.14-klno.3/de08df02 和 TPS；[PR #3](https://github.com/ccisnoxx/sub2api/pull/3) 通过 required personal-ready 后普通 merge，最终 personal/构建源码为 `896de21b4be7f4ec4b4236f4df663b47371665b0`。没有合并 main 应用源码，没有修改应用、锁文件或迁移。
-- personal-release 与 Release 复用现有 matrix、前端单次构建、archive 来源及校验；绑定可信 personal 完整 CI、实际 App 15368 门禁和最新 SHA，串行分配 tps.N，机器人创建标签后显式 dispatch simple/linux/amd64 Release。构建后实际推送前再核验；同 SHA 复用，已成功版本跳过，部分失败复用镜像，文档变化跳过，个人 VERSION 不写回 main。
-- 21 个发布 helper、21 个同步合同、三份变动 workflow actionlint 和 shell 语法检查通过；fresh critical_reviewer 关闭确认问题，最终无确认阻断，审计 Bundle 20261008T172536Z-personal-release-p3-0283d66e 关闭/verify 通过。错误 SHA dry run 和错误 PR CI 归属真实运行均按预期拒绝。
-- 最终 personal SHA 的 [全新完整 CI](https://github.com/ccisnoxx/sub2api/actions/runs/37819628097) 与 [simple dry run](https://github.com/ccisnoxx/sub2api/actions/runs/37819646200) 全部成功；严格保护和 merge-only 读回不变后启用 PERSONAL_RELEASE_ENABLED=true。[正式准备](https://github.com/ccisnoxx/sub2api/actions/runs/37821989311) 和 [Release](https://github.com/ccisnoxx/sub2api/actions/runs/37822041580) success。
-- 已发布 `v0.2.14-klno.3-tps.1` / `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.3-tps.1`，OCI revision 和 VERSION 一致，平台 linux/amd64，包为 public。空凭据目录完成 88,247,606 字节、14 个 blob 的匿名完整拉取及 SHA-256 校验。固定 digest：`sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。
-- [同 SHA 重跑](https://github.com/ccisnoxx/sub2api/actions/runs/37823645330) 返回 already_published，没有新标签、再次 dispatch 或覆盖镜像。结果只回写 main，personal 固定源码与 main VERSION 保持不变。P3.1–P3.9 完成；P2.9 真实 .5 升级、P2.11/P4 保持未完成，未访问或部署 hostdzire。
-- 完整来源、workflow revision、CI/Release 链接、复核和 P4 canonical 镜像引用见 [实施证据第 7 节](../openspec/changes/add-usage-tps-and-personal-release/implementation-evidence.md)。P4 使用 `ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76`。
 
 ## 2026-10-08：personal 同步 PR 与候选检查，P2 实施
 

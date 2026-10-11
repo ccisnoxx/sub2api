@@ -39,6 +39,9 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 		return nil, wrapOpenAIWSFallback("invalid_state", errors.New("service or account is nil"))
 	}
 	responseModelObserver := &upstreamResponseModelObserver{}
+	timing := newResponsesOutputTiming(ctx, startTime, account)
+	defer timing.stop()
+	timingResponseID := ""
 
 	wsURL, err := s.buildOpenAIResponsesWSURL(account)
 	if err != nil {
@@ -67,9 +70,15 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 	turnState := ""
 	turnMetadata := ""
 	if c != nil && c.Request != nil {
-		turnState = strings.TrimSpace(c.GetHeader(openAIWSTurnStateHeader))
+		// 客户端回带的 turn-state：已知由其他账号铸造（failover 换号）则剥离。
+		turnState = s.guardOpenAICodexTurnStateValue(c, account, c.GetHeader(openAIWSTurnStateHeader))
+		turnState = s.applyOpenAICodexTurnStateOverrideWSManualOnly(c, account, turnState)
 		turnMetadata = strings.TrimSpace(c.GetHeader(openAIWSTurnMetadataHeader))
 	}
+	// 帧内只承载客户端自己持有的值（理由见 ingress 的 clientTurnState 注释）。
+	// 例外：账号配了 turn-state 覆写时，上面 applyOpenAICodexTurnStateOverrideWSManualOnly 已把
+	// turnState 换成覆写值，这里刻意让它一并进帧——双开握手头被删，帧内是唯一通道。
+	clientTurnState := turnState
 	setOpenAIWSTurnMetadata(payload, turnMetadata)
 	applyStagedCodexFingerprintClientMetadata(c, account, payload)
 	previousResponseID := openAIWSPayloadString(payload, "previous_response_id")
@@ -133,7 +142,8 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 	}
 	if turnState == "" && stateStore != nil && sessionHash != "" {
 		if savedTurnState, ok := stateStore.GetSessionTurnState(groupID, sessionHash); ok {
-			turnState = savedTurnState
+			turnState = s.guardOpenAICodexTurnStateValue(c, account, savedTurnState)
+			turnState = s.applyOpenAICodexTurnStateOverrideWSManualOnly(c, account, turnState)
 		}
 	}
 	preferredConnID := ""
@@ -167,6 +177,8 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 	if buildHdrErr != nil {
 		return nil, fmt.Errorf("build ws headers: %w", buildHdrErr)
 	}
+	// v2 每次请求都构造当前身份；在预热/正式帧之前触发，复用连接也共用线程去重。
+	s.scheduleCodexSettingsUser(c, account, wsHeaders, wsHeaders.Get("thread-id"))
 	logOpenAIWSModeDebug(
 		"acquire_start account_id=%d account_type=%s transport=%s preferred_conn_id=%s has_previous_response_id=%v session_hash=%s has_turn_state=%v turn_state_len=%d has_turn_metadata=%v turn_metadata_len=%d store_disabled=%v store_disabled_conn_mode=%s retry_last_reason=%s force_new_conn=%v header_user_agent=%s header_openai_beta=%s header_originator=%s header_accept_language=%s header_session_id=%s header_conversation_id=%s session_id_source=%s conversation_id_source=%s has_prompt_cache_key=%v has_chatgpt_account_id=%v has_authorization=%v has_session_id=%v has_conversation_id=%v proxy_enabled=%v",
 		account.ID,
@@ -320,6 +332,8 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 		len(handshakeTurnState),
 	)
 	if handshakeTurnState != "" {
+		// 该 blob 由本账号铸造，记下来供跨账号回带守卫；客户端经下面的响应头收到它。
+		s.noteOpenAICodexTurnStateOrigin(c, account, handshakeTurnState)
 		if stateStore != nil && sessionHash != "" {
 			stateStore.BindSessionTurnState(groupID, sessionHash, handshakeTurnState, s.openAIWSSessionStickyTTL())
 		}
@@ -330,10 +344,12 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 
 	if err := s.performOpenAIWSGeneratePrewarm(
 		ctx,
+		c,
 		lease,
 		decision,
 		payload,
 		previousResponseID,
+		clientTurnState,
 		reqBody,
 		account,
 		stateStore,
@@ -342,7 +358,20 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 		return nil, err
 	}
 
-	if err := lease.WriteJSONWithContextTimeout(ctx, payload, s.openAIWSWriteTimeout()); err != nil {
+	var writeErr error
+	if codexDeviceWireProfileEnabled(c, account) {
+		// 双开：map 序列化是字典序且转义 HTML；按真客户端的帧字段序出站，字节原样写出。
+		// 帧内只承载客户端自己持有的 clientTurnState；会话存储回落值（turnState）只用于
+		// 非双开的握手与 HTTP 桥。
+		raw, marshalErr := marshalOpenAIUpstreamJSON(payload)
+		if marshalErr != nil {
+			return nil, wrapOpenAIWSFallback("write_request", marshalErr)
+		}
+		writeErr = lease.WriteTextWithContextTimeout(ctx, applyCodexWSFrameWireProfile(c, account, raw, clientTurnState), s.openAIWSWriteTimeout())
+	} else {
+		writeErr = lease.WriteJSONWithContextTimeout(ctx, payload, s.openAIWSWriteTimeout())
+	}
+	if err := writeErr; err != nil {
 		lease.MarkBroken()
 		logOpenAIWSModeInfo(
 			"write_request_fail account_id=%d conn_id=%s cause=%s payload_bytes=%d",
@@ -397,6 +426,7 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 			return
 		}
 		clientDisconnected = true
+		timing.clientDisconnected()
 		clientDisconnectDrainStartedAt = time.Now()
 		if !upstreamReadDetached {
 			upstreamReadCtx = context.WithoutCancel(ctx)
@@ -421,6 +451,7 @@ func (s *OpenAIGatewayService) forwardOpenAIWSV2(
 			RequestID:                     responseID,
 			ResponseID:                    responseID,
 			Usage:                         *usage,
+			UsageTiming:                   timing.snapshot(clientDisconnected),
 			Model:                         originalModel,
 			UpstreamModel:                 mappedModel,
 			UpstreamResponseModel:         responseModelObserver.Model(),
@@ -613,6 +644,17 @@ readLoop:
 		if eventType == "" {
 			continue
 		}
+		if responsesTimingMatchesID(&timingResponseID, message, eventType) {
+			if reqStream || isOpenAIWSTerminalEvent(eventType) {
+				timing.observeEvent(message, eventType, time.Now())
+			}
+			if !reqStream && isOpenAIWSTerminalEvent(eventType) && responseField.Exists() {
+				timing.observeJSON([]byte(responseField.Raw), time.Now())
+			}
+			if eventType == "response.completed" || eventType == "response.done" {
+				timing.confirmNoAudio(message)
+			}
+		}
 		responseModelObserver.ObserveOpenAI(message, eventType)
 		eventCount++
 		if firstEventType == "" {
@@ -662,6 +704,9 @@ readLoop:
 			message = restoreCodexToolNamesFromContext(c, message)
 		}
 		if openAIWSMessageShouldParseUsage(eventType, message) {
+			if responsesTimingMatchesID(&timingResponseID, message, eventType) {
+				timing.observeUsage(message, eventType, *usage)
+			}
 			parseOpenAIWSResponseUsageFromCompletedEvent(message, usage)
 		}
 		imageCounter.AddSSEData(message)

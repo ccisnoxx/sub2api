@@ -2,29 +2,55 @@
   <div class="relative">
     <!-- Admin: Full version badge with dropdown -->
     <template v-if="isAdmin">
-      <button
-        @click="toggleDropdown"
-        class="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors"
-        :class="[
-          hasUpdate
-            ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-800 dark:text-dark-400 dark:hover:bg-dark-700'
-        ]"
-        :title="hasUpdate ? t('version.updateAvailable') : t('version.upToDate')"
-      >
-        <span v-if="currentVersion" class="font-medium">v{{ currentVersion }}</span>
-        <span
-          v-else
-          class="h-3 w-12 animate-pulse rounded bg-gray-200 font-medium dark:bg-dark-600"
-        ></span>
-        <!-- Update indicator -->
-        <span v-if="hasUpdate" class="relative flex h-2 w-2">
+      <div class="flex flex-wrap items-center gap-1">
+        <!-- klno: 上游版本只监测：有新版时沿用原来的琥珀色脉冲提示，点开是上游发布页，没有升级入口 -->
+        <a
+          v-if="upstreamBaseVersion"
+          data-testid="version-upstream"
+          :href="upstreamVersion?.html_url || UPSTREAM_RELEASES_URL"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors"
+          :class="[
+            upstreamHasUpdate
+              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-dark-800 dark:text-dark-400 dark:hover:bg-dark-700'
+          ]"
+          :title="upstreamTitle"
+        >
+          <span>v{{ upstreamBaseVersion }}</span>
+          <span v-if="upstreamHasUpdate" class="relative flex h-2 w-2">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"
+            ></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+          </span>
+        </a>
+        <button
+          data-testid="version-fork"
+          @click="toggleDropdown"
+          class="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs transition-colors"
+          :class="[
+            hasUpdate
+              ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-800 dark:text-dark-400 dark:hover:bg-dark-700'
+          ]"
+          :title="forkTitle"
+        >
+          <span v-if="currentVersion" class="font-medium">{{ forkBadgeText }}</span>
           <span
-            class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"
+            v-else
+            class="h-3 w-12 animate-pulse rounded bg-gray-200 font-medium dark:bg-dark-600"
           ></span>
-          <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
-        </span>
-      </button>
+          <!-- Update indicator -->
+          <span v-if="hasUpdate" class="relative flex h-2 w-2">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"
+            ></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
+          </span>
+        </button>
+      </div>
 
       <!-- Dropdown -->
       <transition name="dropdown">
@@ -32,7 +58,7 @@
           v-if="dropdownOpen"
           ref="dropdownRef"
           class="absolute left-0 z-50 mt-2 overflow-hidden whitespace-normal rounded-xl border border-gray-200 bg-white shadow-lg transition-all duration-200 dark:border-dark-700 dark:bg-dark-800"
-          :class="rollbackPanelOpen && isReleaseBuild ? 'w-80' : 'w-64'"
+          :class="rollbackPanelOpen && canUpdateInPlace ? 'w-80' : 'w-64'"
         >
           <!-- Header with refresh button -->
           <div
@@ -89,7 +115,7 @@
                   <span v-else class="text-2xl font-bold text-gray-400 dark:text-dark-500">--</span>
                   <!-- Show check mark when up to date -->
                   <span
-                    v-if="!hasUpdate"
+                    v-if="versionChecked && !hasUpdate"
                     class="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30"
                   >
                     <svg
@@ -106,11 +132,7 @@
                   </span>
                 </div>
                 <p class="mt-1 text-xs text-gray-500 dark:text-dark-400">
-                  {{
-                    hasUpdate
-                      ? t('version.latestVersion') + ': v' + latestVersion
-                      : t('version.upToDate')
-                  }}
+                  {{ versionStatus }}
                 </p>
               </div>
 
@@ -231,8 +253,36 @@
                 </button>
               </div>
 
+              <!-- 检查失败不能显示“已是最新版本”。 -->
+              <p
+                v-else-if="versionWarning"
+                class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-400"
+              >
+                {{ t('version.checkFailed') }}
+              </p>
+              <p v-else-if="!versionChecked" class="text-xs text-gray-500 dark:text-dark-400">
+                {{ t('version.checkPending') }}
+              </p>
+
+              <!-- 个人镜像通过固定 digest 部署，更新与回退均不替换容器内二进制。 -->
+              <div v-else-if="isContainerBuild" class="space-y-2">
+                <p class="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs leading-5 text-blue-600 dark:border-blue-800/50 dark:bg-blue-900/20 dark:text-blue-400">
+                  {{ t('version.containerModeHint') }}
+                </p>
+                <a
+                  v-if="releaseInfo?.html_url && releaseInfo.html_url !== '#'"
+                  :href="releaseInfo.html_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center justify-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-dark-400 dark:hover:text-dark-200"
+                >
+                  {{ t('version.viewRelease') }}
+                  <Icon name="externalLink" size="xs" :stroke-width="2" />
+                </a>
+              </div>
+
               <!-- Priority 3: Update available for source build - show git pull hint -->
-              <div v-else-if="hasUpdate && !isReleaseBuild" class="space-y-2">
+              <div v-else-if="hasUpdate && !canUpdateInPlace" class="space-y-2">
                 <a
                   v-if="releaseInfo?.html_url && releaseInfo.html_url !== '#'"
                   :href="releaseInfo.html_url"
@@ -292,7 +342,7 @@
               </div>
 
               <!-- Priority 4: Update available for release build - show update button -->
-              <div v-else-if="hasUpdate && isReleaseBuild" class="space-y-2">
+              <div v-else-if="hasUpdate && canUpdateInPlace" class="space-y-2">
                 <!-- Update info card -->
                 <div
                   class="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800/50 dark:bg-amber-900/20"
@@ -397,7 +447,7 @@
                     <div v-if="rollbackPanelOpen" class="mt-2 space-y-2">
                       <!-- Source build: online rollback unavailable, use git instead -->
                       <div
-                        v-if="!isReleaseBuild"
+                        v-if="!canUpdateInPlace"
                         class="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-2 dark:border-blue-800/50 dark:bg-blue-900/20"
                       >
                         <svg
@@ -651,9 +701,11 @@ import {
 import { useClipboard } from '@/composables/useClipboard'
 import Icon from '@/components/icons/Icon.vue'
 
-const GITHUB_REPO = 'Wei-Shaw/sub2api'
-// Docker Hub image published by CI (tags carry no "v" prefix, e.g. weishaw/sub2api:0.1.146)
-const DOCKER_IMAGE = 'weishaw/sub2api'
+// klno: 升级与回滚只走二开的发布；上游只监测
+const GITHUB_REPO = 'KlN-4096/sub2api'
+// GHCR image published by the fork's CI (tags carry no "v" prefix, e.g. ghcr.io/kln-4096/sub2api:0.2.7-klno.4)
+const DOCKER_IMAGE = 'ghcr.io/kln-4096/sub2api'
+const UPSTREAM_RELEASES_URL = 'https://github.com/Wei-Shaw/sub2api/releases'
 
 const { t } = useI18n()
 
@@ -673,9 +725,48 @@ const dropdownRef = ref<HTMLElement | null>(null)
 const loading = computed(() => appStore.versionLoading)
 const currentVersion = computed(() => appStore.currentVersion || props.version || '')
 const latestVersion = computed(() => appStore.latestVersion)
-const hasUpdate = computed(() => appStore.hasUpdate)
+const hasUpdate = computed(() => appStore.hasUpdate && !appStore.versionWarning)
 const releaseInfo = computed(() => appStore.releaseInfo)
-const buildType = computed(() => appStore.buildType)
+const versionWarning = computed(() => appStore.versionWarning)
+const versionChecked = computed(() => appStore.versionLoaded && !versionWarning.value)
+const isContainerBuild = computed(() => appStore.updateMode === 'container')
+const versionStatus = computed(() => {
+  if (versionWarning.value) return t('version.checkFailed')
+  if (!versionChecked.value) return t('version.checkPending')
+  return hasUpdate.value
+    ? t('version.latestVersion') + ': v' + latestVersion.value
+    : t('version.upToDate')
+})
+const upstreamVersion = computed(() => appStore.upstreamVersion)
+
+// klno: 左上角拆成两处：上游只显示所基于的 X.Y.Z，二开只显示 klno 序号；标签与完整版本放进提示。
+// 上游版本从当前版本推出来，不等更新检查返回；检查结果只决定有没有新版提示。
+const upstreamBaseVersion = computed(() => currentVersion.value.split('-')[0])
+const upstreamHasUpdate = computed(
+  () => upstreamVersion.value?.has_update === true && !upstreamVersion.value?.warning && !versionWarning.value
+)
+const upstreamTitle = computed(() => {
+  if (versionWarning.value) {
+    return `${t('version.upstreamLabel')} v${upstreamBaseVersion.value}：${t('version.checkFailed')}`
+  }
+  if (!upstreamVersion.value) {
+    return `${t('version.upstreamLabel')} v${upstreamBaseVersion.value}：${t('version.checkPending')}`
+  }
+  if (upstreamVersion.value.warning) {
+    return `${t('version.upstreamLabel')} v${upstreamBaseVersion.value}：${t('version.checkFailed')}`
+  }
+  const state = upstreamHasUpdate.value
+    ? t('version.upstreamUpdateAvailable', { version: upstreamVersion.value?.latest_version ?? '' })
+    : t('version.upstreamUpToDate')
+  return `${t('version.upstreamLabel')} v${upstreamBaseVersion.value}：${state}`
+})
+const forkBadgeText = computed(
+  () => currentVersion.value.match(/-(klno\.\d+(?:-tps\.\d+)?)$/)?.[1] ?? `v${currentVersion.value}`
+)
+const forkTitle = computed(
+  () =>
+    `${t(isContainerBuild.value ? 'version.personalLabel' : 'version.forkLabel')} v${currentVersion.value}：${versionChecked.value && hasUpdate.value ? t('version.updateAvailable') : versionStatus.value}`
+)
 
 // Update process states (local to this component)
 const updating = ref(false)
@@ -728,8 +819,8 @@ const activeManualCommand = computed(() =>
   manualTab.value === 'docker' ? dockerRollbackCommand.value : scriptRollbackCommand.value
 )
 
-// Only show update check for release builds (binary/docker deployment)
-const isReleaseBuild = computed(() => buildType.value === 'release')
+// 安装能力由后端确定，CI 构建类型不能证明镜像支持二进制替换。
+const canUpdateInPlace = computed(() => appStore.updateMode === 'in_place')
 
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value
@@ -752,7 +843,7 @@ async function refreshVersion(force = true) {
 }
 
 async function handleUpdate() {
-  if (updating.value) return
+  if (!isAdmin.value || !canUpdateInPlace.value || updating.value) return
 
   updating.value = true
   updateError.value = ''
@@ -788,7 +879,7 @@ async function toggleRollbackPanel() {
   // Source builds only show a hint, no version list to fetch
   if (
     rollbackPanelOpen.value &&
-    isReleaseBuild.value &&
+    canUpdateInPlace.value &&
     rollbackVersions.value.length === 0 &&
     !rollbackVersionsLoading.value
   ) {
@@ -827,7 +918,7 @@ function formatPublishedAt(publishedAt: string): string {
 
 async function handleRollback() {
   if (!isAdmin.value) return
-  if (rollingBack.value || !selectedRollbackVersion.value) return
+  if (!canUpdateInPlace.value || rollingBack.value || !selectedRollbackVersion.value) return
 
   rollingBack.value = true
   rollbackError.value = ''

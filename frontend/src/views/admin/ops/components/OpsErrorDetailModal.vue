@@ -123,7 +123,13 @@
           </div>
         </div>
 
+        <div v-for="field in classificationFields" :key="field.key" class="rounded-xl bg-gray-50 p-4 dark:bg-dark-900">
+          <div class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ t(`admin.ops.errorDetail.classificationKeys.${field.key}`) }}</div>
+          <div class="mt-1 break-words font-mono text-sm font-medium text-gray-900 dark:text-white">{{ field.value || '—' }}</div>
+        </div>
       </div>
+
+      <OpsRoutingDiagnosticsPanel :diagnostics="detail.routing_diagnostics" />
 
       <div v-if="rootCauseMessage" class="rounded-xl bg-amber-50 p-6 dark:bg-amber-900/10">
         <h3 class="text-sm font-black uppercase tracking-wider text-amber-900 dark:text-amber-200">{{ t('admin.ops.errorDetail.rootCause') }}</h3>
@@ -225,10 +231,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
+import OpsRoutingDiagnosticsPanel from './OpsRoutingDiagnosticsPanel.vue'
 import { useAppStore } from '@/stores'
 import { opsAPI, type OpsErrorDetail } from '@/api/admin/ops'
 import { formatDateTime } from '@/utils/format'
@@ -252,10 +259,19 @@ const emit = defineEmits<Emits>()
 const { t } = useI18n()
 const appStore = useAppStore()
 
+// 每次打开/切换拥有自己的请求序号，晚到响应不能覆盖当前错误。
+let detailGeneration = 0
+onBeforeUnmount(() => { detailGeneration++ })
 const loading = ref(false)
 const detail = ref<OpsErrorDetail | null>(null)
 
 const showUpstreamList = computed(() => props.errorType === 'request')
+
+const classificationFields = computed(() => [
+  { key: 'phase', value: detail.value?.phase },
+  { key: 'owner', value: detail.value?.error_owner },
+  { key: 'source', value: detail.value?.error_source }
+])
 
 const requestId = computed(() => detail.value?.request_id || detail.value?.client_request_id || '')
 
@@ -354,7 +370,7 @@ function toggleUpstreamDetail(id: number) {
   expandedUpstreamDetailIds.value = next
 }
 
-async function fetchCorrelatedUpstreamErrors(requestErrorId: number) {
+async function fetchCorrelatedUpstreamErrors(requestErrorId: number, generation: number) {
   correlatedUpstreamLoading.value = true
   try {
     const res = await opsAPI.listRequestErrorUpstreamErrors(
@@ -362,12 +378,14 @@ async function fetchCorrelatedUpstreamErrors(requestErrorId: number) {
       { page: 1, page_size: 100, view: 'all' },
       { include_detail: true }
     )
+    if (generation !== detailGeneration) return
     correlatedUpstream.value = res.items || []
   } catch (err) {
+    if (generation !== detailGeneration) return
     console.error('[OpsErrorDetailModal] Failed to load correlated upstream errors', err)
     correlatedUpstream.value = []
   } finally {
-    correlatedUpstreamLoading.value = false
+    if (generation === detailGeneration) correlatedUpstreamLoading.value = false
   }
 }
 
@@ -389,36 +407,33 @@ function prettyJSON(raw?: string): string {
   }
 }
 
-async function fetchDetail(id: number) {
+async function fetchDetail(id: number, generation: number) {
   loading.value = true
   try {
-    const kind = props.errorType || (detail.value?.phase === 'upstream' ? 'upstream' : 'request')
+    const kind = props.errorType || 'request'
     const d = kind === 'upstream' ? await opsAPI.getUpstreamErrorDetail(id) : await opsAPI.getRequestErrorDetail(id)
-    detail.value = d
+    if (generation === detailGeneration) detail.value = d
   } catch (err: any) {
+    if (generation !== detailGeneration) return
     detail.value = null
     appStore.showError(err?.message || t('admin.ops.failedToLoadErrorDetail'))
   } finally {
-    loading.value = false
+    if (generation === detailGeneration) loading.value = false
   }
 }
 
 watch(
-  () => [props.show, props.errorId] as const,
+  () => [props.show, props.errorId, props.errorType] as const,
   ([show, id]) => {
-    if (!show) {
-      detail.value = null
-      return
-    }
-    if (typeof id === 'number' && id > 0) {
-      expandedUpstreamDetailIds.value = new Set()
-      fetchDetail(id)
-      if (props.errorType === 'request') {
-        fetchCorrelatedUpstreamErrors(id)
-      } else {
-        correlatedUpstream.value = []
-      }
-    }
+    const generation = ++detailGeneration
+    detail.value = null
+    correlatedUpstream.value = []
+    correlatedUpstreamLoading.value = false
+    loading.value = false
+    expandedUpstreamDetailIds.value = new Set()
+    if (!show || typeof id !== 'number' || id <= 0) return
+    fetchDetail(id, generation)
+    if (props.errorType === 'request') fetchCorrelatedUpstreamErrors(id, generation)
   },
   { immediate: true }
 )

@@ -404,12 +404,20 @@ func SanitizeOpsErrorBodyForQueue(raw string) (string, bool) {
 // SanitizeOpsUpstreamErrorsForQueue bounds and serializes attempt-level data
 // before the entry can consume asynchronous queue capacity.
 func SanitizeOpsUpstreamErrorsForQueue(entry *OpsInsertErrorLogInput) error {
+	if entry != nil {
+		sanitizeOpsRoutingDiagnostics(entry)
+		entry.ServiceStatusObservation = entry.ServiceStatusObservation.Clone()
+		entry.ServiceStatusObservationJSON = MarshalServiceStatusObservation(entry.ServiceStatusObservation)
+	}
 	return sanitizeOpsUpstreamErrors(entry)
 }
 
 func (s *OpsService) RecordError(ctx context.Context, entry *OpsInsertErrorLogInput) error {
 	prepared, ok, err := s.prepareErrorLogInput(ctx, entry)
 	if err != nil {
+		if entry != nil && entry.ServiceStatusObservation != nil {
+			MarkServiceStatusSourceError(time.Now())
+		}
 		log.Printf("[Ops] RecordError prepare failed: %v", err)
 		return err
 	}
@@ -418,6 +426,9 @@ func (s *OpsService) RecordError(ctx context.Context, entry *OpsInsertErrorLogIn
 	}
 
 	if _, err := s.opsRepo.InsertErrorLog(ctx, prepared); err != nil {
+		if prepared.ServiceStatusObservation != nil {
+			MarkServiceStatusSourceError(time.Now())
+		}
 		// Never bubble up to gateway; best-effort logging.
 		log.Printf("[Ops] RecordError failed: %v", err)
 		return err
@@ -433,6 +444,9 @@ func (s *OpsService) RecordErrorBatch(ctx context.Context, entries []*OpsInsertE
 	for _, entry := range entries {
 		item, ok, err := s.prepareErrorLogInput(ctx, entry)
 		if err != nil {
+			if entry != nil && entry.ServiceStatusObservation != nil {
+				MarkServiceStatusSourceError(time.Now())
+			}
 			log.Printf("[Ops] RecordErrorBatch prepare failed: %v", err)
 			continue
 		}
@@ -446,12 +460,21 @@ func (s *OpsService) RecordErrorBatch(ctx context.Context, entries []*OpsInsertE
 	if len(prepared) == 1 {
 		_, err := s.opsRepo.InsertErrorLog(ctx, prepared[0])
 		if err != nil {
+			if prepared[0].ServiceStatusObservation != nil {
+				MarkServiceStatusSourceError(time.Now())
+			}
 			log.Printf("[Ops] RecordErrorBatch single insert failed: %v", err)
 		}
 		return err
 	}
 
 	if _, err := s.opsRepo.BatchInsertErrorLogs(ctx, prepared); err != nil {
+		for _, item := range prepared {
+			if item.ServiceStatusObservation != nil {
+				MarkServiceStatusSourceError(time.Now())
+				break
+			}
+		}
 		log.Printf("[Ops] RecordErrorBatch failed: %v", err)
 		return err
 	}
@@ -463,9 +486,15 @@ func (s *OpsService) prepareErrorLogInput(ctx context.Context, entry *OpsInsertE
 		return nil, false, nil
 	}
 	if !s.IsMonitoringEnabled(ctx) {
+		if entry.ServiceStatusObservation != nil {
+			MarkServiceStatusSourceError(time.Now())
+		}
 		return nil, false, nil
 	}
 	if s.opsRepo == nil {
+		if entry.ServiceStatusObservation != nil {
+			MarkServiceStatusSourceError(time.Now())
+		}
 		return nil, false, nil
 	}
 
@@ -545,6 +574,9 @@ func (s *OpsService) prepareErrorLogInput(ctx context.Context, entry *OpsInsertE
 		}
 	}
 
+	sanitizeOpsRoutingDiagnostics(entry)
+	entry.ServiceStatusObservation = entry.ServiceStatusObservation.Clone()
+	entry.ServiceStatusObservationJSON = MarshalServiceStatusObservation(entry.ServiceStatusObservation)
 	if err := sanitizeOpsUpstreamErrors(entry); err != nil {
 		return nil, false, err
 	}
@@ -567,7 +599,17 @@ const (
 )
 
 func sanitizeOpsUpstreamErrors(entry *OpsInsertErrorLogInput) error {
-	if entry == nil || len(entry.UpstreamErrors) == 0 {
+	if entry == nil {
+		return nil
+	}
+	if len(entry.UpstreamErrors) == 0 {
+		if entry.UpstreamErrorsJSON != nil {
+			normalized, err := normalizeOpsUpstreamErrorsJSON(*entry.UpstreamErrorsJSON)
+			if err != nil {
+				return err
+			}
+			entry.UpstreamErrorsJSON = &normalized
+		}
 		return nil
 	}
 
@@ -585,6 +627,7 @@ func sanitizeOpsUpstreamErrors(entry *OpsInsertErrorLogInput) error {
 	sanitized := make([]*OpsUpstreamErrorEvent, 0, len(events))
 	for i, ev := range events {
 		out := *ev
+		out.RoutingDiagnostics = sanitizedRoutingDiagnostics(ev.RoutingDiagnostics)
 		normalizeOpsUpstreamProxyAttribution(&out)
 		// Only boundOpsUpstreamErrors may stamp this; never trust caller input.
 		out.DroppedEarlierAttempts = 0

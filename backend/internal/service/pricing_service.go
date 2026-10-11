@@ -202,6 +202,11 @@ var (
 // LiteLLMModelPricing LiteLLM价格数据结构
 // 只保留我们需要的字段，使用指针来处理可能缺失的值
 type LiteLLMModelPricing struct {
+	// 保留来源字段是否存在，目录展示不能把明确零价和缺失字段混为一谈。
+	InputCostPerTokenExplicit           bool    `json:"-"`
+	OutputCostPerTokenExplicit          bool    `json:"-"`
+	CacheReadInputTokenCostExplicit     bool    `json:"-"`
+	CacheCreation1hTokenCostExplicit    bool    `json:"-"`
 	CacheCreationInputTokenCostExplicit bool    `json:"-"`
 	InputCostPerToken                   float64 `json:"input_cost_per_token"`
 	InputCostPerTokenPriority           float64 `json:"input_cost_per_token_priority"`
@@ -674,11 +679,15 @@ func (s *PricingService) parsePricingData(body []byte) (map[string]*LiteLLMModel
 		}
 
 		pricing := &LiteLLMModelPricing{
-			LiteLLMProvider:       entry.LiteLLMProvider,
-			Mode:                  entry.Mode,
-			SupportsPromptCaching: entry.SupportsPromptCaching,
-			SupportsServiceTier:   entry.SupportsServiceTier,
-			TokenPricingAbsent:    entry.InputCostPerToken == nil && entry.OutputCostPerToken == nil,
+			InputCostPerTokenExplicit:        entry.InputCostPerToken != nil,
+			OutputCostPerTokenExplicit:       entry.OutputCostPerToken != nil,
+			CacheReadInputTokenCostExplicit:  entry.CacheReadInputTokenCost != nil,
+			CacheCreation1hTokenCostExplicit: entry.CacheCreationInputTokenCostAbove1hr != nil,
+			LiteLLMProvider:                  entry.LiteLLMProvider,
+			Mode:                             entry.Mode,
+			SupportsPromptCaching:            entry.SupportsPromptCaching,
+			SupportsServiceTier:              entry.SupportsServiceTier,
+			TokenPricingAbsent:               entry.InputCostPerToken == nil && entry.OutputCostPerToken == nil,
 		}
 
 		if entry.InputCostPerToken != nil {

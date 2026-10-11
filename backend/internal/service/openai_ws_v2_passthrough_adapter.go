@@ -25,10 +25,14 @@ type openAIWSClientFrameConn struct {
 	interTurnIdleTimeout time.Duration
 	interTurnStarted     chan struct{}
 	waitingForNextTurn   atomic.Bool
+	readClient           func(context.Context, time.Duration) (coderws.MessageType, []byte, error)
 	// The relay observes upstream payloads, while clients must keep seeing the
 	// model identifier they supplied for the current turn.
 	restoreResponseModel func([]byte) []byte
 	restoreToolNames     func([]byte) []byte
+	// noteTurnState 在下行帧写给客户端的边界记录 turn-state 铸造账号：客户端在 WS 上
+	// 持有的 blob 只来自这里转发的 response.metadata 事件。
+	noteTurnState func([]byte)
 }
 
 // openAIWSPolicyEnforcingFrameConn wraps a client-side FrameConn and runs
@@ -604,6 +608,11 @@ func (c *openAIWSClientFrameConn) ReadFrame(ctx context.Context) (coderws.Messag
 	if c.controlCtx != nil {
 		controlCtx = c.controlCtx
 	}
+	if c.readClient != nil {
+		// The session read pump already owns the socket, including after a
+		// pool attempt hands this connection to a passthrough account.
+		return c.readClient(controlCtx, 0)
+	}
 	msgType, payload, err := readOpenAIWSClientMessageWithTimeoutStart(
 		controlCtx,
 		c.conn,
@@ -641,6 +650,9 @@ func (c *openAIWSClientFrameConn) WriteFrame(ctx context.Context, msgType coderw
 		ctx = context.Background()
 	}
 	if msgType == coderws.MessageText {
+		if c.noteTurnState != nil {
+			c.noteTurnState(payload)
+		}
 		if normalized, changed := normalizeCompletedImageGenerationStatus(payload); changed {
 			payload = normalized
 		}
@@ -746,6 +758,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		firstClientMessage = s.ReplaceModelInBody(firstClientMessage, capturedSessionModel)
 	}
 	firstMessageResponsesLite := isOpenAIResponsesLiteWebSocketPayload(firstClientMessage)
+	// 抢在归一化删掉 internal_chat_message_metadata_passthrough（上游 #7066）之前投影时区。
+	firstClientMessage = rewriteCodexEnvironmentTimezone(c, account, firstClientMessage)
 	if normalized, compatibilityChanged, normalizeErr := normalizeOpenAIResponsesWebSocketCompatibilityBody(firstClientMessage, account, firstMessageResponsesLite); normalizeErr != nil {
 		return fmt.Errorf("normalize first websocket response.create: %w", normalizeErr)
 	} else if compatibilityChanged {
@@ -761,13 +775,18 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 			firstClientMessage = aliasedBody
 		}
 	}
-	accountScopedFirst, accountScoped, scopeErr := applyCodexAccountIdentityClientMetadataRaw(firstClientMessage, codexAccountIdentitySource(c, account), getAPIKeyIDFromContext(c))
-	if scopeErr != nil {
-		return NewOpenAIWSClientCloseError(coderws.StatusPolicyViolation, "invalid websocket identity metadata", scopeErr)
+	turnState := ""
+	turnMetadata := ""
+	if c != nil {
+		// 客户端回带的 turn-state：已知由其他账号铸造（failover 换号）则剥离。
+		turnState = s.guardOpenAICodexTurnStateValue(c, account, c.GetHeader(openAIWSTurnStateHeader))
+		turnMetadata = strings.TrimSpace(c.GetHeader(openAIWSTurnMetadataHeader))
 	}
-	if accountScoped {
-		firstClientMessage = accountScopedFirst
+	identityFirst, identityErr := applyCodexIdentityToWSPayload(c, account, firstClientMessage)
+	if identityErr != nil {
+		return NewOpenAIWSClientCloseError(coderws.StatusPolicyViolation, "invalid websocket identity metadata", identityErr)
 	}
+	firstClientMessage = identityFirst
 	usageMeta := newOpenAIWSPassthroughUsageMeta(initialRequestModel, firstClientMessage)
 	updatedFirst, blocked, policyErr := s.applyOpenAIFastPolicyToWSResponseCreate(ctx, account, capturedSessionModel, firstClientMessage)
 	if policyErr != nil {
@@ -809,6 +828,12 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 	usageMeta.captureRequestedReasoningEffort(originalFirstClientMessage, capturedSessionModel)
 	_, initialUpstreamModel := usageMeta.turnModels(initialRequestModel)
 	SetOpsUpstreamModel(c, initialUpstreamModel)
+	// 手填覆写必须排在这行之后：覆写表是按模型存的，本次模型只有在 usageMeta 定完
+	// 首帧之后才知道。放在前面读到的是空串，取不到模型就不注入，等于对 WS 直通完全
+	// 不生效。turnState 直到下面构造上游请求时才被消费，挪到这里不影响其它逻辑。
+	if c != nil {
+		turnState = s.applyOpenAICodexTurnStateOverrideWSManualOnly(c, account, turnState)
+	}
 	wsURL, err := s.buildOpenAIResponsesWSURL(account)
 	if err != nil {
 		return fmt.Errorf("build ws url: %w", err)
@@ -833,12 +858,6 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 	}
 	if s.cfg != nil && s.cfg.Gateway.ForceCodexCLI {
 		isCodexCLI = true
-	}
-	turnState := ""
-	turnMetadata := ""
-	if c != nil {
-		turnState = strings.TrimSpace(c.GetHeader(openAIWSTurnStateHeader))
-		turnMetadata = strings.TrimSpace(c.GetHeader(openAIWSTurnMetadataHeader))
 	}
 	headers, _, buildHdrErr := s.buildOpenAIWSHeaders(
 		ctx,
@@ -875,9 +894,16 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		if err != nil {
 			return fmt.Errorf("refresh ws authentication headers: %w", err)
 		}
+		// 透传适配器不经连接池，cookie 回放在这里挂钩（池的对应点在 dialConn）。
+		// 还票闭包恒为 nil：网关池账号走不到这里（选路层已降级成 HTTP/SSE，兜底闸也在取票之前）。
+		if _, err := s.codexCookies.AttachRoute(ctx, account, wsURL, headers); err != nil {
+			return fmt.Errorf("attach ws route cookies: %w", err)
+		}
 		dialCtx, cancelDial := context.WithTimeout(ctx, s.openAIWSDialTimeout())
-		upstreamConn, statusCode, handshakeHeaders, err = dialer.Dial(dialCtx, wsURL, headers, proxyURL)
+		upstreamConn, statusCode, handshakeHeaders, err = s.dialRecordedOpenAIWS(dialCtx, account, wsURL, headers, proxyURL, dialer)
 		cancelDial()
+		// 握手成败都收 Set-Cookie（与连接池、doOpenAIUpstream 同口径：Cloudflare 在 4xx/5xx 上同样下发）。
+		s.codexCookies.Store(account, wsURL, handshakeHeaders)
 		if err == nil {
 			break
 		}
@@ -950,6 +976,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		},
 	}
 
+	turnTimings := &responsesWSTurnTimings{account: account, ctx: ctx, source: serviceStatusOwner(ctx)}
+	defer turnTimings.close()
 	completedTurns := atomic.Int32{}
 	turnLifecycle := newOpenAIWSPassthroughTurnLifecycle(true)
 	var acceptedTurnStartedAt atomic.Pointer[time.Time]
@@ -969,6 +997,12 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		restoreToolNames: func(payload []byte) []byte {
 			return restoreCodexToolNamesFromContext(c, payload)
 		},
+		noteTurnState: func(payload []byte) {
+			s.noteOpenAICodexTurnStateFromWSEvent(c, account, payload)
+		},
+	}
+	if hooks != nil {
+		clientFrameConn.readClient = hooks.ClientReadMessage
 	}
 	policyClientConn := &openAIWSPolicyEnforcingFrameConn{
 		inner: clientFrameConn,
@@ -998,6 +1032,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 			}
 			responsesLite := isResponseCreate && isOpenAIResponsesLiteWebSocketPayload(payload)
 			if isResponseCreate {
+				// 抢在归一化删掉 internal_chat_message_metadata_passthrough（上游 #7066）之前投影时区。
+				payload = rewriteCodexEnvironmentTimezone(c, account, payload)
 				if normalized, compatibilityChanged, normalizeErr := normalizeOpenAIResponsesWebSocketCompatibilityBody(payload, account, responsesLite); normalizeErr != nil {
 					return payload, nil, NewOpenAIWSClientCloseError(coderws.StatusPolicyViolation, "invalid websocket request payload", normalizeErr)
 				} else if compatibilityChanged {
@@ -1014,7 +1050,13 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 					payload = aliasedBody
 				}
 			}
-			if isResponseCreate || eventType == "session.update" {
+			if isResponseCreate {
+				identityPayload, identityErr := applyCodexIdentityToWSPayload(c, account, payload)
+				if identityErr != nil {
+					return payload, nil, NewOpenAIWSClientCloseError(coderws.StatusPolicyViolation, "invalid websocket identity metadata", identityErr)
+				}
+				payload = identityPayload
+			} else if eventType == "session.update" {
 				accountScopedPayload, accountScoped, scopeErr := applyCodexAccountIdentityClientMetadataRaw(payload, codexAccountIdentitySource(c, account), getAPIKeyIDFromContext(c))
 				if scopeErr != nil {
 					return payload, nil, NewOpenAIWSClientCloseError(coderws.StatusPolicyViolation, "invalid websocket identity metadata", scopeErr)
@@ -1111,11 +1153,16 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 			//     覆盖（Store(nil)），因为 OpenAI 上游对该帧实际不传
 			//     service_tier 时按 default 处理，billing 应如实反映。
 			if policyErr == nil && blocked == nil && isResponseCreate {
+				// 双开：后续帧的发送边界，与首帧同一收口。
+				out = s.guardOpenAICodexWSFrameTurnState(c, account, out)
+				out = applyCodexWSFrameWireProfile(c, account, out, turnState)
+				s.scheduleCodexWSSideCalls(c, account, headers, out)
 				usageMeta.updateFromResponseCreate(out, model, requestModelForThisFrame)
 				_, actualModel := usageMeta.turnModels(requestModelForThisFrame)
 				SetOpsUpstreamModel(c, actualModel)
 				responseCreateAtCopy := responseCreateAt
 				acceptedTurnStartedAt.Store(&responseCreateAtCopy)
+				turnTimings.bindSource(c.Request.Context())
 				acceptedTurn = true
 			}
 			return out, blocked, policyErr
@@ -1136,6 +1183,10 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 	}
 	upstreamFirstMessageSent := false
 	firstWriteCtx, cancelFirstWrite := context.WithTimeout(ctx, s.openAIWSWriteTimeout())
+	// 双开：首帧的发送边界——turn-state 走帧内、字段序对齐真客户端（握手上已被投影删掉）。
+	firstClientMessage = s.guardOpenAICodexWSFrameTurnState(c, account, firstClientMessage)
+	firstClientMessage = applyCodexWSFrameWireProfile(c, account, firstClientMessage, turnState)
+	s.scheduleCodexWSSideCalls(c, account, headers, firstClientMessage)
 	firstWriteErr := relayUpstreamFrameConn.WriteFrame(firstWriteCtx, coderws.MessageText, firstClientMessage)
 	cancelFirstWrite()
 	if firstWriteErr != nil {
@@ -1173,6 +1224,7 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 		UpstreamConn:       relayUpstreamFrameConn,
 		FirstClientMessage: firstClientMessage,
 		Options: openaiwsv2.RelayOptions{
+			OnUpstreamEvent:    turnTimings.observe,
 			WriteTimeout:       s.openAIWSWriteTimeout(),
 			FirstTurnStartedAt: firstTurnStartedAt,
 			TakeNextTurnStartedAt: func() time.Time {
@@ -1204,7 +1256,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				}
 				turnRequestModel, turnUpstreamModel := usageMeta.turnModels(turn.RequestModel)
 				turnResult := &OpenAIForwardResult{
-					RequestID: turn.RequestID,
+					RequestID:   turn.RequestID,
+					UsageTiming: turnTimings.take(turn.RequestID),
 					Usage: OpenAIUsage{
 						InputTokens:              turn.Usage.InputTokens,
 						OutputTokens:             turn.Usage.OutputTokens,
@@ -1251,6 +1304,9 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				}
 			},
 			AfterClientWrite: func(msgType coderws.MessageType, payload []byte, writeErr error) {
+				if writeErr != nil {
+					turnTimings.disconnect()
+				}
 				if msgType == coderws.MessageText && writeErr == nil {
 					eventType, _, _ := parseOpenAIWSEventEnvelope(payload)
 					markOpenAIWSClientVisibleFailure(c, eventType, payload)
@@ -1260,6 +1316,9 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				}
 			},
 			BeforeRelayCancel: func(exit openaiwsv2.RelayExit) {
+				if exit.Stage == "read_client" || exit.Stage == "write_client" || errors.Is(ctx.Err(), context.Canceled) {
+					turnTimings.disconnect()
+				}
 				if context.Cause(ctx) != nil {
 					return
 				}
@@ -1314,6 +1373,9 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 				return s.newOpenAIWSRateLimitFailoverError(account, handshakeHeaders, payload, errMsgRaw)
 			},
 			OnTrace: func(event openaiwsv2.RelayTraceEvent) {
+				if event.Direction == "client_to_upstream" && event.Stage == "read_client_failed" {
+					turnTimings.disconnect()
+				}
 				logOpenAIWSV2Passthrough(
 					"relay_trace account_id=%d stage=%s direction=%s msg_type=%s bytes=%d graceful=%v wrote_downstream=%v err=%s",
 					account.ID,
@@ -1345,7 +1407,8 @@ func (s *OpenAIGatewayService) proxyResponsesWebSocketV2Passthrough(
 
 	resultRequestModel, resultUpstreamModel := usageMeta.turnModels(relayResult.RequestModel)
 	result := &OpenAIForwardResult{
-		RequestID: relayResult.RequestID,
+		RequestID:   relayResult.RequestID,
+		UsageTiming: turnTimings.take(relayResult.RequestID),
 		Usage: OpenAIUsage{
 			InputTokens:              relayResult.Usage.InputTokens,
 			OutputTokens:             relayResult.Usage.OutputTokens,
@@ -1583,4 +1646,75 @@ func logOpenAIWSV2Passthrough(format string, args ...any) {
 		"[OpenAI WS v2 passthrough] %s "+format,
 		append([]any{openaiWSV2PassthroughModeFields}, args...)...,
 	)
+}
+
+// responsesWSTurnTimings 只保存 observer，起点和 ID 始终由 relay 的权威 turn owner 提供。
+// client 读循环与 upstream 观察循环都能报告断连，注册表锁将二者排成事实顺序。
+type responsesWSTurnTimings struct {
+	mu           sync.Mutex
+	account      *Account
+	ctx          context.Context
+	turns        map[string]*responsesOutputTiming
+	source       *serviceStatusRequest
+	disconnected bool
+}
+
+func (r *responsesWSTurnTimings) bindSource(ctx context.Context) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.source = serviceStatusOwner(ctx)
+}
+
+func (r *responsesWSTurnTimings) observe(event openaiwsv2.RelayObservedEvent) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.turns == nil {
+		r.turns = make(map[string]*responsesOutputTiming)
+	}
+	o := r.turns[event.ResponseID]
+	if o == nil {
+		observerCtx := r.ctx
+		if r.source != nil {
+			observerCtx = context.WithValue(observerCtx, serviceStatusRequestKey{}, r.source)
+		}
+		o = newResponsesOutputTiming(observerCtx, event.StartedAt, r.account)
+		if o == nil {
+			return
+		}
+		r.turns[event.ResponseID] = o
+		if r.disconnected {
+			o.clientDisconnected()
+		}
+	}
+	eventType := gjson.GetBytes(event.Payload, "type").String()
+	o.observeEvent(event.Payload, eventType, event.ObservedAt)
+	// relay 原有 parser 接受的事件类型保持为唯一用量来源边界。
+	if event.UsageAccepted {
+		o.observeAcceptedUsage(event.Payload, eventType, gjson.Parse(event.AcceptedUsage))
+	}
+	if eventType == "response.completed" || eventType == "response.done" {
+		o.confirmNoAudio(event.Payload)
+	}
+}
+func (r *responsesWSTurnTimings) take(responseID string) UsageTiming {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	o := r.turns[responseID]
+	delete(r.turns, responseID)
+	return o.snapshot(r.disconnected)
+}
+func (r *responsesWSTurnTimings) disconnect() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.disconnected = true
+	for _, o := range r.turns {
+		o.clientDisconnected()
+	}
+}
+func (r *responsesWSTurnTimings) close() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, o := range r.turns {
+		o.stop()
+	}
 }

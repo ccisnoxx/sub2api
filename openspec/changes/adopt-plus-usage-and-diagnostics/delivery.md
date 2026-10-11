@@ -83,23 +83,3 @@ S3阶段结束，下一顺序项S4.1仅确认启用需求，S4/S5未排期；S1.
 独立personal分支`codex/plus-service-status-s43`的应用候选`35962a802fdc499639c9c861072f25774ccba50b`完成S4.3，默认关闭；新迁移253/254追加nullable内部字段和独立表/分组可见性触发器，不回填旧数据，不修改旧ledger。原S3.6 CI/草稿PR只绑定afcc候选，没有更新为S4结果。最终定向检查和独立复核见[执行证据](implementation-evidence.md#s43-独立聚合与展示实现)。
 
 S4.4真实JWT/数据库/浏览器贯通、固定旧应用扩展schema兼容及实际终态覆盖未执行，不能直接宣布应用镜像回退兼容。回退保留新列/表/ledger与触发器，关闭S4；强制退出前未持久源缺口不保证重建，最终写入失败会明确返回。生产操作前仍按实际授权准备备份、必要CI与固定digest，不自动触发发布/部署或开启配置。
-
-
-## S4.4 发布与生产验收准备（历史快照，74508aa）
-
-固定候选`74508aa0e1c2d61e9e269fbe73e3eb8ce515a9da`来自personal基础9397；主应用仍在personal候选树，main只维护发布/部署工具及运行记录。[PR #7](https://github.com/ccisnoxx/sub2api/pull/7)的[必要CI38042366636](https://github.com/ccisnoxx/sub2api/actions/runs/38042366636)进行中，53 fixture/binding独立复核无确认阻断；745 clock/binding复核进行中，main部署锚点e52的[工具CI](https://github.com/ccisnoxx/sub2api/actions/runs/38042363913)进行中。最终personal合入SHA必须取得自身完整CI才能发布；旧候选及PR结果不能代替正式发布门禁。
-
-固定旧9397已在真实PG18扩展schema完成读写、实际JWT/API/HTTP及仓储批量/幂等/fallback，再切回新应用。新版默认关闭开关不改变源终态采集；正式部署先核对真实revision/version/digest、健康/基础功能及源记录，再按授权启用S4并观察真实水位、样本和未知原因。隔离环境的故障/恢复与可控上游反例按[运行验证](evidence/s4.4-runtime-validation.json)复用，不在生产注入故障。部署终态/固定前缀/应用镜像恢复合同以60项工具测试为证据；没有真实生产回滚或数据库恢复演练。
-
-当前生产仍固定9397/0.2.14-klno.5-tps.1；正式新版本、digest、最终personal SHA CI及部署验收尚未发生。累计回退只切回绑定的旧应用，保持扩展schema/ledger、配置及PG/Redis，不恢复数据库、不覆盖私密备份。实际成功记录生成后补充其专属rollback入口；不能预填示例ID为可用恢复命令。S1.5/S5未开始。
-
-
-## S4.4 当前累计正式交付
-
-累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`经PR #7按merge commit合入personal，最终`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的11项必要CI及personal-ready成功；版本`0.2.14-klno.5-tps.2`、实际Git标签、唯一linux/amd64及digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`绑定一致，正式Release38050231176成功。S0修复/S1第一批/S2目录/S3诊断/S4独立状态包含在该personal应用树，main应用源码不参与替换。实际旧应用9397扩展PG18读写兼容、真实多轮WS/重试/取消/失败与恢复及最终正式镜像的JWT/数据库/浏览器证据见[运行验证](evidence/s4.4-runtime-validation.json)。
-
-可信main工具e3b3e8e完成hostdzire原生部署记录`20261010T120908Z-b497b80ee8a6`，仅替换应用；备份可读校验、完整旧/新revision与版本/digest外层兼容证明及账本303→307/仅251–254通过。PG18.6与Redis原容器身份保持。先以S4默认关闭核对真实8条WS终态及基础页面，再开启v2且保留默认阈值；连续水位推进与完整窗口DB/UI一致，无聚合错误。实际有请求分组显示已观察样本正常，空请求分组与平台保持未知。
-
-生产备份及专属记录保留在`/root/sub2api-kin/.personal-deploy/records/20261010T120908Z-b497b80ee8a6`。应用回退仅使用该成功记录绑定的旧9397/tps.1镜像并保留扩展schema/ledger及PG/Redis；专属工具入口为`bash deploy/personal/deploy-hostdzire.sh --rollback 20261010T120908Z-b497b80ee8a6`。此处登记入口，不执行回退；不会恢复数据库、覆盖私密配置或删除监控表。实际生产回滚/数据库恢复未演练，隔离旧应用兼容及60项部署工具合同不改称实机回滚。
-
-S4.4、S0.2/S0.3完成；S1.5.1为下一项，未自动开始。PR #5/#6保持原状态。先前中断worker审计终态缺失、完整执行Digest无法闭合，失败明示并保留原始日志；有效独立复核与两项P2修复红绿、最终CI另行记录。

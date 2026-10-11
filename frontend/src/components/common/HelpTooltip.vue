@@ -80,9 +80,12 @@ function updatePosition() {
   const el = triggerRef.value
   if (!el) return
   const rect = el.getBoundingClientRect()
+  const tooltipRect = tooltipRef.value?.getBoundingClientRect()
+  const halfWidth = (tooltipRect?.width ?? 0) / 2
+  // fixed 使用视口坐标，不叠加页面滚动量；在窄屏及视口顶部为提示留出 8px 边距。
   tooltipStyle.value = {
-    top: `${rect.top + window.scrollY}px`,
-    left: `${rect.left + rect.width / 2 + window.scrollX}px`,
+    top: `${Math.max(rect.top, (tooltipRect?.height ?? 0) + 16)}px`,
+    left: `${Math.min(window.innerWidth - halfWidth - 8, Math.max(halfWidth + 8, rect.left + rect.width / 2))}px`,
   }
 }
 
@@ -137,7 +140,7 @@ onBeforeUnmount(() => {
           'fixed z-[99999] -translate-x-1/2 -translate-y-full rounded-lg bg-gray-900 p-3 text-xs leading-relaxed text-white shadow-xl ring-1 ring-white/10 selection:bg-primary-200 selection:text-gray-900 before:absolute before:inset-x-0 before:top-full before:h-3 dark:bg-gray-800 dark:selection:bg-primary-200 dark:selection:text-gray-900',
           props.widthClass,
         ]"
-        :style="{ top: `calc(${tooltipStyle.top} - 8px)`, left: tooltipStyle.left }"
+        :style="{ top: `calc(${tooltipStyle.top} - 8px)`, left: tooltipStyle.left, maxWidth: 'calc(100vw - 16px)' }"
         @mouseleave="onTooltipLeave"
       >
         <button

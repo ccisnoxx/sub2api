@@ -99,10 +99,31 @@ func TestUsageLogRepositoryCreateSyncRequestTypeAndLegacyFields(t *testing.T) {
 			sqlmock.AnyArg(), // billing_tier
 			sqlmock.AnyArg(), // billing_mode
 			sqlmock.AnyArg(), // account_stats_cost
+			int16(0),         // timing_version
+			nil,              // strict_first_token_ms
+			nil,              // last_token_ms
+			nil,              // first_output_ms
+			nil,              // first_output_kind
+			nil,              // audio_output_tokens
+			service.CompletionStatusUnknown,
+			nil, // is_complete
+			service.UsageSourceUnknown,
 			sqlmock.AnyArg(), // upstream_request_id
 			sqlmock.AnyArg(), // session_id
 			log.NativeCompactionV2,
+			sqlmock.AnyArg(), // turn_state
+			sqlmock.AnyArg(), // turn_state_overridden
+			sqlmock.AnyArg(), // turn_state_source
+			sqlmock.AnyArg(), // turn_state_sent
+			sqlmock.AnyArg(), // safety_buffering_enabled
+			sqlmock.AnyArg(), // safety_buffering_faster_model
+			sqlmock.AnyArg(), // route_gateway
+			sqlmock.AnyArg(), // route_pair
+			sqlmock.AnyArg(), // route_pair_overridden
+			sqlmock.AnyArg(), // route_pair_pool_gateway
+			sqlmock.AnyArg(), // route_pair_pool_version
 			createdAt,
+			nil, // service_status_observation 保持历史 SQL NULL
 		).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at"}).AddRow(int64(99), createdAt))
 
@@ -194,10 +215,31 @@ func TestUsageLogRepositoryCreate_PersistsServiceTier(t *testing.T) {
 			sqlmock.AnyArg(), // billing_tier
 			sqlmock.AnyArg(), // billing_mode
 			sqlmock.AnyArg(), // account_stats_cost
+			int16(0),         // timing_version
+			nil,              // strict_first_token_ms
+			nil,              // last_token_ms
+			nil,              // first_output_ms
+			nil,              // first_output_kind
+			nil,              // audio_output_tokens
+			service.CompletionStatusUnknown,
+			nil, // is_complete
+			service.UsageSourceUnknown,
 			sqlmock.AnyArg(), // upstream_request_id
 			sqlmock.AnyArg(), // session_id
 			log.NativeCompactionV2,
+			sqlmock.AnyArg(), // turn_state
+			sqlmock.AnyArg(), // turn_state_overridden
+			sqlmock.AnyArg(), // turn_state_source
+			sqlmock.AnyArg(), // turn_state_sent
+			sqlmock.AnyArg(), // safety_buffering_enabled
+			sqlmock.AnyArg(), // safety_buffering_faster_model
+			sqlmock.AnyArg(), // route_gateway
+			sqlmock.AnyArg(), // route_pair
+			sqlmock.AnyArg(), // route_pair_overridden
+			sqlmock.AnyArg(), // route_pair_pool_gateway
+			sqlmock.AnyArg(), // route_pair_pool_version
 			createdAt,
+			nil, // service_status_observation 保持历史 SQL NULL
 		).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at"}).AddRow(int64(100), createdAt))
 
@@ -278,8 +320,9 @@ func TestPrepareUsageLogInsert_PersistsNativeCompactionV2WithoutChangingRequestT
 	prepared := prepareUsageLogInsert(log)
 
 	require.Len(t, prepared.args, len(usageLogInsertArgTypes))
-	require.Equal(t, "boolean", usageLogInsertArgTypes[len(usageLogInsertArgTypes)-2])
-	require.Equal(t, true, prepared.args[len(prepared.args)-2])
+	// 尾部：native_compaction_v2 在 turn_state ×4、safety_buffering ×2 与 route_* ×5 之前，新增源元数据之后的倒数第 14
+	require.Equal(t, "boolean", usageLogInsertArgTypes[len(usageLogInsertArgTypes)-14])
+	require.Equal(t, true, prepared.args[len(prepared.args)-14])
 	require.Equal(t, int16(service.RequestTypeStream), prepared.args[30])
 	require.Equal(t, service.RequestTypeStream, log.RequestType)
 	require.True(t, log.Stream)
@@ -957,10 +1000,31 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},
 			sql.NullString{},
 			sql.NullFloat64{},
+			int16(0),         // timing_version
+			sql.NullInt64{},  // strict_first_token_ms
+			sql.NullInt64{},  // last_token_ms
+			sql.NullInt64{},  // first_output_ms
+			sql.NullString{}, // first_output_kind
+			sql.NullInt64{},  // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
 			sql.NullString{}, // upstream_request_id
 			sql.NullString{},
-			false, // native_compaction_v2
+			false,            // native_compaction_v2
+			sql.NullString{}, // turn_state
+			sql.NullBool{},   // turn_state_overridden
+			sql.NullString{}, // turn_state_source
+			sql.NullString{}, // turn_state_sent
+			sql.NullBool{},   // safety_buffering_enabled
+			sql.NullString{}, // safety_buffering_faster_model
+			sql.NullString{}, // route_gateway
+			sql.NullString{}, // route_pair
+			sql.NullBool{},   // route_pair_overridden
+			sql.NullString{}, // route_pair_pool_gateway
+			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.Equal(t, 2, log.ImageCount)
@@ -1037,10 +1101,31 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_tier
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
-			sql.NullString{},  // upstream_request_id
-			sql.NullString{},  // session_id
-			false,             // native_compaction_v2
+			int16(0),          // timing_version
+			sql.NullInt64{},   // strict_first_token_ms
+			sql.NullInt64{},   // last_token_ms
+			sql.NullInt64{},   // first_output_ms
+			sql.NullString{},  // first_output_kind
+			sql.NullInt64{},   // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
+			sql.NullString{}, // upstream_request_id
+			sql.NullString{}, // session_id
+			false,            // native_compaction_v2
+			sql.NullString{}, // turn_state
+			sql.NullBool{},   // turn_state_overridden
+			sql.NullString{}, // turn_state_source
+			sql.NullString{}, // turn_state_sent
+			sql.NullBool{},   // safety_buffering_enabled
+			sql.NullString{}, // safety_buffering_faster_model
+			sql.NullString{}, // route_gateway
+			sql.NullString{}, // route_pair
+			sql.NullBool{},   // route_pair_overridden
+			sql.NullString{}, // route_pair_pool_gateway
+			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.NotNil(t, log.ServiceTier)
@@ -1100,10 +1185,31 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_tier
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
-			sql.NullString{},  // upstream_request_id
-			sql.NullString{},  // session_id
-			true,              // native_compaction_v2
+			int16(0),          // timing_version
+			sql.NullInt64{},   // strict_first_token_ms
+			sql.NullInt64{},   // last_token_ms
+			sql.NullInt64{},   // first_output_ms
+			sql.NullString{},  // first_output_kind
+			sql.NullInt64{},   // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
+			sql.NullString{}, // upstream_request_id
+			sql.NullString{}, // session_id
+			true,             // native_compaction_v2
+			sql.NullString{}, // turn_state
+			sql.NullBool{},   // turn_state_overridden
+			sql.NullString{}, // turn_state_source
+			sql.NullString{}, // turn_state_sent
+			sql.NullBool{},   // safety_buffering_enabled
+			sql.NullString{}, // safety_buffering_faster_model
+			sql.NullString{}, // route_gateway
+			sql.NullString{}, // route_pair
+			sql.NullBool{},   // route_pair_overridden
+			sql.NullString{}, // route_pair_pool_gateway
+			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.NotNil(t, log.ServiceTier)
@@ -1164,10 +1270,31 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_tier
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
-			sql.NullString{},  // upstream_request_id
-			sql.NullString{},  // session_id
-			false,             // native_compaction_v2
+			int16(0),          // timing_version
+			sql.NullInt64{},   // strict_first_token_ms
+			sql.NullInt64{},   // last_token_ms
+			sql.NullInt64{},   // first_output_ms
+			sql.NullString{},  // first_output_kind
+			sql.NullInt64{},   // audio_output_tokens
+			service.CompletionStatusUnknown,
+			sql.NullBool{}, // is_complete
+			service.UsageSourceUnknown,
+			sql.NullString{}, // upstream_request_id
+			sql.NullString{}, // session_id
+			false,            // native_compaction_v2
+			sql.NullString{}, // turn_state
+			sql.NullBool{},   // turn_state_overridden
+			sql.NullString{}, // turn_state_source
+			sql.NullString{}, // turn_state_sent
+			sql.NullBool{},   // safety_buffering_enabled
+			sql.NullString{}, // safety_buffering_faster_model
+			sql.NullString{}, // route_gateway
+			sql.NullString{}, // route_pair
+			sql.NullBool{},   // route_pair_overridden
+			sql.NullString{}, // route_pair_pool_gateway
+			sql.NullString{}, // route_pair_pool_version
 			now,
+			sql.NullString{}, // service_status_observation
 		}})
 		require.NoError(t, err)
 		require.NotNil(t, log.ServiceTier)

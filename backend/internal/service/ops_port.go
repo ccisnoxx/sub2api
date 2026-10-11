@@ -62,8 +62,10 @@ type OpsRepository interface {
 }
 
 type OpsInsertErrorLogInput struct {
-	RequestID       string
-	ClientRequestID string
+	ServiceStatusObservation     *ServiceStatusObservation
+	ServiceStatusObservationJSON *string
+	RequestID                    string
+	ClientRequestID              string
 
 	UserID    *int64
 	APIKeyID  *int64
@@ -110,6 +112,11 @@ type OpsInsertErrorLogInput struct {
 	// UpstreamErrorsJSON is the sanitized JSON string stored into ops_error_logs.upstream_errors.
 	// It is set by OpsService.RecordError before persisting.
 	UpstreamErrorsJSON *string
+
+	// RoutingDiagnostics 是终态归因所属选择的不可变快照；OpsService 校验并序列化后落库。
+	RoutingDiagnostics *RoutingDiagnostics
+	// RoutingDiagnosticsJSON 仅由 OpsService 准备，repository 不根据当前状态重建历史。
+	RoutingDiagnosticsJSON *string
 
 	AuthLatencyMs      *int64
 	RoutingLatencyMs   *int64

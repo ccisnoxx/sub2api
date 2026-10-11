@@ -169,7 +169,8 @@ type AdminGroup struct {
 	// ForceOpenAIFast 是管理端请求策略，用户侧分组 DTO 无需暴露。
 	ForceOpenAIFast bool `json:"force_openai_fast"`
 	// FreeOpenAIFast 是管理端计费策略，用户侧分组 DTO 无需暴露。
-	FreeOpenAIFast bool `json:"free_openai_fast"`
+	FreeOpenAIFast                  bool `json:"free_openai_fast"`
+	OpenAIGatewayPoolActiveAccounts int  `json:"openai_gwpool_active_accounts"`
 
 	// 分组利润控制（五个 token 平台分组可启用；margin/buffer 为小数存储）。
 	// 仅管理员可见：这三个字段与同响应中的 rate_multiplier 相乘即可反推出
@@ -633,6 +634,16 @@ type UsageLog struct {
 	NativeCompactionV2 bool `json:"native_compaction_v2"`
 	DurationMs         *int `json:"duration_ms"`
 	FirstTokenMs       *int `json:"first_token_ms"`
+	// 新字段显式输出 NULL；未知不能被编码为零或成功。
+	TimingVersion      int16   `json:"timing_version"`
+	StrictFirstTokenMs *int    `json:"strict_first_token_ms"`
+	LastTokenMs        *int    `json:"last_token_ms"`
+	FirstOutputMs      *int    `json:"first_output_ms"`
+	FirstOutputKind    *string `json:"first_output_kind"`
+	AudioOutputTokens  *int    `json:"audio_output_tokens"`
+	CompletionStatus   string  `json:"completion_status"`
+	IsComplete         *bool   `json:"is_complete"`
+	UsageSource        string  `json:"usage_source"`
 
 	// 图片生成字段
 	ImageCount         int            `json:"image_count"`
@@ -690,6 +701,28 @@ type AdminUsageLog struct {
 	ModelMappingChain *string `json:"model_mapping_chain,omitempty"`
 	// UpstreamRequestID 是直接上游声明的请求标识，仅管理端可见。
 	UpstreamRequestID *string `json:"upstream_request_id,omitempty"`
+	// TurnState 是上游本次铸出的 x-codex-turn-state（不透明 Fernet 密文），仅管理端可见。
+	// 长度在前端直接由该字符串算，不单独存列。
+	TurnState *string `json:"turn_state,omitempty"`
+	// TurnStateOverridden 表示本次出站带的是账号级 turn-state 覆写值。
+	TurnStateOverridden *bool `json:"turn_state_overridden,omitempty"`
+	// TurnStateSource 是覆写来源：manual / auto / auto_stale。
+	TurnStateSource *string `json:"turn_state_source,omitempty"`
+	// TurnStateSent 是本次出站实际带的 turn-state（回带或注入）。
+	TurnStateSent *string `json:"turn_state_sent,omitempty"`
+	// SafetyBufferingEnabled / SafetyBufferingFasterModel 是上游响应头 x-codex-safety-buffering-* 的读数。
+	SafetyBufferingEnabled     *bool   `json:"safety_buffering_enabled,omitempty"`
+	SafetyBufferingFasterModel *string `json:"safety_buffering_faster_model,omitempty"`
+	// RouteGateway / RoutePair 是这一发生效的路由对读数：网关段从 __oailb 的 JWT 载荷解出，
+	// 整串留着以便原样复现。只作观测。
+	RouteGateway *string `json:"route_gateway,omitempty"`
+	RoutePair    *string `json:"route_pair,omitempty"`
+	// RoutePairOverridden 表示这一发出站的路由对由网关池下发，不是账号罐里回放的那一组。
+	RoutePairOverridden *bool `json:"route_pair_overridden,omitempty"`
+	// RoutePairPoolGateway 是池子交付时说的网关；与 RouteGateway 不一致 = 上游把这一发改派走了。
+	RoutePairPoolGateway *string `json:"route_pair_pool_gateway,omitempty"`
+	// RoutePairPoolVersion 是池子给这张票的身份，用来和池子侧日志对账（不是 cookie 本体）。
+	RoutePairPoolVersion *string `json:"route_pair_pool_version,omitempty"`
 	// BillingTier 计费层级标签（per_request/image 模式）
 	BillingTier *string `json:"billing_tier,omitempty"`
 

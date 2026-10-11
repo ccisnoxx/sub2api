@@ -87,6 +87,37 @@
                 {{ isLikelyModelVariant(row) ? t('usage.modelVariant') : t('usage.modelMismatch') }}
               </span>
             </div>
+            <!-- 网关池覆写徽标挂在这里而不是 route_gateway 列：那列默认隐藏
+                 （UsageView 的 DEFAULT_HIDDEN_COLUMNS），默认看不见的徽标等于没做；
+                 turn_state_overridden 的徽标所在的 turn_state_sent 列同样默认隐藏，照不了。
+                 turn_state 列虽可见但整格 v-if="row.turn_state"，没票的那发会把徽标一起吞掉，
+                 所以选恒渲染的模型列。 -->
+            <div
+              v-if="routePairOverrideState(row) !== 'none'"
+              data-testid="route-pair-overridden-marker"
+              :data-state="routePairOverrideState(row)"
+              class="pl-3 text-[11px]"
+            >
+              <span
+                class="inline-flex rounded px-1 py-px text-[10px] font-medium ring-1 ring-inset"
+                :class="routePairOverrideState(row) === 'rerouted'
+                  ? 'bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30'
+                  : 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30'"
+                :title="routePairOverrideTitle(row)"
+              >
+                {{ routePairOverrideState(row) === 'rerouted'
+                  ? t('admin.usage.routePairReroutedShort')
+                  : t('admin.usage.routePairOverriddenShort') }}
+              </span>
+              <span class="ml-1 break-all font-mono text-gray-500 dark:text-gray-400">
+                <template v-if="routePairOverrideState(row) === 'rerouted'">
+                  {{ row.route_pair_pool_gateway }} → {{ row.route_gateway }}
+                </template>
+                <template v-else>{{ row.route_gateway || row.route_pair_pool_gateway }}</template>
+              </span>
+            </div>
+            <!-- safety_buffering_enabled / _faster_model 只落库不展示（用户 2026-09-25 定）：
+                 faster-model 是客户端「换更快模型重试」的备选，不是路由结果，摆在模型下面会被读成错误路由。 -->
           </div>
         </template>
 
@@ -236,17 +267,20 @@
           <div class="flex items-stretch gap-2">
             <span
               class="w-1 shrink-0 rounded-full"
-              :class="row.first_token_ms != null
-                ? ['bg-gradient-to-b from-40% to-60%', LATENCY_BAR_FROM_CLASSES[firstTokenSeverity(row.first_token_ms)], LATENCY_BAR_TO_CLASSES[durationSeverity(row.duration_ms ?? 0)]]
+              :class="displayedFirstTokenMs(row) != null
+                ? ['bg-gradient-to-b from-40% to-60%', LATENCY_BAR_FROM_CLASSES[firstTokenSeverity(displayedFirstTokenMs(row)!)], LATENCY_BAR_TO_CLASSES[durationSeverity(row.duration_ms ?? 0)]]
                 : LATENCY_BAR_CLASSES[durationSeverity(row.duration_ms ?? 0)]"
               aria-hidden="true"
             ></span>
             <div class="grid grid-cols-[max-content_max-content] items-baseline gap-x-2 gap-y-0.5 text-xs">
-              <span class="text-gray-400 dark:text-gray-500">{{ t('usage.latencyFirstToken') }}</span>
-              <span v-if="row.first_token_ms != null" class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[firstTokenSeverity(row.first_token_ms)]">{{ formatDuration(row.first_token_ms) }}</span>
-              <span v-else class="text-gray-400 dark:text-gray-500">-</span>
+              <UsageFirstToken :row="row" />
               <span class="text-gray-400 dark:text-gray-500">{{ t('usage.latencyDuration') }}</span>
               <span class="font-medium tabular-nums" :class="LATENCY_TEXT_CLASSES[durationSeverity(row.duration_ms ?? 0)]">{{ formatDuration(row.duration_ms) }}</span>
+              <UsageTps :row="row" />
+              <span class="text-gray-400 dark:text-gray-500">{{ t('usage.completionStatus') }}</span>
+              <span data-testid="usage-completion-status" :class="usageCompletionStatus(row) === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : usageCompletionStatus(row) === 'unknown' ? 'text-gray-400 dark:text-gray-500' : 'text-amber-600 dark:text-amber-400'">
+                {{ t(`usage.completionStatuses.${usageCompletionStatus(row)}`) }}
+              </span>
             </div>
           </div>
         </template>
@@ -286,6 +320,88 @@
               @click="copyUpstreamRequestId(row.upstream_request_id)"
             >
               <Icon :name="copiedRequestId === row.upstream_request_id ? 'check' : 'copy'" size="sm" class="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <span v-else class="text-sm text-gray-400 dark:text-gray-500">-</span>
+        </template>
+
+        <template #cell-turn_state="{ row }">
+          <div v-if="row.turn_state" class="flex max-w-[220px] items-center gap-1.5">
+            <!-- 显示字符数（292 = 不降智）；判定仍按密文块数，块数只把明文框进 16 字节的窗口，是疑似不是确证 -->
+            <span
+              class="shrink-0 rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold"
+              :class="turnStateBadgeClass(row.turn_state)"
+              :title="turnStateTitle(row.turn_state)"
+            >
+              {{ turnStateBadgeText(row.turn_state) }}
+            </span>
+            <span class="truncate font-mono text-xs text-gray-500 dark:text-gray-400" :title="row.turn_state">
+              {{ row.turn_state }}
+            </span>
+            <button
+              type="button"
+              class="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-dark-700 dark:hover:text-gray-300"
+              :class="copiedRequestId === row.turn_state ? 'text-green-500 hover:text-green-500' : ''"
+              :title="copiedRequestId === row.turn_state ? t('keys.copied') : t('keys.copyToClipboard')"
+              @click="copyTurnState(row.turn_state)"
+            >
+              <Icon :name="copiedRequestId === row.turn_state ? 'check' : 'copy'" size="sm" class="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <span v-else class="text-sm text-gray-400 dark:text-gray-500">-</span>
+        </template>
+
+        <template #cell-turn_state_sent="{ row }">
+          <div v-if="row.turn_state_sent" class="flex max-w-[220px] items-center gap-1.5">
+            <span
+              class="shrink-0 rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold"
+              :class="turnStateBadgeClass(row.turn_state_sent)"
+              :title="turnStateTitle(row.turn_state_sent)"
+            >
+              {{ turnStateBadgeText(row.turn_state_sent) }}
+            </span>
+            <!-- 覆写来源说的是「出站这张票从哪来」，所以贴在出站列。贴在铸出列时，
+                 「注入 292 后上游仍铸 312」这一行会显示成「312 手填」，读起来像手填的
+                 就是 312。 -->
+            <span
+              v-if="row.turn_state_overridden"
+              class="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+              :title="turnStateSourceTitle(row.turn_state_source)"
+            >
+              {{ turnStateSourceBadge(row.turn_state_source) }}
+            </span>
+            <span class="truncate font-mono text-xs text-gray-500 dark:text-gray-400" :title="row.turn_state_sent">
+              {{ row.turn_state_sent }}
+            </span>
+            <button
+              type="button"
+              class="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-dark-700 dark:hover:text-gray-300"
+              :class="copiedRequestId === row.turn_state_sent ? 'text-green-500 hover:text-green-500' : ''"
+              :title="copiedRequestId === row.turn_state_sent ? t('keys.copied') : t('keys.copyToClipboard')"
+              @click="copyTurnState(row.turn_state_sent)"
+            >
+              <Icon :name="copiedRequestId === row.turn_state_sent ? 'check' : 'copy'" size="sm" class="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <span v-else class="text-sm text-gray-400 dark:text-gray-500">-</span>
+        </template>
+
+        <!-- 路由对：显示 __oailb 里解出的后端网关，复制拿到的是整组 __cflb/__oailb（可原样复现）。
+             这是走哪条路由的观测读数，不代表满血与否。覆写徽标在模型列（这列默认隐藏）。 -->
+        <template #cell-route_gateway="{ row }">
+          <div v-if="row.route_gateway" class="flex max-w-[200px] items-center gap-1.5">
+            <span class="truncate font-mono text-xs text-gray-600 dark:text-gray-400" :title="row.route_pair || row.route_gateway">
+              {{ row.route_gateway }}
+            </span>
+            <button
+              v-if="row.route_pair"
+              type="button"
+              class="shrink-0 rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-dark-700 dark:hover:text-gray-300"
+              :class="copiedRequestId === row.route_pair ? 'text-green-500 hover:text-green-500' : ''"
+              :title="copiedRequestId === row.route_pair ? t('keys.copied') : t('admin.usage.routePairCopy')"
+              @click="copyTurnState(row.route_pair)"
+            >
+              <Icon :name="copiedRequestId === row.route_pair ? 'check' : 'copy'" size="sm" class="h-3.5 w-3.5" />
             </button>
           </div>
           <span v-else class="text-sm text-gray-400 dark:text-gray-500">-</span>
@@ -532,6 +648,7 @@
 </template>
 
 <script setup lang="ts">
+import { decodeTurnState, TURN_STATE_BADGE_CLASS, turnStateVerdict } from '@/utils/turnState'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/stores/app'
@@ -540,6 +657,7 @@ import { formatCacheTokens, formatMultiplier } from '@/utils/formatters'
 import { formatTokenPricePerMillion } from '@/utils/usagePricing'
 import { getUsageServiceTierLabel } from '@/utils/usageServiceTier'
 import { resolveUsageRequestType } from '@/utils/usageRequestType'
+import { displayedFirstTokenMs, usageCompletionStatus } from '@/utils/usageTiming'
 import {
   LATENCY_BAR_CLASSES,
   LATENCY_BAR_FROM_CLASSES,
@@ -582,6 +700,8 @@ import DataTable from '@/components/common/DataTable.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import IpGeoCell from '@/components/common/IpGeoCell.vue'
 import Icon from '@/components/icons/Icon.vue'
+import UsageTps from './UsageTps.vue'
+import UsageFirstToken from './UsageFirstToken.vue'
 import { fetchBatch, getEntry } from '@/utils/ipGeoLookup'
 import type { AdminUsageLog } from '@/types'
 import type { Column } from '@/components/common/types'
@@ -643,6 +763,34 @@ const isLikelyModelVariant = (row: AdminUsageLog): boolean => {
   return sent !== '' && response !== '' && normalizeModelVariant(sent) === normalizeModelVariant(response)
 }
 
+// 网关池覆写的两种状态：池子交付时说的网关与实际落点一致 = 注入生效；不一致 = 上游下发了
+// 新的 __oailb 把这一发改派走了（健康的借来 pair 上游不下发 Set-Cookie，
+// docs/tasks/gateway-pool.md 第二节），也就是注入被拒。
+// 池子没报出网关名（老数据、或交付时没带）时无从比对，按「已覆写」记，不编一个没有的结论。
+const routePairOverrideState = (row: AdminUsageLog): 'none' | 'applied' | 'rerouted' => {
+  if (!row.route_pair_overridden) return 'none'
+  const promised = row.route_pair_pool_gateway?.trim() || ''
+  const landed = row.route_gateway?.trim() || ''
+  if (promised === '' || landed === '') return 'applied'
+  return promised === landed ? 'applied' : 'rerouted'
+}
+
+const routePairOverrideTitle = (row: AdminUsageLog): string => {
+  const lines = [
+    routePairOverrideState(row) === 'rerouted'
+      ? t('admin.usage.routePairRerouted', {
+          promised: row.route_pair_pool_gateway || '-',
+          landed: row.route_gateway || '-',
+        })
+      : t('admin.usage.routePairOverridden'),
+  ]
+  // 票的身份（cookie_version）只进 tooltip：它是和池子日志对账的键，不是读表时要扫的列。
+  if (row.route_pair_pool_version) {
+    lines.push(`${t('admin.usage.routePairPoolVersion')}: ${row.route_pair_pool_version}`)
+  }
+  return lines.join('\n')
+}
+
 const modelAuditTitle = (row: AdminUsageLog): string => [
   `${t('usage.requestedModel')}: ${row.model || '-'}`,
   `${t('usage.sentUpstreamModel')}: ${sentUpstreamModel(row) || '-'}`,
@@ -688,6 +836,50 @@ const copyRequestId = (requestId: string) => copyIdentifier(requestId, t('admin.
 const copyUpstreamRequestId = (upstreamRequestId: string) =>
   copyIdentifier(upstreamRequestId, t('admin.usage.upstreamRequestIdCopied'))
 
+const copyTurnState = (turnState: string) =>
+  copyIdentifier(turnState, t('admin.usage.turnStateCopied'))
+
+// Turn-State 入站 / 出站两列在 292 功能移除后仍保留作参考（用户 2026-09-23 要求），删猎手 /
+// 自动接管 / 手填覆写时别连带删掉。覆写来源徽标（手填 / 自动）及其筛选项可以随功能一起删。
+//
+// 徽章直接显示字符长度：292 / 312 是运维实际在说的那两个数，比「10 块 / 11 块」直观，
+// 而且一一对应（每块 16 字节 → 差一块正好差 20 个 base64 字符），不损失信息。
+// 健康判定仍走密文块数（turnStateVerdict），那才是真判据。
+const turnStateBadgeText = (blob: string) => String(blob.length)
+
+// 覆写来源徽标：后端存的是 manual/auto/auto_stale 枚举，直接渲染就是一串英文。
+// 白名单而不是直接拼 key：拼 key 遇到没见过的取值会把原始 key 显示出来，
+// 比显示一个中性的「覆写」更糟。历史行没有 source 列（overridden 为 true 但
+// source 为 NULL），同样兜底成「覆写」。
+const TURN_STATE_SOURCES = ['manual', 'auto', 'auto_stale'] as const
+
+const turnStateSourceBadge = (source?: string | null) =>
+  source && (TURN_STATE_SOURCES as readonly string[]).includes(source)
+    ? t(`admin.usage.turnStateSourceShort.${source}`)
+    : t('admin.usage.turnStateOverriddenShort')
+
+const turnStateSourceTitle = (source?: string | null) =>
+  source && (TURN_STATE_SOURCES as readonly string[]).includes(source)
+    ? t(`admin.usage.turnStateSourceLong.${source}`)
+    : t('admin.usage.turnStateOverridden')
+
+const turnStateBadgeClass = (blob: string) => TURN_STATE_BADGE_CLASS[turnStateVerdict(blob)]
+
+const turnStateTitle = (blob: string) => {
+  const env = decodeTurnState(blob)
+  const title = env
+    ? t('admin.usage.turnStateHint', {
+        blocks: env.blocks,
+        chars: blob.length,
+        min: env.blocks * 16 - 16,
+        max: env.blocks * 16 - 1,
+        minted: formatDateTime(env.mintedAt),
+      })
+    : t('admin.usage.turnStateUndecodable', { n: blob.length })
+  // 黄色徽标要能自己说明为什么是黄的。
+  return turnStateVerdict(blob) === 'unknown' ? `${t('admin.usage.turnStateUnknownShape')}\n${title}` : title
+}
+
 // Tooltip state - cost
 const tooltipVisible = ref(false)
 const tooltipPosition = ref({ x: 0, y: 0 })
@@ -701,6 +893,8 @@ const tokenTooltipData = ref<AdminUsageLog | null>(null)
 const getRequestTypeLabel = (row: AdminUsageLog): string => {
   const requestType = resolveUsageRequestType(row)
   if (requestType === 'cyber') return t('usage.cyber')
+  if (requestType === 'probe') return t('usage.probe')
+  if (requestType === 'gwpool_degraded') return t('usage.gwpoolDegraded')
   if (requestType === 'live') return t('usage.live')
   if (requestType === 'ws_v2') return t('usage.ws')
   if (requestType === 'stream') return t('usage.stream')
@@ -711,6 +905,8 @@ const getRequestTypeLabel = (row: AdminUsageLog): string => {
 const getRequestTypeBadgeClass = (row: AdminUsageLog): string => {
   const requestType = resolveUsageRequestType(row)
   if (requestType === 'cyber') return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+  if (requestType === 'probe') return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+  if (requestType === 'gwpool_degraded') return 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'
   if (requestType === 'live') return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
   if (requestType === 'ws_v2') return 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200'
   if (requestType === 'stream') return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'

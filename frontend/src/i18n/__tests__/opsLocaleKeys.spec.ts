@@ -65,3 +65,13 @@ describe('groups locale key completeness', () => {
     })
   }
 })
+
+describe('routing diagnostics locale completeness', () => {
+  const prefix = 'admin.ops.errorDetail.routingDiagnostics'
+  const enKeys = flattenKeys(en).filter(key => key.startsWith(prefix))
+  it('keeps both languages complete for selection and filter explanations', () => {
+    expect(enKeys.length).toBeGreaterThan(0)
+    const zhKeys = flattenKeys(zh).filter(key => key.startsWith(prefix))
+    expect(zhKeys.sort()).toEqual(enKeys.sort())
+  })
+})

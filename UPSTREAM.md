@@ -78,12 +78,12 @@ K 与 [A 的来源记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707
 - 应用适配：`backend/internal/service/update_service.go`、`frontend/src/components/common/VersionBadge.vue`；测试入口为 `backend/internal/service/update_service_test.go`、`frontend/src/components/common/__tests__/VersionBadge.spec.ts`。`backend/scripts/resolve-version.sh` 与 K 相同。
 - F 同步工具：`.github/personal-sync/sync.py`、`.github/personal-sync/check_binding.py`、`.github/workflows/sync-upstream.yml`、`.github/workflows/personal-ci.yml`；测试入口 `.github/personal-sync/test_sync.py`。本地引入可追溯至 `624f3d6a2564cf250dd1cf5ce6733c45b2693952`。
 - F 个人发布工具：`.github/release-tools/personal_release.py`、`.github/release-tools/release-images.sh`、`.github/workflows/personal-release.yml`、`.github/workflows/release.yml`；测试入口 `.github/release-tools/test_personal_release.py`、`.github/release-tools/test_release_matrix.py`。个人 helper 的本地引入为 `b7794d6f25f25e9d28f82b7cda1b82325ba5e96d`，后续门禁修正见 `9a358653a8bab6b0679184a8806f2c786d26aba2`。基础 `.github/release-tools/release_matrix.py` 在 K、A、F 字节相同，其共享历史引入提交为 `0892ef3a9a320dad79ff87930dcd5ae56a9a140a`，不因出现在上游就抹去已有贡献历史。
-- F 部署工具：`deploy/personal/deploy-hostdzire.sh`、`deploy/personal/deploy_hostdzire.py`、`.github/workflows/personal-deploy-ci.yml`；测试入口 `deploy/personal/test_deploy_hostdzire.py`。本地引入 `2e5da44431efe152b4b6105a80b7a84f233436a6`，当前绑定修正截至 `e3b3e8e284e2d9b0ff8f972650807c4d40863c64`；详见[部署说明](deploy/personal/README.md)。本次不执行主机操作。
+- F 部署工具：`deploy/personal/deploy-hostdzire.sh`、`deploy/personal/deploy_hostdzire.py`、`.github/workflows/personal-deploy-ci.yml`；测试入口 `deploy/personal/test_deploy_hostdzire.py`。本地引入 `2e5da44431efe152b4b6105a80b7a84f233436a6`，当前绑定修正截至 `e3b3e8e284e2d9b0ff8f972650807c4d40863c64`；详见[部署说明](https://github.com/ccisnoxx/sub2api/blob/c1dae6357b4de7cc11d81547013b87550c4ba586/deploy/personal/README.md)。本次不执行主机操作。
 
 ## 人工复核结论与边界
 
 - 已核对 P 的四份功能文档、计时 helper/schema、本地合同与引入提交，以及 A 的实际文件/测试入口。计时 helper 不是原文件直接搬运：P 使用同名 `first_token_ms`，A 保留旧字段并读取 `strict_first_token_ms`，返回类型、适用范围、空值与导出接口均有本地适配；不能宣称 Plus 的全平台采集已在本 fork 实现。
 - K 中已有的 `backend/internal/pkg/upstreamrecord/recorder.go`、`frontend/src/utils/codexCatalogConfig.ts` 和 `backend/scripts/resolve-version.sh` 与 A 字节相同；它们不属于个人新增核心模块。公开原始上游关系保留，逐文件的更早作者归属不作猜测。
 - 本文没有发现足以把 S1–S4 整模块标为“直接复制”的记录；结构/概念参考明确保留 Plus 归属，不据文件不同或相同许可证宣称全部自主原创。固定源码的版权头与 SPDX 保留核对见 [LEGAL-001 验收记录](docs/legal/LEGAL-001.md)；完整许可证副本、依赖许可与发布产物材料仍留给 LEGAL-002，不在此给出该任务的完成结论。
-- PREP-001 已保存当前 307 条迁移身份/执行时间、schema、固定源码/镜像及私有备份，并完成非生产完整恢复与读写回滚；见[已验证基线](BASELINE.md)。本文的来源核对与恢复基线分别提供代码来源和恢复证据，不将它们当作新 KIN 已完成验证。
+- PREP-001 已保存当前 307 条迁移身份/执行时间、schema、固定源码/镜像及私有备份，并完成非生产完整恢复与读写回滚；见[已验证基线](https://github.com/ccisnoxx/sub2api/blob/c1dae6357b4de7cc11d81547013b87550c4ba586/BASELINE.md)。本文的来源核对与恢复基线分别提供代码来源和恢复证据，不将它们当作新 KIN 已完成验证。
 - 重放到新 KIN 时逐模块核对上述 owner、接口、权限和迁移身份。应用测试需在实际新候选中按测试文件/名称定向执行；本文仅核对入口存在，不声称已重放、已编译或已通过这些测试。

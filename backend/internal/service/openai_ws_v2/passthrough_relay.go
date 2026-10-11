@@ -69,7 +69,18 @@ type RelayExit struct {
 	WroteDownstream bool
 }
 
+// RelayObservedEvent 借用当前帧，仅在同步回调内有效；起点来自现有 turn owner。
+type RelayObservedEvent struct {
+	Payload       []byte
+	ResponseID    string
+	StartedAt     time.Time
+	ObservedAt    time.Time
+	UsageAccepted bool
+	AcceptedUsage string
+}
+
 type RelayOptions struct {
+	OnUpstreamEvent                 func(RelayObservedEvent)
 	WriteTimeout                    time.Duration
 	IdleTimeout                     time.Duration
 	UpstreamDrainTimeout            time.Duration
@@ -78,15 +89,19 @@ type RelayOptions struct {
 	FirstMessageType                coderws.MessageType
 	FirstMessageSent                bool
 	StartClientAfterFirstDownstream bool
-	OnUsageParseFailure             func(eventType string, usageRaw string)
-	OnTurnComplete                  func(turn RelayTurnResult)
-	BeforeWriteClient               func(msgType coderws.MessageType, payload []byte, wroteDownstream bool) error
-	BeforeClientWrite               func(msgType coderws.MessageType, payload []byte)
-	AfterClientWrite                func(msgType coderws.MessageType, payload []byte, writeErr error)
-	BeforeRelayCancel               func(exit RelayExit)
-	ReadClientFrame                 func(ctx context.Context, clientConn FrameConn) (coderws.MessageType, []byte, error)
-	OnTrace                         func(event RelayTraceEvent)
-	Now                             func() time.Time
+	// BareErrorEndsTurn 让裸 error 事件立即结算本轮，不等可能跟来的 response.failed。
+	// 上游每轮失败只发一条 error、连接不断时用：客户端收到 error 就会发下一轮，
+	// 延后结算会让上一轮的回调落在下一轮开始之后。
+	BareErrorEndsTurn   bool
+	OnUsageParseFailure func(eventType string, usageRaw string)
+	OnTurnComplete      func(turn RelayTurnResult)
+	BeforeWriteClient   func(msgType coderws.MessageType, payload []byte, wroteDownstream bool) error
+	BeforeClientWrite   func(msgType coderws.MessageType, payload []byte)
+	AfterClientWrite    func(msgType coderws.MessageType, payload []byte, writeErr error)
+	BeforeRelayCancel   func(exit RelayExit)
+	ReadClientFrame     func(ctx context.Context, clientConn FrameConn) (coderws.MessageType, []byte, error)
+	OnTrace             func(event RelayTraceEvent)
+	Now                 func() time.Time
 }
 
 type RelayTraceEvent struct {
@@ -115,6 +130,7 @@ type relayState struct {
 	turnTimingByID          map[string]*relayTurnTiming
 	activeTurn              *relayTurnTiming
 	pendingBareError        *observedUpstreamEvent
+	bareErrorEndsTurn       bool
 }
 
 type relayExitSignal struct {
@@ -180,7 +196,7 @@ func Relay(
 		firstMessageType = coderws.MessageText
 	}
 	startAt := nowFn()
-	state := &relayState{requestModel: result.RequestModel}
+	state := &relayState{requestModel: result.RequestModel, bareErrorEndsTurn: options.BareErrorEndsTurn}
 	if isClientResponseCreateFrame(firstMessageType, firstClientMessage) {
 		firstTurnStartedAt := options.FirstTurnStartedAt
 		if firstTurnStartedAt.IsZero() {
@@ -317,6 +333,7 @@ func Relay(
 			markActivity,
 			onTrace,
 			exitCh,
+			options.OnUpstreamEvent,
 		)
 	}()
 	go runIdleWatchdog(relayCtx, nowFn, options.IdleTimeout, &lastActivity, onTrace, exitCh)
@@ -539,6 +556,7 @@ func runUpstreamToClient(
 	markActivity func(),
 	onTrace func(event RelayTraceEvent),
 	exitCh chan<- relayExitSignal,
+	onEvents ...func(RelayObservedEvent),
 ) {
 	wroteDownstream := false
 	for {
@@ -599,7 +617,7 @@ func runUpstreamToClient(
 			if shouldFinalizePendingBareError(state, payload, eventType) {
 				emitTurnComplete(onTurnComplete, state, finalizePendingBareError(state, nowFn()))
 			}
-			observedEvent = observeUpstreamMessage(state, payload, startAt, nowFn, onUsageParseFailure)
+			observedEvent = observeUpstreamMessage(state, payload, startAt, nowFn, onUsageParseFailure, onEvents...)
 		case coderws.MessageBinary:
 			// Binary frames remain opaque for usage/result observation, but a JSON
 			// terminal still settles relay lifecycle. Otherwise the pending-turn
@@ -748,6 +766,7 @@ func observeUpstreamMessage(
 	startAt time.Time,
 	nowFn func() time.Time,
 	onUsageParseFailure func(eventType string, usageRaw string),
+	onEvents ...func(RelayObservedEvent),
 ) observedUpstreamEvent {
 	if state == nil || len(message) == 0 {
 		return observedUpstreamEvent{}
@@ -779,7 +798,12 @@ func observeUpstreamMessage(
 			}
 		}
 	}
-	parsedUsage := parseUsageAndAccumulate(state, message, eventType, onUsageParseFailure)
+	usageAccepted := false
+	acceptedUsage := ""
+	parsedUsage := parseUsageAndAccumulate(state, message, eventType, onUsageParseFailure, func(raw string) {
+		usageAccepted = true
+		acceptedUsage = raw
+	})
 	observed := observedUpstreamEvent{
 		eventType:  eventType,
 		responseID: responseID,
@@ -797,6 +821,19 @@ func observeUpstreamMessage(
 	} else {
 		turnTiming = state.activeTurn
 	}
+	if len(onEvents) > 0 && onEvents[0] != nil {
+		attributedID := responseID
+		if attributedID == "" {
+			attributedID = openAIWSRelayActiveTurnID(state)
+		}
+		attributedStart := time.Time{}
+		if turnTiming != nil {
+			attributedStart = turnTiming.startAt
+		} else if pending := state.pendingTurnStart.Load(); pending != nil {
+			attributedStart = *pending
+		}
+		onEvents[0](RelayObservedEvent{Payload: message, ResponseID: attributedID, StartedAt: attributedStart, ObservedAt: now, UsageAccepted: usageAccepted, AcceptedUsage: acceptedUsage})
+	}
 	observeRelayTurnResponseModel(turnTiming, firstRelayResponseModel(message), isTerminalEvent(eventType))
 	if !isTerminalEvent(eventType) {
 		return observed
@@ -810,9 +847,11 @@ func observeUpstreamMessage(
 		if observed.responseID == "" {
 			observed.responseID = openAIWSRelayActiveTurnID(state)
 		}
-		pending := observed
-		state.pendingBareError = &pending
-		return observed
+		if !state.bareErrorEndsTurn {
+			pending := observed
+			state.pendingBareError = &pending
+			return observed
+		}
 	}
 	state.pendingBareError = nil
 	return finalizeObservedRelayTerminal(state, observed, now)
@@ -1081,6 +1120,7 @@ func parseUsageAndAccumulate(
 	message []byte,
 	eventType string,
 	onParseFailure func(eventType string, usageRaw string),
+	onAccepted ...func(string),
 ) Usage {
 	if state == nil || len(message) == 0 || !shouldParseUsage(eventType) || !bytes.Contains(message, []byte(`"usage"`)) {
 		return Usage{}
@@ -1150,9 +1190,15 @@ func parseUsageAndAccumulate(
 	if isTerminalEvent(strings.TrimSpace(eventType)) {
 		if relayUsageHasTokens(parsedUsage) || !relayUsageHasTokens(state.turnUsage) {
 			state.turnUsage = parsedUsage
+			if len(onAccepted) > 0 && onAccepted[0] != nil {
+				onAccepted[0](usageRaw)
+			}
 		}
 	} else {
 		mergeRelayUsageNonZero(&state.turnUsage, parsedUsage)
+		if len(onAccepted) > 0 && onAccepted[0] != nil {
+			onAccepted[0](usageRaw)
+		}
 		return Usage{}
 	}
 	return parsedUsage

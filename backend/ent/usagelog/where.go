@@ -225,6 +225,51 @@ func FirstTokenMs(v int) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldFirstTokenMs, v))
 }
 
+// TimingVersion applies equality check predicate on the "timing_version" field. It's identical to TimingVersionEQ.
+func TimingVersion(v int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldTimingVersion, v))
+}
+
+// StrictFirstTokenMs applies equality check predicate on the "strict_first_token_ms" field. It's identical to StrictFirstTokenMsEQ.
+func StrictFirstTokenMs(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldStrictFirstTokenMs, v))
+}
+
+// LastTokenMs applies equality check predicate on the "last_token_ms" field. It's identical to LastTokenMsEQ.
+func LastTokenMs(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldLastTokenMs, v))
+}
+
+// FirstOutputMs applies equality check predicate on the "first_output_ms" field. It's identical to FirstOutputMsEQ.
+func FirstOutputMs(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldFirstOutputMs, v))
+}
+
+// FirstOutputKind applies equality check predicate on the "first_output_kind" field. It's identical to FirstOutputKindEQ.
+func FirstOutputKind(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldFirstOutputKind, v))
+}
+
+// AudioOutputTokens applies equality check predicate on the "audio_output_tokens" field. It's identical to AudioOutputTokensEQ.
+func AudioOutputTokens(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldAudioOutputTokens, v))
+}
+
+// CompletionStatus applies equality check predicate on the "completion_status" field. It's identical to CompletionStatusEQ.
+func CompletionStatus(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldCompletionStatus, v))
+}
+
+// IsComplete applies equality check predicate on the "is_complete" field. It's identical to IsCompleteEQ.
+func IsComplete(v bool) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldIsComplete, v))
+}
+
+// UsageSource applies equality check predicate on the "usage_source" field. It's identical to UsageSourceEQ.
+func UsageSource(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldUsageSource, v))
+}
+
 // UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
 func UserAgent(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldUserAgent, v))
@@ -1783,6 +1828,481 @@ func FirstTokenMsIsNil() predicate.UsageLog {
 // FirstTokenMsNotNil applies the NotNil predicate on the "first_token_ms" field.
 func FirstTokenMsNotNil() predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldNotNull(FieldFirstTokenMs))
+}
+
+// TimingVersionEQ applies the EQ predicate on the "timing_version" field.
+func TimingVersionEQ(v int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldTimingVersion, v))
+}
+
+// TimingVersionNEQ applies the NEQ predicate on the "timing_version" field.
+func TimingVersionNEQ(v int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldTimingVersion, v))
+}
+
+// TimingVersionIn applies the In predicate on the "timing_version" field.
+func TimingVersionIn(vs ...int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldTimingVersion, vs...))
+}
+
+// TimingVersionNotIn applies the NotIn predicate on the "timing_version" field.
+func TimingVersionNotIn(vs ...int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldTimingVersion, vs...))
+}
+
+// TimingVersionGT applies the GT predicate on the "timing_version" field.
+func TimingVersionGT(v int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldTimingVersion, v))
+}
+
+// TimingVersionGTE applies the GTE predicate on the "timing_version" field.
+func TimingVersionGTE(v int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldTimingVersion, v))
+}
+
+// TimingVersionLT applies the LT predicate on the "timing_version" field.
+func TimingVersionLT(v int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldTimingVersion, v))
+}
+
+// TimingVersionLTE applies the LTE predicate on the "timing_version" field.
+func TimingVersionLTE(v int16) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldTimingVersion, v))
+}
+
+// StrictFirstTokenMsEQ applies the EQ predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldStrictFirstTokenMs, v))
+}
+
+// StrictFirstTokenMsNEQ applies the NEQ predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsNEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldStrictFirstTokenMs, v))
+}
+
+// StrictFirstTokenMsIn applies the In predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldStrictFirstTokenMs, vs...))
+}
+
+// StrictFirstTokenMsNotIn applies the NotIn predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsNotIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldStrictFirstTokenMs, vs...))
+}
+
+// StrictFirstTokenMsGT applies the GT predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsGT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldStrictFirstTokenMs, v))
+}
+
+// StrictFirstTokenMsGTE applies the GTE predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsGTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldStrictFirstTokenMs, v))
+}
+
+// StrictFirstTokenMsLT applies the LT predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsLT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldStrictFirstTokenMs, v))
+}
+
+// StrictFirstTokenMsLTE applies the LTE predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsLTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldStrictFirstTokenMs, v))
+}
+
+// StrictFirstTokenMsIsNil applies the IsNil predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldStrictFirstTokenMs))
+}
+
+// StrictFirstTokenMsNotNil applies the NotNil predicate on the "strict_first_token_ms" field.
+func StrictFirstTokenMsNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldStrictFirstTokenMs))
+}
+
+// LastTokenMsEQ applies the EQ predicate on the "last_token_ms" field.
+func LastTokenMsEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldLastTokenMs, v))
+}
+
+// LastTokenMsNEQ applies the NEQ predicate on the "last_token_ms" field.
+func LastTokenMsNEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldLastTokenMs, v))
+}
+
+// LastTokenMsIn applies the In predicate on the "last_token_ms" field.
+func LastTokenMsIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldLastTokenMs, vs...))
+}
+
+// LastTokenMsNotIn applies the NotIn predicate on the "last_token_ms" field.
+func LastTokenMsNotIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldLastTokenMs, vs...))
+}
+
+// LastTokenMsGT applies the GT predicate on the "last_token_ms" field.
+func LastTokenMsGT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldLastTokenMs, v))
+}
+
+// LastTokenMsGTE applies the GTE predicate on the "last_token_ms" field.
+func LastTokenMsGTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldLastTokenMs, v))
+}
+
+// LastTokenMsLT applies the LT predicate on the "last_token_ms" field.
+func LastTokenMsLT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldLastTokenMs, v))
+}
+
+// LastTokenMsLTE applies the LTE predicate on the "last_token_ms" field.
+func LastTokenMsLTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldLastTokenMs, v))
+}
+
+// LastTokenMsIsNil applies the IsNil predicate on the "last_token_ms" field.
+func LastTokenMsIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldLastTokenMs))
+}
+
+// LastTokenMsNotNil applies the NotNil predicate on the "last_token_ms" field.
+func LastTokenMsNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldLastTokenMs))
+}
+
+// FirstOutputMsEQ applies the EQ predicate on the "first_output_ms" field.
+func FirstOutputMsEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldFirstOutputMs, v))
+}
+
+// FirstOutputMsNEQ applies the NEQ predicate on the "first_output_ms" field.
+func FirstOutputMsNEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldFirstOutputMs, v))
+}
+
+// FirstOutputMsIn applies the In predicate on the "first_output_ms" field.
+func FirstOutputMsIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldFirstOutputMs, vs...))
+}
+
+// FirstOutputMsNotIn applies the NotIn predicate on the "first_output_ms" field.
+func FirstOutputMsNotIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldFirstOutputMs, vs...))
+}
+
+// FirstOutputMsGT applies the GT predicate on the "first_output_ms" field.
+func FirstOutputMsGT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldFirstOutputMs, v))
+}
+
+// FirstOutputMsGTE applies the GTE predicate on the "first_output_ms" field.
+func FirstOutputMsGTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldFirstOutputMs, v))
+}
+
+// FirstOutputMsLT applies the LT predicate on the "first_output_ms" field.
+func FirstOutputMsLT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldFirstOutputMs, v))
+}
+
+// FirstOutputMsLTE applies the LTE predicate on the "first_output_ms" field.
+func FirstOutputMsLTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldFirstOutputMs, v))
+}
+
+// FirstOutputMsIsNil applies the IsNil predicate on the "first_output_ms" field.
+func FirstOutputMsIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldFirstOutputMs))
+}
+
+// FirstOutputMsNotNil applies the NotNil predicate on the "first_output_ms" field.
+func FirstOutputMsNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldFirstOutputMs))
+}
+
+// FirstOutputKindEQ applies the EQ predicate on the "first_output_kind" field.
+func FirstOutputKindEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindNEQ applies the NEQ predicate on the "first_output_kind" field.
+func FirstOutputKindNEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindIn applies the In predicate on the "first_output_kind" field.
+func FirstOutputKindIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldFirstOutputKind, vs...))
+}
+
+// FirstOutputKindNotIn applies the NotIn predicate on the "first_output_kind" field.
+func FirstOutputKindNotIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldFirstOutputKind, vs...))
+}
+
+// FirstOutputKindGT applies the GT predicate on the "first_output_kind" field.
+func FirstOutputKindGT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindGTE applies the GTE predicate on the "first_output_kind" field.
+func FirstOutputKindGTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindLT applies the LT predicate on the "first_output_kind" field.
+func FirstOutputKindLT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindLTE applies the LTE predicate on the "first_output_kind" field.
+func FirstOutputKindLTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindContains applies the Contains predicate on the "first_output_kind" field.
+func FirstOutputKindContains(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContains(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindHasPrefix applies the HasPrefix predicate on the "first_output_kind" field.
+func FirstOutputKindHasPrefix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasPrefix(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindHasSuffix applies the HasSuffix predicate on the "first_output_kind" field.
+func FirstOutputKindHasSuffix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasSuffix(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindIsNil applies the IsNil predicate on the "first_output_kind" field.
+func FirstOutputKindIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldFirstOutputKind))
+}
+
+// FirstOutputKindNotNil applies the NotNil predicate on the "first_output_kind" field.
+func FirstOutputKindNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldFirstOutputKind))
+}
+
+// FirstOutputKindEqualFold applies the EqualFold predicate on the "first_output_kind" field.
+func FirstOutputKindEqualFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEqualFold(FieldFirstOutputKind, v))
+}
+
+// FirstOutputKindContainsFold applies the ContainsFold predicate on the "first_output_kind" field.
+func FirstOutputKindContainsFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContainsFold(FieldFirstOutputKind, v))
+}
+
+// AudioOutputTokensEQ applies the EQ predicate on the "audio_output_tokens" field.
+func AudioOutputTokensEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldAudioOutputTokens, v))
+}
+
+// AudioOutputTokensNEQ applies the NEQ predicate on the "audio_output_tokens" field.
+func AudioOutputTokensNEQ(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldAudioOutputTokens, v))
+}
+
+// AudioOutputTokensIn applies the In predicate on the "audio_output_tokens" field.
+func AudioOutputTokensIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldAudioOutputTokens, vs...))
+}
+
+// AudioOutputTokensNotIn applies the NotIn predicate on the "audio_output_tokens" field.
+func AudioOutputTokensNotIn(vs ...int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldAudioOutputTokens, vs...))
+}
+
+// AudioOutputTokensGT applies the GT predicate on the "audio_output_tokens" field.
+func AudioOutputTokensGT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldAudioOutputTokens, v))
+}
+
+// AudioOutputTokensGTE applies the GTE predicate on the "audio_output_tokens" field.
+func AudioOutputTokensGTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldAudioOutputTokens, v))
+}
+
+// AudioOutputTokensLT applies the LT predicate on the "audio_output_tokens" field.
+func AudioOutputTokensLT(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldAudioOutputTokens, v))
+}
+
+// AudioOutputTokensLTE applies the LTE predicate on the "audio_output_tokens" field.
+func AudioOutputTokensLTE(v int) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldAudioOutputTokens, v))
+}
+
+// AudioOutputTokensIsNil applies the IsNil predicate on the "audio_output_tokens" field.
+func AudioOutputTokensIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldAudioOutputTokens))
+}
+
+// AudioOutputTokensNotNil applies the NotNil predicate on the "audio_output_tokens" field.
+func AudioOutputTokensNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldAudioOutputTokens))
+}
+
+// CompletionStatusEQ applies the EQ predicate on the "completion_status" field.
+func CompletionStatusEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldCompletionStatus, v))
+}
+
+// CompletionStatusNEQ applies the NEQ predicate on the "completion_status" field.
+func CompletionStatusNEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldCompletionStatus, v))
+}
+
+// CompletionStatusIn applies the In predicate on the "completion_status" field.
+func CompletionStatusIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldCompletionStatus, vs...))
+}
+
+// CompletionStatusNotIn applies the NotIn predicate on the "completion_status" field.
+func CompletionStatusNotIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldCompletionStatus, vs...))
+}
+
+// CompletionStatusGT applies the GT predicate on the "completion_status" field.
+func CompletionStatusGT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldCompletionStatus, v))
+}
+
+// CompletionStatusGTE applies the GTE predicate on the "completion_status" field.
+func CompletionStatusGTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldCompletionStatus, v))
+}
+
+// CompletionStatusLT applies the LT predicate on the "completion_status" field.
+func CompletionStatusLT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldCompletionStatus, v))
+}
+
+// CompletionStatusLTE applies the LTE predicate on the "completion_status" field.
+func CompletionStatusLTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldCompletionStatus, v))
+}
+
+// CompletionStatusContains applies the Contains predicate on the "completion_status" field.
+func CompletionStatusContains(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContains(FieldCompletionStatus, v))
+}
+
+// CompletionStatusHasPrefix applies the HasPrefix predicate on the "completion_status" field.
+func CompletionStatusHasPrefix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasPrefix(FieldCompletionStatus, v))
+}
+
+// CompletionStatusHasSuffix applies the HasSuffix predicate on the "completion_status" field.
+func CompletionStatusHasSuffix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasSuffix(FieldCompletionStatus, v))
+}
+
+// CompletionStatusEqualFold applies the EqualFold predicate on the "completion_status" field.
+func CompletionStatusEqualFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEqualFold(FieldCompletionStatus, v))
+}
+
+// CompletionStatusContainsFold applies the ContainsFold predicate on the "completion_status" field.
+func CompletionStatusContainsFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContainsFold(FieldCompletionStatus, v))
+}
+
+// IsCompleteEQ applies the EQ predicate on the "is_complete" field.
+func IsCompleteEQ(v bool) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldIsComplete, v))
+}
+
+// IsCompleteNEQ applies the NEQ predicate on the "is_complete" field.
+func IsCompleteNEQ(v bool) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldIsComplete, v))
+}
+
+// IsCompleteIsNil applies the IsNil predicate on the "is_complete" field.
+func IsCompleteIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldIsComplete))
+}
+
+// IsCompleteNotNil applies the NotNil predicate on the "is_complete" field.
+func IsCompleteNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldIsComplete))
+}
+
+// UsageSourceEQ applies the EQ predicate on the "usage_source" field.
+func UsageSourceEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldUsageSource, v))
+}
+
+// UsageSourceNEQ applies the NEQ predicate on the "usage_source" field.
+func UsageSourceNEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldUsageSource, v))
+}
+
+// UsageSourceIn applies the In predicate on the "usage_source" field.
+func UsageSourceIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldUsageSource, vs...))
+}
+
+// UsageSourceNotIn applies the NotIn predicate on the "usage_source" field.
+func UsageSourceNotIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldUsageSource, vs...))
+}
+
+// UsageSourceGT applies the GT predicate on the "usage_source" field.
+func UsageSourceGT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldUsageSource, v))
+}
+
+// UsageSourceGTE applies the GTE predicate on the "usage_source" field.
+func UsageSourceGTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldUsageSource, v))
+}
+
+// UsageSourceLT applies the LT predicate on the "usage_source" field.
+func UsageSourceLT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldUsageSource, v))
+}
+
+// UsageSourceLTE applies the LTE predicate on the "usage_source" field.
+func UsageSourceLTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldUsageSource, v))
+}
+
+// UsageSourceContains applies the Contains predicate on the "usage_source" field.
+func UsageSourceContains(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContains(FieldUsageSource, v))
+}
+
+// UsageSourceHasPrefix applies the HasPrefix predicate on the "usage_source" field.
+func UsageSourceHasPrefix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasPrefix(FieldUsageSource, v))
+}
+
+// UsageSourceHasSuffix applies the HasSuffix predicate on the "usage_source" field.
+func UsageSourceHasSuffix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasSuffix(FieldUsageSource, v))
+}
+
+// UsageSourceEqualFold applies the EqualFold predicate on the "usage_source" field.
+func UsageSourceEqualFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEqualFold(FieldUsageSource, v))
+}
+
+// UsageSourceContainsFold applies the ContainsFold predicate on the "usage_source" field.
+func UsageSourceContainsFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContainsFold(FieldUsageSource, v))
+}
+
+// ServiceStatusObservationIsNil applies the IsNil predicate on the "service_status_observation" field.
+func ServiceStatusObservationIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldServiceStatusObservation))
+}
+
+// ServiceStatusObservationNotNil applies the NotNil predicate on the "service_status_observation" field.
+func ServiceStatusObservationNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldServiceStatusObservation))
 }
 
 // UserAgentEQ applies the EQ predicate on the "user_agent" field.

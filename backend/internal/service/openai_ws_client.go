@@ -12,6 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Wei-Shaw/sub2api/internal/pkg/upstreamrecord"
 	openaiwsv2 "github.com/Wei-Shaw/sub2api/internal/service/openai_ws_v2"
 	coderws "github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
@@ -62,6 +63,16 @@ type openAIWSUpstreamPingCounter interface {
 type openAIWSForceCloser interface {
 	CloseNow() error
 }
+
+// openAIWSRawTextWriter 把已序列化好的 JSON 文本帧原样写出。openAIWSClientConn.WriteJSON
+// 经 wsjson → json.Encoder：HTML 转义 <>& 并追加尾部换行；真客户端是
+// serde_json::to_string + Message::Text（codex-api/src/endpoint/responses_websocket.rs:899,
+// 920-923），两者都没有。双开账号的帧只能走这里。
+type openAIWSRawTextWriter interface {
+	WriteFrame(ctx context.Context, msgType coderws.MessageType, payload []byte) error
+}
+
+var _ openAIWSRawTextWriter = (*coderOpenAIWSClientConn)(nil)
 
 // openAIWSClientDialer 抽象 WS 建连器。
 type openAIWSClientDialer interface {
@@ -291,6 +302,7 @@ func (d *coderOpenAIWSClientDialer) SnapshotTransportMetrics() OpenAIWSTransport
 type coderOpenAIWSClientConn struct {
 	conn          *coderws.Conn
 	upstreamPings atomic.Int64
+	recording     atomic.Pointer[openAIWSRecording]
 }
 
 func (c *coderOpenAIWSClientConn) UpstreamPingCount() int64 {
@@ -309,6 +321,9 @@ func (c *coderOpenAIWSClientConn) WriteJSON(ctx context.Context, value any) erro
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	if c.recording.Load() != nil {
+		return writeRecordedOpenAIWSJSON(ctx, c, value)
+	}
 	return wsjson.Write(ctx, c.conn, value)
 }
 
@@ -321,6 +336,7 @@ func (c *coderOpenAIWSClientConn) ReadMessage(ctx context.Context) ([]byte, erro
 	}
 
 	msgType, payload, err := c.conn.Read(ctx)
+	c.recording.Load().read(msgType, payload, err)
 	if err != nil {
 		return nil, err
 	}
@@ -340,6 +356,7 @@ func (c *coderOpenAIWSClientConn) ReadFrame(ctx context.Context) (coderws.Messag
 		ctx = context.Background()
 	}
 	msgType, payload, err := c.conn.Read(ctx)
+	c.recording.Load().read(msgType, payload, err)
 	if err != nil {
 		return coderws.MessageText, nil, err
 	}
@@ -353,7 +370,11 @@ func (c *coderOpenAIWSClientConn) WriteFrame(ctx context.Context, msgType coderw
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	return c.conn.Write(ctx, msgType, payload)
+	capture, frame, release := c.recording.Load().beforeWrite(ctx, msgType, payload)
+	err := c.conn.Write(ctx, msgType, payload)
+	capture.Note("ws_send_end", map[string]any{"frame": frame, "error_kind": upstreamrecord.ErrorKind(err)})
+	release()
+	return err
 }
 
 func (c *coderOpenAIWSClientConn) Ping(ctx context.Context) error {
@@ -386,6 +407,7 @@ func (c *coderOpenAIWSClientConn) Close() error {
 	// Close 为幂等，忽略重复关闭错误。
 	_ = c.conn.Close(coderws.StatusNormalClosure, "")
 	_ = c.conn.CloseNow()
+	c.recording.Load().finish("ws_closed")
 	return nil
 }
 
@@ -394,5 +416,6 @@ func (c *coderOpenAIWSClientConn) CloseNow() error {
 		return nil
 	}
 	_ = c.conn.CloseNow()
+	c.recording.Load().finish("ws_closed_now")
 	return nil
 }

@@ -111,13 +111,21 @@ func (s *BillingService) ResolveContextPricingSchedule(ctx context.Context, reso
 		Resolver:       resolver,
 		Resolved:       resolved,
 	}
+	return s.resolveTokenPricingSchedule(req)
+}
+
+// resolveTokenPricingSchedule 复用同一份解析结果，并允许目录固定时点与服务档位。
+// 旧模型广场入口保持原参数；此函数不读取用户倍率、不写用量或余额。
+func (s *BillingService) resolveTokenPricingSchedule(req TokenCostRequest) (*ContextPricingSchedule, error) {
+	resolved := req.Resolved
+	resolver := req.Resolver
 	probe := func(tokens UsageTokens) (*CostBreakdown, error) {
 		r := req
 		r.Tokens = tokens
 		return s.CalculateTokenCostForRequest(r)
 	}
 
-	plan := s.contextPricingBreakpoints(resolver, resolved, in.Model)
+	plan := s.contextPricingBreakpoints(resolver, resolved, req.Model)
 	segments := buildContextSegments(plan.bounds)
 
 	tiers := make([]ContextPricingTier, 0, len(segments))
