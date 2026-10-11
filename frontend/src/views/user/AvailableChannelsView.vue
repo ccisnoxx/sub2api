@@ -2,126 +2,97 @@
   <AppLayout>
     <TablePageLayout>
       <template #filters>
-        <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-          <div class="flex flex-1 flex-wrap items-center gap-3">
-            <div class="relative w-full sm:w-80">
-              <Icon
-                name="search"
-                size="md"
-                class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
-              />
-              <input
-                v-model="searchQuery"
-                type="text"
-                :placeholder="t('availableChannels.searchPlaceholder')"
-                class="input pl-10"
-              />
-            </div>
+        <div class="space-y-3">
+          <p class="text-sm leading-6 text-gray-500 dark:text-gray-400">{{ t('availableChannels.catalog.scopeNotice') }}</p>
+          <div class="flex flex-wrap items-end gap-3">
+            <label class="min-w-0 flex-1 sm:min-w-64">
+              <span class="mb-1 block text-sm font-medium">{{ t('availableChannels.catalog.search') }}</span>
+              <input v-model="searchQuery" type="search" :placeholder="t('availableChannels.searchPlaceholder')" class="input" />
+            </label>
+            <label class="w-full sm:w-56">
+              <span class="mb-1 block text-sm font-medium">{{ t('availableChannels.catalog.group') }}</span>
+              <select v-model="groupId" class="input" data-testid="catalog-group">
+                <option :value="null">{{ t('availableChannels.catalog.allGroups') }}</option>
+                <option v-for="group in catalog?.groups ?? []" :key="group.id" :value="group.id">{{ group.name }}</option>
+              </select>
+            </label>
+            <button class="btn btn-secondary" :disabled="loading" @click="loadCatalog">{{ t('common.refresh') }}</button>
           </div>
-
-          <div class="flex w-full flex-shrink-0 flex-wrap items-center justify-end gap-3 lg:w-auto">
-            <button
-              @click="loadChannels"
-              :disabled="loading"
-              class="btn btn-secondary"
-              :title="t('common.refresh', 'Refresh')"
-            >
-              <Icon name="refresh" size="md" :class="loading ? 'animate-spin' : ''" />
-            </button>
-          </div>
+          <p v-if="catalog?.user_rate_status === 'unavailable'" role="status" class="rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">{{ t('availableChannels.catalog.rateUnavailable') }}</p>
         </div>
       </template>
-
       <template #table>
-        <AvailableChannelsTable
-          :columns="columnLabels"
-          :rows="filteredChannels"
-          :loading="loading"
-          :user-group-rates="userGroupRates"
-          pricing-key-prefix="availableChannels.pricing"
-          :no-pricing-label="t('availableChannels.noPricing')"
-          :no-models-label="t('availableChannels.noModels')"
-          :empty-label="t('availableChannels.empty')"
-        />
+        <div class="table-wrapper p-4" :aria-busy="loading">
+          <p v-if="loading" role="status" class="py-12 text-center text-gray-500">{{ t('common.loading') }}</p>
+          <div v-else-if="errorMessage" role="alert" class="space-y-3 py-12 text-center">
+            <p>{{ errorMessage }}</p><button class="btn btn-secondary" @click="loadCatalog">{{ t('availableChannels.catalog.retry') }}</button>
+          </div>
+          <template v-else-if="catalog">
+            <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">{{ t('availableChannels.catalog.modelCount', { count: filteredModels.length }) }}</p>
+            <div v-if="filteredModels.length" class="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-2">
+              <ModelCatalogCard v-for="model in filteredModels" :key="model.key" :model="model" :user-rate-status="catalog.user_rate_status" />
+            </div>
+            <p v-else class="py-12 text-center text-gray-500 dark:text-gray-400">{{ t(searchQuery.trim() || groupId !== null ? 'availableChannels.catalog.noMatches' : 'availableChannels.catalog.empty') }}</p>
+            <p v-if="emptyGroups.length" class="mt-4 break-words text-xs text-gray-500 dark:text-gray-400">{{ t('availableChannels.catalog.emptyGroups', { groups: emptyGroups.map(group => group.name).join(' · ') }) }}</p>
+          </template>
+        </div>
       </template>
     </TablePageLayout>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import TablePageLayout from '@/components/layout/TablePageLayout.vue'
-import Icon from '@/components/icons/Icon.vue'
-import AvailableChannelsTable from '@/components/channels/AvailableChannelsTable.vue'
-import userChannelsAPI, { type UserAvailableChannel } from '@/api/channels'
-import userGroupsAPI from '@/api/groups'
-import { useAppStore } from '@/stores/app'
+import ModelCatalogCard from '@/components/channels/ModelCatalogCard.vue'
+import userChannelsAPI, { type AvailableModelCatalog } from '@/api/channels'
+import { useAuthStore } from '@/stores/auth'
 import { extractApiErrorMessage } from '@/utils/apiError'
+import { collectCatalogModels, filterCatalogModels } from '@/utils/modelCatalog'
 
 const { t } = useI18n()
-const appStore = useAppStore()
-
-const channels = ref<UserAvailableChannel[]>([])
-const userGroupRates = ref<Record<number, number>>({})
+const authStore = useAuthStore()
+const catalog = ref<AvailableModelCatalog | null>(null)
 const loading = ref(false)
+const errorMessage = ref('')
 const searchQuery = ref('')
+const groupId = ref<number | null>(null)
+const models = computed(() => catalog.value ? collectCatalogModels(catalog.value) : [])
+const filteredModels = computed(() => filterCatalogModels(models.value, searchQuery.value, groupId.value))
+const emptyGroups = computed(() => catalog.value?.groups.filter(group => !group.models.length) ?? [])
+let requestId = 0
+let controller: AbortController | undefined
 
-const columnLabels = computed(() => ({
-  name: t('availableChannels.columns.name'),
-  description: t('availableChannels.columns.description'),
-  platform: t('availableChannels.columns.platform'),
-  groups: t('availableChannels.columns.groups'),
-  supportedModels: t('availableChannels.columns.supportedModels'),
-}))
-
-/**
- * 搜索过滤：
- * - 命中渠道名/描述 → 整个渠道（所有 platforms）都保留
- * - 否则按 platform/group/model 维度在 sections 里过滤，保留有匹配的 section
- * - 所有 sections 都不匹配时，渠道本身被过滤掉
- */
-const filteredChannels = computed(() => {
-  const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return channels.value
-  return channels.value
-    .map((ch) => {
-      const nameHit = ch.name.toLowerCase().includes(q)
-      const descHit = (ch.description || '').toLowerCase().includes(q)
-      if (nameHit || descHit) return ch
-      const matchingSections = ch.platforms.filter(
-        (p) =>
-          p.platform.toLowerCase().includes(q) ||
-          p.groups.some((g) => g.name.toLowerCase().includes(q)) ||
-          p.supported_models.some((m) => m.name.toLowerCase().includes(q)),
-      )
-      if (matchingSections.length === 0) return null
-      return { ...ch, platforms: matchingSections }
-    })
-    .filter((ch): ch is UserAvailableChannel => ch !== null)
-})
-
-async function loadChannels() {
-  loading.value = true
+async function loadCatalog() {
+  const currentRequest = ++requestId
+  const userId = authStore.user?.id
+  controller?.abort()
+  const requestController = new AbortController()
+  controller = requestController
+  // 每次刷新先清除旧报价；失败或主体切换时不能继续显示上一份目录。
+  catalog.value = null
+  errorMessage.value = ''
+  loading.value = userId !== undefined
+  if (userId === undefined) return
   try {
-    // 渠道列表和用户专属倍率并发拉取。专属倍率失败不阻塞渠道展示——
-    // 失败时只是无法渲染专属倍率角标，降级为仅显示默认倍率。
-    const [list, rates] = await Promise.all([
-      userChannelsAPI.getAvailable(),
-      userGroupsAPI.getUserGroupRates().catch((err: unknown) => {
-        console.error('Failed to load user group rates:', err)
-        return {} as Record<number, number>
-      }),
-    ])
-    channels.value = list
-    userGroupRates.value = rates
+    const result = await userChannelsAPI.getCatalog({ signal: requestController.signal })
+    if (currentRequest !== requestId || userId !== authStore.user?.id || requestController.signal.aborted) return
+    catalog.value = result
+    if (groupId.value !== null && !result.groups.some(group => group.id === groupId.value)) groupId.value = null
   } catch (err: unknown) {
-    appStore.showError(extractApiErrorMessage(err, t('common.error')))
+    if (currentRequest !== requestId || userId !== authStore.user?.id || requestController.signal.aborted) return
+    errorMessage.value = extractApiErrorMessage(err, t('common.error'))
   } finally {
-    loading.value = false
+    if (currentRequest === requestId) loading.value = false
   }
 }
 
-onMounted(loadChannels)
+watch(() => authStore.user?.id, () => {
+  searchQuery.value = ''
+  groupId.value = null
+  void loadCatalog()
+}, { immediate: true, flush: 'sync' })
+onBeforeUnmount(() => { ++requestId; controller?.abort() })
 </script>
