@@ -73,6 +73,39 @@ describe('PaymentStatusPanel', () => {
     vi.useRealTimers()
   })
 
+  it.each(['airwallex', 'legacy_air_method'])('keeps querying a historical Airwallex order without offering payment launch (%s)', async (paymentType) => {
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue({ closed: false } as Window)
+    pollOrderStatus.mockResolvedValue({ ...orderFactory('PENDING'), payment_type: paymentType, provider_key: 'airwallex' })
+    const wrapper = mount(PaymentStatusPanel, {
+      props: {
+        orderId: 42,
+        qrCode: 'awx-old-qr',
+        payUrl: '/payment/airwallex?order_id=42',
+        expiresAt: '2099-01-01T12:30:00Z',
+        paymentType,
+        providerKey: 'airwallex',
+        orderType: 'balance',
+      },
+      global: { stubs: { Icon: true } },
+    })
+
+    await flushPromises()
+    expect(wrapper.text()).toContain('payment.airwallexDisabled')
+    expect(wrapper.text()).not.toContain('payment.qr.openPayWindow')
+    expect(wrapper.find('canvas').exists()).toBe(false)
+    expect(toCanvas).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(pollOrderStatus).toHaveBeenCalledWith(42)
+    expect(openSpy).not.toHaveBeenCalled()
+
+    pollOrderStatus.mockResolvedValue({ ...orderFactory('COMPLETED'), payment_type: 'airwallex' })
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(wrapper.text()).toContain('payment.result.success')
+    expect(wrapper.emitted('success')).toHaveLength(1)
+    wrapper.unmount()
+    openSpy.mockRestore()
+  })
+
   it('treats RECHARGING as a successful terminal state', async () => {
     pollOrderStatus.mockResolvedValue(orderFactory('RECHARGING'))
 

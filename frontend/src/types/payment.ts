@@ -118,6 +118,8 @@ export interface PaymentOrder {
   refund_request_reason?: string
   plan_id?: number
   provider_instance_id?: string
+  /** 订单实际绑定的服务商，与用户选择的 payment_type 不一定相同。 */
+  provider_key?: string
 }
 
 // ==================== Plans & Channels ====================

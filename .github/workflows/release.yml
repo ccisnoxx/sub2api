@@ -317,6 +317,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CI_RUN_ID: ${{ steps.publication_guard.outputs.ci_run_id }}
         run: bash "$RUNNER_TEMP/release-tools/release-images.sh"
+      - name: Save dry-run OCI images for license verification
+        if: env.DRY_RUN == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-dry-run-images
+          path: ${{ runner.temp }}/sub2api-*.oci.tar
+          if-no-files-found: error
+          retention-days: 3
       - name: Verify published OCI revision, version and platform
         if: env.DRY_RUN != 'true'
         env:

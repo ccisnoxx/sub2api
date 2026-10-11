@@ -230,13 +230,18 @@ func pcGroupByPaymentType(instances []*dbent.PaymentProviderInstance) map[string
 		}
 	}
 	for _, inst := range instances {
+		if isPaymentInitiationDisabled(inst.ProviderKey) {
+			continue
+		}
 		// Stripe provider: all sub-types → single "stripe" group
 		if inst.ProviderKey == payment.TypeStripe {
 			add(payment.TypeStripe, inst)
 			continue
 		}
 		for _, t := range splitTypes(inst.SupportedTypes) {
-			add(t, inst)
+			if !isPaymentInitiationDisabled(t) {
+				add(t, inst)
+			}
 		}
 	}
 	return typeInstances

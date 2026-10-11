@@ -28,7 +28,7 @@ gh workflow run release.yml --ref <branch> \
 
 A dry run builds all selected archives and both runtime images, verifies artifact provenance and produces the final checksum file. It exports images locally as OCI archives instead of pushing them. It skips registry logins, GitHub Release publication, DockerHub description updates, Telegram notifications and VERSION synchronization. Test the simple path separately with `simple_release=true`.
 
-Dry-run artifacts are available in the Actions run, including `release-dry-run-report`. Compare job start/end times, GoReleaser's build duration and cache restore results. Do not present an initial cold-cache run as a warmed-cache benchmark; publishing network time is not measured by dry runs.
+Dry-run artifacts are available in the Actions run, including `release-dry-run-report` and `release-dry-run-images`. The latter preserves the actual OCI archives for checking config labels and license/source files in the image layers; it does not push registry images. Compare job start/end times, GoReleaser's build duration and cache restore results. Do not present an initial cold-cache run as a warmed-cache benchmark; publishing network time is not measured by dry runs.
 
 Helper checks:
 

@@ -16,15 +16,17 @@
 - [固定发布提交的完整 LICENSE](https://raw.githubusercontent.com/vuejs/devtools-v6/dd2ab5d4275187cbd81952a2a3d53c335643c1f4/LICENSE) 包含 `Copyright (c) 2014-present Evan You`，SHA-256 是 `050bbca6960784db52ff387271bf2ecc5cbed7cf8581b415d528a6ecb6585015`。
 - 补充文件仅对配置登记的 `6.6.4` 生效，升级后必须重新核实，不会自动沿用旧版材料。
 
-## 尚待解决的上游材料缺口
+## 已移除的 Airwallex 分发依赖
 
-2026-10-10 的真实生产构建确认以下包进入分发 chunk；两个 npm 包均未携带 LICENSE/COPYING/NOTICE，公开源码和完整版权文本尚未核实。构建会明确失败，不能将此候选当作可发布产物：
+2026-10-10 的真实生产构建确认以下包进入分发 chunk；两个 npm 包均未携带 LICENSE/COPYING/NOTICE，公开源码和完整版权文本尚未核实：
 
 | 精确包版本 | 实际 npm 许可声明 | 已核实来源 | 缺口 |
 | --- | --- | --- | --- |
 | `@airwallex/components-sdk@1.30.2` | `MIT` | [精确 npm 元数据](https://registry.npmjs.org/@airwallex%2fcomponents-sdk/1.30.2)、[精确 npm tarball](https://registry.npmjs.org/@airwallex/components-sdk/-/components-sdk-1.30.2.tgz) | 完整 MIT 许可及版权通知；元数据未给出源码仓库、作者或 gitHead |
 | `@airwallex/airtracker@3.2.0` | `ISC` | [精确 npm 元数据](https://registry.npmjs.org/@airwallex%2fairtracker/3.2.0)、[精确 npm tarball](https://registry.npmjs.org/@airwallex/airtracker/-/airtracker-3.2.0.tgz) | 完整 ISC 许可及版权通知；元数据给出 gitHead `d7cc7ca00bd15a6c67b2de25e73814c475b18778`，未给出可核实的公开源码仓库 |
 
-解除阻塞需要取得对应版本的官方完整许可及版权材料，保留原文字节，放入本目录，并在 `vite.config.ts` 的 `supplements` 中登记名称、精确版本、文件路径和固定来源 URL；然后运行定向测试和真实 `pnpm build`。只知道 MIT/ISC 名称，或找到同厂商其他项目的 LICENSE，均不能补齐这些包的文本。
+LEGAL-002 按用户授权停用新的 Airwallex 支付，移除前端 SDK 依赖、锁文件中的上述两包、专用支付页面和启动入口。历史订单、恢复快照字段与回调配置继续可读，Airwallex 历史订单仍可查询状态，不加载 SDK 或重新打开历史支付链接。分发许可材料仍由实际输出 chunk 决定；移除依赖不补齐或改变上述上游材料缺口。
+
+若将来重新启用，必须先取得对应精确版本的官方完整许可及版权材料，保留原文字节，放入本目录，并在 `vite.config.ts` 的 `supplements` 中登记名称、精确版本、文件路径和固定来源 URL；然后运行定向测试和真实 `pnpm build`。只知道 MIT/ISC 名称，或找到同厂商其他项目的 LICENSE，均不能补齐这些包的文本。禁止以通用模板或 CDN 搬运绕过许可门禁。
 
 定向验证命令：`pnpm exec vitest run vite-plugins/thirdPartyLicenses.spec.ts`。它通过真实 Vite 编译的临时包验证许可产物、懒加载、未分发依赖排除、复制素材、文本保留、路径不泄露、缺失声明/全文失败和补充材料的精确版本限制。
