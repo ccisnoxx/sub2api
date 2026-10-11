@@ -45,6 +45,9 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - name: Preserve trusted control tooling
         run: |
           cp -R .github/release-tools "$RUNNER_TEMP/release-tools"

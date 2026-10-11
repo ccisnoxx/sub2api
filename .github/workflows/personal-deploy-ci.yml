@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: '3.11'
+          python-version: '3.12.13'
       - name: 获取只读基线标签
         run: |
           git fetch --no-tags https://github.com/KlN-4096/sub2api.git \
