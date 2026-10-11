@@ -51,3 +51,5 @@ CI-004 的负向测试与只读 dry-run 边界见 [CI-004](../../docs/ci/CI-004.
 新标签的第一次包默认可能 private；创建后使用包设置将其公开，并验证匿名完整拉取。最终运行记录保存 tag、source/workflow SHA、上游标签/SHA、CI/Release run、平台及 OCI digest。P3 不访问生产服务器。
 
 正式 Release 在应用 checkout 后、任何 artifact 下载与输出写入前移除已知生成入口及 symlink，再由可信流程创建上下文与发布材料，避免应用输出路径将写入引向保存的 main guard。
+
+正式 prepare/release 中的 Python 模块安装、内联 JSON 解析和最终 stdin 检查使用 `-I`，排除应用当前目录、PYTHONPATH 与 user site 的隐式模块导入；保存的工具脚本继续使用可信绝对路径。

@@ -104,7 +104,7 @@ jobs:
           [[ "$SIMPLE_RELEASE" == true ]] || { echo '个人发布必须选择 simple_release'; exit 1; }
           python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$SOURCE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
       - run: |
-          python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+          python -I -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
       - name: Resolve one source commit and target matrix
         id: plan
         env:
@@ -348,7 +348,7 @@ jobs:
         with:
           python-version: '3.12.13'
       - run: |
-          python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+          python -I -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         if: env.DRY_RUN != 'true'
         with:
@@ -495,7 +495,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID" > "$RUNNER_TEMP/final-publication-guard.json"
-          python3 - "$RUNNER_TEMP/final-publication-guard.json" <<'PY'
+          python3 -I - "$RUNNER_TEMP/final-publication-guard.json" <<'PY'
           import json, re, sys
           from pathlib import Path
           summaries = list(Path('release-evidence/summary').glob('*.release-summary.json'))

@@ -12,7 +12,7 @@ if [[ $GITHUB_REPOSITORY == ccisnoxx/sub2api && ${SIMPLE_RELEASE:-false} == true
 fi
 arches=(amd64 arm64)
 if [[ ${SIMPLE_RELEASE:-false} == true ]]; then arches=(amd64); fi
-scanner=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sbom_generator"])' "$RUNNER_TEMP/release-tools/supply-chain-tools.json")
+scanner=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["sbom_generator"])' "$RUNNER_TEMP/release-tools/supply-chain-tools.json")
 verify_image() {
   local layout=$1 arch=$2 stage=$3
   local created_args=()
@@ -41,13 +41,13 @@ for arch in "${arches[@]}"; do
     # 实际推送前重新核对最新 personal、CI 和版本占用；已有版本只校验，不重建。
     python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize \
       --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "${CI_RUN_ID:-}" > "$RUNNER_TEMP/push-guard.json"
-    reuse=$(python3 -c 'import json,sys; print(str(json.load(open(sys.argv[1]))["reuse_image"]).lower())' "$RUNNER_TEMP/push-guard.json")
+    reuse=$(python3 -I -c 'import json,sys; print(str(json.load(open(sys.argv[1]))["reuse_image"]).lower())' "$RUNNER_TEMP/push-guard.json")
     if [[ $reuse != true ]]; then
       oras cp --from-oci-layout "$oci@$digest" "${registries[0]}:$RELEASE_VERSION"
     fi
     python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" verify-image \
       --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" > "$RUNNER_TEMP/pushed-image.json"
-    published=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest"])' "$RUNNER_TEMP/pushed-image.json")
+    published=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest"])' "$RUNNER_TEMP/pushed-image.json")
     if [[ $reuse != true && $published != "$digest" ]]; then echo '发布 digest 与已校验 OCI 产物不同'; exit 1; fi
     oras cp --to-oci-layout "${registries[0]}@$published" "$RUNNER_TEMP/verify-$arch:verified"
     verified=$(verify_image "$RUNNER_TEMP/verify-$arch" "$arch" published)
@@ -55,7 +55,7 @@ for arch in "${arches[@]}"; do
     # latest 仅从已经完整核对的固定 digest 补齐，证明缺失时不推进。
     python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize \
       --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "${CI_RUN_ID:-}" > "$RUNNER_TEMP/latest-guard.json"
-    current_digest=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest"])' "$RUNNER_TEMP/latest-guard.json")
+    current_digest=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest"])' "$RUNNER_TEMP/latest-guard.json")
     [[ $current_digest == "$published" ]] || { echo '镜像版本占用已变化，禁止推进 latest'; exit 1; }
     oras tag "${registries[0]}@$published" latest
     continue

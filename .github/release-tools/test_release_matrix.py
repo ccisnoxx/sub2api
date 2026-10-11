@@ -183,7 +183,10 @@ class ReleaseMatrixTest(unittest.TestCase):
         self.assertEqual(len(json.loads(output['matrix'])['include']), 5)
 
     def image_commands(self, simple=False, dry_run=False, personal=False, reuse=False, gate_fail=False, proof_fail=False,
-                       gate_fail_at=0, digest_changed=False, script_path=None):
+                       gate_fail_at=0, digest_changed=False, script_path=None, shadow_modules=False):
+        if shadow_modules:
+            for module in ('json', 're', 'pathlib'):
+                Path(module + '.py').write_text('raise SystemExit(\"应用模块被执行\")\n')
         fake_bin = Path('bin')
         fake_bin.mkdir(exist_ok=True)
         (Path(self.temp.name) / 'release-tools').mkdir(exist_ok=True)
@@ -195,18 +198,21 @@ class ReleaseMatrixTest(unittest.TestCase):
         python = fake_bin / 'python3'
         python.write_text(f'''#!{sys.executable}
 import json, os, sys
-if len(sys.argv) > 2 and sys.argv[1].endswith(('/personal_release.py', '/supply_chain.py')):
+args = sys.argv[1:]
+if args and args[0] == '-I':
+    args = args[1:]
+if len(args) > 1 and args[0].endswith(('/personal_release.py', '/supply_chain.py')):
     with open(os.environ['DOCKER_LOG'], 'a') as out:
-        out.write(sys.argv[2] + '\\n')
-    if sys.argv[2] == 'authorize':
-        if '/release-guard/release-tools/' not in sys.argv[1]:
+        out.write(args[1] + '\\n')
+    if args[1] == 'authorize':
+        if '/release-guard/release-tools/' not in args[0]:
             raise SystemExit('没有使用 main 控制面 guard')
         count = open(os.environ['DOCKER_LOG']).read().splitlines().count('authorize')
         if os.environ['GATE_FAIL'] == 'true' or count == int(os.environ['GATE_FAIL_AT']):
             raise SystemExit('personal 基础已变化')
         digest = ('e' if os.environ['DIGEST_CHANGED'] == 'true' and count == 2 else 'd') * 64
         print(json.dumps({{'reuse_image': os.environ['REUSE_IMAGE'] == 'true', 'digest': 'sha256:' + digest}}))
-    elif sys.argv[2] == 'image':
+    elif args[1] == 'image':
         if os.environ['PROOF_FAIL'] == 'true':
             raise SystemExit('镜像证明缺失')
         print('sha256:' + 'd' * 64)
@@ -232,7 +238,7 @@ else:
             env.pop(name, None)
         result = subprocess.run(['bash', str(script_path or ROOT / '.github/release-tools/release-images.sh')], env=env,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        return result, log_path.read_text()
+        return result, log_path.read_text() if log_path.exists() else ""
 
     def test_dry_run_generates_proofs_for_each_platform_without_registry_writes(self):
         result, log = self.image_commands(dry_run=True)
@@ -302,6 +308,12 @@ else:
         self.assertNotIn('authorize', log)
         self.assertNotIn('verify-image', log)
         self.assertNotIn('oras ', log)
+
+    def test_application_modules_cannot_run_during_image_publication(self):
+        result, log = self.image_commands(simple=True, personal=True, shadow_modules=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log.splitlines().count('authorize'), 2)
+        self.assertIn('oras tag', log)
 
     def test_transported_main_image_helper_ignores_application_replacement(self):
         tools = Path(self.temp.name) / 'transported-main'

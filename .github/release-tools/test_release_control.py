@@ -121,22 +121,41 @@ class ReleaseControlTest(unittest.TestCase):
                 summary.write_text(json.dumps({"images": [{"digest": d} for d in images]}))
                 (root / "publication.json").write_text(json.dumps({"digest": publication}))
                 fake = root / "python3"
-                fake.write_text(f'''#!{sys.executable}
+                fake.write_text(f'''#!{sys.executable} -I
 import json, os, sys
-if sys.argv[1].endswith('/personal_release.py'):
-    assert '/release-guard/release-tools/' in sys.argv[1]
-    assert sys.argv[sys.argv.index('--ci-run-id') + 1] == '123'
+args = sys.argv[1:]
+if args and args[0] == "-I":
+    args = args[1:]
+if args[0].endswith('/personal_release.py'):
+    assert '/release-guard/release-tools/' in args[0]
+    assert args[args.index('--ci-run-id') + 1] == '123'
     print(json.dumps({{'digest': os.environ['CURRENT_DIGEST']}}))
 else:
     os.execv({sys.executable!r}, [{sys.executable!r}, '-B', *sys.argv[1:]])
 ''')
                 fake.chmod(0o755)
+                for module in ("json", "re", "pathlib"):
+                    (root / (module + ".py")).write_text('raise SystemExit("应用模块被执行")\n')
                 env = {"PATH": str(root) + os.pathsep + os.environ["PATH"], "RUNNER_TEMP": str(root),
                        "RELEASE_SHA": "a" * 40, "RELEASE_TAG": "v0.2.14-klno.3-tps.1", "CI_RUN_ID": "123",
                        "CURRENT_DIGEST": current}
                 result = subprocess.run(["bash", "-e", "-c", step["run"]], cwd=root, env=env,
                                         text=True, capture_output=True)
                 self.assertEqual(result.returncode, expected, result.stderr)
+
+    def test_dependency_installer_does_not_import_application_pip(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'pip.py').write_text('raise SystemExit("应用 pip 被执行")\n')
+            for name in ('prepare', 'release'):
+                steps = self.release['jobs'][name]['steps']
+                command = next(s['run'] for s in steps if 'pip install' in s.get('run', ''))
+                prefix = command.split('pip install', 1)[0].split()[1:]
+                result = subprocess.run([sys.executable, *prefix, 'pip', '--version'], cwd=root,
+                                        env={'PATH': os.environ['PATH'], 'PYTHONPATH': str(root)},
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn('pip ', result.stdout)
 
     def test_dry_run_source_binding_needs_no_token_and_rejects_wrong_sha(self):
         step = next(s for s in self.release["jobs"]["prepare"]["steps"]
