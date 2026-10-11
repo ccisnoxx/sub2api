@@ -28,3 +28,9 @@
 - 迁移 251–254 原名原字节、runner 和依赖未变。独立复核与固定候选阶段 PR CI / Security Scan 由父任务完成；Personal CI 与来源切换留到 UPSTREAM-007。
 
 - 阶段 lint v2.14.0 报新增报价平台分支 QF1003，局部等价 switch 修正；报价/倍率定向检查通过，未修改 lint 配置。最终阶段验收使用修正候选。
+
+## 2026-10-11：UPSTREAM-005 服务状态后端迁移
+
+- [阶段报告](upstream/UPSTREAM-005.md)记录真实逻辑 turn 的匿名 source、独立 observation key、首可信终态/取消冻结、配置 version/epoch、事务聚合水位、可见性与新证据恢复、容量/隐私和严格管理员 JWT。
+- 正式累计依赖保留已验收 S1/S3 和 S2 目录 owner；按维护源重新生成 Ent/Wire，无生成漂移，Billing 注入与清理顺序保留。真实 PostgreSQL 整合检查和项目 build 通过；其余固定候选结果以阶段 PR 为准。
+- SQL251–254 原名原字节、runner、依赖和控制面未改；默认关闭，不在本阶段生产开启。阶段 PR CI + Security Scan 经维护者授权，Personal CI 与来源切换留007。

@@ -1,8 +1,8 @@
-# UPSTREAM-005：服务状态后端重放准备交付
+# UPSTREAM-005：服务状态后端重放与正式整合
 
 ## Task
 
-本报告记录 S4 后端的独立准备实现与本地验证。它不是 UPSTREAM-005 的正式阶段验收；正式累计候选、前置阶段验收、独立复核及远端门禁由父任务接续完成。
+本报告记录 S4 后端的独立准备实现、本地验证与正式累计整合。正式阶段依赖及固定候选门禁记录在本任务 PR；只有前置、独立复核及同 SHA 的 PR CI / Security Scan 全部满足后才在 REMEDIATION_PLAN.md 勾选任务。维护者明确授权阶段 PR CI + Security Scan，Personal CI 和来源切换留 UPSTREAM-007。
 
 | 项目 | 固定身份 |
 | --- | --- |
@@ -14,6 +14,8 @@
 | 独立 S3 原提交 | `a38c26b77f0e5638dfd6d57e2fe1cd1c3b5a5ecb` |
 | S3 cherry-pick 后的 S4 实现基准 | `593787383e73879f821b4d6faff6834899936045` |
 | 本次 S4 实现 | `3497f3168542a53c4078eb7c5a81fb3ebbf0b544` |
+| 正式累计依赖基底（S1+S2+S3） | `ff5493e1d71910fa3de0f0e338ead91392b4a99a` |
+| S4 正式运行提交 | `bf47996cc96c2be1c60b75c629f4377ae65c3c51` |
 | S4 代码审查范围 | `593787383e73879f821b4d6faff6834899936045..3497f3168542a53c4078eb7c5a81fb3ebbf0b544` |
 | 固定 Personal 来源 A | `3d5e1fde82707900a21f2b5538b112c7bab3c04a` |
 | S4 首引入 | `35962a802fdc499639c9c861072f25774ccba50b` |
@@ -23,6 +25,15 @@
 S3 cherry-pick 自动合并成功，无手工冲突。其原实现和 `docs/upstream/UPSTREAM-004.md` 保留为独立依赖提交；本报告的实现范围不包含该依赖。正式累计分支应只接入本 S4 实现及本报告，避免再次重放 S3。父任务随后补充的 S1 JSON fixture 修正 `ee415b62ea9076b7f682ab73fd94203478ca363a` 和 S3 journal `d06e9cd55b1b121f42427cebf8c6d3218222b3ca` 不在本准备树中；前者不改变运行代码，二者由正式累计基底承接。
 
 交付前通过 GitHub latest release 和 `git ls-remote --tags upstream` 重查，最新非 draft、非 prerelease 稳定版本仍为上述 tag；release 发布时间为 `2026-10-10T07:54:36Z`，tag object 与 peeled commit 均一致。
+
+## 正式累计整合记录
+
+- S1 前置为 `ee415b62ea9076b7f682ab73fd94203478ca363a` / PR #20；S3 为 `d06e9cd55b1b121f42427cebf8c6d3218222b3ca` / PR #21。二者同 SHA 的标准 PR CI 和 Security Scan 均通过，独立只读复核无确认阻断。基底纳入 S1 最终 API fixture 与 S3 journal。
+- 累计树同时保留 S2 `43630d16feb9a45fa4cfa92f66e5782dd0213ad7` 的运行代码，先按独立提交接入 S3，再接入 S2 的等价 lint switch；只有 journal 冲突，合并保留各阶段记录，无代码冲突。正式 S4 PR 以冻结累计依赖分支为 base，增量仅为 S4 和阶段文档。
+- 正式树按维护源重生成 Ent / Wire。工具 checksum 使用临时 modfile，实际 go.mod/go.sum 未变；结果没有 diff。`AvailableChannelHandler` 保留 S2 的 BillingService 第四参数，S4 aggregator 和 source reporter 清理保持在 DB 关闭之前。
+- 正式树 `make -C backend build` exit 0；`CI=true DOCKER_HOST="$DOCKER_HOST" TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock go test -tags=integration -v ./internal/repository -run '^(TestServiceStatus|TestAvailableCatalog)' -count=1 -timeout=240s` exit 0，23 个顶层 PASS、无 FAIL/SKIP。其 source/config/聚合和目录权限合同使用真实数据库，不能将同包纯函数项目计作额外数据库测试。
+- 正式累计树共享 service/handler/server 定向 race：121 个顶层 PASS、0 FAIL/SKIP，exit 0，无 DATA RACE；包含 S1 timing/async、S2 catalog/pricing、S3/S4 真实 WS 回归及 API 合同。原始输出 `upstream-005-integrated-race.log`，参数为 `go test -race -tags=unit -count=1 -v -timeout=240s ./internal/service ./internal/handler ./internal/server -run '^(TestServiceStatus|TestResponsesOutputTiming|TestResponsesUsageTiming|TestOpenAIUsageTiming_|TestSubmitUsageRecordTask|TestOpenAISubmitUsageRecordTask|TestOpenAIGatewayHandlerSubmitOpenAIUsageRecordTask|TestProxyOpenAIWSHTTPBridgeTurn|TestS35WS|TestAvailableModelCatalog_|TestCatalogPricing_|TestCatalogRateMultipliers_|TestAPIContracts$)'`。
+- `service_status_types.go`、service/handler 和 repository 的状态合同与已验证准备实现逐字节一致。逐字段核对 UPSTREAM-006 的实际 API 类型、13 平台 owner、nullable 比例、数组、24h/7d/30d query、version409 和 disabled503；真实 JWT/routes 和 PostgreSQL 证据由本后端承担，前端浏览器使用替身 API 的边界如实保留。
 
 ## Summary
 
@@ -53,7 +64,7 @@ S3 cherry-pick 自动合并成功，无手工冲突。其原实现和 `docs/upst
 
 ## Files changed
 
-实现提交修改 66 个后端文件，5069 行新增、171 行删除。职责包括：服务/source owner 与 DTO、usage/Ops schema/SQL 写入接线、HTTP/WS 调用者、事务聚合/事件/API、Ent/Wire 生成结果及必要回归测试。没有 frontend、CI、发布、sourcejson、计划、journal、SQL migration、migration runner、部署、依赖清单或无关静态资源变更。
+准备实现提交修改 66 个后端文件；正式整合保留累计 Wire/Ent 维护源，文件职责相同。职责包括：服务/source owner 与 DTO、usage/Ops schema/SQL 写入接线、HTTP/WS 调用者、事务聚合/事件/API、Ent/Wire 生成结果及必要回归测试。没有 frontend、CI、发布、sourcejson、计划、journal、SQL migration、migration runner、部署、依赖清单或无关静态资源变更。
 
 完整实现文件清单见本节末。`backend/ent/schema/usage_log.go` 是 Ent 的维护源，生成产物来自本项目 `go generate ./ent`；Wire 源变更由当前安装的 Wire v0.7.0 生成，不复制旧生成结果。
 
@@ -166,8 +177,8 @@ source 元数据分别写入既有 usage/Ops 的可空 JSONB 列，非法元数�
 - [x] 严格管理员 JWT、8192 body、完整 PUT/version409、query/字段 whitelist；API 匿名边界。
 - [x] 本地必要 unit、真实 PostgreSQL source/aggregate/incident/配置集成、observer/异步/真实 WS race 和要求的 build 通过；失败项已诊断修复并直接重验。
 - [x] SQL251–254、runner/白名单、frontend/CI/发布/部署/依赖清单无变更。
-- [ ] 002/004 正式依赖验收与正式累计 005 候选确认，由父任务接续。
-- [ ] fresh 独立只读复核、正式候选的标准 PR CI + Security Scan，由父任务接续。
+- [x] 002/004 正式依赖验收，正式累计基底和 S4 增量分离。
+- [ ] fresh 独立只读复核、正式固定候选的标准 PR CI + Security Scan；以阶段 PR 的固定记录验收。
 - [ ] 生产开启 smoke、长期容量/运维/恢复验证及 006 前端集成，不在本准备树中宣称完成。
 
 ### 实现文件清单
