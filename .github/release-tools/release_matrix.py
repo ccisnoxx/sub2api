@@ -95,8 +95,11 @@ def generate_config(args):
         data['before'] = {'hooks': []}
         data['builds'] = [{'id': 'sub2api', 'skip': True}]
         data['archives'] = []
-        extra = [{'glob': 'release-input/sub2api_*.tar.gz'}, {'glob': 'release-input/sub2api_*.zip'}]
+        evidence = [{'glob': 'release-evidence/*/*.json'}, {'glob': 'release-evidence/evidence-checksums.txt'}]
+        extra = [{'glob': 'release-input/sub2api_*.tar.gz'}, {'glob': 'release-input/sub2api_*.zip'}, *evidence]
         if args.simple:
+            data['release']['skip_upload'] = False
+            data['release']['extra_files'] = evidence
             data['checksum'] = {'disable': True}
         else:
             data['release']['extra_files'] = extra

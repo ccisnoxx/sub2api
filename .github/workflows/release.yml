@@ -57,6 +57,7 @@ jobs:
       tag: ${{ steps.plan.outputs.tag }}
       version: ${{ steps.plan.outputs.version }}
       date: ${{ steps.plan.outputs.date }}
+      ci_run_id: ${{ steps.guard.outputs.ci_run_id }}
       matrix: ${{ steps.plan.outputs.matrix }}
       simple: ${{ steps.plan.outputs.simple }}
       dry_run: ${{ steps.plan.outputs.dry_run }}
@@ -176,6 +177,8 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       RELEASE_DATE: ${{ needs.prepare.outputs.date }}
+      DRY_RUN: ${{ needs.prepare.outputs.dry_run }}
+      CI_RUN_ID: ${{ needs.prepare.outputs.ci_run_id }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -251,6 +254,24 @@ jobs:
           TARGET_ARCH: ${{ matrix.goarch }}
           RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
         run: python "$RUNNER_TEMP/release-tools/release_matrix.py" collect --version "$RELEASE_VERSION" --sha "$RELEASE_SHA" --goos "$TARGET_OS" --goarch "$TARGET_ARCH" --output matrix-output
+      - name: Install verified SBOM generator
+        run: |
+          python "$RUNNER_TEMP/release-tools/supply_chain.py" install --tools syft --output "$RUNNER_TEMP/supply-chain-bin"
+          echo "$RUNNER_TEMP/supply-chain-bin" >> "$GITHUB_PATH"
+      - name: Generate binary SBOM and source provenance
+        env:
+          TARGET_OS: ${{ matrix.goos }}
+          TARGET_ARCH: ${{ matrix.goarch }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+        run: |
+          python "$RUNNER_TEMP/release-tools/supply_chain.py" binary --input matrix-output --output binary-evidence \
+            --sha "$RELEASE_SHA" --version "$RELEASE_VERSION" --goos "$TARGET_OS" --goarch "$TARGET_ARCH" --toolchain binary-toolchain.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-evidence-binary-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: binary-evidence/
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-binary-${{ matrix.goos }}-${{ matrix.goarch }}
@@ -280,6 +301,8 @@ jobs:
       RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
       RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+      RELEASE_DATE: ${{ needs.prepare.outputs.date }}
+      CI_RUN_ID: ${{ needs.prepare.outputs.ci_run_id }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -298,6 +321,11 @@ jobs:
           pattern: release-binary-*
           path: release-input
           merge-multiple: true
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: release-evidence-binary-*
+          path: release-evidence/binaries
+          merge-multiple: true
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.12.13'
@@ -305,6 +333,15 @@ jobs:
           python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
       - name: Verify transported control tooling imports
         run: python "$RUNNER_TEMP/release-tools/personal_release.py" --help
+      - name: Verify binary SBOM and provenance matrix
+        run: |
+          args=(--input release-input --evidence release-evidence/binaries --sha "$RELEASE_SHA" --version "$RELEASE_VERSION")
+          if [[ "$SIMPLE_RELEASE" == true ]]; then args+=(--simple); fi
+          python "$RUNNER_TEMP/release-tools/supply_chain.py" verify-binaries "${args[@]}"
+      - name: Install verified OCI transport tool
+        run: |
+          python "$RUNNER_TEMP/release-tools/supply_chain.py" install --tools oras --output "$RUNNER_TEMP/supply-chain-bin"
+          echo "$RUNNER_TEMP/supply-chain-bin" >> "$GITHUB_PATH"
       - name: Verify complete matrix and prepare Docker contexts
         run: |
           args=(--version "$RELEASE_VERSION" --sha "$RELEASE_SHA" --input release-input --output .release-context)
@@ -382,6 +419,26 @@ jobs:
           path: publication.json
           if-no-files-found: error
           retention-days: 90
+      - name: Finalize immutable supply chain verification materials
+        run: |
+          args=(--input release-evidence --sha "$RELEASE_SHA" --version "$RELEASE_VERSION")
+          if [[ "$SIMPLE_RELEASE" == true ]]; then args+=(--simple); fi
+          python "$RUNNER_TEMP/release-tools/supply_chain.py" finalize "${args[@]}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-supply-chain-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Preserve dry-run OCI images with attestations
+        if: env.DRY_RUN == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-dry-run-oci-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/sub2api-*.oci.tar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 3
       - name: Get annotated tag notes
         id: tag_message
         env:
@@ -394,6 +451,8 @@ jobs:
             TAG_MESSAGE+=$'\n'
             TAG_MESSAGE+="CI run: $CI_RUN_ID; Release run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           fi
+          TAG_MESSAGE+=$'\n\n构建证明与 SBOM：\n'
+          TAG_MESSAGE+=$(cat release-evidence/summary/release-summary.json)
           DELIMITER="TAG_MESSAGE_$(openssl rand -hex 16)"
           {
             echo "message<<$DELIMITER"
