@@ -20,3 +20,9 @@
 - [阶段报告](upstream/UPSTREAM-003.md)记录固定 S1 候选之上的目录重放、真实授权/订阅 owner、精确 opt-in、白名单 DTO、未知价格与明确零价，以及遵循现有唯一绑定约束的歧义失败。
 - 准备代码独立只读复核无确认阻断；正式整合后 161 项定向 unit、真实 PostgreSQL/Redis 目录合同与项目 build 通过；前端与准备候选一致。
 - 不写计费/用量或发起上游请求，迁移/控制面不变；前置及阶段远端固定候选门禁完成前不宣告任务验收。
+
+## 2026-10-11：UPSTREAM-004 结构化路由诊断迁移
+
+- 在冻结新 KIN 与 MIG-001 上重放实际调度评估快照、HTTP/WS turn 隔离、可空持久化和管理员单记录详情边界；保留 sticky、guardian、previous response、等待与 gateway pool owner。
+- [阶段报告](upstream/UPSTREAM-004.md)记录候选池/过滤事实、非法诊断不得丢失真实错误、实际 socket/WS 计费 owner、真实 PostgreSQL 和 JWT 权限测试；定向 race 与项目 `make -C backend build` 通过。
+- 迁移 251–254 原名原字节、runner 和依赖未变。独立复核与固定候选阶段 PR CI / Security Scan 由父任务完成；Personal CI 与来源切换留到 UPSTREAM-007。
