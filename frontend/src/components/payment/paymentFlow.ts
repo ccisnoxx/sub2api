@@ -26,7 +26,6 @@ export type PaymentLaunchKind =
   | 'redirect_waiting'
   | 'stripe_popup'
   | 'stripe_route'
-  | 'airwallex_route'
   | 'wechat_oauth'
   | 'wechat_jsapi'
   | 'unhandled'
@@ -37,6 +36,8 @@ export interface PaymentRecoverySnapshot {
   qrCode: string
   expiresAt: string
   paymentType: string
+  /** 恢复时从订单接口核实，不依赖历史快照里的支付方法名。 */
+  providerKey?: string
   payUrl: string
   outTradeNo: string
   clientSecret: string
@@ -64,7 +65,6 @@ export interface PaymentLaunchContext {
   now?: number
   stripePopupUrl?: string
   stripeRouteUrl?: string
-  airwallexRouteUrl?: string
 }
 
 export interface PaymentLaunchDecision {
@@ -96,6 +96,11 @@ type CreateOrderFlowResult = CreateOrderResult & {
 
 type StorageWriter = Pick<Storage, 'removeItem' | 'setItem'>
 
+/** Airwallex 仅保留历史订单数据与查询，不允许重新启动支付。 */
+export function isPaymentMethodDisabled(method: string): boolean {
+  return method.trim().toLowerCase() === 'airwallex'
+}
+
 export function normalizeVisibleMethod(method: string): VisiblePaymentMethod | '' {
   const normalized = VISIBLE_METHOD_ALIASES[method.trim() as keyof typeof VISIBLE_METHOD_ALIASES]
   return normalized ?? ''
@@ -105,6 +110,7 @@ export function getVisibleMethods(methods: Record<string, MethodLimit>): Record<
   const visible: Record<string, MethodLimit> = {}
 
   Object.entries(methods).forEach(([type, limit]) => {
+    if (isPaymentMethodDisabled(type)) return
     const normalized = normalizeVisibleMethod(type) || type.trim()
     if (!normalized) return
 
@@ -171,12 +177,8 @@ export function decidePaymentLaunch(
     alipayMobilePrecreateDeepLink: result.alipay_mobile_precreate_deep_link === true,
   }, context.now)
 
-  if (visibleMethod === 'airwallex' && baseState.clientSecret && baseState.intentId) {
-    if (!context.airwallexRouteUrl) {
-      return { kind: 'unhandled', paymentState: baseState, recovery: baseState }
-    }
-    const paymentState = { ...baseState, payUrl: context.airwallexRouteUrl || '' }
-    return { kind: 'airwallex_route', paymentState, recovery: paymentState }
+  if (isPaymentMethodDisabled(visibleMethod) || isPaymentMethodDisabled(result.payment_type || '')) {
+    return { kind: 'unhandled', paymentState: baseState, recovery: baseState }
   }
 
   if (baseState.clientSecret) {

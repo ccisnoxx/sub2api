@@ -14,7 +14,7 @@ FROM ${ALPINE_IMAGE}
 
 LABEL maintainer="Wei-Shaw <github.com/Wei-Shaw>"
 LABEL description="Sub2API - AI API Gateway Platform"
-LABEL org.opencontainers.image.source="https://github.com/Wei-Shaw/sub2api"
+LABEL org.opencontainers.image.source="https://github.com/ccisnoxx/sub2api"
 
 # Install runtime dependencies
 RUN apk add --no-cache \
@@ -44,6 +44,9 @@ WORKDIR /app
 
 # Copy the pre-built binary and runtime fallback resources from GoReleaser
 COPY sub2api /app/sub2api
+# 与二进制一起校验、运输的许可与精确源码信息
+COPY LICENSE LICENSE-GPL-3.0.txt NOTICE SOURCE.json /usr/share/licenses/sub2api/
+COPY backend/internal/web/dist/THIRD_PARTY_LICENSES.txt /usr/share/licenses/sub2api/THIRD_PARTY_LICENSES.txt
 COPY --chown=sub2api:sub2api backend/resources /app/resources
 
 # Create data directory

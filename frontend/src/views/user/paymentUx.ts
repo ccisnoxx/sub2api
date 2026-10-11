@@ -1,4 +1,4 @@
-import { normalizeVisibleMethod } from '@/components/payment/paymentFlow'
+import { isPaymentMethodDisabled, normalizeVisibleMethod } from '@/components/payment/paymentFlow'
 import { extractApiErrorCode } from '@/utils/apiError'
 
 const DISPLAY_METHOD_ALIASES: Record<string, string> = {
@@ -55,6 +55,10 @@ export function describePaymentScenarioError(
       ? error.message
       : String(error || ''))
   const normalizedMessage = message.toLowerCase()
+
+  if (isPaymentMethodDisabled(method)) {
+    return { messageKey: 'payment.airwallexDisabled' }
+  }
 
   if (method === 'wxpay') {
     if (code === 'WECHAT_H5_NOT_AUTHORIZED') {

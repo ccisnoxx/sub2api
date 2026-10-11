@@ -94,6 +94,9 @@ temp/
 dist/
 build/
 release/
+# 发布候选的精确源码与许可摘要，由 release_matrix.py 生成
+/SOURCE.json
+/.release-context/
 
 # 后端嵌入的前端构建产物
 # Keep a placeholder file so `//go:embed all:dist` always has a match in CI/lint,

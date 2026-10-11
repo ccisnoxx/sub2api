@@ -290,7 +290,7 @@ func (s *PaymentConfigService) parsePaymentConfig(vals map[string]string) *Payme
 		types := make([]string, 0, len(strings.Split(raw, ",")))
 		for _, t := range strings.Split(raw, ",") {
 			t = strings.TrimSpace(t)
-			if t != "" {
+			if t != "" && !isPaymentInitiationDisabled(t) {
 				types = append(types, t)
 			}
 		}

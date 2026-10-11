@@ -72,6 +72,17 @@
       </div>
     </template>
 
+    <template v-else-if="paymentDisabled">
+      <div class="card space-y-3 p-6 text-center">
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ t('payment.airwallexDisabled') }}</p>
+        <p class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ displayOrderNumber }}</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ t('payment.result.processingHint') }}</p>
+      </div>
+      <button class="btn btn-secondary w-full" :disabled="cancelling" @click="handleCancel">
+        {{ cancelling ? t('common.processing') : t('payment.qr.cancelOrder') }}
+      </button>
+    </template>
+
     <!-- ═══ Active States: QR or Popup waiting ═══ -->
 
     <!-- Mobile Alipay app handoff. The QR fallback stays hidden until launch timeout. -->
@@ -230,6 +241,7 @@ import { useAppStore } from '@/stores'
 import { paymentAPI } from '@/api/payment'
 import { extractI18nErrorMessage } from '@/utils/apiError'
 import { getPaymentPopupFeatures, isBuiltInAlipayMethod, isBuiltInWxpayMethod } from '@/components/payment/providerConfig'
+import { isPaymentMethodDisabled } from './paymentFlow'
 import { currencySymbol, formatPaymentAmount, normalizePaymentCurrency } from '@/components/payment/currency'
 import type { PaymentOrder } from '@/types/payment'
 import Icon from '@/components/icons/Icon.vue'
@@ -250,6 +262,7 @@ const props = defineProps<{
   qrCode: string
   expiresAt: string
   paymentType: string
+  providerKey?: string
   payUrl?: string
   orderType?: string
   currency?: string
@@ -298,8 +311,9 @@ const VERIFY_RETRY_MAX_ATTEMPTS = 6
 
 const isAlipay = computed(() => isBuiltInAlipayMethod(props.paymentType))
 const isWxpay = computed(() => isBuiltInWxpayMethod(props.paymentType))
+const paymentDisabled = computed(() => isPaymentMethodDisabled(props.providerKey || '') || isPaymentMethodDisabled(props.paymentType))
 const isMobileAlipayDeepLink = computed(() => props.mobileAlipayDeepLink === true && isAlipay.value && !!qrUrl.value)
-const showQRCode = computed(() => !!qrUrl.value && (!isMobileAlipayDeepLink.value || deepLinkFallbackVisible.value))
+const showQRCode = computed(() => !paymentDisabled.value && !!qrUrl.value && (!isMobileAlipayDeepLink.value || deepLinkFallbackVisible.value))
 
 const qrBorderClass = computed(() => {
   if (isAlipay.value) return 'border-[#00AEEF] bg-blue-50 dark:border-[#00AEEF]/70 dark:bg-blue-950/20'
@@ -349,6 +363,7 @@ function isSuccessStatus(status: string | null | undefined): boolean {
 }
 
 function reopenPopup() {
+  if (paymentDisabled.value) return
   if (props.payUrl) {
     const win = window.open(props.payUrl, 'paymentPopup', getPaymentPopupFeatures())
     if (!win || win.closed) {

@@ -418,6 +418,7 @@ export default {
     stripeNotConfigured: 'Stripe is not configured',
     airwallexLoadFailed: 'Failed to load Airwallex payment component. Please refresh and try again.',
     airwallexMissingParams: 'Missing Airwallex payment parameters',
+    airwallexDisabled: 'Airwallex payments are disabled and cannot be resumed. Existing order status remains available.',
     errors: {
       tooManyPending: 'Too many pending orders (max {max}). Please complete or cancel existing orders first.',
       cancelRateLimited: 'Too many cancellations. Please try again later.',

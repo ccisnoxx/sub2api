@@ -29,6 +29,9 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 	if normalized := NormalizeVisibleMethod(req.PaymentType); normalized != "" {
 		req.PaymentType = normalized
 	}
+	if err := validatePaymentInitiation(req.PaymentType); err != nil {
+		return nil, err
+	}
 	cfg, err := s.configService.GetPaymentConfig(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get payment config: %w", err)
@@ -117,6 +120,18 @@ func (s *PaymentService) CreateOrder(ctx context.Context, req CreateOrderRequest
 		return nil, err
 	}
 	return resp, nil
+}
+
+// Airwallex 只禁止发起新支付；历史订单查询、退款和通知仍使用原服务商。
+func isPaymentInitiationDisabled(paymentType string) bool {
+	return strings.EqualFold(NormalizeVisibleMethod(paymentType), payment.TypeAirwallex)
+}
+
+func validatePaymentInitiation(paymentType string) error {
+	if isPaymentInitiationDisabled(paymentType) {
+		return infraerrors.Forbidden("PAYMENT_METHOD_DISABLED", "airwallex payments are disabled")
+	}
+	return nil
 }
 
 func (s *PaymentService) validateOrderInput(ctx context.Context, req CreateOrderRequest, cfg *PaymentConfig) (*dbent.SubscriptionPlan, error) {
@@ -619,6 +634,11 @@ func (s *PaymentService) buildWeChatOAuthRequiredResponse(ctx context.Context, r
 }
 
 func (s *PaymentService) validateSelectedCreateOrderInstance(ctx context.Context, req CreateOrderRequest, sel *payment.InstanceSelection) error {
+	if sel != nil {
+		if err := validatePaymentInitiation(sel.ProviderKey); err != nil {
+			return err
+		}
+	}
 	if !requiresWeChatJSAPICompatibleSelection(req, sel) {
 		return nil
 	}

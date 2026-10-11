@@ -45,8 +45,11 @@ describe('getVisibleMethods', () => {
       alipay: methodLimit({ single_min: 5 }),
       wxpay: methodLimit({ single_max: 100 }),
       stripe: methodLimit({ fee_rate: 3 }),
-      airwallex: methodLimit({ single_min: 10 }),
     })
+  })
+
+  it('excludes disabled Airwallex even when a stale method directory advertises it', () => {
+    expect(getVisibleMethods({ airwallex: methodLimit(), ' Airwallex ': methodLimit() })).toEqual({})
   })
 
   it('prefers canonical visible methods over aliases when both exist', () => {
@@ -118,10 +121,10 @@ describe('decidePaymentLaunch', () => {
     expect(decision.paymentState.orderType).toBe('subscription')
   })
 
-  it('routes Airwallex client secrets through the hosted Airwallex page', () => {
+  it.each(['int_awx', undefined])('refuses an old Airwallex client secret with intent %s', (intentId) => {
     const decision = decidePaymentLaunch(createOrderResult({
       client_secret: 'awx_cs',
-      intent_id: 'int_awx',
+      intent_id: intentId,
       currency: 'CNY',
       country_code: 'CN',
       payment_env: 'demo',
@@ -130,15 +133,27 @@ describe('decidePaymentLaunch', () => {
       visibleMethod: 'airwallex',
       orderType: 'balance',
       isMobile: false,
-      airwallexRouteUrl: '/payment/airwallex?order_id=101',
+      stripeRouteUrl: '/payment/stripe?order_id=101',
     })
 
-    expect(decision.kind).toBe('airwallex_route')
-    expect(decision.paymentState.payUrl).toBe('/payment/airwallex?order_id=101')
-    expect(decision.paymentState.intentId).toBe('int_awx')
+    expect(decision.kind).toBe('unhandled')
+    expect(decision.stripeMethod).toBeUndefined()
+    expect(decision.paymentState.payUrl).toBe('')
+    expect(decision.paymentState.intentId).toBe(intentId || '')
     expect(decision.paymentState.currency).toBe('CNY')
     expect(decision.paymentState.countryCode).toBe('CN')
     expect(decision.paymentState.paymentEnv).toBe('demo')
+  })
+
+  it('refuses Airwallex result metadata even when the requested visible method differs', () => {
+    const decision = decidePaymentLaunch(createOrderResult({
+      payment_type: 'airwallex',
+      client_secret: 'awx_cs',
+      pay_url: '/payment/airwallex?order_id=101',
+    }), { visibleMethod: 'alipay', orderType: 'balance', isMobile: false })
+
+    expect(decision.kind).toBe('unhandled')
+    expect(decision.stripeMethod).toBeUndefined()
   })
 
   it('keeps hosted redirect metadata for recovery flows', () => {
