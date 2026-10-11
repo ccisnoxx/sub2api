@@ -59,3 +59,27 @@ test('源码内 eslint-disable 不能关闭安全规则', async () => {
   assert.ok((await check(`/* eslint-disable xlsx-policy/write-only */\n${declaration} sheet.read(upload)`))
     .some(message => message.ruleId === 'xlsx-policy/write-only'))
 })
+
+for (const expression of ['sheet.read(upload)', 'parseUpload(sheet)', 'sheet']) {
+  test(`拒绝 Vue 模板引用 XLSX 模块：${expression}`, async () => {
+    const [result] = await checker.lintText(`<script setup lang="ts">${declaration}</script>
+      <template><button :parser="${expression}">解析</button></template>`,
+    { filePath: 'src/views/admin/UsageView.vue' })
+    assert.ok(result.messages.some(message => message.ruleId === 'xlsx-policy/write-only'))
+  })
+}
+
+test('拒绝 Vue 模板内的动态 XLSX 导入和全局读取', async () => {
+  for (const expression of ["import('xlsx').then(sheet => sheet.read(upload))", 'XLSX.read(upload)']) {
+    const [result] = await checker.lintText(`<template><button @click="${expression}">解析</button></template>`,
+      { filePath: 'src/Upload.vue' })
+    assert.ok(result.messages.some(message => message.ruleId === 'xlsx-policy/write-only'))
+  }
+})
+
+test('拒绝 TypeScript import equals 的 XLSX 解析路径', async () => {
+  for (const filePath of ['src/Upload.ts', 'src/Upload.cts']) {
+    const [result] = await checker.lintText("import sheet = require('xlsx'); sheet.read(upload)", { filePath })
+    assert.ok(result.messages.some(message => message.ruleId === 'xlsx-policy/write-only'))
+  }
+})

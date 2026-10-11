@@ -21,10 +21,13 @@ export const writeOnlyRule = {
     const report = node => context.report({ node, messageId: 'forbidden' })
     const isXlsx = source => typeof source?.value === 'string' && /(^xlsx(?:\/|$)|sheetjs|xlsx\.(?:mjs|js))/.test(source.value)
     const rejectImport = node => { if (isXlsx(node.source)) report(node) }
-    return {
+    const scriptVisitor = {
       ImportDeclaration: rejectImport,
       ExportNamedDeclaration: rejectImport,
       ExportAllDeclaration: rejectImport,
+      TSImportEqualsDeclaration(node) {
+        if (isXlsx(node.moduleReference.expression)) report(node)
+      },
       CallExpression(node) {
         if (node.callee.name !== 'require') return
         if (typeof node.arguments[0]?.value !== 'string') context.report({ node, messageId: 'dynamic' })
@@ -69,6 +72,21 @@ export const writeOnlyRule = {
         }
       },
     }
+    return context.sourceCode.parserServices.defineTemplateBodyVisitor({
+      // 模板引用不属于脚本作用域 references；禁止模块通过事件或 props 逃逸。
+      VExpressionContainer(node) {
+        const names = new Set(bindings.map(binding => binding.id.name))
+        for (const reference of node.references) {
+          if (!reference.variable && names.has(reference.id.name)) report(reference.id)
+        }
+      },
+      ImportExpression(node) {
+        if (typeof node.source.value !== 'string') context.report({ node, messageId: 'dynamic' })
+        else if (isXlsx(node.source)) report(node)
+      },
+      CallExpression: scriptVisitor.CallExpression,
+      MemberExpression: scriptVisitor.MemberExpression,
+    }, scriptVisitor)
   },
 }
 

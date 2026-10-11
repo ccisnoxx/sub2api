@@ -219,11 +219,12 @@ def main() -> int:
     missing_exceptions = []
 
     # 每条发现都核对路径，不能按 advisory 去重而漏掉另一条依赖路径。
-    seen = set()
+    observed_counts = {severity: 0 for severity in HIGH_SEVERITIES}
     for name, severity, advisory_id, title, findings in iter_vulns(audit):
         sev = normalize_severity(severity)
         if sev not in HIGH_SEVERITIES:
             continue
+        observed_counts[sev] += 1
         if not name:
             errors.append("高危漏洞缺少包名。")
             continue
@@ -234,7 +235,6 @@ def main() -> int:
             )
             continue
         key = (normalize_package(name), advisory_key)
-        seen.add(key)
         exc = exception_index.get(key)
         if exc is None:
             missing_exceptions.append((name, sev, advisory_id, title))
@@ -253,8 +253,11 @@ def main() -> int:
         ):
             errors.append(f"例外版本或依赖路径不匹配：{name} [{advisory_id}]")
 
-    if (counts["high"] or counts["critical"]) and not seen:
-        errors.append("审计报告声称存在高危漏洞，但缺少可验证的漏洞明细。")
+    # pnpm 9 的严重等级计数对应 advisory 明细条数，分别核对以防部分报告漏项。
+    for severity in HIGH_SEVERITIES:
+        if counts[severity] != observed_counts[severity]:
+            errors.append(f"审计报告 {severity} 计数与可验证明细不一致："
+                          f"{counts[severity]} != {observed_counts[severity]}")
 
     if missing_exceptions:
         errors.append("High/Critical vulnerabilities missing exceptions:")

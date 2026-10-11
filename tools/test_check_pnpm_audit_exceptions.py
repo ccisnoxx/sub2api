@@ -114,6 +114,16 @@ class AuditExceptionPolicyTest(unittest.TestCase):
         report = {"advisories": {}, "metadata": {"vulnerabilities": {"high": 0, "critical": 0}}}
         self.assertEqual(self.run_checker(audit=report, exceptions=[]).returncode, 0)
 
+    def test_high_details_do_not_hide_missing_critical_details(self):
+        self.audit["metadata"]["vulnerabilities"]["critical"] = 1
+        self.assertNotEqual(self.run_checker().returncode, 0)
+
+    def test_severity_counts_must_match_details(self):
+        for high in (0, 2):
+            with self.subTest(high=high):
+                self.audit["metadata"]["vulnerabilities"]["high"] = high
+                self.assertNotEqual(self.run_checker().returncode, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
