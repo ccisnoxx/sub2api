@@ -15,7 +15,10 @@ import (
 const statusLockID int64 = 7343400301
 const statusBoundedNotice = "仅描述本部署已观察请求；日志缺失、被过滤或丢弃及超出十分钟重算/九十分钟关联边界的迟到记录无法重建。"
 
-type serviceStatusRepository struct{ db *sql.DB }
+type serviceStatusRepository struct {
+	db      *sql.DB
+	monitor statusMonitor
+}
 
 func NewServiceStatusRepository(db *sql.DB) service.ServiceStatusRepository {
 	return &serviceStatusRepository{db: db}
@@ -131,6 +134,14 @@ func (r *serviceStatusRepository) UpdateConfig(ctx context.Context, c *service.S
 }
 
 func (r *serviceStatusRepository) Aggregate(ctx context.Context, now time.Time) (result error) {
+	stats := statusAggregateStats{started: time.Now(), stage: "begin", outcome: "failed"}
+	defer func() {
+		r.monitor.reportAggregate(stats, result, ctx.Err())
+		// 容量采样在业务事务结束后执行；采样失败不改变已提交的事实或水位。
+		if stats.outcome != "lock_skipped" && ctx.Err() == nil {
+			r.sampleStatusCapacity(ctx)
+		}
+	}()
 	// 错误记录独立于已回滚事务，只保存固定码；失败从不刷新成功水位。
 	defer func() {
 		if result == nil {
@@ -151,29 +162,40 @@ func (r *serviceStatusRepository) Aggregate(ctx context.Context, now time.Time) 
 		return service.ErrServiceStatusUnavailable
 	}
 	defer func() { _ = tx.Rollback() }()
+	stats.stage = "lock"
 	var acquired bool
 	if err = tx.QueryRowContext(ctx, `SELECT pg_try_advisory_xact_lock($1)`, statusLockID).Scan(&acquired); err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
 	if !acquired {
+		stats.outcome = "lock_skipped"
 		return nil
 	}
+	stats.stage = "config"
 	cfg, err := loadStatusConfig(ctx, tx, true)
 	if err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
-	if err = pruneStatus(ctx, tx, now); err != nil {
+	stats.stage = "cleanup"
+	stats.cleanupStarted = true
+	cleanupStart := time.Now()
+	stats.deleted, err = pruneStatus(ctx, tx, now)
+	stats.cleanupDuration = time.Since(cleanupStart)
+	if err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
 	if !cfg.Enabled || len(cfg.Platforms) == 0 {
+		stats.stage = "commit"
 		if err = tx.Commit(); err != nil {
 			return service.ErrServiceStatusUnavailable
 		}
+		stats.outcome = "disabled"
 		return nil
 	}
 	end := now.UTC().Truncate(time.Minute)
 	start := end.Add(-10 * time.Minute)
 	var previousThrough *time.Time
+	stats.stage = "watermark"
 	if err = tx.QueryRowContext(ctx, `SELECT observed_through FROM service_status_watermark WHERE id=1`).Scan(&previousThrough); err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
@@ -185,15 +207,21 @@ func (r *serviceStatusRepository) Aggregate(ctx context.Context, now time.Time) 
 			goto scan
 		}
 	}
+	stats.stage = "commit"
 	if err = tx.Commit(); err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
+	stats.outcome = "awaiting_epoch"
 	return nil
 scan:
+	stats.stage = "scan"
 	rows, err := loadStatusSources(ctx, tx, start.Add(-90*time.Minute), now)
+	stats.sourceRows = int64(len(rows))
 	if err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
+	stats.scanCompleted = true
+	stats.stage = "normalize"
 	observations, err := normalizeStatusRows(rows, start, end, cfg.epochs)
 	if err != nil {
 		return err
@@ -206,6 +234,7 @@ scan:
 	if service.ServiceStatusSourceErrorSince(start) || (sourceErrorAt != nil && !sourceErrorAt.Before(start)) {
 		sourceGap = "source_error"
 	}
+	stats.stage = "facts"
 	for p, epoch := range cfg.epochs {
 		from := start
 		if epoch.After(from) {
@@ -230,7 +259,9 @@ scan:
 	if _, err = tx.ExecContext(ctx, `DELETE FROM service_status_facts_1m WHERE platform='' AND bucket_start >= $1 AND bucket_start < $2`, minEpoch, end); err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
-	for _, f := range statusFacts(observations) {
+	facts := statusFacts(observations)
+	stats.factsWritten = int64(len(facts))
+	for _, f := range facts {
 		if sourceGap != "" {
 			f.gap = sourceGap
 		}
@@ -249,31 +280,40 @@ scan:
 	}
 	coverage = updateStatusCoverage(coverage, cfg.epochs, start, end, now.Add(-31*24*time.Hour), sourceGap == "")
 	encoded, _ := json.Marshal(coverage)
+	stats.stage = "incidents"
 	if err = advanceStatusScopes(ctx, tx, cfg, end, sourceGap, coverage); err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
+	stats.stage = "watermark"
 	_, err = tx.ExecContext(ctx, `UPDATE service_status_watermark SET observed_through=$1,config_version=$2,coverage=$3,gap_code=$4,last_error_code='' WHERE id=1`, end, cfg.Version, string(encoded), sourceGap)
 	if err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
+	stats.stage = "commit"
 	if err = tx.Commit(); err != nil {
 		return service.ErrServiceStatusUnavailable
 	}
+	stats.outcome = "success"
 	return nil
 }
 
-func pruneStatus(ctx context.Context, tx *sql.Tx, now time.Time) error {
+func pruneStatus(ctx context.Context, tx *sql.Tx, now time.Time) (deleted [3]int64, err error) {
 	cutoff := now.Add(-31 * 24 * time.Hour)
-	for _, query := range []string{
+	for i, query := range []string{
 		`DELETE FROM service_status_facts_1m WHERE bucket_start < $1`,
 		`DELETE FROM service_status_incidents WHERE resolved_at < $1`,
 		`DELETE FROM service_status_scope_states s WHERE last_observation_at < $1 AND NOT EXISTS(SELECT 1 FROM service_status_incidents i WHERE i.platform=s.platform AND i.group_id=s.group_id AND i.requested_model=s.requested_model AND i.resolved_at IS NULL)`,
 	} {
-		if _, err := tx.ExecContext(ctx, query, cutoff); err != nil {
-			return err
+		result, execErr := tx.ExecContext(ctx, query, cutoff)
+		if execErr != nil {
+			return deleted, execErr
+		}
+		deleted[i], err = result.RowsAffected()
+		if err != nil {
+			return deleted, err
 		}
 	}
-	return nil
+	return deleted, nil
 }
 func loadStatusSources(ctx context.Context, tx *sql.Tx, start, end time.Time) ([]statusSourceRow, error) {
 	// 普通组平台由组定义，复合组必须有实际最终账号平台；没有账号不猜测。
