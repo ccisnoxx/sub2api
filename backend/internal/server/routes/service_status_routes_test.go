@@ -19,7 +19,7 @@ func TestServiceStatusRoutesInheritAdminAuthentication(t *testing.T) {
 	admin.Use(gin.HandlerFunc(middleware.NewAdminAuthMiddleware(nil, nil, nil, nil)))
 	registerServiceStatusRoutes(admin, &handler.Handlers{
 		ServiceStatus: handler.NewServiceStatusHandler(service.NewServiceStatusService(nil)),
-	})
+	}, nil)
 	for _, tc := range []struct{ method, path string }{
 		{http.MethodGet, "/api/v1/admin/service-status/config"},
 		{http.MethodPut, "/api/v1/admin/service-status/config"},
@@ -47,7 +47,7 @@ func TestServiceStatusRoutesRejectOrdinarySubject(t *testing.T) {
 	})
 	registerServiceStatusRoutes(admin, &handler.Handlers{
 		ServiceStatus: handler.NewServiceStatusHandler(service.NewServiceStatusService(nil)),
-	})
+	}, nil)
 	for _, path := range []string{"config", "snapshot"} {
 		r := httptest.NewRecorder()
 		router.ServeHTTP(r, httptest.NewRequest(http.MethodGet, "/api/v1/admin/service-status/"+path, nil))

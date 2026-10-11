@@ -55,6 +55,8 @@
           </dl>
         </section>
 
+        <p v-if="snapshot.privacy_suppressed" role="status" class="text-sm text-gray-500">{{ t('admin.serviceStatus.privacyNotice', { minimum: snapshot.privacy_minimum_samples }) }}</p>
+
         <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3" :aria-label="t('admin.serviceStatus.platform')">
           <article v-for="item in snapshot.platforms" :key="item.platform" class="card p-4">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -329,7 +331,7 @@ function healthClass(value: string) {
   return 'bg-gray-100 text-gray-600 dark:bg-dark-700 dark:text-gray-300'
 }
 function historyUnknown(value: ServiceStatusHistoryPoint) {
-  return !value.covered || !!value.unknown_reason || value.unknown > 0 || value.success_rate === null || value.error_rate === null
+  return !value.covered || !!value.unknown_reason || (value.unknown ?? 0) > 0 || value.success_rate === null || value.error_rate === null
 }
 
 watch([platform, range], () => { void loadSnapshot() })

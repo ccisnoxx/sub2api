@@ -5,6 +5,7 @@ import OpsRoutingDiagnosticsPanel from '../OpsRoutingDiagnosticsPanel.vue'
 import type { OpsErrorDetail, OpsRoutingDiagnostics } from '@/api/admin/ops'
 
 const mocks = vi.hoisted(() => ({
+  getRoutingDiagnostics: vi.fn(),
   getRequestErrorDetail: vi.fn(),
   getUpstreamErrorDetail: vi.fn(),
   listRequestErrorUpstreamErrors: vi.fn()
@@ -12,6 +13,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@/api/admin/ops', () => ({
   opsAPI: {
+    getRoutingDiagnostics: mocks.getRoutingDiagnostics,
     getRequestErrorDetail: mocks.getRequestErrorDetail,
     getUpstreamErrorDetail: mocks.getUpstreamErrorDetail,
     listRequestErrorUpstreamErrors: mocks.listRequestErrorUpstreamErrors
@@ -31,6 +33,8 @@ vi.mock('vue-i18n', async (importOriginal) => {
 })
 
   beforeEach(() => {
+    mocks.getRoutingDiagnostics.mockReset()
+    mocks.getRoutingDiagnostics.mockResolvedValue(null)
     mocks.getRequestErrorDetail.mockReset()
     mocks.getUpstreamErrorDetail.mockReset()
     mocks.listRequestErrorUpstreamErrors.mockReset()
@@ -113,6 +117,7 @@ it('passes only the current single-detail snapshot and retains classification', 
   const diagnostics: OpsRoutingDiagnostics = { schema_version: 1, turn: null, selection_attempt: 1,
     candidate_pool: 0, filtered_candidates: 0, filter_reasons: {}, filter_coverage: 'complete',
     selection_layer: 'load_balance', selection_reason: 'pool_empty' }
+  mocks.getRoutingDiagnostics.mockResolvedValue(diagnostics)
   mocks.getRequestErrorDetail.mockResolvedValue({ id: 1, phase: 'routing', error_owner: 'platform', error_source: 'gateway', routing_diagnostics: diagnostics })
   const wrapper = mountDetail()
   await flushPromises()
@@ -166,4 +171,31 @@ it('ignores late correlated rows after switching errors', async () => {
   await flushPromises()
   expect(wrapper.text()).toContain('current correlated')
   expect(wrapper.text()).not.toContain('previous correlated')
+})
+
+it.each([404, 429, 503])('保留故障详情并提示独立诊断读取失败：%s', async status => {
+  mocks.getRequestErrorDetail.mockResolvedValue({ id: 1, message: 'original failure remains' })
+  mocks.getRoutingDiagnostics.mockRejectedValue({ response: { status } })
+  const wrapper = mountDetail()
+  await flushPromises()
+  expect(wrapper.text()).toContain('original failure remains')
+  expect(wrapper.text()).toContain('admin.ops.errorDetail.routingDiagnostics.unavailable')
+  expect(wrapper.findComponent(OpsRoutingDiagnosticsPanel).exists()).toBe(false)
+  wrapper.unmount()
+})
+
+it('切换记录后忽略旧诊断晚响应', async () => {
+  const first = deferred<OpsRoutingDiagnostics>()
+  mocks.getRequestErrorDetail.mockResolvedValue({ id: 2, message: 'current failure' })
+  mocks.getRoutingDiagnostics.mockReturnValueOnce(first.promise).mockResolvedValueOnce(null)
+  const wrapper = mountDetail()
+  await wrapper.setProps({ errorId: 2 })
+  await flushPromises()
+  first.resolve({ schema_version: 1, turn: null, selection_attempt: 99,
+    candidate_pool: 0, filtered_candidates: 0, filter_reasons: {}, filter_coverage: 'complete',
+    selection_layer: 'load_balance', selection_reason: 'pool_empty' })
+  await flushPromises()
+  expect(wrapper.findComponent(OpsRoutingDiagnosticsPanel).props('diagnostics')).toBeNull()
+  expect(wrapper.text()).toContain('current failure')
+  wrapper.unmount()
 })

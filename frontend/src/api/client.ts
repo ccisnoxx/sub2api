@@ -51,8 +51,10 @@ apiClient.interceptors.request.use(
       config.headers['Accept-Language'] = getLocale()
     }
 
-    // 服务状态使用 UTC 且拒绝额外查询参数；其他 GET 保留客户端时区。
-    if (config.method === 'get' && !['/admin/service-status/config', '/admin/service-status/snapshot'].includes(config.url ?? '')) {
+    // 诊断入口拒绝额外查询参数，服务状态以 UTC 聚合；其他 GET 保留客户端时区。
+    const utcDiagnostics = ['/admin/service-status/config', '/admin/service-status/snapshot'].includes(config.url ?? '') ||
+      /^\/admin\/ops\/errors\/\d+\/routing-diagnostics$/.test(config.url ?? '')
+    if (config.method === 'get' && !utcDiagnostics) {
       if (!config.params) {
         config.params = {}
       }

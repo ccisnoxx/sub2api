@@ -3,6 +3,8 @@ package middleware
 import (
 	"bytes"
 	"io"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -58,6 +60,7 @@ var auditExtraAllowedKeys = map[string]struct{}{
 	"http_status": {}, "latency_ms": {}, "token_applied": {}, "retryable": {},
 	"event_id": {}, "requested_count": {}, "deleted_events": {}, "deleted_jobs": {},
 	"matched_count": {}, "snapshot_max_id": {}, "filter_hash": {}, "confirm": {},
+	"minimum_samples": {}, "history_range": {}, "privacy_suppressed": {},
 }
 
 // SetAuditExtra adds allowlisted, scalar details to the current audit entry.
@@ -109,19 +112,23 @@ func truncateAuditExtraString(value string, limit int) string {
 
 // auditSensitiveReads 需要审计的敏感 GET 读取（method+FullPath → 动作名）。
 var auditSensitiveReads = map[string]string{
-	"GET /api/v1/admin/accounts/data":             "admin.accounts.export",
-	"GET /api/v1/admin/proxies/data":              "admin.proxies.export",
-	"GET /api/v1/admin/redeem-codes/export":       "admin.redeem_codes.export",
-	"GET /api/v1/admin/backups/:id/download-url":  "admin.backups.download",
-	"GET /api/v1/admin/settings/admin-api-key":    "admin.admin_api_key.read",
-	"GET /api/v1/admin/users/:id/api-keys":        "admin.users.api_keys.read",
-	"GET /api/v1/admin/groups/:id/api-keys":       "admin.groups.api_keys.read",
-	"GET /api/v1/admin/backups/s3-config":         "admin.backups.s3_config.read",
-	"GET /api/v1/admin/data-management/s3/config": "admin.data_management.s3_config.read",
+	"GET /api/v1/admin/service-status/config":              "admin.service_status.config.read",
+	"GET /api/v1/admin/service-status/snapshot":            "admin.service_status.snapshot.read",
+	"GET /api/v1/admin/ops/errors/:id/routing-diagnostics": "admin.ops.routing_diagnostics.read",
+	"GET /api/v1/admin/accounts/data":                      "admin.accounts.export",
+	"GET /api/v1/admin/proxies/data":                       "admin.proxies.export",
+	"GET /api/v1/admin/redeem-codes/export":                "admin.redeem_codes.export",
+	"GET /api/v1/admin/backups/:id/download-url":           "admin.backups.download",
+	"GET /api/v1/admin/settings/admin-api-key":             "admin.admin_api_key.read",
+	"GET /api/v1/admin/users/:id/api-keys":                 "admin.users.api_keys.read",
+	"GET /api/v1/admin/groups/:id/api-keys":                "admin.groups.api_keys.read",
+	"GET /api/v1/admin/backups/s3-config":                  "admin.backups.s3_config.read",
+	"GET /api/v1/admin/data-management/s3/config":          "admin.data_management.s3_config.read",
 }
 
 // auditActionOverrides 变更类请求的动作名精确映射（未命中时自动推导）。
 var auditActionOverrides = map[string]string{
+	"PUT /api/v1/admin/service-status/config":                 "admin.service_status.config.update",
 	"POST /api/v1/auth/login":                                 service.AuditActionLogin,
 	"POST /api/v1/auth/login/2fa":                             service.AuditActionLogin2FA,
 	"POST /api/v1/auth/passkey/login/finish":                  service.AuditActionLogin,
@@ -147,6 +154,7 @@ var auditActionOverrides = map[string]string{
 // auditBodyOmittedRoutes 请求体几乎整体由凭证构成的路由（如整块粘贴 auth JSON 的导入接口）。
 // 这类 body 的凭证内嵌在普通字符串值里，键级脱敏无法覆盖，整体不入库。
 var auditBodyOmittedRoutes = map[string]struct{}{
+	"PUT /api/v1/admin/service-status/config":                   {},
 	"POST /api/v1/auth/passkey/login/finish":                    {},
 	"POST /api/v1/user/passkeys/register/finish":                {},
 	"POST /api/v1/admin/accounts/import/codex-session":          {},
@@ -184,6 +192,15 @@ func NewAuditLogMiddleware(auditService *service.AuditLogService) AuditLogMiddle
 		if !record {
 			c.Next()
 			return
+		}
+		if c.Request.Method == http.MethodGet && (c.FullPath() == "/api/v1/admin/service-status/snapshot" || c.FullPath() == "/api/v1/admin/ops/errors/:id/routing-diagnostics") {
+			values, _ := url.ParseQuery(c.Request.URL.RawQuery)
+			for _, key := range []string{"export", "format", "download"} {
+				if values.Has(key) {
+					action = "admin.diagnostics.export.denied"
+					break
+				}
+			}
 		}
 
 		// 捕获请求体（读出后回填，避免影响后续 ShouldBindJSON）。
@@ -278,14 +295,18 @@ func NewAuditLogMiddleware(auditService *service.AuditLogService) AuditLogMiddle
 				}
 			}
 		}
-		if len(c.Params) > 0 {
+		// 诊断路径的未校验参数可能含原始请求或凭据，不能复制进审计。
+		diagnosticsRoute := strings.HasPrefix(c.FullPath(), "/api/v1/admin/service-status/") ||
+			c.FullPath() == "/api/v1/admin/ops/errors/:id/routing-diagnostics"
+		if len(c.Params) > 0 && !diagnosticsRoute {
 			params := make(map[string]string, len(c.Params))
 			for _, p := range c.Params {
 				params[p.Key] = p.Value
 			}
 			extra["params"] = params
 		}
-		if q := service.RedactAuditQuery(c.Request.URL.RawQuery); q != "" {
+		// 诊断拒绝的任意 query 也可能携带请求正文，只记录 handler 提供的白名单摘要。
+		if q := service.RedactAuditQuery(c.Request.URL.RawQuery); q != "" && !diagnosticsRoute {
 			extra["query"] = q
 		}
 		if len(extra) > 0 {

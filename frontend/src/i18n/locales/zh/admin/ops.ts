@@ -359,6 +359,7 @@ export default {
         rootCause: '根因',
         diagnosticPayloads: '诊断载荷',
         routingDiagnostics: {
+          "unavailable": "路由诊断暂时无法读取，原故障详情仍可查看。",
           "title": "路由选择诊断",
           "missing": "未记录本次选择快照；历史记录或未接入入口不代表候选池为空。",
           "unsupported": "当前页面无法解释此版本的选择快照。",

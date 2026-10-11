@@ -83,7 +83,7 @@ func RegisterAdminRoutes(
 		registerBackupRoutes(admin, h, stepUpAuth)
 
 		// 运维监控（Ops）
-		registerOpsRoutes(admin, h)
+		registerOpsRoutes(admin, h, panelRateLimiter)
 
 		// 系统管理
 		registerSystemRoutes(admin, h)
@@ -120,7 +120,7 @@ func RegisterAdminRoutes(
 		registerChannelMonitorV2Routes(admin, h, settingService)
 
 		// 真实请求服务状态使用独立配置，继承管理员认证、限流与审计。
-		registerServiceStatusRoutes(admin, h)
+		registerServiceStatusRoutes(admin, h, panelRateLimiter)
 
 		// 风控中心
 		registerContentModerationRoutes(admin, h)
@@ -191,7 +191,7 @@ func registerAdminAPIKeyRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 	}
 }
 
-func registerOpsRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+func registerOpsRoutes(admin *gin.RouterGroup, h *handler.Handlers, limiter *middleware.PanelRateLimiter) {
 	ops := admin.Group("/ops")
 	{
 		// Realtime ops signals
@@ -244,6 +244,7 @@ func registerOpsRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		// Error logs (legacy)
 		ops.GET("/errors", h.Admin.Ops.GetErrorLogs)
 		ops.GET("/errors/:id", h.Admin.Ops.GetErrorLogByID)
+		ops.GET("/errors/:id/routing-diagnostics", limiter.Diagnostics(), h.Admin.Ops.GetRoutingDiagnostics)
 		ops.PUT("/errors/:id/resolve", h.Admin.Ops.UpdateErrorResolution)
 
 		// Request errors (client-visible failures)
@@ -904,8 +905,9 @@ func channelMonitorModeV2Guard(settingService *service.SettingService) gin.Handl
 	}
 }
 
-func registerServiceStatusRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+func registerServiceStatusRoutes(admin *gin.RouterGroup, h *handler.Handlers, limiter *middleware.PanelRateLimiter) {
 	status := admin.Group("/service-status")
+	status.Use(limiter.Diagnostics())
 	status.GET("/config", h.ServiceStatus.GetConfig)
 	status.PUT("/config", h.ServiceStatus.UpdateConfig)
 	status.GET("/snapshot", h.ServiceStatus.Snapshot)

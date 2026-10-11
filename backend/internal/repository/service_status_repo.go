@@ -446,7 +446,9 @@ func (r *serviceStatusRepository) Snapshot(ctx context.Context, historyRange, pl
 		}
 	}
 	s := &service.ServiceStatusSnapshot{SchemaVersion: 1, ConfigVersion: cfg.Version, GeneratedAt: now, MonitoringEnabled: true, EnabledPlatforms: platforms, Coverage: []service.ServiceStatusCoverage{}, Gaps: []string{}, Platforms: []service.ServiceStatusPlatform{}, Scopes: []service.ServiceStatusLeaf{}, History: []service.ServiceStatusHistoryPoint{}, Incidents: []service.ServiceStatusIncident{}, BoundedObservationNotice: statusBoundedNotice}
-	s.HistoryRange = service.ServiceStatusInterval{Start: now.Truncate(time.Minute).Add(-duration), End: now.Truncate(time.Minute)}
+	s.MinimumSamples = cfg.MinimumSamples
+	// 历史只提供固定 UTC 小时边界，避免通过分钟偏移反复相减小样本。
+	s.HistoryRange = service.ServiceStatusInterval{Start: now.Truncate(time.Hour).Add(-duration), End: now.Truncate(time.Hour)}
 	var coverageRaw []byte
 	var gap, lastError string
 	var sourceErrorAt *time.Time

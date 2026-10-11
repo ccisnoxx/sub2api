@@ -3,6 +3,7 @@ import type { AxiosAdapter, InternalAxiosRequestConfig } from 'axios'
 import { AxiosError } from 'axios'
 import { apiClient } from '../client'
 import { getConfig, getSnapshot, updateConfig, type ServiceStatusConfig } from '../admin/serviceStatus'
+import { getRoutingDiagnostics } from '../admin/ops'
 
 const originalAdapter = apiClient.defaults.adapter
 const config: ServiceStatusConfig = {
@@ -18,6 +19,12 @@ function installAdapter(handler: (request: InternalAxiosRequestConfig) => unknow
 }
 
 describe('独立服务状态 API 的实际 Axios 合同', () => {
+  it('独立路由诊断只发送单记录 URL，不附加时区或导出参数', async () => {
+    let url = ''
+    installAdapter(request => { url = apiClient.getUri(request); return null })
+    expect(await getRoutingDiagnostics(17)).toBeNull()
+    expect(url).toMatch(/\/admin\/ops\/errors\/17\/routing-diagnostics$/)
+  })
   it('默认与单平台快照仅发送 range/platform，不注入 timezone 或主体范围', async () => {
     const urls: string[] = []
     installAdapter(request => { urls.push(apiClient.getUri(request)); return { health: 'unknown' } })

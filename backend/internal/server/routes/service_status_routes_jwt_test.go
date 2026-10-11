@@ -54,7 +54,7 @@ func TestServiceStatusRoutesActualAdminJWTBoundary(t *testing.T) {
 	RegisterAdminRoutes(router.Group("/api/v1"), &handler.Handlers{Admin: &handler.AdminHandlers{}, ServiceStatus: handler.NewServiceStatusHandler(service.NewServiceStatusService(store))},
 		middleware.NewAdminAuthMiddleware(auth, service.NewUserService(users, nil, nil, nil), nil, nil),
 		middleware.AuditLogMiddleware(func(c *gin.Context) { c.Next() }),
-		middleware.StepUpAuthMiddleware(func(c *gin.Context) { c.Next() }), nil, nil)
+		middleware.StepUpAuthMiddleware(func(c *gin.Context) { c.Next() }), nil, diagnosticsTestLimiter(t))
 	validConfig := `{"version":1,"enabled":false,"platforms":[],"minimum_samples":5,"warning_error_rate":0.05,"outage_error_rate":0.9,"abnormal_windows":2,"recovery_windows":3}`
 	for _, endpoint := range []struct{ method, path, body string }{
 		{http.MethodGet, "/api/v1/admin/service-status/config", ""},

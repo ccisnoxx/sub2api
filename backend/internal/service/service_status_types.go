@@ -76,6 +76,7 @@ type ServiceStatusPlatform struct {
 	ServiceStatusMetrics
 }
 type ServiceStatusSnapshot struct {
+	MinimumSamples           int                         `json:"-"`
 	SchemaVersion            int                         `json:"schema_version"`
 	ConfigVersion            int64                       `json:"config_version"`
 	GeneratedAt              time.Time                   `json:"generated_at"`

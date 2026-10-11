@@ -26,7 +26,7 @@ function snapshot(model = 'visible-model'): ServiceStatusSnapshot {
   const metrics = { success: 5, failure: 0, excluded: 1, unknown: 0, qualified: 5, error_rate: 0, success_rate: 1 }
   const scope = { platform: 'openai', group_id: 2, group_name: 'Active group', requested_model: model }
   return {
-    schema_version: 1, config_version: 4, generated_at: time, observed_through: time,
+    privacy_minimum_samples: 5, privacy_suppressed: false, schema_version: 2, config_version: 4, generated_at: time, observed_through: time,
     window: { start: '2026-10-09T11:55:00Z', end: time }, history_range: { start: '2026-10-08T12:00:00Z', end: time },
     monitoring_enabled: true, enabled_platforms: ['openai', 'grok'], health: 'degraded', coverage: [], gaps: [],
     platforms: [{ platform: 'openai', health: 'operational', ...metrics }],
@@ -63,6 +63,19 @@ beforeEach(() => {
 afterEach(() => { wrapper?.unmount() })
 
 describe('管理员服务状态的可见合同', () => {
+  it('隐私裁剪的 null 计数保持隐藏，并说明有效样本门槛', async () => {
+    const privateSnapshot = snapshot()
+    privateSnapshot.privacy_suppressed = true
+    privateSnapshot.privacy_minimum_samples = 10
+    privateSnapshot.platforms[0] = { ...privateSnapshot.platforms[0]!, success: null, failure: null, excluded: null, unknown: null, qualified: null, success_rate: null, error_rate: null }
+    privateSnapshot.scopes = []; privateSnapshot.history = []; privateSnapshot.incidents = []
+    api.getSnapshot.mockResolvedValue(privateSnapshot)
+    open('en'); await flushPromises()
+    expect(wrapper.text()).toContain('— (privacy protected)')
+    expect(wrapper.text()).toContain('fewer than 10 qualified samples')
+    expect(wrapper.text()).not.toContain('100.0%')
+    expect(wrapper.text()).not.toContain('visible-model')
+  })
   it.each([[false, false], [true, false]])('认证 %s / 管理员 %s 时禁止读取配置与快照', async (authenticated, admin) => {
     state.isAuthenticated = authenticated; state.isAdmin = admin
     open(); await flushPromises()
