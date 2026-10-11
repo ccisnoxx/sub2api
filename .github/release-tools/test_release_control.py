@@ -29,11 +29,11 @@ class ReleaseControlTest(unittest.TestCase):
 
     def test_formal_guard_is_transported_from_main_and_rechecked_before_each_publisher(self):
         prepare = self.release["jobs"]["prepare"]["steps"]
-        control = next(i for i, s in enumerate(prepare) if s.get("name") == "Checkout publication guard from main")
+        control = next(i for i, s in enumerate(prepare) if s.get("name") == "Checkout workflow tooling")
         save = next(i for i, s in enumerate(prepare) if s.get("name") == "Preserve trusted publication guard")
         source = next(i for i, s in enumerate(prepare) if s.get("name") == "Checkout selected application source")
-        self.assertEqual(prepare[control]["with"]["ref"], "main")
-        self.assertEqual(prepare[control]["if"], "env.DRY_RUN != 'true'")
+        self.assertEqual(prepare[control]["with"]["ref"], "${{ env.DRY_RUN == 'true' && github.sha || 'main' }}")
+        self.assertEqual(prepare[save]["if"], "env.DRY_RUN != 'true'")
         self.assertIs(prepare[control]["with"]["persist-credentials"], False)
         self.assertLess(control, save)
         self.assertLess(save, source)
@@ -61,19 +61,24 @@ class ReleaseControlTest(unittest.TestCase):
     def test_saved_main_guard_ignores_application_owned_replacement_scripts(self):
         preserve = next(s for s in self.release["jobs"]["prepare"]["steps"]
                         if s.get("name") == "Preserve trusted publication guard")
+        helpers = next(s for s in self.release["jobs"]["prepare"]["steps"]
+                       if s.get("name") == "Preserve tooling for releases of older tags")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for name in ("release-tools", "personal-sync"):
-                shutil.copytree(ROOT / ".github" / name, root / ".release-control/.github" / name,
+                shutil.copytree(ROOT / ".github" / name, root / ".github" / name,
                                 ignore=shutil.ignore_patterns("__pycache__"))
-            control = root / ".release-control"
+            control = root
             subprocess.run(["git", "init", "-q", str(control)], check=True, capture_output=True)
             subprocess.run(["git", "-C", str(control), "add", "."], check=True, capture_output=True)
             subprocess.run(["git", "-C", str(control), "-c", "user.name=CI", "-c", "user.email=ci@example.invalid",
                             "commit", "-qm", "控制面测试夹具"], check=True, capture_output=True)
             env = {"PATH": os.environ["PATH"], "RUNNER_TEMP": str(root / "runner")}
+            (root / "runner").mkdir()
+            subprocess.run(["bash", "-e", "-c", helpers["run"]], cwd=root, env=env, check=True, capture_output=True)
             subprocess.run(["bash", "-e", "-c", preserve["run"]], cwd=root, env=env, check=True, capture_output=True)
-            for name, script in (("release-tools", "personal_release.py"), ("personal-sync", "sync.py")):
+            for name, script in (("release-tools", "personal_release.py"), ("personal-sync", "sync.py"),
+                                 ("release-tools", "release_matrix.py"), ("release-tools", "supply_chain.py")):
                 target = root / ".github" / name / script
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text('raise SystemExit("应用脚本被执行")\n')
@@ -82,6 +87,11 @@ class ReleaseControlTest(unittest.TestCase):
                                     text=True, capture_output=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("authorize", result.stdout)
+            self.assertEqual(guard.read_bytes(), (ROOT / ".github/release-tools/personal_release.py").read_bytes())
+            for helper in ("release_matrix.py", "supply_chain.py"):
+                result = subprocess.run([sys.executable, str(root / "runner/release-tools" / helper), "--help"],
+                                        cwd=root, env=env, text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(guard.read_bytes(), (ROOT / ".github/release-tools/personal_release.py").read_bytes())
             expected = subprocess.check_output(["git", "-C", str(control), "rev-parse", "HEAD"], text=True).strip()
             self.assertEqual((root / "runner/release-guard/control-sha").read_text().strip(), expected)

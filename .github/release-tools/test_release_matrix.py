@@ -146,7 +146,7 @@ class ReleaseMatrixTest(unittest.TestCase):
         self.assertEqual(len(json.loads(output['matrix'])['include']), 5)
 
     def image_commands(self, simple=False, dry_run=False, personal=False, reuse=False, gate_fail=False, proof_fail=False,
-                       gate_fail_at=0, digest_changed=False):
+                       gate_fail_at=0, digest_changed=False, script_path=None):
         fake_bin = Path('bin')
         fake_bin.mkdir(exist_ok=True)
         (Path(self.temp.name) / 'release-tools').mkdir(exist_ok=True)
@@ -193,7 +193,7 @@ else:
                'GATE_FAIL_AT': str(gate_fail_at), 'DIGEST_CHANGED': str(digest_changed).lower()}
         for name in ('GH_TOKEN', 'GITHUB_TOKEN', 'DOCKERHUB_TOKEN'):
             env.pop(name, None)
-        result = subprocess.run(['bash', str(ROOT / '.github/release-tools/release-images.sh')], env=env,
+        result = subprocess.run(['bash', str(script_path or ROOT / '.github/release-tools/release-images.sh')], env=env,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         return result, log_path.read_text()
 
@@ -265,6 +265,19 @@ else:
         self.assertNotIn('authorize', log)
         self.assertNotIn('verify-image', log)
         self.assertNotIn('oras ', log)
+
+    def test_transported_main_image_helper_ignores_application_replacement(self):
+        tools = Path(self.temp.name) / 'transported-main'
+        tools.mkdir()
+        script = tools / 'release-images.sh'
+        shutil.copy2(ROOT / '.github/release-tools/release-images.sh', script)
+        app = Path('.github/release-tools')
+        app.mkdir(parents=True)
+        (app / 'release-images.sh').write_text('#!/bin/sh\necho 应用控制脚本被执行 >&2\nexit 91\n')
+        result, log = self.image_commands(simple=True, personal=True, script_path=script)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('oras tag', log)
+        self.assertEqual(log.splitlines().count('authorize'), 2)
 
 
 if __name__ == '__main__':

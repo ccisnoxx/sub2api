@@ -65,26 +65,19 @@ jobs:
       - name: Checkout workflow tooling
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ env.DRY_RUN == 'true' && github.sha || 'main' }}
           persist-credentials: false
       - name: Preserve tooling for releases of older tags
         run: |
           cp -R .github/release-tools "$RUNNER_TEMP/release-tools"
           cp -R .github/personal-sync "$RUNNER_TEMP/personal-sync"
-      - name: Checkout publication guard from main
-        if: env.DRY_RUN != 'true'
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-        with:
-          ref: main
-          path: .release-control
-          persist-credentials: false
       - name: Preserve trusted publication guard
         if: env.DRY_RUN != 'true'
         run: |
           mkdir -p "$RUNNER_TEMP/release-guard"
-          cp -R .release-control/.github/release-tools "$RUNNER_TEMP/release-guard/release-tools"
-          cp -R .release-control/.github/personal-sync "$RUNNER_TEMP/release-guard/personal-sync"
-          git -C .release-control rev-parse HEAD > "$RUNNER_TEMP/release-guard/control-sha"
+          cp -R .github/release-tools "$RUNNER_TEMP/release-guard/release-tools"
+          cp -R .github/personal-sync "$RUNNER_TEMP/release-guard/personal-sync"
+          git rev-parse HEAD > "$RUNNER_TEMP/release-guard/control-sha"
       - name: Checkout selected application source
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
