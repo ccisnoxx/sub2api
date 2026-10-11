@@ -209,6 +209,22 @@ class PersonalReleaseTest(unittest.TestCase):
             with self.assertRaisesRegex(release.SyncError, "没有可信"):
                 release.gate(SHA)
 
+    def test_bound_ci_cannot_switch_to_new_success_when_original_run_fails(self):
+        api, checks, git = self.gate_fixture()
+        failed = {**RUN, "conclusion": "failure"}
+        newer = {**RUN, "id": 124}
+        def current_api(path, *args, **kwargs):
+            return failed if path.endswith("/actions/runs/123") else api(path, *args, **kwargs)
+        def pages(path, key):
+            return [newer] if key == "workflow_runs" else checks
+        with patch.object(release, "api", side_effect=current_api), patch.object(release, "pages", side_effect=pages), \
+             patch.object(release, "git", side_effect=git), patch.object(release, "assert_base"), \
+             patch.object(release, "source_at", return_value=SOURCE):
+            with self.assertRaisesRegex(release.SyncError, "成功检查"):
+                release.gate(SHA, "123")
+            # 仅初次选择可自动查找；发布步骤必须保留已选定的 ID。
+            self.assertEqual(release.gate(SHA)[1]["id"], 124)
+
     def test_authorize_rechecks_ci_and_tag_after_remote_publication_queries(self):
         args = argparse.Namespace(sha=SHA, ci_run_id="123", tag=TAG)
         for change in ("ci", "tag"):

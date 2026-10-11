@@ -44,6 +44,8 @@ building an unpinned source distribution.
 
 个人运行镜像先本地导出带证明的 OCI，再完成 SHA/CI/占用核对后仅 push canonical 版本，独立把 latest 指向核验后的 digest。部分失败重跑保持 tag/SHA，已存在的正确镜像不重新构建或推送；已完成 Release 直接跳过。正式构建前、标签创建/dispatch 前、镜像推送前、latest 更新前和 Release 写入前均检查，远端查询后重新核对 CI 和 tag，拒绝错误标签、错误 SHA、其他仓库或旧 SHA 的 CI、PR CI、失败检查和来源改变。文档变化相对最近成功版本无构建/运行变化时不分配新版本。
 
+prepare 选定的 CI run ID 在发布全过程保持固定，原 run 失效时不能换用同 SHA 的另一成功 run。最终 Release 同时比较当前 guard、publication 记录和 published image 摘要的 digest，版本镜像已删除或替换时失败关闭。
+
 CI-004 的负向测试与只读 dry-run 边界见 [CI-004](../../docs/ci/CI-004.md)。正式发布需要先将经审查的控制增量合入 main，再按同步规则更新 personal；候选分支不会自动替换 main 的生产 guard。各外部服务间没有原子事务，最后一次检查之后的并发变更仍可能留下部分发布，恢复时必须保留 tag/SHA/digest，不能覆盖既有版本。
 
 新标签的第一次包默认可能 private；创建后使用包设置将其公开，并验证匿名完整拉取。最终运行记录保存 tag、source/workflow SHA、上游标签/SHA、CI/Release run、平台及 OCI digest。P3 不访问生产服务器。

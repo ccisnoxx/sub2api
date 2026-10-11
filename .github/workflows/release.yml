@@ -426,14 +426,12 @@ jobs:
         if: env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          CI_RUN_ID: ${{ inputs.ci_run_id }}
         run: python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
       - name: Build images and publish manifests
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME || 'skip' }}
           REUSE_IMAGE: ${{ steps.publication_guard.outputs.reuse_image }}
           GH_TOKEN: ${{ github.token }}
-          CI_RUN_ID: ${{ steps.publication_guard.outputs.ci_run_id }}
         run: bash "$RUNNER_TEMP/release-tools/release-images.sh"
       - name: Verify published OCI revision, version and platform
         if: env.DRY_RUN != 'true'
@@ -470,8 +468,6 @@ jobs:
           retention-days: 3
       - name: Get annotated tag notes
         id: tag_message
-        env:
-          CI_RUN_ID: ${{ steps.publication_guard.outputs.ci_run_id }}
         run: |
           TAG_MESSAGE=$(git tag -l --format='%(contents:body)' "$RELEASE_TAG")
           if [[ "$DRY_RUN" != true ]]; then
@@ -500,7 +496,23 @@ jobs:
         if: env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
+        run: |
+          python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize --sha "$RELEASE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID" > "$RUNNER_TEMP/final-publication-guard.json"
+          python3 - "$RUNNER_TEMP/final-publication-guard.json" <<'PY'
+          import json, re, sys
+          from pathlib import Path
+          summaries = list(Path('release-evidence/summary').glob('*.release-summary.json'))
+          if len(summaries) != 1:
+              raise SystemExit('正式发布必须有唯一的已验证镜像摘要')
+          images = json.loads(summaries[0].read_text())['images']
+          if len(images) != 1:
+              raise SystemExit('个人发布必须有唯一的已验证镜像')
+          expected = images[0]['digest']
+          publication = json.loads(Path('publication.json').read_text())['digest']
+          current = json.loads(Path(sys.argv[1]).read_text())['digest']
+          if not re.fullmatch(r'sha256:[0-9a-f]{64}', expected) or current != expected or publication != expected:
+              raise SystemExit('镜像版本占用与已验证 digest 不一致，禁止发布 Release')
+          PY
       - name: Publish existing archives and release notes
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:

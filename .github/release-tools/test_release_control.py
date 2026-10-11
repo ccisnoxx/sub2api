@@ -1,5 +1,6 @@
 """发布控制脚本的来源、运输、写入前复核和无发布权限的 dry-run 合同。"""
 
+import json
 import os
 from pathlib import Path
 import shutil
@@ -84,6 +85,48 @@ class ReleaseControlTest(unittest.TestCase):
             self.assertEqual(guard.read_bytes(), (ROOT / ".github/release-tools/personal_release.py").read_bytes())
             expected = subprocess.check_output(["git", "-C", str(control), "rev-parse", "HEAD"], text=True).strip()
             self.assertEqual((root / "runner/release-guard/control-sha").read_text().strip(), expected)
+
+    def test_all_publish_steps_keep_the_prepare_ci_run_id(self):
+        job = self.release["jobs"]["release"]
+        self.assertEqual(job["env"]["CI_RUN_ID"], "${{ needs.prepare.outputs.ci_run_id }}")
+        for step in job["steps"]:
+            with self.subTest(step=step.get("name", step.get("uses"))):
+                self.assertNotIn("CI_RUN_ID", step.get("env", {}))
+
+    def test_final_release_guard_rejects_changed_missing_or_inconsistent_digest(self):
+        step = next(s for s in self.release["jobs"]["release"]["steps"]
+                    if s.get("name") == "Recheck final source, CI and tag before Release publication")
+        digest = "sha256:" + "d" * 64
+        for current, publication, images, expected in (
+            (digest, digest, [digest], 0),
+            ("sha256:" + "e" * 64, digest, [digest], 1),
+            ("", digest, [digest], 1),
+            ("sha256:" + "e" * 64, "sha256:" + "e" * 64, [digest], 1),
+            (digest, digest, [], 1),
+        ):
+            with self.subTest(current=current, publication=publication, images=images), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                summary = root / "release-evidence/summary/fixture.release-summary.json"
+                summary.parent.mkdir(parents=True)
+                summary.write_text(json.dumps({"images": [{"digest": d} for d in images]}))
+                (root / "publication.json").write_text(json.dumps({"digest": publication}))
+                fake = root / "python3"
+                fake.write_text(f'''#!{sys.executable}
+import json, os, sys
+if sys.argv[1].endswith('/personal_release.py'):
+    assert '/release-guard/release-tools/' in sys.argv[1]
+    assert sys.argv[sys.argv.index('--ci-run-id') + 1] == '123'
+    print(json.dumps({{'digest': os.environ['CURRENT_DIGEST']}}))
+else:
+    os.execv({sys.executable!r}, [{sys.executable!r}, '-B', *sys.argv[1:]])
+''')
+                fake.chmod(0o755)
+                env = {"PATH": str(root) + os.pathsep + os.environ["PATH"], "RUNNER_TEMP": str(root),
+                       "RELEASE_SHA": "a" * 40, "RELEASE_TAG": "v0.2.14-klno.3-tps.1", "CI_RUN_ID": "123",
+                       "CURRENT_DIGEST": current}
+                result = subprocess.run(["bash", "-e", "-c", step["run"]], cwd=root, env=env,
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, expected, result.stderr)
 
     def test_dry_run_source_binding_needs_no_token_and_rejects_wrong_sha(self):
         step = next(s for s in self.release["jobs"]["prepare"]["steps"]
