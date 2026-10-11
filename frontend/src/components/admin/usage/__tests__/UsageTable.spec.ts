@@ -88,6 +88,17 @@ const messages: Record<string, string> = {
   'usage.imageTotalPrice': 'Image total price',
   'usage.stream': 'Stream',
   'usage.sync': 'Sync',
+  'usage.latencyFirstToken': 'First',
+  'usage.legacyFirstToken': 'First (legacy)',
+  'usage.firstToken': 'First Token',
+  'usage.completionStatuses.unknown': 'Unknown',
+  'usage.completionStatuses.completed': 'Completed',
+  'usage.firstTokenDescription': 'Wait from forwarding start to the first recorded output; reasoning or tool calls may precede visible text.',
+  'usage.latencyDuration': 'Total',
+  'usage.averageOutputTps': 'Avg output TPS',
+  'usage.latencyTps': 'TPS',
+  'usage.tpsDescription': 'Average output TPS = output tokens × 1000 ÷ total duration (ms).',
+  'usage.tpsInvalidDuration': 'No valid total duration.',
   'usage.nativeCompactionV2': 'Compaction',
   'admin.usage.billingModeToken': 'Token',
   'admin.usage.billingModePerRequest': 'Per request',
@@ -128,8 +139,8 @@ const DataTableStub = {
         <slot name="cell-reasoning_effort" :row="row" :value="row.reasoning_effort" />
         <slot name="cell-billing_mode" :row="row" />
         <slot name="cell-tokens" :row="row" />
-        <slot name="cell-latency" :row="row" />
         <slot name="cell-cost" :row="row" />
+        <div data-testid="latency-cell"><slot name="cell-latency" :row="row" /></div>
         <slot name="cell-request_id" :row="row" />
         <slot name="cell-upstream_request_id" :row="row" />
         <slot name="cell-turn_state" :row="row" />
@@ -183,7 +194,7 @@ describe('admin UsageTable tooltip', () => {
       },
       global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
     })
-    expect(wrapper.findAll('[data-testid="usage-tps"]').map(cell => cell.text())).toEqual(['50.00', '—', '—', '—'])
+    expect(wrapper.findAll('[data-testid="usage-tps-value"]').map(cell => cell.text())).toEqual(['50 tok/s', '—', '—', '—'])
     expect(wrapper.text()).toContain('TPS')
     wrapper.unmount()
   })
@@ -207,14 +218,14 @@ describe('admin UsageTable tooltip', () => {
         },
         global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
       })
-      const tps = wrapper.get('[data-testid="usage-tps"]')
-      expect(tps.text()).toBe('20.00')
-      expect(tps.attributes('title')).toBe('usage.tpsDescription')
+      const tps = wrapper.get('[data-testid="usage-tps-value"]')
+      expect(tps.text()).toBe('14.3 tok/s')
+      expect(tps.attributes('title')).toBeUndefined()
       expect(tps.element.parentElement!.classList.contains('text-left')).toBe(true)
       const cells = Array.from(tps.element.parentElement!.children)
-      expect(cells).toHaveLength(6)
-      expect(cells[4].textContent).toBe('TPS')
-      expect(cells[4].getAttribute('title')).toBe('usage.tpsDescription')
+      expect(cells).toHaveLength(8)
+      expect(wrapper.get('[data-testid="usage-tps-label"]').text()).toBe('TPS')
+      expect(cells[4].getAttribute('title')).toBeNull()
       for (const index of [1, 3, 5]) {
         expect(cells[index].classList.contains('text-right')).toBe(true)
         expect(cells[index].classList.contains('tabular-nums')).toBe(true)
@@ -342,9 +353,9 @@ describe('admin UsageTable tooltip', () => {
       props: { data: [{ ...baseImageRow, rate_multiplier: rate }], loading: false, columns: [] },
       global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
     })
-    const triggers = wrapper.findAll('.group.relative')
-    await triggers[triggers.length - 1].trigger('mouseenter')
-    const rateLabel = wrapper.get('.fixed').findAll('span').find(span => span.text() === 'Rate')!
+    const trigger = wrapper.get('[data-request-id="req-admin-image"]').findAll('.group.relative').find(node => node.find('button').exists() === false)!
+    await trigger.trigger('mouseenter')
+    const rateLabel = wrapper.findAll('.fixed').flatMap(node => node.findAll('span')).find(span => span.text() === 'Rate')!
     expect(rateLabel.element.parentElement?.textContent).toContain(expected)
     wrapper.unmount()
   })
@@ -381,7 +392,7 @@ describe('admin UsageTable tooltip', () => {
       },
     })
 
-    const tooltipTriggers = wrapper.findAll('.group.relative')
+    const tooltipTriggers = wrapper.findAll('.group.relative:has(.cursor-help)')
     await tooltipTriggers[tooltipTriggers.length - 1].trigger('mouseenter')
     await nextTick()
 
@@ -419,9 +430,9 @@ describe('admin UsageTable tooltip', () => {
       props: { data: [row], loading: false, columns: [] },
       global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
     })
-    const triggers = wrapper.findAll('.group.relative')
+    const triggers = wrapper.findAll('.group.relative:has(.cursor-help)')
     await triggers[triggers.length - 1].trigger('mouseenter')
-    const amounts = wrapper.get('.fixed').findAll('span').map(span => span.text())
+    const amounts = wrapper.get('.fixed.pointer-events-none').findAll('span').map(span => span.text())
     expect(amounts).toEqual(expect.arrayContaining([
       '$0.00000001', '$0.00000002', '$0.00000003', '$0.00000004',
       '$0.00000005', '$0.00000006', '$0.00000022', '$0.00000042', '$0.00000018',
@@ -439,9 +450,9 @@ describe('admin UsageTable tooltip', () => {
       },
       global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
     })
-    const triggers = wrapper.findAll('.group.relative')
+    const triggers = wrapper.findAll('.group.relative:has(.cursor-help)')
     await triggers[triggers.length - 1].trigger('mouseenter')
-    const amounts = wrapper.get('.fixed').findAll('span').map(span => span.text()).filter(text => text.startsWith('$'))
+    const amounts = wrapper.get('.fixed.pointer-events-none').findAll('span').map(span => span.text()).filter(text => text.startsWith('$'))
     expect(amounts).toEqual(['$0.00000000', '$0.00000000', '$0.00000000', '$0.00000000'])
     wrapper.unmount()
   })
@@ -1157,5 +1168,91 @@ describe('admin UsageTable deleted-user badge', () => {
       route_pair_overridden: false,
     })
     expect(wrapper.find('[data-testid="route-pair-overridden-marker"]').exists()).toBe(false)
+  })
+})
+
+
+describe('UsageTable 平均输出 TPS 接入', () => {
+  it('同表显示历史旧口径与新严格口径，并分别保留未知和已完成状态', () => {
+    const textRow = {
+      ...baseImageRow, billing_mode: 'token', image_count: 0, image_output_tokens: 0,
+      output_tokens: 500, duration_ms: 10000, first_token_ms: 90000,
+    }
+    const wrapper = mount(UsageTable, {
+      props: {
+        data: [{ ...textRow, request_id: 'legacy', timing_version: 0 }, {
+          ...textRow, request_id: 'strict', timing_version: 1, audio_output_tokens: 0,
+          strict_first_token_ms: 300, completion_status: 'completed', is_complete: true,
+        }],
+        columns: [{ key: 'latency', label: 'Latency' }],
+      },
+      global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
+    })
+    expect(wrapper.findAll('[data-testid="usage-first-token-label"]').map(node => node.text())).toEqual(['First (legacy)', 'First Token'])
+    expect(wrapper.findAll('[data-testid="usage-first-token-value"]').map(node => node.text())).toEqual(['1m 30s', '300ms'])
+    expect(wrapper.findAll('[data-testid="usage-completion-status"]').map(node => node.text())).toEqual(['Unknown', 'Completed'])
+    expect(wrapper.findAll('[data-testid="usage-first-token-value"]')[1].classes()).toContain('text-emerald-600')
+    wrapper.unmount()
+  })
+
+  it.each([true, false])('账号计费显示为 %s 时，TPS 与原有耗时及色条共存', async (showAccountBilling) => {
+    const wrapper = mount(UsageTable, {
+      attachTo: document.body,
+      props: {
+        data: [{
+          ...baseImageRow,
+          request_id: 'req-text-latency',
+          billing_mode: 'token',
+          image_count: 0,
+          image_output_tokens: 0,
+          output_tokens: 1040,
+          duration_ms: 24650,
+          first_token_ms: 1500,
+        }],
+        columns: [{ key: 'latency', label: 'Latency' }],
+        showAccountBilling,
+      },
+      global: { stubs: { DataTable: DataTableStub, EmptyState: true, Icon: true, Teleport: true } },
+    })
+    const cell = wrapper.get('[data-testid="latency-cell"]')
+    expect(cell.text()).toContain('First')
+    expect(cell.text()).toContain('1.50s')
+    expect(cell.text()).toContain('Total')
+    expect(cell.text()).toContain('24.65s')
+    expect(cell.get('[data-testid="usage-tps-label"]').text()).toBe('TPS')
+    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('42.2 tok/s')
+    expect(cell.get('[aria-hidden="true"]').classes()).toContain('bg-gradient-to-b')
+    const details = cell.get('[data-testid="usage-timing-details"]')
+    expect(details.element.parentElement?.parentElement?.textContent).toContain('First')
+    expect(details.attributes('type')).toBe('button')
+    expect(details.attributes('aria-label')).toBe(messages['usage.legacyFirstToken'])
+    const tpsDetails = cell.get('[data-testid="usage-tps-details"]')
+    expect(tpsDetails.element.parentElement?.parentElement?.textContent).toContain('TPS')
+    expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-cyan-600')
+    const tooltip = () => cell.findAll('[role="tooltip"]').find(node => node.text().includes(messages['usage.firstTokenDescription']))!
+    const tpsTooltip = () => cell.findAll('[role="tooltip"]').find(node => node.text().includes(messages['usage.tpsDescription']))!
+    expect(tooltip().isVisible()).toBe(false)
+    await details.trigger('click')
+    await nextTick()
+    expect(tooltip().isVisible()).toBe(true)
+    expect(tooltip().text()).toContain(messages['usage.firstTokenDescription'])
+    expect(tooltip().text()).not.toContain(messages['usage.tpsDescription'])
+    expect(tpsTooltip().isVisible()).toBe(false)
+    await tpsDetails.trigger('click')
+    await nextTick()
+    expect(tooltip().isVisible()).toBe(false)
+    expect(tpsTooltip().isVisible()).toBe(true)
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await nextTick()
+    expect(tooltip().isVisible()).toBe(false)
+    await wrapper.setProps({ data: [{ ...wrapper.props('data')[0], duration_ms: null, first_token_ms: null }] })
+    expect(cell.get('[data-testid="usage-tps-value"]').text()).toBe('—')
+    expect(cell.get('[data-testid="usage-tps-value"]').classes()).toContain('text-gray-400')
+    expect(cell.get('[aria-hidden="true"]').classes()).not.toContain('bg-gradient-to-b')
+    await cell.get('[data-testid="usage-tps-details"]').trigger('click')
+    await nextTick()
+    expect(tpsTooltip().text()).toContain(messages['usage.tpsInvalidDuration'])
+
+    wrapper.unmount()
   })
 })
