@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strconv"
@@ -23,8 +24,10 @@ import (
 )
 
 var (
-	ErrNoUpdateAvailable         = infraerrors.Conflict("ALREADY_UP_TO_DATE", "no update available; current version is latest")
-	ErrRollbackVersionNotAllowed = infraerrors.BadRequest("ROLLBACK_VERSION_NOT_ALLOWED", "version is not in the allowed rollback list")
+	ErrNoUpdateAvailable          = infraerrors.Conflict("ALREADY_UP_TO_DATE", "no update available; current version is latest")
+	ErrRollbackVersionNotAllowed  = infraerrors.BadRequest("ROLLBACK_VERSION_NOT_ALLOWED", "version is not in the allowed rollback list")
+	ErrInPlaceUpdateNotSupported  = infraerrors.Conflict("IN_PLACE_UPDATE_NOT_SUPPORTED", "in-place updates and rollbacks are not supported for this build; redeploy using its release source")
+	personalReleaseVersionPattern = regexp.MustCompile(`^v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-klno\.(0|[1-9][0-9]*)-tps\.([1-9][0-9]*)$`)
 )
 
 const (
@@ -34,6 +37,11 @@ const (
 	// 否则上游一发新版，点更新就会把二开换成上游二进制。
 	githubRepo   = "KlN-4096/sub2api"
 	upstreamRepo = "Wei-Shaw/sub2api"
+	personalRepo = "ccisnoxx/sub2api"
+
+	updateModeInPlace   = "in_place"
+	updateModeManual    = "manual"
+	updateModeContainer = "container"
 
 	// Security: allowed download domains for updates
 	allowedDownloadHost = "github.com"
@@ -46,6 +54,8 @@ const (
 	maxRollbackVersions = 3
 	// Fetch a few extra releases so filtering (current/newer/prerelease) still leaves enough candidates
 	rollbackFetchPageSize = 15
+	// 个人发布包含预发布标签，获取 GitHub 单页上限后按版本序号筛选。
+	personalReleaseFetchPageSize = 100
 )
 
 // UpdateCache defines cache operations for update service
@@ -64,31 +74,48 @@ type GitHubReleaseClient interface {
 
 // UpdateService handles software updates
 type UpdateService struct {
-	cache          UpdateCache
-	githubClient   GitHubReleaseClient
-	currentVersion string
-	buildType      string // "source" for manual builds, "release" for CI builds
+	cache             UpdateCache
+	githubClient      GitHubReleaseClient
+	currentVersion    string
+	buildType         string // "source" for manual builds, "release" for CI builds
+	releaseRepository string
+	updateMode        string
 }
 
 // NewUpdateService creates a new UpdateService
 func NewUpdateService(cache UpdateCache, githubClient GitHubReleaseClient, version, buildType string) *UpdateService {
+	repository, mode := githubRepo, updateModeManual
+	if buildType == "release" {
+		mode = updateModeInPlace
+	}
+	// 个人 tps 发布仅提供镜像；BuildType=release 不能授权替换容器内二进制。
+	if strings.Contains(version, "-tps.") {
+		repository = personalRepo
+		if buildType == "release" {
+			mode = updateModeContainer
+		}
+	}
 	return &UpdateService{
-		cache:          cache,
-		githubClient:   githubClient,
-		currentVersion: version,
-		buildType:      buildType,
+		cache:             cache,
+		githubClient:      githubClient,
+		currentVersion:    version,
+		buildType:         buildType,
+		releaseRepository: repository,
+		updateMode:        mode,
 	}
 }
 
 // UpdateInfo contains update information
 type UpdateInfo struct {
-	CurrentVersion string       `json:"current_version"`
-	LatestVersion  string       `json:"latest_version"`
-	HasUpdate      bool         `json:"has_update"`
-	ReleaseInfo    *ReleaseInfo `json:"release_info,omitempty"`
-	Cached         bool         `json:"cached"`
-	Warning        string       `json:"warning,omitempty"`
-	BuildType      string       `json:"build_type"` // "source" or "release"
+	CurrentVersion    string       `json:"current_version"`
+	LatestVersion     string       `json:"latest_version"`
+	HasUpdate         bool         `json:"has_update"`
+	ReleaseInfo       *ReleaseInfo `json:"release_info,omitempty"`
+	Cached            bool         `json:"cached"`
+	Warning           string       `json:"warning,omitempty"`
+	BuildType         string       `json:"build_type"`  // "source" or "release"
+	UpdateMode        string       `json:"update_mode"` // "in_place", "manual" or "container"
+	ReleaseRepository string       `json:"release_repository"`
 	// Upstream 是上游仓库的只读监测结果；上面的字段都是二开自己的。
 	Upstream *UpstreamUpdateInfo `json:"upstream,omitempty"`
 }
@@ -161,13 +188,9 @@ func (s *UpdateService) CheckUpdate(ctx context.Context, force bool) (*UpdateInf
 			cached.Warning = "Using cached data: " + err.Error()
 			return cached, nil
 		}
-		return &UpdateInfo{
-			CurrentVersion: s.currentVersion,
-			LatestVersion:  s.currentVersion,
-			HasUpdate:      false,
-			Warning:        err.Error(),
-			BuildType:      s.buildType,
-		}, nil
+		info := s.newUpdateInfo(s.currentVersion, nil, false)
+		info.Warning = err.Error()
+		return info, nil
 	}
 	info.Upstream = s.fetchUpstreamInfo(ctx)
 
@@ -200,6 +223,9 @@ func (s *UpdateService) upstreamInfo(latest, htmlURL, publishedAt string) *Upstr
 // PerformUpdate downloads and applies the update
 // Uses atomic file replacement pattern for safe in-place updates
 func (s *UpdateService) PerformUpdate(ctx context.Context) error {
+	if s.updateMode != updateModeInPlace {
+		return ErrInPlaceUpdateNotSupported
+	}
 	info, err := s.CheckUpdate(ctx, true)
 	if err != nil {
 		return err
@@ -318,6 +344,9 @@ func (s *UpdateService) applyReleaseAssets(ctx context.Context, releaseAssets []
 
 // Rollback restores the previous version
 func (s *UpdateService) Rollback() error {
+	if s.updateMode != updateModeInPlace {
+		return ErrInPlaceUpdateNotSupported
+	}
 	exePath, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("failed to get executable path: %w", err)
@@ -344,6 +373,9 @@ func (s *UpdateService) Rollback() error {
 // strictly older than the current version (the current version itself is excluded),
 // newest first. Draft and prerelease entries are skipped.
 func (s *UpdateService) ListRollbackVersions(ctx context.Context) ([]RollbackVersion, error) {
+	if s.updateMode != updateModeInPlace {
+		return nil, ErrInPlaceUpdateNotSupported
+	}
 	releases, err := s.fetchRollbackCandidates(ctx)
 	if err != nil {
 		return nil, err
@@ -364,6 +396,9 @@ func (s *UpdateService) ListRollbackVersions(ctx context.Context) ([]RollbackVer
 // The target must be one of the versions returned by ListRollbackVersions;
 // anything else (including the current version) is rejected.
 func (s *UpdateService) RollbackToVersion(ctx context.Context, version string) error {
+	if s.updateMode != updateModeInPlace {
+		return ErrInPlaceUpdateNotSupported
+	}
 	target := strings.TrimPrefix(strings.TrimSpace(version), "v")
 	if target == "" {
 		return ErrRollbackVersionNotAllowed
@@ -400,7 +435,7 @@ func (s *UpdateService) RollbackToVersion(ctx context.Context, version string) e
 // fetchRollbackCandidates fetches recent releases and keeps the newest
 // maxRollbackVersions entries strictly older than the current version.
 func (s *UpdateService) fetchRollbackCandidates(ctx context.Context) ([]*GitHubRelease, error) {
-	releases, err := s.githubClient.FetchRecentReleases(ctx, githubRepo, rollbackFetchPageSize)
+	releases, err := s.githubClient.FetchRecentReleases(ctx, s.releaseRepository, rollbackFetchPageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -437,12 +472,36 @@ func (s *UpdateService) fetchRollbackCandidates(ctx context.Context) ([]*GitHubR
 }
 
 func (s *UpdateService) fetchLatestRelease(ctx context.Context) (*UpdateInfo, error) {
-	release, err := s.githubClient.FetchLatestRelease(ctx, githubRepo)
-	if err != nil {
-		return nil, err
+	var release *GitHubRelease
+	if s.releaseRepository == personalRepo {
+		// /releases/latest 排除预发布；个人 tps 发布需要从列表中挑选。
+		releases, err := s.githubClient.FetchRecentReleases(ctx, s.releaseRepository, personalReleaseFetchPageSize)
+		if err != nil {
+			return nil, err
+		}
+		for _, candidate := range releases {
+			if candidate == nil || candidate.Draft || !personalReleaseVersionPattern.MatchString(candidate.TagName) {
+				continue
+			}
+			if release == nil || compareVersions(candidate.TagName, release.TagName) > 0 {
+				release = candidate
+			}
+		}
+		if release == nil {
+			return nil, fmt.Errorf("未找到已发布的个人 tps 版本")
+		}
+	} else {
+		var err error
+		release, err = s.githubClient.FetchLatestRelease(ctx, s.releaseRepository)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	latestVersion := strings.TrimPrefix(release.TagName, "v")
+	if err := s.validateReleaseVersion(latestVersion); err != nil {
+		return nil, err
+	}
 
 	assets := make([]Asset, len(release.Assets))
 	for i, a := range release.Assets {
@@ -453,20 +512,33 @@ func (s *UpdateService) fetchLatestRelease(ctx context.Context) (*UpdateInfo, er
 		}
 	}
 
+	return s.newUpdateInfo(latestVersion, &ReleaseInfo{
+		Name:        release.Name,
+		Body:        release.Body,
+		PublishedAt: release.PublishedAt,
+		HTMLURL:     release.HTMLURL,
+		Assets:      assets,
+	}, false), nil
+}
+
+func (s *UpdateService) newUpdateInfo(latest string, releaseInfo *ReleaseInfo, cached bool) *UpdateInfo {
 	return &UpdateInfo{
-		CurrentVersion: s.currentVersion,
-		LatestVersion:  latestVersion,
-		HasUpdate:      compareVersions(s.currentVersion, latestVersion) < 0,
-		ReleaseInfo: &ReleaseInfo{
-			Name:        release.Name,
-			Body:        release.Body,
-			PublishedAt: release.PublishedAt,
-			HTMLURL:     release.HTMLURL,
-			Assets:      assets,
-		},
-		Cached:    false,
-		BuildType: s.buildType,
-	}, nil
+		CurrentVersion:    s.currentVersion,
+		LatestVersion:     latest,
+		HasUpdate:         compareVersions(s.currentVersion, latest) < 0,
+		ReleaseInfo:       releaseInfo,
+		Cached:            cached,
+		BuildType:         s.buildType,
+		UpdateMode:        s.updateMode,
+		ReleaseRepository: s.releaseRepository,
+	}
+}
+
+func (s *UpdateService) validateReleaseVersion(version string) error {
+	if s.releaseRepository == personalRepo && !personalReleaseVersionPattern.MatchString(version) {
+		return fmt.Errorf("personal release tag does not match X.Y.Z-klno.N-tps.N: %s", version)
+	}
+	return nil
 }
 
 func (s *UpdateService) downloadFile(ctx context.Context, downloadURL, dest string) error {
@@ -640,19 +712,19 @@ func (s *UpdateService) getFromCache(ctx context.Context) (*UpdateInfo, error) {
 	if err := json.Unmarshal([]byte(data), &cached); err != nil {
 		return nil, err
 	}
+	// 发布通道迁移后不能复用 KlN/原版缓存来判断个人镜像是否有更新。
+	if cached.Repository != s.releaseRepository {
+		return nil, fmt.Errorf("update cache belongs to a different release repository")
+	}
+	if err := s.validateReleaseVersion(cached.Latest); err != nil {
+		return nil, err
+	}
 
 	if time.Now().Unix()-cached.Timestamp > updateCacheTTL {
 		return nil, fmt.Errorf("cache expired")
 	}
 
-	info := &UpdateInfo{
-		CurrentVersion: s.currentVersion,
-		LatestVersion:  cached.Latest,
-		HasUpdate:      compareVersions(s.currentVersion, cached.Latest) < 0,
-		ReleaseInfo:    cached.ReleaseInfo,
-		Cached:         true,
-		BuildType:      s.buildType,
-	}
+	info := s.newUpdateInfo(cached.Latest, cached.ReleaseInfo, true)
 	// 当前版本可能在缓存期内变了（升级后重启），has_update 按当前版本重算。
 	if u := cached.Upstream; u != nil {
 		info.Upstream = s.upstreamInfo(u.LatestVersion, u.HTMLURL, u.PublishedAt)
@@ -662,6 +734,7 @@ func (s *UpdateService) getFromCache(ctx context.Context) (*UpdateInfo, error) {
 }
 
 type updateCacheData struct {
+	Repository  string              `json:"repository"`
 	Latest      string              `json:"latest"`
 	ReleaseInfo *ReleaseInfo        `json:"release_info"`
 	Upstream    *UpstreamUpdateInfo `json:"upstream,omitempty"`
@@ -670,6 +743,7 @@ type updateCacheData struct {
 
 func (s *UpdateService) saveToCache(ctx context.Context, info *UpdateInfo) {
 	cacheData := updateCacheData{
+		Repository:  s.releaseRepository,
 		Latest:      info.LatestVersion,
 		ReleaseInfo: info.ReleaseInfo,
 		Upstream:    info.Upstream,
@@ -680,7 +754,7 @@ func (s *UpdateService) saveToCache(ctx context.Context, info *UpdateInfo) {
 	_ = s.cache.SetUpdateInfo(ctx, string(data), time.Duration(updateCacheTTL)*time.Second)
 }
 
-// compareVersions 比较 X.Y.Z[-klno.N]：先比 X.Y.Z，再比二开序号 N（无后缀按 0）。
+// compareVersions 比较 X.Y.Z[-klno.N[-tps.N]]：依次比较基础版本、二开序号与个人序号。
 // 其它后缀（如 -rc1）照旧忽略。
 func compareVersions(current, latest string) int {
 	currentParts := parseVersion(current)
@@ -697,9 +771,9 @@ func compareVersions(current, latest string) int {
 	return 0
 }
 
-func parseVersion(v string) [4]int {
+func parseVersion(v string) [5]int {
 	base, suffix, _ := strings.Cut(strings.TrimPrefix(v, "v"), "-")
-	var result [4]int
+	var result [5]int
 	parts := strings.Split(base, ".")
 	for i := 0; i < len(parts) && i < 3; i++ {
 		if parsed, err := strconv.Atoi(parts[i]); err == nil {
@@ -707,8 +781,12 @@ func parseVersion(v string) [4]int {
 		}
 	}
 	if n, ok := strings.CutPrefix(suffix, "klno."); ok {
-		if parsed, err := strconv.Atoi(n); err == nil {
+		klno, tps, _ := strings.Cut(n, "-tps.")
+		if parsed, err := strconv.Atoi(klno); err == nil {
 			result[3] = parsed
+		}
+		if parsed, err := strconv.Atoi(tps); err == nil {
+			result[4] = parsed
 		}
 	}
 	return result
