@@ -1,9 +1,11 @@
 package service
 
 import (
-	"log"
 	"sync/atomic"
 	"time"
+
+	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
+	"go.uber.org/zap"
 )
 
 var serviceStatusSourceErrorAt atomic.Int64
@@ -41,7 +43,14 @@ func MarkServiceStatusSourceError(at time.Time) {
 	if reporter := serviceStatusSourceReportCallback.Load(); reporter != nil {
 		reporter.report(time.Unix(0, serviceStatusSourceErrorAt.Load()).UTC())
 	}
-	log.Print("[ServiceStatus] stage=source code=SERVICE_STATUS_SOURCE_ERROR")
+	reportServiceStatusSourceAlert("source")
+}
+
+func reportServiceStatusSourceAlert(stage string) {
+	logger.L().Named("service.service_status").Error("服务状态源数据存在缺口",
+		zap.Bool(logger.OpsSystemLogSkipField, true),
+		zap.String("event", "service_status_source"), zap.String("stage", stage),
+		zap.String("code", "SERVICE_STATUS_SOURCE_ERROR"), zap.String("alert_code", "source_error"))
 }
 func ServiceStatusSourceErrorSince(since time.Time) bool {
 	at := serviceStatusSourceErrorAt.Load()
