@@ -46,3 +46,22 @@
 - 在已验收 S1–S5 的累计新 KIN 应用树之上，用真实 merge 连接旧 personal 历史；只适配固定 main 控制面和已验收许可/安全/安装补丁，来源切换为冻结新 KIN。旧稳定 tag、迁移身份和严格祖先/Personal CI 保护保留。
 - [切换验收说明](upstream/UPSTREAM-007.md)登记源提交、真实三路径与新/旧/新应用演练入口、精确源码 Release dry-run、产物审查、普通 PR 合并及回滚边界。实际结果以固定候选 PR checks 与任务完成记录为准。
 - 维护者明确授权关闭自动正式发布；本任务保持开关 false，只执行 dry-run，不创建正式发行 tag、不部署生产。
+
+## 2026-10-11：REL-001 发布候选与部署前验证
+
+- 按维护者授权依序独立审查并普通合入 main 的 CI-001—005；新 personal 候选仅同步必要控制文件，保留应用/许可/安装/安全边界，预发布 tag 避开正式发布触发器。
+- [候选验证合同](release/REL-001.md)定义同 SHA 的完整 Personal CI、全矩阵 Release dry-run/材料验证、合成数据库三路径与真实恢复、固定旧/新网关性能比较，以及告警/默认开关覆盖。最终固定候选结果在 REL-001 PR 与任务台账，不把此合同当作已执行验收。
+- 不新增 SQL、不改迁移身份/checksum、不正式发布或部署。主机前置证明精确绑定固定新 KIN 运行树；跨基线旧镜像恢复继续失败关闭。
+
+## 2026-10-12：REL-001 原生复测与 CI-000 控制续接
+
+- 同原候选 OCI/SHA 的原生 amd64 完整五轮通过；旧 QEMU 7.0.0 的 MADV_DONTNEED 错误成功和堆回收反例支持环境归因。实际门禁不设置诊断 workaround，应用代码和 SQL 不变，详见 [候选验证合同](release/REL-001.md)。
+- 普通 merge 纳入当前 personal 的已验收 CI-000 控制历史；六处独立同步冲突均采用最新 personal 的控制字节。保留原 RC 标签、运行树证明和迁移身份，最终候选按分层规则取得一次新 Full/同 SHA dry-run 材料；结果由任务台账和 PR 记录，全部验收完成前不勾选。
+
+### REL-001：最终控制修复同步（2026-10-12）
+
+- 仅同步 PR #41 的两份 workflow 和 release_control 回归文件：发布资格模块隔离、Full 安装来源/token 必检。没有应用、迁移、VERSION、依赖、阈值、Quick 分类或权限变更。绑定最新 personal 7ebb60b2 后，最终稳定候选必须取得新的 Full/同 SHA 全材料 dry-run，并在原生 amd64 对实际 OCI 重做三路径升级恢复和完整五轮性能。原 036ade78 的原生成功用于定位 OOM，不代替最终新 SHA 验收。
+
+### REL-001：归档来源绑定必要同步（2026-10-12）
+
+- ff6c79c7 同 SHA dry-run 五归档 SOURCE.json 缺失根因明确：恢复 CI-000 同步遗漏的原四行材料入口及 workflow 回归，来源 metadata 动态绑定 prepare 应用 SHA/VERSION。仅同步可信 main 控制补丁 5f6dcba7 的 workflow/test 字节及记录，运行代码、SQL、VERSION 和门禁阈值不变；独立复核和主线 Quick 普通合并后再推最终新候选，旧成功/失败均保留，不冒用为新 SHA 通过。
