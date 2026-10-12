@@ -1,15 +1,17 @@
 """REL-002 单站点维护入口；服务器执行，配置备份只留在私密记录。"""
 import fcntl, hashlib, json, os, pathlib, stat, subprocess, sys
-BASE = pathlib.Path('/root/sub2api-kin')
-SITE = pathlib.Path('/etc/nginx/sites-enabled/api.962850.xyz.conf')
-ALLOWED_SITE_PARENTS = {pathlib.Path('/etc/nginx/sites-enabled'),pathlib.Path('/etc/nginx/sites-available')}
+from deploy_config import load_config
+CONFIG = load_config()
+BASE = pathlib.Path(CONFIG.base)
+SITE = pathlib.Path(CONFIG.maintenance.site)
+ALLOWED_SITE_PARENTS = {pathlib.Path(value) for value in CONFIG.maintenance.allowed_site_parents}
 ORIGINAL_SHA = '66c146e9e0750a728866b73c1580e362d098aa0a0b7955bb419c01465d5cbfca'
 SOURCE_SHA = '42907bcab278f93db48d7e1b39b28e28f664569e'
 # 标记属于持久状态，不能放在重启清空的 /run；Nginx worker 只需遍历和读取。
-FLAG_DIRECTORY = pathlib.Path('/var/lib/sub2api-rel002-maintenance')
+FLAG_DIRECTORY = pathlib.Path(CONFIG.maintenance.flag_directory)
 FLAG = FLAG_DIRECTORY/'closed'
-DIRECTORY = BASE/'.personal-deploy/rollouts/REL-002-42907bcab278'
-MARKER = b'    if (-f /var/lib/sub2api-rel002-maintenance/closed) { return 503; }\n'
+DIRECTORY = BASE/CONFIG.maintenance.record_directory
+MARKER = ('    if (-f '+str(FLAG)+') { return 503; }\n').encode()
 FLAG_CONTENT = b'REL-002 42907bcab278\n'
 def require(value, message):
  if not value: raise RuntimeError(message)
@@ -54,7 +56,7 @@ def execute(action):
  if action=='setup':
   require(not DIRECTORY.exists() and not FLAG.exists() and not FLAG.is_symlink(),'维护记录或标记已经存在')
   before=regular(actual)
-  require(sha(before)==ORIGINAL_SHA and before.count(b'\nserver {\n')==2 and before.count(b'server_name api.962850.xyz;')==2,'站点内容与已核实现场不同')
+  require(sha(before)==ORIGINAL_SHA and before.count(b'\nserver {\n')==2 and before.count(('server_name '+CONFIG.maintenance.server_name+';').encode())==2,'站点内容与已核实现场不同')
   run(['nginx','-t'])
   flag_directory(create=True)
   DIRECTORY.mkdir(parents=True,mode=0o700);DIRECTORY.chmod(0o700)
@@ -85,17 +87,17 @@ def execute(action):
    record['phase']='closed';save(record)
   elif action=='resume':
    require(record['phase']=='closed' and regular(FLAG)==FLAG_CONTENT,'维护状态不允许恢复')
-   selection=dict(x.split('=',1) for x in regular(BASE/'.personal-deploy/image.env').decode().splitlines())
+   selection=dict(x.split('=',1) for x in regular(BASE/CONFIG.state_directory/'image.env').decode().splitlines())
    deployment_id=selection['SUB2API_DEPLOYMENT_ID']
    import re
    require(re.fullmatch(r'[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}',deployment_id),'部署记录身份无效')
-   deployed=json.loads(regular(BASE/'.personal-deploy/records'/deployment_id/'record.json'))
-   app=json.loads(run(['docker','inspect','sub2api-kin']))[0]
+   deployed=json.loads(regular(BASE/CONFIG.state_directory/'records'/deployment_id/'record.json'))
+   app=json.loads(run(['docker','inspect',CONFIG.app_container]))[0]
    require(deployed['status']=='success' and deployed['target']['revision']==SOURCE_SHA and selection['SUB2API_IMAGE']==deployed['target']['image']==app['Config']['Image'],'成功记录或运行镜像不匹配')
    require(app['State']['Running'] and app['State']['Health']['Status']=='healthy' and app['Config']['Labels']['org.opencontainers.image.revision']==SOURCE_SHA,'新应用健康或 revision 不匹配')
-   health=json.loads(run(['curl','--fail','--silent','--max-time','10','http://127.0.0.1:10088/health']))
+   health=json.loads(run(['curl','--fail','--silent','--max-time','10',CONFIG.health_url]))
    require(health['status']=='ok','回环健康检查未通过')
-   ledger=run(['docker','exec','sub2api-kin-postgres','sh','-ec','psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atqc "SELECT filename,checksum FROM schema_migrations ORDER BY filename,checksum"'])
+   ledger=run(['docker','exec',CONFIG.postgres_container,'sh','-ec','psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atqc "SELECT filename,checksum FROM schema_migrations ORDER BY filename,checksum"'])
    require({'rows':len(ledger.splitlines()),'filename_checksum_sha256':sha(ledger)}==deployed['migration_state'] and len(ledger.splitlines())==308,'当前迁移账本与成功记录不同')
    record['accepted_deployment_id']=deployment_id;record['phase']='opening';save(record)
    FLAG.unlink()
@@ -112,7 +114,7 @@ def execute(action):
    record['phase']='complete';save(record)
  print(json.dumps({'action':action,'phase':record['phase'],'record':str(DIRECTORY),'source_sha':SOURCE_SHA,'maintenance_flag_present':FLAG.exists()}))
 def main(action):
- fd=os.open(BASE/'.personal-deploy/deployment.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
+ fd=os.open(BASE/CONFIG.state_directory/'deployment.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
  with os.fdopen(fd,'a') as lock:
   fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
   execute(action)

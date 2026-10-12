@@ -13,6 +13,9 @@ import unittest
 from unittest import mock
 
 import deploy_hostdzire as deploy
+import deploy_lifecycle
+from deploy_config import load_config
+from deploy_trust import ToolBundle, manifest
 
 
 NEW = {
@@ -60,7 +63,8 @@ def request(target=NEW, old=None, action="deploy", rollback_id=None):
     return {"schema": 1, "action": action, "target": copy.deepcopy(target),
             "expected_old": copy.deepcopy(old or dict(deploy.LEGACY, image_id=OLD_ID)),
             "compatibility": proof(old or deploy.LEGACY, target), "rollback_id": rollback_id,
-            "tool_revision": "1" * 40, "tool_sha256": deploy.sha(Path(deploy.__file__).read_bytes())}
+            "tool_revision": "1" * 40, "tool_sha256": deploy.sha(Path(deploy.__file__).read_bytes()),
+            "tool_bundle": manifest(Path(deploy.__file__).parent)}
 
 
 class DockerSubstitute:
@@ -289,7 +293,7 @@ class DeploymentTests(unittest.TestCase):
             atomic(path, data)
             if path.name == "image.env":
                 raise OSError("directory fsync failed after forward selection replace")
-        with mock.patch.object(deploy, "atomic_private", side_effect=fail_after_replace):
+        with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=fail_after_replace):
             result, code = self.execute(value)
         self.assertEqual((code, result["status"], result["selection_committed"]), (1, "failed", True))
         self.assertEqual(self.docker.current, value["target"]["image"])
@@ -383,6 +387,7 @@ class DeploymentTests(unittest.TestCase):
         selection = deploy.Deployment(self.base, self.docker).selected()
         self.assertEqual(selection, {"image": NEW["image"], "record_id": result["id"]})
         self.assertTrue(self.persisted(result)["health_verified"])
+        self.assertEqual(self.persisted(result)["tool_bundle"], request()["tool_bundle"])
         for args, env in self.docker.commands:
             if args[:2] == ["docker", "compose"] and "docker-compose.yml" in args:
                 self.assertIn(env["SUB2API_IMAGE"], (NEW["image"], deploy.LEGACY["image"]))
@@ -655,7 +660,7 @@ class DeploymentTests(unittest.TestCase):
             if path.name == "image.env":
                 raise OSError("simulated disk error")
             atomic(path, data)
-        with mock.patch.object(deploy, "atomic_private", side_effect=fail_selection):
+        with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=fail_selection):
             result, code = self.execute()
         self.assertEqual((code, result["status"], result["rollback_status"]), (1, "failed", "success"))
         self.assertEqual(self.docker.current, deploy.LEGACY["image"])
@@ -669,7 +674,7 @@ class DeploymentTests(unittest.TestCase):
             if path == self.base / "docker-compose.yml" and data != ORIGINAL and not failed:
                 failed = True
                 raise OSError("directory fsync failed after replace")
-        with mock.patch.object(deploy, "atomic_private", side_effect=fail_after_replace):
+        with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=fail_after_replace):
             result, code = self.execute()
         self.assertEqual((code, result["status"]), (1, "failed"))
         self.assertEqual(self.starts(), [])
@@ -682,7 +687,7 @@ class DeploymentTests(unittest.TestCase):
             atomic(path, data)
             if path.name == "image.env":
                 raise OSError("directory fsync failed after selection replace")
-        with mock.patch.object(deploy, "atomic_private", side_effect=fail_after_replace):
+        with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=fail_after_replace):
             result, code = self.execute()
         self.assertEqual((code, result["status"], result["selection_committed"]), (1, "failed", True))
         self.assertEqual(self.docker.current, NEW["image"])
@@ -892,7 +897,7 @@ class KinDeploymentTests(unittest.TestCase):
                     if kind == "selection" and path.name == "image.env":
                         raise OSError("选择提交前失败")
                     return atomic(path, data)
-                with mock.patch.object(deploy, "atomic_private", side_effect=write):
+                with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=write):
                     result, code = self.execute(value)
                 self.assertEqual((code, result["rollback_status"], result["rollback_error"]),
                                  (1, "blocked", "E_COMPATIBILITY"))
@@ -926,7 +931,7 @@ class KinDeploymentTests(unittest.TestCase):
             atomic(path, data)
             if path.name == "image.env":
                 raise OSError("新基线选择 replace 后 fsync 失败")
-        with mock.patch.object(deploy, "atomic_private", side_effect=failed_fsync):
+        with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=failed_fsync):
             result, code = self.execute(value)
         self.assertEqual((code, result["status"], result["selection_committed"]), (1, "failed", True))
         self.assertEqual(len(self.starts()), 1)
@@ -1227,7 +1232,7 @@ class CumulativeDeploymentTests(unittest.TestCase):
             if path.name == "image.env":
                 raise OSError("选择文件写入失败")
             return atomic(path, data)
-        with mock.patch.object(deploy, "atomic_private", side_effect=fail_selection):
+        with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=fail_selection):
             result, code = self.execute(value)
         self.assertEqual((code, result["rollback_status"], result["selection_committed"]), (1, "success", False))
         self.assertEqual(self.docker.migration_listing, self.expanded)
@@ -1241,7 +1246,7 @@ class CumulativeDeploymentTests(unittest.TestCase):
             atomic(path, data)
             if path.name == "image.env":
                 raise OSError("选择 replace 后目录 fsync 失败")
-        with mock.patch.object(deploy, "atomic_private", side_effect=fail_after_selection):
+        with mock.patch.object(deploy_lifecycle, "atomic_private", side_effect=fail_after_selection):
             result, code = self.execute(value)
         self.assertEqual((code, result["selection_committed"]), (1, True))
         self.assertNotIn("rollback_status", result)
@@ -1740,7 +1745,7 @@ class TransportTests(unittest.TestCase):
                 output = b""
             return subprocess.CompletedProcess(args, 0, output, b"")
         with mock.patch.object(deploy.subprocess, "run", side_effect=process):
-            with deploy.SSHTransport(Path(deploy.__file__)) as remote:
+            with deploy.SSHTransport(ToolBundle(Path(deploy.__file__).parent, "1" * 40, manifest(Path(deploy.__file__).parent)), load_config()) as remote:
                 self.assertEqual(remote.probe()["running"], deploy.LEGACY)
                 self.assertEqual(remote.execute(request()), (response, 0))
         self.assertEqual([args[0] for args, _ in calls], ["ssh", "scp", "ssh", "ssh", "ssh"])
@@ -1748,13 +1753,14 @@ class TransportTests(unittest.TestCase):
             if args[0] == "ssh":
                 self.assertEqual(args[1], "hostdzire")
             self.assertFalse(any("StrictHostKeyChecking" in part or "UserKnownHostsFile" in part for part in args))
+        self.assertEqual({Path(value).name for value in calls[1][0][1:-1]}, set(manifest(Path(deploy.__file__).parent)))
         write = calls[3]
         self.assertEqual(json.loads(write[1]["input"])["target"]["image"], NEW["image"])
         self.assertNotIn(NEW["image"], write[0][-1])
 
     def test_remote_disconnection_does_not_report_success_or_retry(self):
         with mock.patch.object(deploy.subprocess, "run", return_value=subprocess.CompletedProcess([], 255, b"", b"private connection error")) as run:
-            remote = deploy.SSHTransport(Path(deploy.__file__))
+            remote = deploy.SSHTransport(ToolBundle(Path(deploy.__file__).parent, "1" * 40, manifest(Path(deploy.__file__).parent)), load_config())
             remote.directory = "/tmp/sub2api-personal.123456789abc"
             with self.assertRaises(deploy.DeployError) as raised:
                 remote.execute(request())
