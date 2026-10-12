@@ -25,3 +25,11 @@ N 原有 recording、Codex CatalogConfig、旧首字/耗时、渠道授权和真
 ## 数据影响与回退
 
 仅文档/NOTICE 修改；应用、工作流、来源 manifest、SQL/迁移、依赖、产物与部署工具无改动，数据库影响 none。撤销本任务文档提交可恢复记录，保留旧来源与发布历史；不改 main/personal 历史、发行 tag 或镜像，也不触发应用/数据库回退。
+
+## 固定候选独立复核与审计
+
+实质文档候选 `c54b9497d4bee04215384deb494c5467b917a7db` 经 fresh critical_reviewer 只读复核，未确认阻断问题。复核交叉读取固定 C 的 sync/binding、CI-000、Personal CI/Personal release/Release 与 guard，以及固定 I 的来源、MIG-001/007、NOTICE 和实际历史 Releases API；发布/迁移/许可合同与现有实施一致。未独立执行动态测试、迁移/生命周期、归档/OCI/registry 或生产验收。
+
+首个普通 reviewer 仅确认八文件 diff 与角色边界后返回 ROLE_MISMATCH，没有完成一致性审查；按角色转交 fresh critical_reviewer，不把前者记成验收通过。审计 `20261012T133859Z-arch-005-upstream-maintenance-42e7f252` closed、audit-verify passed（20 artifacts），保留该已转交角色异常；三阶段实际尝试3、验收2，未执行 ready task/残留活跃 worker 为0，未观察到子代理写入。Agent TOML 配置为 gpt-6.1-sol/xhigh，不冒充运行时模型确认。
+
+本次追加仅登记复核/审计结果，未改变固定候选中的实质来源、流程或应用输入；沿用成功定向证据。交付使用一次普通 push、main 草稿 PR，尚未合并，不启动发布/部署。
