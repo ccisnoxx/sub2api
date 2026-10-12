@@ -61,3 +61,7 @@
 ### REL-001：最终控制修复同步（2026-10-12）
 
 - 仅同步 PR #41 的两份 workflow 和 release_control 回归文件：发布资格模块隔离、Full 安装来源/token 必检。没有应用、迁移、VERSION、依赖、阈值、Quick 分类或权限变更。绑定最新 personal 7ebb60b2 后，最终稳定候选必须取得新的 Full/同 SHA 全材料 dry-run，并在原生 amd64 对实际 OCI 重做三路径升级恢复和完整五轮性能。原 036ade78 的原生成功用于定位 OOM，不代替最终新 SHA 验收。
+
+### REL-001：归档来源绑定必要同步（2026-10-12）
+
+- ff6c79c7 同 SHA dry-run 五归档 SOURCE.json 缺失根因明确：恢复 CI-000 同步遗漏的原四行材料入口及 workflow 回归，来源 metadata 动态绑定 prepare 应用 SHA/VERSION。仅同步可信 main 控制补丁 5f6dcba7 的 workflow/test 字节及记录，运行代码、SQL、VERSION 和门禁阈值不变；独立复核和主线 Quick 普通合并后再推最终新候选，旧成功/失败均保留，不冒用为新 SHA 通过。
