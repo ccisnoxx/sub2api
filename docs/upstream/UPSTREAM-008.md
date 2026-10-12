@@ -19,8 +19,13 @@
 - `go test -tags=unit ./internal/service -run '^Test(UpdateService|CompareVersions)' -count=1 -timeout=60s`：27 项通过。
 - pnpm 9.15.9 冻结锁文件、离线安装成功；首次默认 pnpm 11.25.0 因 overrides 配置不兼容退出，未修改依赖或锁文件。
 - Vitest：`VersionBadge.spec.ts`、`app.version.spec.ts`、`admin.system.rollback.spec.ts`、`localeKeyCompleteness.spec.ts`，4 文件 18 项通过。
+- `go test -tags=unit ./internal/handler/admin -run '^TestSystemHandler' -count=1 -timeout=60s`：通过，包含真实 UpdateService 的 3 类构建 × 4 类操作共 12 个 HTTP 拒绝场景；同时验证既有 handler 合同。
 - `vue-tsc --noEmit` 与 7 个受影响前端文件的定向 ESLint 通过；`git diff --check` 通过。
 - 既有 Browserslist 数据过期提示保留，本任务没有更新依赖。
+
+## 独立复核与修正
+
+首次独立只读 critical_reviewer 对应用候选 `acf05d1fdae3928658c17ccc8db20c7ea77e170e` 未确认发布阻断，确认 P2：在线回退列表把安装能力拒绝序列化为 500，丢失结构化 reason。修正为 `response.ErrorFrom`，与更新/回退一致返回 409 和 `IN_PLACE_UPDATE_NOT_SUPPORTED`；新增真实服务 HTTP 断言，空客户端确保在网络查询前拒绝。未重复运行未受影响的更新服务/前端成功检查。首次复核未纳入该修正，最终增量另行只读复核。
 
 ## 边界与回滚
 
