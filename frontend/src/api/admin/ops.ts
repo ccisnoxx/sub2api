@@ -1143,6 +1143,11 @@ export async function listErrorLogs(params: OpsErrorListQueryParams): Promise<Op
   return data
 }
 
+export async function getRoutingDiagnostics(id: number): Promise<OpsRoutingDiagnostics | null> {
+  const { data } = await apiClient.get<OpsRoutingDiagnostics | null>(`/admin/ops/errors/${id}/routing-diagnostics`)
+  return data
+}
+
 export async function getErrorLogDetail(id: number): Promise<OpsErrorDetail> {
   const { data } = await apiClient.get<OpsErrorDetail>(`/admin/ops/errors/${id}`)
   return data
@@ -1352,6 +1357,7 @@ export const opsAPI = {
   // New split endpoints
   listRequestErrors,
   listUpstreamErrors,
+  getRoutingDiagnostics,
   getRequestErrorDetail,
   getUpstreamErrorDetail,
   updateRequestErrorResolved,

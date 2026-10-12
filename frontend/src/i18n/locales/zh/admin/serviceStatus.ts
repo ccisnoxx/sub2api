@@ -1,5 +1,7 @@
 export default {
   serviceStatus: {
+    privacyHidden: '—（隐私保护）',
+    privacyNotice: '少于 {minimum} 个合格样本的分组、模型、历史点和关联事件已隐藏；相关平台合计也已隐藏。证据时间仅精确到 UTC 小时。',
     title: '服务状态',
     description: '本部署已观察请求的服务状态',
     boundedNotice: '聚合水位仅证明指定范围已完成扫描，不证明所有请求都写入源日志。无源记录、过滤或丢弃的错误日志、范围外迟到记录无法重建。',
@@ -57,7 +59,7 @@ export default {
     resolvedAt: '确认恢复时间',
     updates: '阶段记录',
     config: '独立监控配置',
-    configNotice: '配置不改变模型调用权限、调度或收费。开启后从下一个完整分钟开始观测，不回填停用期间请求；无可信终态的平台保持未知。',
+    configNotice: '展示隐私门槛至少为 5，配置只能提高此门槛。配置不改变模型调用权限、调度或收费。开启后从下一个完整分钟开始观测，不回填停用期间请求；无可信终态的平台保持未知。',
     enabled: '启用独立服务状态监控',
     platforms: '具体平台',
     minimumSamples: '最低合格样本数（1–10,000）',

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -43,7 +44,54 @@ func (h *OpsHandler) GetErrorLogByID(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, detail)
+	// 原 Ops 故障详情保留原合同；诊断仅通过独立白名单接口读取，不能随详情批量复制。
+	copy := *detail
+	copy.RoutingDiagnostics = nil
+	copy.UpstreamErrors, err = service.OpsUpstreamErrorsWithoutRoutingDiagnostics(copy.UpstreamErrors)
+	if err != nil {
+		log.Print("[Ops] 详情无法裁剪上游事件路由诊断，已隐藏事件正文")
+		copy.UpstreamErrors = ""
+	}
+	response.Success(c, &copy)
+}
+
+// GetRoutingDiagnostics 只返回已验证的选择事实，不携带账号、凭据域、请求或故障正文。
+func (h *OpsHandler) GetRoutingDiagnostics(c *gin.Context) {
+	if !middleware.RequireDiagnosticsJWT(c) {
+		return
+	}
+	if query, err := url.ParseQuery(c.Request.URL.RawQuery); err != nil || len(query) != 0 {
+		response.BadRequest(c, "路由诊断不接受查询或导出参数")
+		return
+	}
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || id <= 0 {
+		response.BadRequest(c, "无效的诊断记录 ID")
+		return
+	}
+	if h.opsService == nil {
+		response.Error(c, http.StatusServiceUnavailable, "诊断服务不可用")
+		return
+	}
+	if err := h.opsService.RequireMonitoringEnabled(c.Request.Context()); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	detail, err := h.opsService.GetErrorLogByID(c.Request.Context(), id)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	if detail.RoutingDiagnostics.Validate() != nil {
+		response.Error(c, http.StatusServiceUnavailable, "诊断快照无效")
+		return
+	}
+	now := time.Now().UTC()
+	if detail.CreatedAt.Before(now.Add(-30*24*time.Hour)) || detail.CreatedAt.After(now) {
+		response.Error(c, http.StatusNotFound, "诊断只保留最近 30 天查询范围")
+		return
+	}
+	response.Success(c, detail.RoutingDiagnostics)
 }
 
 const (

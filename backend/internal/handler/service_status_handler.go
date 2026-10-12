@@ -108,6 +108,7 @@ func (h *ServiceStatusHandler) UpdateConfig(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	middleware.SetAuditExtra(c, map[string]any{"config_version": updated.Version, "enabled": updated.Enabled, "minimum_samples": updated.MinimumSamples})
 	response.Success(c, updated)
 }
 
@@ -139,5 +140,7 @@ func (h *ServiceStatusHandler) Snapshot(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	response.Success(c, snapshot)
+	private := service.PrivateServiceStatusSnapshot(snapshot)
+	middleware.SetAuditExtra(c, map[string]any{"history_range": historyRange, "privacy_suppressed": private.PrivacySuppressed})
+	response.Success(c, private)
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/handler"
@@ -66,7 +67,7 @@ func TestOpsRoutingDiagnosticsAdminRoutesJWTBoundary(t *testing.T) {
 	pool, filtered := 0, 0
 	layer, reason := "load_balance", "pool_empty"
 	repo := &routingDiagnosticsJWTOpsRepo{detail: &service.OpsErrorLogDetail{
-		OpsErrorLog: service.OpsErrorLog{ID: 1, Message: "真实选择失败"},
+		OpsErrorLog: service.OpsErrorLog{CreatedAt: time.Now().UTC(), ID: 1, Message: "真实选择失败"},
 		RoutingDiagnostics: &service.RoutingDiagnostics{SchemaVersion: 1, SelectionAttempt: 1,
 			SelectionLayer: &layer, SelectionReason: &reason, CandidatePool: &pool, FilteredCandidates: &filtered,
 			FilterReasons: map[string]int{}, FilterCoverage: "complete"},
@@ -77,9 +78,9 @@ func TestOpsRoutingDiagnosticsAdminRoutesJWTBoundary(t *testing.T) {
 	RegisterAdminRoutes(router.Group("/api/v1"), handlers,
 		servermiddleware.NewAdminAuthMiddleware(auth, service.NewUserService(users, nil, nil, nil), nil, nil),
 		servermiddleware.AuditLogMiddleware(func(c *gin.Context) { c.Next() }),
-		servermiddleware.StepUpAuthMiddleware(func(c *gin.Context) { c.Next() }), nil, nil)
+		servermiddleware.StepUpAuthMiddleware(func(c *gin.Context) { c.Next() }), nil, diagnosticsTestLimiter(t))
 
-	for _, path := range []string{"/api/v1/admin/ops/errors/1", "/api/v1/admin/ops/request-errors/1"} {
+	for _, path := range []string{"/api/v1/admin/ops/errors/1", "/api/v1/admin/ops/request-errors/1", "/api/v1/admin/ops/errors/1/routing-diagnostics"} {
 		for _, tc := range []struct {
 			name   string
 			token  string
@@ -102,8 +103,13 @@ func TestOpsRoutingDiagnosticsAdminRoutesJWTBoundary(t *testing.T) {
 				require.Equal(t, tc.status, recorder.Code, recorder.Body.String())
 				if tc.status == http.StatusOK {
 					require.Equal(t, before+1, repo.reads)
-					require.Contains(t, recorder.Body.String(), `"candidate_pool":0`)
-					require.Contains(t, recorder.Body.String(), "真实选择失败")
+					if path == "/api/v1/admin/ops/errors/1/routing-diagnostics" {
+						require.Contains(t, recorder.Body.String(), `"candidate_pool":0`)
+						require.NotContains(t, recorder.Body.String(), "真实选择失败")
+					} else {
+						requireLegacyDiagnosticDetailProtected(t, recorder.Body.Bytes())
+						require.Contains(t, recorder.Body.String(), "真实选择失败")
+					}
 				} else {
 					require.Equal(t, before, repo.reads, "拒绝请求不得查询内部详情")
 					require.NotContains(t, recorder.Body.String(), "routing_diagnostics")

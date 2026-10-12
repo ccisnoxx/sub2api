@@ -32,15 +32,23 @@ func loadStatusIncidents(ctx context.Context, q statusQuerier, platforms []strin
 	if err != nil {
 		return nil, err
 	}
-	query = `SELECT i.id,i.platform,i.group_id,g.name,i.requested_model,i.phase,i.detected_at,i.last_evidence_at,i.last_abnormal_at,i.resolved_at,i.updates FROM service_status_incidents i JOIN groups g ON g.id=i.group_id WHERE g.status='active' AND g.deleted_at IS NULL AND i.platform=ANY($1) AND i.resolved_at >= $2 AND i.detected_at < $3 ORDER BY i.resolved_at DESC,i.id`
-	if limitResolved {
-		query += ` LIMIT 200`
-	}
-	closed, err := queryStatusIncidents(ctx, q, query, pq.Array(platforms), start, end)
+	closed, err := loadStatusResolvedIncidents(ctx, q, platforms, start, end, limitResolved, false)
 	if err != nil {
 		return nil, err
 	}
 	return append(result, closed...), nil
+}
+
+func loadStatusResolvedIncidents(ctx context.Context, q statusQuerier, platforms []string, start, end time.Time, limitResolved, resolvedBeforeEnd bool) ([]service.ServiceStatusIncident, error) {
+	query := `SELECT i.id,i.platform,i.group_id,g.name,i.requested_model,i.phase,i.detected_at,i.last_evidence_at,i.last_abnormal_at,i.resolved_at,i.updates FROM service_status_incidents i JOIN groups g ON g.id=i.group_id WHERE g.status='active' AND g.deleted_at IS NULL AND i.platform=ANY($1) AND i.resolved_at >= $2 AND i.detected_at < $3`
+	if resolvedBeforeEnd {
+		query += ` AND i.resolved_at < $3`
+	}
+	query += ` ORDER BY i.resolved_at DESC,i.id`
+	if limitResolved {
+		query += ` LIMIT 200`
+	}
+	return queryStatusIncidents(ctx, q, query, pq.Array(platforms), start, end)
 }
 func queryStatusIncidents(ctx context.Context, q statusQuerier, query string, args ...any) ([]service.ServiceStatusIncident, error) {
 	rows, err := q.QueryContext(ctx, query, args...)

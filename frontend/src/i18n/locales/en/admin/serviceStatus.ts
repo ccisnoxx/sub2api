@@ -1,5 +1,7 @@
 export default {
   serviceStatus: {
+    privacyHidden: '— (privacy protected)',
+    privacyNotice: 'Groups, models, history points and linked incidents with fewer than {minimum} qualified samples are hidden, along with affected platform totals. Evidence times are rounded to UTC hours.',
     title: 'Service Status',
     description: 'Service status of requests observed by this deployment',
     boundedNotice: 'The watermark proves aggregation completed for the stated scope, not that every request was logged. Requests without source records, filtered or dropped error logs, and late records outside the scan boundary cannot be reconstructed.',
@@ -57,7 +59,7 @@ export default {
     resolvedAt: 'Recovery confirmed',
     updates: 'Phase history',
     config: 'Independent monitoring configuration',
-    configNotice: 'Configuration does not change model access, routing or billing. Monitoring starts at the next full minute; disabled periods are not backfilled. Platforms without trustworthy terminal evidence remain unknown.',
+    configNotice: 'The display privacy threshold is at least 5; configuration can only raise it. Configuration does not change model access, routing or billing. Monitoring starts at the next full minute; disabled periods are not backfilled. Platforms without trustworthy terminal evidence remain unknown.',
     enabled: 'Enable independent service status monitoring',
     platforms: 'Concrete platforms',
     minimumSamples: 'Minimum qualified samples (1–10,000)',
