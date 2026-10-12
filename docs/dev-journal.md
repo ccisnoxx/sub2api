@@ -1,5 +1,14 @@
 # 开发日志
 
+## 2026-10-12：PR #48 普通合并，ARCH-005 长期来源治理
+
+- PR #48 在固定 head `f7aafd4dcda39ee6cfa99ad16c71baaffd44fd7c` / base `2867ad10d46d7b774a2e8c2b3406f9e6ad75f0e0` 上普通 merge；实际 personal `bea1db12d5f4853c0b85b44840e15de6a74309b1`，双亲为上述 base/head，tree 与候选同为 `a9e068591e1a7037378d9e9cc558a398b27c0e72`。沿用输入未变的 ARCH-004 定向验证/独立复核，无发布/部署；合并 SHA 查询到 Actions 0 次。
+- 下一可执行项 ARCH-005 从 main `ab86413aa27848239d0374adeff9f7aeaa41609e` 开始，固定 I/N/P 源码核对 owner、测试、原生能力与借鉴边界。新增发布/迁移记录目录，补全三次历史发行各自应用 SHA/KIN/Plus 范围、当时 Notes digest/run；新 KIN RC 源码另记未发布。更新 UPSTREAM/NOTICE/维护合同，旧 PREP-003 和历史发布记录保留。
+- 核对发现 I 的更新服务/版本徽章与 N 相同，旧 A 的个人 Release/container/manual 和 personal 版本比较未迁回；明确登记后续应用修复与定向验证方向，不在本次文档任务改代码或声称已修复。KIN 已有 recording/配置/计费 owner 可复用，不据同名能力删 S1–S4 或 schema。
+- 本轮只执行文档链接、固定 Git 来源/owner/test、来源字段与历史 Notes 交叉核对，以及 diff/范围检查；没有补跑应用测试、Full、安全扫描、dry-run、镜像发布或部署。交付/独立复核见 [ARCH-005](architecture/ARCH-005.md)。原维护工作树的已暂存 REMEDIATION_PLAN.md 内容与其他改动保留。
+- 固定文档 `c54b9497d4bee04215384deb494c5467b917a7db` 的 fresh critical_reviewer 复核无确认阻断；普通 reviewer 的 ROLE_MISMATCH 按真实未验收记录并转交。审计 `20261012T133859Z-arch-005-upstream-maintenance-42e7f252` closed/verify passed，20产物，三阶段尝试3/验收2，保留角色异常；无残留活跃/未执行ready或观察到的子代理写入。当前更新缺口、实际发行材料和部署运行证明仍待后续任务。
+
+
 ## 2026-10-10：S4.4 完成，正式个人版本部署及生产 S4 启用验收通过
 
 - personal累计候选`d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`经PR #7合入，最终`3d5e1fde82707900a21f2b5538b112c7bab3c04a`的11项必要CI38049101726全部成功；正式Release38050231176发布`0.2.14-klno.5-tps.2`，固定digest`sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530`，实际标签与唯一linux/amd64绑定一致。main工具/文档与personal应用分开维护，原13项应用未提交文件及无关工作树保留。
