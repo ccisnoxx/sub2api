@@ -6,6 +6,7 @@ on:
     paths:
       - 'deploy/personal/*.py'
       - 'deploy/personal/*.sh'
+      - 'deploy/personal/*.json'
       - '.github/workflows/personal-deploy-ci.yml'
   workflow_dispatch:
 

@@ -1,6 +1,6 @@
 # hostdzire 个人镜像部署
 
-本目录是本机部署控制工具。入口从当前仓库读取个人发布标签与来源记录，通过既有 `ssh hostdzire`、`scp` 将标准库 Python 执行器上传到私密临时目录，在服务器执行一次完整操作。工具不依赖本机 Docker daemon，不修改 SSH 配置或 host key 检查。
+本目录是本机部署控制工具。入口从当前仓库读取个人发布标签与来源记录，通过既有 `ssh hostdzire`、`scp` 将已验证的完整 Python 模块及无凭据配置 bundle 上传到私密临时目录，在服务器执行一次完整操作。工具不依赖本机 Docker daemon，不修改 SSH 配置或 host key 检查。
 
 最后离线验证日期：**2026-10-12**。固定 Linux x86_64 现场的恢复验证见 [BASELINE.md](../../BASELINE.md)；REL-001 交付历史候选部署前合同；REL-002 当前源码绑定及实际发布/部署状态以验收记录为准。
 
@@ -17,24 +17,66 @@
 在仓库根目录指定个人版本；可带 `v` 或完整 fork 镜像版本地址。版本先拉取并解析唯一 RepoDigest，再拉取该 digest；启动、验收和记录均使用相同的不可变引用。
 
 ```sh
-deploy/personal/deploy-hostdzire.sh 0.2.14-klno.3-tps.1
+deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.1 \
+  --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
-固定 digest 必须同时给出对应个人版本；revision 从本机个人 Git 标签读取，再核验实际镜像的 OCI 标签。首发的推荐命令为：
+固定 digest 必须同时给出对应个人版本；revision 从本机个人 Git 标签读取，再核验实际镜像的 OCI 标签。当前已部署版本对应的固定镜像命令为：
 
 ```sh
 deploy/personal/deploy-hostdzire.sh \
-  ghcr.io/ccisnoxx/sub2api@sha256:f4a979fdeef6c79b982d16d77bc3a6c7b528164bd6ce5b1deb34a8f4981a3d76 \
-  --version 0.2.14-klno.3-tps.1
+  ghcr.io/ccisnoxx/sub2api@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3 \
+  --version 0.2.15-klno.2-tps.1 \
+  --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
 成功输出包含服务器记录 `id`、目标与实际运行 digest、Image ID、OCI version/revision/source、健康状态。仅当前成功的**部署记录**可显式回滚：
 
 ```sh
-deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc
+deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc \
+  --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
 上面的 ID 是格式示例，执行时替换为本次部署实际返回的 ID。回滚提交新的记录与选择 ID，原部署 ID 随即不能重放。新部署输入只允许 `ghcr.io/ccisnoxx/sub2api` 的个人版本或 digest，拒绝 `latest`、其他仓库及 shell 语法。旧 KlN 仓库只允许首次已验证记录的固定 digest/revision/version/source，作为恢复来源，不接受新部署输入。镜像必须为 `linux/amd64`；缺失、错误或不一致的 OCI 标签与 RepoDigest 会停止操作。
+
+## ARCH-002 模块、配置与可信运输
+
+`hostdzire.json` 是唯一无凭据现场配置，完整指定 SSH 别名、工具 scratch、部署路径、Compose 项目/服务、容器/卷、端口、健康地址和维护站点/标记路径。它不包含密码、连接串或私密环境值。schema 拒绝缺失/未知字段、错误类型、非法路径与不一致的回环地址；没有覆盖目标或默认值的 CLI 开关。
+
+| 模块 | 输入 | 输出与权威责任 |
+|---|---|---|
+| `deploy_config.py` | 完整 JSON 配置 | 不可变现场模型，严格 schema |
+| `deploy_trust.py` | 本 fork origin/main 完整 SHA、本机工具路径 | 全部维护源码/config 的 SHA-256 清单、导入前校验 |
+| `deploy_local.py` / `deploy_git.py` | CLI 目标、实际旧镜像、真实 Git 对象 | 发布 revision、来源/祖先/runtime 的 canonical 兼容证明 |
+| `deploy_transport.py` | 已验证 bundle、现场配置、请求 | 原生 SSH/scp、私密 scratch 清理、绑定退出码的 JSON 结果 |
+| `deploy_process.py` | 明确 argv、文件流与 sensitive 标识 | 子进程结果；原始诊断只保存在私密操作记录 |
+| `deploy_images.py` | runner、现场配置、预期镜像 | 平台/digest/OCI/Image ID 验证；拉取必须显式调用 |
+| `deploy_compose.py` | 原 Compose 字节、配置、明确镜像 | 精确 image 行适配及完整 JSON 布局验证 |
+| `deploy_database.py` | 数据库容器 ID、账本/操作文件 | 原顺序账本 fingerprint、固定迁移验证、显式备份结果 |
+| `deploy_health.py` | 运行镜像、依赖身份、账本期望 | 容器、回环健康、PG/Redis 身份及迁移验收 |
+| `deploy_lifecycle.py` | 已绑定请求、配置、runner | 唯一 Deployment owner；锁、记录、备份时序、提交及失败恢复 |
+
+入口 `deploy_hostdzire.py` 只解析参数并编排这些模块。原私有 import 边界保留给已有只读调用/测试；生命周期故障注入的 owner 已移至 `deploy_lifecycle`。不迁移旧记录，不改变成功选择的格式，也不要求重新部署应用。线上旧 REL-002 维护入口及其 open/closed 状态仍可继续使用；更新本目录不会自动替换服务器已安装的旧控制工具。
+
+必须显式提供 `--tool-revision`，且它等于已获取的本 fork `origin/main` 完整 SHA。shell 入口使用 Python `-I -S -B`；在导入业务模块前，先从固定 main Git blob 读取 trust 实现，再检查所有源码/config 的普通文件、字节、文件模式及暂存/工作树漂移。工作树的既有 pyc 不参与加载，额外可导入文件也会被拒绝。目标应用 tag/revision 与工具 main SHA 各自验证，不能用工具 revision 绕过应用来源。
+
+SSH 一次 scp 运送完整清单。远端 isolated Python bootstrap 在导入任何业务模块前检查所有清单文件的 SHA-256、普通文件与独占 scratch 内容，随后请求再次绑定入口 hash、完整 bundle 和同一可信工具 revision。原单文件只校验 entry hash 与 revision 格式；这里补齐整套运输的信任边界。SSH 中断没有自动写入重试。
+
+## 只读 dry-run
+
+当前固定生产镜像已在主机缓存中，可在工具 SHA 已推送到 main 并获取之后执行：
+
+```sh
+deploy/personal/deploy-hostdzire.sh \
+  ghcr.io/ccisnoxx/sub2api@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3 \
+  --version 0.2.15-klno.2-tps.1 \
+  --tool-revision <已经获取的本-fork-origin/main-完整SHA> \
+  --dry-run
+```
+
+成功输出 `status=dry-run`、`will_apply=false`。它取得**既有** deployment.lock 的共享锁，执行同一只读 preflight 合同，验证已缓存目标的 OCI/platform/digest、当前选择/成功记录、Compose 定位、PG/Redis 身份、迁移账本、容器及回环健康，并在返回前复核现场未漂移。缺少状态/锁、目标未缓存或任一证据不完整都失败关闭，不创建或修复运行状态。
+
+此路径不调用 apply，不 pull 镜像，不备份数据库或应用数据，不创建操作记录，不改变 selection/Compose，不启动容器或执行迁移。仅工具运输 scratch 与临时 Compose 镜像变量文件可以写入显式固定的 `/tmp`，不采用 `TMPDIR`、`TEMP` 或 `TMP` 选择目录，操作后清理；它们与运行状态目录分开。Python 不读取私密 `.env` 字节；Compose 进程只读解析必要配置，完整 JSON 仅作为 sensitive 内存校验，不打印/落盘。dry-run 因此明确报告 `private_environment_bytes=not_read`，只验证选定 Compose 的可观察运行合同，不表示完整私密环境漂移已验证，也不重算 `.env` hash；正式 apply 仍按原合同读取私密字节、保存备份并执行 hash 防漂移。只读通过不表示新的部署、备份恢复或核心业务验收已完成。
 
 ## 状态与兼容性合同
 
@@ -50,7 +92,7 @@ deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc
 
 此正向证明明确记录 `image_rollback_compatible=false`。`.5` 的 `account.extra.openai_gwpool_usage_rounds` 新增 `rounds.active_usage` 与归档的 `active_duration_ms/incomplete`，contacts 新增 `previous`；`.3` 的类型解码与 whole-key `UpdateExtra` 会丢失这些字段。`.5` reporter 在 HTTP 监听与 health 之前启动，cooldown 首次 arm 也可能写入持久化数据。因此迁移清单未变化、启动等待失败或 `/health` 尚未成功都不能证明旧镜像恢复无损。该升级拒绝 `.5 → .3` 普通部署、显式回滚，以及新应用启动后的自动旧镜像恢复。需要另行评估数据兼容的向前修复或经授权的维护恢复；数据库恢复与可能丢失写入不在部署工具的授权中。
 
-S0–S4 的 `klno.5-tps.1-to-s0-s4` 证明固定旧应用 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92 / 0.2.14-klno.5-tps.1`，保留双方 `.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d` 来源。新候选锚点为 `d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`，旧完整运行树为 `928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d`，新树为 `ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747`，精确 128 个差异路径以 `deploy_hostdzire.py` 的 `CUMULATIVE_CHANGED_PATHS` 为准。正式个人标签的 merge revision 可以不同，但必须包含审定候选且整个运行树完全相同。本机核对真实 Git 对象，远端核对 canonical 清单、证明 hash、实际旧新 revision 与镜像版本。不能删掉专属证明、伪装成零差异或安全补丁放行这次累计运行差异。
+S0–S4 的 `klno.5-tps.1-to-s0-s4` 证明固定旧应用 `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92 / 0.2.14-klno.5-tps.1`，保留双方 `.5 / c7aacf5d3ae383d0d5c75f471f66e61690a5701d` 来源。新候选锚点为 `d72a3dafbdcb1edb642fca8dcfb29a803eaa97af`，旧完整运行树为 `928336853218695778c2aed538952de0af7c3e1413cfd25cce0daf73ec52c81d`，新树为 `ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747`，精确 128 个差异路径以 `deploy_compatibility.py` 的 `CUMULATIVE_CHANGED_PATHS` 为准。正式个人标签的 merge revision 可以不同，但必须包含审定候选且整个运行树完全相同。本机核对真实 Git 对象，远端核对 canonical 清单、证明 hash、实际旧新 revision 与镜像版本。不能删掉专属证明、伪装成零差异或安全补丁放行这次累计运行差异。
 
 累计证明只允许新增 `251_add_usage_log_timing.sql`、`252_add_ops_routing_diagnostics.sql`、`253_service_status_observation.sql`、`254_service_status.sql`，分别固定 Go runner 使用的 `SHA256(strings.TrimSpace(SQL))`。251 的追加计时/终态字段包含旧写入可使用的默认值和可空列，252/253 追加可空 JSONB，254 创建独立服务状态表并安装分组可见性 trigger；兼容结论绑定这些完整 SQL 和固定旧应用的真实扩展 schema 证据，不推广为“所有追加迁移均安全”。回退只恢复应用镜像，保持扩展 schema 与 ledger，`schema_rollback=retain`。
 
@@ -84,7 +126,7 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 
 ## 备份、失败与恢复
 
-每次操作生成 `.personal-deploy/records/<ID>/`。状态目录与记录目录权限为 `700`，记录、镜像选择、配置备份、数据库与应用数据备份、诊断文件权限为 `600`。记录保存工具 Git revision 与实际脚本 SHA-256、旧/目标镜像元数据、兼容证据、时间、阶段、配置/.env hash、迁移指纹、备份信息和退出状态。服务器 `.env`、应用配置、数据库、应用日志留在服务器，不输出凭据或上传 Git。
+每次操作生成 `.personal-deploy/records/<ID>/`。状态目录与记录目录权限为 `700`，记录、镜像选择、配置备份、数据库与应用数据备份、诊断文件权限为 `600`。记录保存工具 Git revision 与入口及完整工具 bundle SHA-256、旧/目标镜像元数据、兼容证据、时间、阶段、配置/.env hash、迁移指纹、备份信息和退出状态。服务器 `.env`、应用配置、数据库、应用日志留在服务器，不输出凭据或上传 Git。
 
 执行顺序是预检、备份、目标拉取与 OCI/平台校验、最小 Compose 适配、仅应用启动、完整健康核对、持久提交成功选择。备份完成在新进程启动之前。更新使用一个应用 Compose replacement 顺序替换；不并行启动共享 Redis 的新旧应用，避免 `CleanupStaleProcessSlots` 清理另一进程的 slot。备份包括原 Compose、`.env`、已有镜像选择、`pg_dump --format=custom` 和 `/app/data` 归档。数据库 dump 以文件流送入 `pg_restore --list`，应用归档先枚举 tar 成员，再分块读取到 gzip EOF，完成 CRC 与长度校验；两份数据备份记录大小及 SHA-256。数据库与应用归档是在运行期间分别取得，恢复时需要人工核对业务一致性；`pg_restore --list` 证明结构可读取，实际完整恢复仍需隔离实例演练。
 
@@ -114,7 +156,7 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 ```sh
 python3 -m unittest discover -s deploy/personal -p 'test_*.py' -v
 sh -n deploy/personal/deploy-hostdzire.sh
-python3 -m py_compile deploy/personal/deploy_hostdzire.py deploy/personal/test_deploy_hostdzire.py
+python3 -m py_compile deploy/personal/*.py
 git diff --check
 ```
 
@@ -124,7 +166,7 @@ git diff --check
 
 ## REL-002 单站点流量维护
 
-`maintenance_hostdzire.py` 是服务器端的单次发布维护入口，与部署执行器共用同一把锁。只接受 `setup`、`freeze`、`resume`、`remove`；固定 `api.962850.xyz` 两个 server 的已核实原始配置摘要，备份原字节和权限，拒绝未知配置、标记或记录漂移。审定脚本上传到服务器私密工具目录后，以 Python 依次执行这四个操作；只有正式发布与测试环境验收完成后才在生产使用。
+`maintenance_hostdzire.py` 是服务器端的单次发布维护入口，与部署执行器共用同一把锁。只接受 `setup`、`freeze`、`resume`、`remove`；固定 `api.962850.xyz` 两个 server 的已核实原始配置摘要，备份原字节和权限，拒绝未知配置、标记或记录漂移。新版本维护文件依赖 `deploy_config.py`、`deploy_common.py` 和 `hostdzire.json`，须按 `deploy_trust.py` 的 `BUNDLE_FILES` 清单，以同一可信 main revision 运输完整模块/config bundle，不能单文件上传。现有已验收的 `83c250` 控制器继续有效；更新仓库文件不会自动替换它或迁移现有维护记录。只有正式发布与测试环境验收完成后才在生产使用。
 
 `setup` 安装单站点条件但保持流量开放。生产备份及迁移锁检查完成后，`freeze` 创建 `/var/lib/sub2api-rel002-maintenance/closed`，关闭新公开请求。该专用目录为执行者所有的普通 `0755` 目录，标记为 `0644` 且不含凭据；创建和写入执行 fsync。不能把标记放回重启清空的 `/run`，也不能放在 Nginx worker 无法遍历的私密部署记录目录。
 
@@ -132,4 +174,4 @@ git diff --check
 
 六项隔离文件系统合同检查通过，旧 `/run` 实现在重启回归中因标记丢失失败。既有主机的隔离 Nginx 实例验证了 ext4 标记在易失目录清空及 Nginx 新进程启动后仍返回 503，并验证开放与再次关闭；没有重启共享生产主机。实际生产站点的完整操作与验收以 REL-002 发布记录为准。
 
-稳定测试边界为 `Deployment(base=临时目录, runner=Docker替身)`；生产项目、容器名、持久卷和健康 URL 固定在本模块，没有临时栈或更换生产目标的 CLI 开关。隔离真实镜像恢复演练由维护者在完全独立的容器/卷/端口中组织，不能据替身结果宣称生产已更新或数据库已恢复验证。
+稳定测试边界为 `Deployment(base=临时目录, runner=Docker替身)`；生产项目、容器名、持久卷和健康 URL 明确固定在受信任的 hostdzire.json，没有临时栈或更换生产目标的 CLI 开关。隔离真实镜像恢复演练由维护者在完全独立的容器/卷/端口中组织，不能据替身结果宣称生产已更新或数据库已恢复验证。

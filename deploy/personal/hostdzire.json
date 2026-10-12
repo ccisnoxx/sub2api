@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "ssh_alias": "hostdzire",
+  "scratch_template": "/tmp/sub2api-personal.XXXXXXXXXXXX",
+  "base": "/root/sub2api-kin",
+  "compose_file": "docker-compose.yml",
+  "env_file": ".env",
+  "state_directory": ".personal-deploy",
+  "project": "sub2api-kin",
+  "app_service": "sub2api",
+  "app_container": "sub2api-kin",
+  "app_volume": "sub2api-kin_sub2api_data",
+  "app_data_path": "/app/data",
+  "services": [
+    "sub2api",
+    "postgres",
+    "redis"
+  ],
+  "host_ip": "127.0.0.1",
+  "published_port": 10088,
+  "target_port": 8080,
+  "health_url": "http://127.0.0.1:10088/health",
+  "wait_timeout": 120,
+  "maintenance": {
+    "site": "/etc/nginx/sites-enabled/api.962850.xyz.conf",
+    "allowed_site_parents": [
+      "/etc/nginx/sites-enabled",
+      "/etc/nginx/sites-available"
+    ],
+    "flag_directory": "/var/lib/sub2api-rel002-maintenance",
+    "record_directory": ".personal-deploy/rollouts/REL-002-42907bcab278",
+    "server_name": "api.962850.xyz"
+  },
+  "postgres_container": "sub2api-kin-postgres"
+}
