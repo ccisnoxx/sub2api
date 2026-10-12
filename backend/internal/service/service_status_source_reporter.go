@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync"
 	"time"
-
-	"github.com/Wei-Shaw/sub2api/internal/pkg/logger"
 )
 
 type serviceStatusSourceErrorStore interface {
@@ -58,7 +56,7 @@ func (r *serviceStatusSourceReporter) stop() error {
 		defer cancel()
 		if err := r.store.RecordSourceError(ctx, at); err != nil {
 			r.stopErr = ErrServiceStatusUnavailable
-			logger.LegacyPrintf("service.service_status", "服务状态源缺口停止未完成 stage=source_integrity code=SERVICE_STATUS_SOURCE_ERROR")
+			reportServiceStatusSourceAlert("source_stop")
 			return
 		}
 		r.mu.Lock()
@@ -90,7 +88,7 @@ func (r *serviceStatusSourceReporter) loop(ctx context.Context) {
 		cancel()
 		if err != nil {
 			if ctx.Err() == nil {
-				logger.LegacyPrintf("service.service_status", "服务状态源缺口报告失败 stage=source_integrity code=SERVICE_STATUS_SOURCE_ERROR")
+				reportServiceStatusSourceAlert("source_persist")
 			}
 			continue
 		}

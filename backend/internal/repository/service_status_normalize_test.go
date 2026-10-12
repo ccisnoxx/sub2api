@@ -88,9 +88,23 @@ func TestServiceStatusNormalizeConflictAndHistoricalKeys(t *testing.T) {
 }
 func TestServiceStatusNormalizeReasonPairsAndUnsupported(t *testing.T) {
 	at := time.Date(2026, 10, 9, 1, 0, 0, 0, time.UTC)
-	for _, tt := range []struct{ reason, want string }{{"user_authentication", "excluded"}, {"provider_authentication", "failure"}, {"user_quota", "excluded"}, {"provider_quota", "failure"}, {"user_rate_limit", "excluded"}, {"provider_capacity", "failure"}, {"unclassified", "unknown"}} {
-		out := statusNormalize(t, statusRow(uuid.NewString(), "upstream_error", tt.reason, at))
-		require.Equal(t, tt.want, out[0].outcome)
+	for _, tt := range []struct{ reason, want, gap string }{
+		{"client_cancelled", "excluded", ""}, {"user_invalid_request", "excluded", ""},
+		{"user_context_limit", "excluded", ""}, {"user_model_unsupported", "excluded", ""},
+		{"user_group_access", "excluded", ""}, {"user_authentication", "excluded", ""},
+		{"user_quota", "excluded", ""}, {"user_rate_limit", "excluded", ""}, {"content_policy", "excluded", ""},
+		{"provider_authentication", "failure", ""}, {"provider_quota", "failure", ""},
+		{"provider_capacity", "failure", ""}, {"provider_5xx", "failure", ""},
+		{"account_pool_unavailable", "failure", ""}, {"service_timeout", "failure", ""},
+		{"service_transport", "failure", ""}, {"service_internal", "failure", ""},
+		{"unclassified", "unknown", "unclassified"}, {"", "unknown", "unclassified"}, {"future_reason", "unknown", "linkage_unavailable"},
+	} {
+		t.Run(tt.reason, func(t *testing.T) {
+			out := statusNormalize(t, statusRow(uuid.NewString(), "upstream_error", tt.reason, at))
+			require.Len(t, out, 1)
+			require.Equal(t, tt.want, out[0].outcome)
+			require.Equal(t, tt.gap, out[0].gap)
+		})
 	}
 	for _, typ := range []int{4, 6, 7} {
 		r := statusRow(uuid.NewString(), "upstream_error", "provider_5xx", at)

@@ -13,7 +13,7 @@ import (
 )
 
 const statusLockID int64 = 7343400301
-const statusBoundedNotice = "仅描述本部署已观察请求；日志缺失、被过滤或丢弃及超出十分钟重算/九十分钟关联边界的迟到记录无法重建。"
+const statusBoundedNotice = "仅代表本部署已观察请求，不代表供应商全局可用性或 SLA；日志缺失、被过滤或丢弃及超出十分钟重算/九十分钟关联边界的迟到记录无法重建。"
 
 type serviceStatusRepository struct {
 	db      *sql.DB
