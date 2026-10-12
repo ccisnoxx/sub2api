@@ -1,11 +1,7 @@
 name: Personal release
-run-name: Personal release | ${{ inputs.source_sha || github.event.workflow_run.head_sha }}
+run-name: Personal release | ${{ inputs.source_sha }}
 
 on:
-  workflow_run:
-    workflows: ['Personal CI']
-    types: [completed]
-    branches: [personal]
   workflow_dispatch:
     inputs:
       source_sha:
@@ -13,7 +9,7 @@ on:
         required: true
         type: string
       ci_run_id:
-        description: '同一 personal SHA 的成功 Personal CI；留空自动查找'
+        description: '同一 personal SHA 的成功手动 Full CI；留空自动查找'
         required: false
         type: string
 
@@ -28,17 +24,12 @@ jobs:
   prepare:
     if: >-
       github.repository == 'ccisnoxx/sub2api' &&
-      vars.PERSONAL_RELEASE_ENABLED == 'true' &&
-      (github.event_name == 'workflow_dispatch' ||
-       (github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.head_repository.full_name == github.repository &&
-        github.event.workflow_run.head_branch == 'personal' &&
-        (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')))
+      github.ref == 'refs/heads/main' &&
+      vars.PERSONAL_RELEASE_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       actions: write
-      checks: read
       packages: read
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -58,27 +49,9 @@ jobs:
           ref: personal
           fetch-depth: 0
           persist-credentials: false
-      - name: Ignore automatic Quick completions
-        id: eligibility
-        if: github.event_name == 'workflow_run'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          CI_RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID/jobs?filter=latest&per_page=100" > "$RUNNER_TEMP/ci-jobs.json"
-          python3 -I - <<'PYCODE'
-          import json, os
-          from pathlib import Path
-          rows = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-jobs.json').read_text())
-          full = any(job['name'] == 'full-ci-certified' and job['status'] == 'completed' and job['conclusion'] == 'success'
-                     for page in rows for job in page['jobs'])
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
-              stream.write(f'full={str(full).lower()}\n')
-          PYCODE
       - name: Gate final SHA, allocate version and explicitly dispatch Release
-        if: github.event_name == 'workflow_dispatch' || steps.eligibility.outputs.full == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          SOURCE_SHA: ${{ inputs.source_sha || github.event.workflow_run.head_sha }}
-          CI_RUN_ID: ${{ inputs.ci_run_id || github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          CI_RUN_ID: ${{ inputs.ci_run_id }}
         run: python3 "$RUNNER_TEMP/release-tools/personal_release.py" prepare --sha "$SOURCE_SHA" --ci-run-id "$CI_RUN_ID"

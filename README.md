@@ -37,7 +37,7 @@ Verified published example on **2026-10-10**: [v0.2.14-klno.5-tps.2](https://git
 - A model and price catalog filtered by the user's authorized groups.
 - Structured routing diagnostics in administrator error details.
 - Request-based service status for administrators, disabled by default. It describes requests observed by this deployment; missing or insufficient samples remain unknown.
-- Fork-owned synchronization, publication, and deployment controls that bind source SHA, successful Personal CI, and image digest.
+- Fork-owned synchronization, manual publication, and deployment controls that bind source SHA, successful manual Personal CI Full, and image digest. Automatic full PR CI and strict branch protection are optional; see the [personal maintenance release workflow](docs/ci/CI-000.md).
 
 The current KIN application baseline is `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d`; its record is on [personal](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json). The Plus release context is `v0.2.14+custom.002`, whose tag points to `a7749f5826ec0a5c6493c47fde9474dc31525f14`; adaptation uses the fixed reading commit `90da415c62b94c9417d9ce2b72b1507ed22f0303`. These commits differ only in provenance documentation. See the [source matrix](UPSTREAM.md), [NOTICE](NOTICE), [adaptation plan](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md) and [delivery record](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md). This is selective adaptation, not a promise to synchronize every upstream feature.
 

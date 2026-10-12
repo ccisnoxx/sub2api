@@ -1,9 +1,6 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*-klno.*-tps.*'
   workflow_dispatch:
     inputs:
       tag:
@@ -22,7 +19,7 @@ on:
         description: 'Simple release: only x86_64 GHCR image, skip other artifacts'
         required: false
         type: boolean
-        default: false
+        default: true
       dry_run:
         description: 'Build and verify all selected artifacts without publishing'
         required: false
@@ -39,7 +36,7 @@ permissions:
 
 env:
   GOTOOLCHAIN: local
-  SIMPLE_RELEASE: ${{ inputs.simple_release == true || github.event_name == 'push' || vars.SIMPLE_RELEASE == 'true' }}
+  SIMPLE_RELEASE: ${{ inputs.simple_release == true || vars.SIMPLE_RELEASE == 'true' }}
   DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
 
 jobs:
@@ -48,7 +45,6 @@ jobs:
     permissions:
       contents: read
       actions: read
-      checks: read
       packages: read
     runs-on: ubuntu-latest
     outputs:
@@ -432,7 +428,6 @@ jobs:
       contents: write
       packages: write
       actions: read
-      checks: read
     env:
       SIMPLE_RELEASE: ${{ needs.prepare.outputs.simple }}
       DRY_RUN: ${{ needs.prepare.outputs.dry_run }}

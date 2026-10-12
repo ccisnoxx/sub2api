@@ -180,7 +180,7 @@ def create_pr(candidate):
 - 迁移文件：{candidate['migrations'] or '无'}
 - 检查：[候选 SHA 的 Actions](https://github.com/{REPOSITORY}/actions?query=branch%3A{branch})；创建 PR 不代表检查成功。
 
-显式 dispatch Personal CI，包含 TPS 检查及现有 CI/Security Scan。只接受候选 SHA 和最新 personal 基础对应的成功结果；基础变化后重新准备候选。
+显式 dispatch Personal CI Quick，按变更路径提供反馈；准备发布时由维护者在最终 personal SHA 手动运行 Full。检查绑定候选 SHA 和最新 personal 基础，基础变化后重新准备候选。
 升级 PR 必须使用 **merge commit**，保留 TPS 与上游祖先关系，不使用 squash/rebase。首次 TPS 发布仍使用原上游基线；本 PR 不触发发布或部署。
 """
     with tempfile.TemporaryDirectory() as directory:
@@ -200,8 +200,8 @@ def create_pr(candidate):
 
 
 def dispatch_ci(candidate):
-    from ci_policy import ci_title, full_evidence
-    title = ci_title(candidate['candidate_sha'], candidate['base_sha'], "full")
+    from ci_policy import ci_title
+    title = ci_title(candidate['candidate_sha'], candidate['base_sha'], "quick")
     runs = gh_json("api", f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?head_sha={candidate['candidate_sha']}&per_page=100")
     matching = [r for r in runs["workflow_runs"] if r["display_title"] == title and r["head_branch"] == candidate["branch"]
                 and r["event"] == "workflow_dispatch"]
@@ -211,12 +211,11 @@ def dispatch_ci(candidate):
             candidate["ci_run"] = current["html_url"]
             return candidate
         if current["conclusion"] == "success":
-            if full_evidence(candidate["candidate_sha"], candidate["base_sha"]):
-                candidate["ci_run"] = current["html_url"]
-                return candidate
+            candidate["ci_run"] = current["html_url"]
+            return candidate
     run("gh", "workflow", "run", "personal-ci.yml", "--repo", REPOSITORY, "--ref", candidate["branch"],
         "-f", f"candidate_sha={candidate['candidate_sha']}", "-f", f"base_sha={candidate['base_sha']}",
-        "-f", f"pr_number={candidate['pr_number']}", "-f", "mode=full")
+        "-f", f"pr_number={candidate['pr_number']}", "-f", "mode=quick")
     candidate["ci_run"] = "dispatched"
     return candidate
 
