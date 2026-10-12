@@ -149,6 +149,7 @@ docs/*
 !docs/ci/CI-002.md
 !docs/ci/CI-003.md
 !docs/ci/CI-004.md
+!docs/ci/CI-005.md
 !docs/screenshots/
 docs/screenshots/*
 !docs/screenshots/mobile-account-actions-menu.png

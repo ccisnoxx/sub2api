@@ -38,7 +38,9 @@ class ReleaseControlTest(unittest.TestCase):
         self.assertLess(control, save)
         self.assertLess(save, source)
         upload = next(s for s in prepare if s.get("with", {}).get("name") == "release-guard")
-        self.assertEqual(upload["with"]["path"], "${{ runner.temp }}/release-guard/")
+        # 上传允许增加排除规则，但可信 guard 的唯一正向来源不能变化。
+        self.assertEqual([p for p in upload["with"]["path"].splitlines() if not p.startswith("!")],
+                         ["${{ runner.temp }}/release-guard/"])
         self.assertEqual(upload["with"]["if-no-files-found"], "error")
         steps = self.release["jobs"]["release"]["steps"]
         download = next(i for i, s in enumerate(steps) if s.get("with", {}).get("name") == "release-guard")

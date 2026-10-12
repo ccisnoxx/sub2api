@@ -7,10 +7,8 @@ on:
     types: [opened, reopened, closed, synchronize]
 
 permissions:
-  actions: write
-  contents: write
-  pull-requests: write
-  statuses: write
+  # 上游 CLA 在本 fork 的两个 job 均跳过，不授予其任何写权限。
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
