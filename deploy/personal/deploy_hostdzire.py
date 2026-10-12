@@ -377,6 +377,27 @@ CUMULATIVE_MIGRATIONS = {
     "254_service_status.sql": "21522e3ef19e18bbe00bef39d48b153b61e0eee3e33b4047b7d045c5edaf0102",
 }
 
+# REL-001 离线审定的单向基线；正式 merge 须包含此锚点且完整运行树不变。
+KIN_UPGRADE_ID = "klno.5-tps.2-to-0.2.15-klno.2"
+KIN_OLD_REVISION = "3d5e1fde82707900a21f2b5538b112c7bab3c04a"
+KIN_OLD_VERSION = "0.2.14-klno.5-tps.2"
+KIN_OLD_IMAGE = REPOSITORY + "@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530"
+KIN_NEW_SOURCE = {
+    "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.15-klno.2",
+    "upstream_sha": "ca686de5e5ac14834e12701c156831abd5ec6b71",
+}
+KIN_NEW_REVISION = "776b4887daf883776b03f6951ca25e9b277b849d"
+KIN_OLD_RUNTIME = "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747"
+KIN_NEW_RUNTIME = "be49127eed6d9a3fd039a238530a518b51e9f876451d37507aee27e14fc6d0d3"
+# 绑定完整排序后的 changed_paths JSON，而非路径范围；证明仍保存全部实际路径。
+KIN_CHANGED_PATHS_SHA256 = "1a21da2155518f87babf4bc75682f2b223082e6c9ff9547201be65a9a0ffb8c4"
+KIN_MIGRATIONS = {
+    "242_drop_platform_check_constraints.sql": "a7725f31f637208d200e0f37d5270e9f263743d99fa9e4f1bb9a7387e8be5a61",
+}
+KIN_OLD_MIGRATION_STATE = {
+    "rows": 307, "filename_checksum_sha256": "d96e2af9dccac1570317feebfe5fd0c0443340a8e07a722c4a6b9ff22277ef4a",
+}
+
 
 class DeployError(Exception):
     def __init__(self, code, message):
@@ -430,6 +451,21 @@ def approved_cumulative_upgrade(direction):
             "migrations": dict(CUMULATIVE_MIGRATIONS)}
 
 
+def approved_kin_upgrade(direction):
+    require(direction in ("upgrade", "redeploy"), "E_COMPATIBILITY", "新 KIN 证明不允许旧镜像回退")
+    redeploy = direction == "redeploy"
+    return {"id": KIN_UPGRADE_ID, "direction": direction,
+            "old_source": dict(KIN_NEW_SOURCE if redeploy else FORWARD_NEW_SOURCE),
+            "new_source": dict(KIN_NEW_SOURCE),
+            "old_runtime_revision": KIN_NEW_REVISION if redeploy else KIN_OLD_REVISION,
+            "new_runtime_revision": KIN_NEW_REVISION,
+            "old_runtime_sha256": KIN_NEW_RUNTIME if redeploy else KIN_OLD_RUNTIME,
+            "new_runtime_sha256": KIN_NEW_RUNTIME,
+            "changed_paths_sha256": sha(canonical([])) if redeploy else KIN_CHANGED_PATHS_SHA256,
+            "image_rollback_compatible": False, "schema_rollback": "retain",
+            "migrations": dict(KIN_MIGRATIONS)}
+
+
 def validate_compatibility_proof(proof, old_revision, new_revision, old_version=None, new_version=None):
     require(isinstance(proof, dict), "E_COMPATIBILITY", "兼容证据必须为对象")
     content = {key: value for key, value in proof.items() if key != "sha256"}
@@ -441,6 +477,20 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
             "E_COMPATIBILITY", "兼容证据无效或没有绑定实际旧、新 revision")
     forward = proof.get("forward_upgrade")
     cumulative = proof.get("cumulative_upgrade")
+    kin = proof.get("kin_upgrade")
+    kin_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]
+    if kin_source:
+        require("kin_upgrade" in proof, "E_COMPATIBILITY", "新 KIN 必须使用专属完整运行树与迁移证明")
+    if "kin_upgrade" in proof:
+        direction = "upgrade" if old_revision == KIN_OLD_REVISION else "redeploy"
+        approved = approved_kin_upgrade(direction)
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "kin_upgrade"} and
+                isinstance(kin, dict) and canonical(kin) == canonical(approved) and
+                SHA_RE.fullmatch(old_revision) and SHA_RE.fullmatch(new_revision) and
+                proof["upstream"] == KIN_NEW_SOURCE and
+                sha(canonical(proof["changed_paths"])) == approved["changed_paths_sha256"],
+                "E_COMPATIBILITY", "新 KIN 证明不属于固定来源、完整运行树与精确差异")
     cumulative_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == "v0.2.14-klno.5"
     if old_revision != new_revision and CUMULATIVE_OLD_REVISION in (old_revision, new_revision) and cumulative_source and not forward:
         require("cumulative_upgrade" in proof, "E_COMPATIBILITY", "固定 S0–S4 运行差异必须使用专属升级证据")
@@ -461,7 +511,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
                 proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(FORWARD_CHANGED_PATHS),
                 "E_COMPATIBILITY", "正向升级证据不属于已审定的来源、完整运行树与差异")
     if old_version is not None and new_version is not None:
-        upgrade = forward or cumulative
+        upgrade = forward or cumulative or kin
         old_source = upgrade["old_source"] if upgrade else proof.get("upstream", {})
         new_source = upgrade["new_source"] if upgrade else proof.get("upstream", {})
         require(isinstance(old_source, dict) and isinstance(new_source, dict) and
@@ -474,7 +524,12 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
             require(old_release == CUMULATIVE_OLD_VERSION and VERSION_RE.fullmatch(application_release) and
                     int(application_release.rsplit("-tps.", 1)[1]) > 1,
                     "E_COMPATIBILITY", "累计升级只绑定固定 .5-tps.1 旧发布与后续同基线个人版本")
-    if forward or cumulative:
+        if kin:
+            require(VERSION_RE.fullmatch(new_version) and
+                    ((kin["direction"] == "upgrade" and old_version == KIN_OLD_VERSION) or
+                     (kin["direction"] == "redeploy" and VERSION_RE.fullmatch(old_version))),
+                    "E_COMPATIBILITY", "新 KIN 只绑定固定旧发布与新来源正式个人版本")
+    if forward or cumulative or kin:
         return
     if proof["changed_paths"] == []:
         require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
@@ -485,8 +540,9 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
 
 
 def require_image_rollback(proof):
-    require("forward_upgrade" not in proof, "E_COMPATIBILITY",
-            ".5 启动可能已写入 .3 无法保留的数据；禁止旧镜像恢复，需人工评估失败记录与备份")
+    require(not any(proof.get(name, {}).get("image_rollback_compatible") is False
+                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade")),
+            "E_COMPATIBILITY", "持久化数据回退未获证明；禁止旧镜像恢复，需人工评估失败记录与备份")
 
 
 def approved_security_patch(direction):
@@ -531,6 +587,20 @@ def cumulative_ledger_baseline(observed):
                         if line.split(b"|", 1)[0] not in approved_names)
     require(cumulative_ledger_prefix(baseline, observed) == len(CUMULATIVE_MIGRATIONS),
             "E_MIGRATION", "显式回滚要求全部固定新增迁移，不能有未知差异")
+    return baseline
+
+
+def kin_ledger_baseline(observed, complete):
+    """保留原数据库顺序；只接受固定 307 行和唯一的正确 242。"""
+    lines = cumulative_ledger_lines(observed)
+    additions = [line for line in lines if line.split(b"|", 1)[0].decode() in KIN_MIGRATIONS]
+    baseline = b"".join(line for line in lines if line.split(b"|", 1)[0].decode() not in KIN_MIGRATIONS)
+    expected = [(name + "|" + checksum + "\n").encode() for name, checksum in KIN_MIGRATIONS.items()]
+    require(migration_fingerprint(baseline) == KIN_OLD_MIGRATION_STATE and
+            additions == (expected if complete else []) and
+            all((name + "|" + checksum + "\n").encode() in lines
+                for name, checksum in CUMULATIVE_MIGRATIONS.items()),
+            "E_MIGRATION", "新 KIN 账本必须保留固定原 307 行和 251–254，且只追加正确 242")
     return baseline
 
 
@@ -671,6 +741,27 @@ class GitEvidence:
                     "E_COMPATIBILITY", "累计应用新增迁移不是已审定的普通文件与 checksum")
         return approved
 
+    def kin_upgrade(self, old, target, changed, direction):
+        approved = approved_kin_upgrade(direction)
+        require(sha(canonical(changed)) == approved["changed_paths_sha256"] and
+                self.runtime_fingerprint(old["revision"]) == approved["old_runtime_sha256"] and
+                self.runtime_fingerprint(target["revision"]) == KIN_NEW_RUNTIME,
+                "E_COMPATIBILITY", "新 KIN 仅允许固定旧应用与审定的新完整运行树")
+        if direction == "upgrade":
+            require(old["revision"] == KIN_OLD_REVISION and old["version"] == KIN_OLD_VERSION and
+                    old["image"] == KIN_OLD_IMAGE,
+                    "E_COMPATIBILITY", "新 KIN 升级必须从固定已发布旧镜像开始")
+        for revision in ((target["revision"],) if direction == "upgrade" else (old["revision"], target["revision"])):
+            ancestry = subprocess.run(["git", "-C", str(self.root), "merge-base", "--is-ancestor",
+                                       KIN_NEW_REVISION, revision], capture_output=True)
+            require(ancestry.returncode == 0, "E_COMPATIBILITY", "新 KIN revision 不包含审定运行候选")
+        for filename, checksum in {**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS}.items():
+            path = "backend/migrations/" + filename
+            require(self.git("ls-tree", target["revision"], "--", path).startswith(b"100644 blob ") and
+                    sha(self.git("show", target["revision"] + ":" + path).strip()) == checksum,
+                    "E_COMPATIBILITY", "新 KIN 迁移不是固定普通文件与 checksum")
+        return approved
+
     def compatibility(self, old, target):
         validate_metadata(old, allow_legacy=True)
         if "image" in target:
@@ -688,7 +779,13 @@ class GitEvidence:
         proof = {"old_revision": old["revision"], "new_revision": target["revision"],
                  "upstream": target_source, "paths": RUNTIME_PATHS, "excludes": RUNTIME_EXCLUDES,
                  "changed_paths": changed, "compatible": True}
-        if old_source != target_source:
+        if target_source.get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]:
+            require(target_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "新 KIN 来源必须与固定三字段完全一致")
+            direction = "upgrade" if old_source == FORWARD_NEW_SOURCE else "redeploy"
+            require(old_source == (FORWARD_NEW_SOURCE if direction == "upgrade" else KIN_NEW_SOURCE),
+                    "E_COMPATIBILITY", "新 KIN 只允许固定旧来源升级或同一审定新运行树重新部署")
+            proof["kin_upgrade"] = self.kin_upgrade(old, target, changed, direction)
+        elif old_source != target_source:
             require(old_source == FORWARD_OLD_SOURCE and target_source == FORWARD_NEW_SOURCE and
                     changed == list(FORWARD_CHANGED_PATHS) and
                     self.runtime_fingerprint(old["revision"]) == FORWARD_OLD_RUNTIME and
@@ -702,7 +799,7 @@ class GitEvidence:
             else:
                 proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
-        if "cumulative_upgrade" in proof:
+        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade")):
             validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
         return proof
 
@@ -974,6 +1071,8 @@ class Deployment:
     def validate_proof(self, request, old, target):
         proof = request.get("compatibility", {})
         validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
+        if proof.get("kin_upgrade", {}).get("direction") == "upgrade":
+            require(old["image"] == KIN_OLD_IMAGE, "E_COMPATIBILITY", "新 KIN 必须绑定固定旧发布 digest")
         if request["action"] == "rollback":
             require_image_rollback(proof)
         require(request["action"] != "deploy" or proof.get("security_patch", {}).get("direction") != "rollback",
@@ -1118,6 +1217,11 @@ class Deployment:
                     "E_MIGRATION", "当前迁移状态与成功记录不一致，禁止部署或镜像回滚")
             expected_migrations = migrations
             cumulative = request["compatibility"].get("cumulative_upgrade")
+            kin = request["compatibility"].get("kin_upgrade")
+            if kin:
+                kin_baseline = kin_ledger_baseline(self.migration_before, kin["direction"] == "redeploy")
+                atomic_private(self.directory / "migration-ledger-before.txt", self.migration_before)
+                self.save("preflight", migration_state_before=migration_fingerprint(kin_baseline))
             if cumulative:
                 if cumulative["direction"] == "upgrade":
                     if any(line.split(b"|", 1)[0].decode() in CUMULATIVE_MIGRATIONS
@@ -1150,7 +1254,7 @@ class Deployment:
             self.guard_configuration()
             # 先取得旧镜像固定引用；旧标签没有不可变本地映射时禁止重建。
             self.metadata(self.inspect(old["image"], image=True), expected=old)
-            if cumulative:
+            if cumulative or kin:
                 require(self.migration_listing(dependencies["postgres"]) == self.migration_before,
                         "E_MIGRATION", "新应用启动前迁移账本已经变化")
             atomic_private(self.compose_file, self.config_after)
@@ -1167,6 +1271,11 @@ class Deployment:
                 migrated = self.migration_listing(dependencies["postgres"])
                 require(self.observe_cumulative_prefix(migrated) == len(CUMULATIVE_MIGRATIONS),
                         "E_MIGRATION", "健康终态必须完成全部固定 251–254 迁移")
+                expected_migrations = migration_fingerprint(migrated)
+            if kin:
+                migrated = self.migration_listing(dependencies["postgres"])
+                require(kin_ledger_baseline(migrated, True) == kin_baseline,
+                        "E_MIGRATION", "新 KIN 健康终态必须保留原账本并完成唯一固定 242")
                 expected_migrations = migration_fingerprint(migrated)
             actual = self.health(resolved, dependencies, expected_migrations)
             self.guard_configuration()
@@ -1220,7 +1329,8 @@ class Deployment:
                     if cumulative:
                         self.record["recovery_migration_state"] = recovery_migrations
                 except Exception as rollback_error:
-                    blocked = "forward_upgrade" in request["compatibility"] or ("cumulative_upgrade" in request["compatibility"] and not restoring)
+                    blocked = ("forward_upgrade" in request["compatibility"] or "kin_upgrade" in request["compatibility"] or
+                               ("cumulative_upgrade" in request["compatibility"] and not restoring))
                     self.record["rollback_status"] = "blocked" if blocked else "failed"
                     self.record["rollback_error"] = rollback_error.code if isinstance(rollback_error, DeployError) else "E_INTERNAL"
             elif self.adapted and not committed:
