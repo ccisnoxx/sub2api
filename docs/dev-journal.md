@@ -65,3 +65,9 @@
 ### REL-001：归档来源绑定必要同步（2026-10-12）
 
 - ff6c79c7 同 SHA dry-run 五归档 SOURCE.json 缺失根因明确：恢复 CI-000 同步遗漏的原四行材料入口及 workflow 回归，来源 metadata 动态绑定 prepare 应用 SHA/VERSION。仅同步可信 main 控制补丁 5f6dcba7 的 workflow/test 字节及记录，运行代码、SQL、VERSION 和门禁阈值不变；独立复核和主线 Quick 普通合并后再推最终新候选，旧成功/失败均保留，不冒用为新 SHA 通过。
+
+## 2026-10-12：ARCH-001 第二阶段协议事实解析
+
+- 基于最新 personal 的新手动 CI 流程，从观察器抽出无时钟/请求 owner/持久正文的 Responses 协议事实解析；计时状态更新继续在原 mutex 内排序，第一阶段首次终态分类器保持。
+- [阶段报告](architecture/ARCH-001-02.md)记录实现候选、基线黑盒回归、纯组件及实际 HTTP/SSE/WS/计费入口检查、取消/终态定向 Race 和回退边界。输出顺序、起点前音频、终态汇总与 compaction 的既有语义不变。
+- 本阶段不改 DTO、数据库、计费 parser、依赖或控制面；暂不发布或部署。整体 ARCH-001 仍待计时、用量来源、观测提交职责的后续小批次，不以本阶段组件抽取勾选整体任务。
