@@ -29,18 +29,28 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  GOTOOLCHAIN: local
+
 jobs:
   backend-security:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout trusted scan tooling
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Preserve scan tool policy
+        run: cp -R .github/release-tools "$RUNNER_TEMP/security-tools"
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           # 默认分支仅承载调度，周扫固定 personal；候选使用调用者固定 SHA。
           ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
           persist-credentials: false
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: backend/go.mod
           check-latest: false
@@ -48,30 +58,59 @@ jobs:
       - name: Verify Go version
         run: |
           expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          go version
           [[ $(go env GOVERSION) == "go${expected_go}" ]]
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - name: Run govulncheck
         working-directory: backend
         run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+          go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+          (cd .. && python "$RUNNER_TEMP/security-tools/toolchain.py" --tools python go govulncheck --output "$RUNNER_TEMP/security-toolchain.json")
+          govulncheck -show version,verbose ./...
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: security-toolchain
+          path: |
+            ${{ runner.temp }}/security-toolchain.json
+            !${{ runner.temp }}/**/.env
+            !${{ runner.temp }}/**/.env.*
+            !${{ runner.temp }}/**/*.env
+            !${{ runner.temp }}/**/*.sql
+            !${{ runner.temp }}/**/*.dump
+            !${{ runner.temp }}/**/*.backup
+            !${{ runner.temp }}/**/*.bak
+            !${{ runner.temp }}/**/*.db
+            !${{ runner.temp }}/**/*.sqlite*
+            !${{ runner.temp }}/**/*.log
+            !${{ runner.temp }}/**/.git/**
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 30
 
   frontend-security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
           persist-credentials: false
       - name: Set up pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
-          version: 9
+          version: 9.15.9
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: '20'
+          node-version: '20.20.2'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Verify frontend tool versions
+        run: |
+          node --version
+          pnpm --version
       - name: Install dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
@@ -79,6 +118,9 @@ jobs:
         working-directory: frontend
         run: |
           pnpm audit --prod --audit-level=high --json --registry=https://registry.npmjs.org > audit.json || true
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - name: Check XLSX write-only boundary
         working-directory: frontend
         run: |

@@ -166,8 +166,13 @@ def generate_config(args):
         data['before'] = {'hooks': []}
         data['builds'] = [{'id': 'sub2api', 'skip': True}]
         data['archives'] = []
-        extra = [{'glob': 'release-input/sub2api_*.tar.gz'}, {'glob': 'release-input/sub2api_*.zip'}]
+        # 新证明按 run/attempt 命名；draft 恢复保留旧说明并追加本次完整材料。
+        data['release']['mode'] = 'append'
+        evidence = json.loads(Path('release-evidence/publish-assets.json').read_text())
+        extra = [{'glob': 'release-input/sub2api_*.tar.gz'}, {'glob': 'release-input/sub2api_*.zip'}, *evidence]
         if args.simple:
+            data['release']['skip_upload'] = False
+            data['release']['extra_files'] = evidence
             data['checksum'] = {'disable': True}
         else:
             data['release']['extra_files'] = extra
