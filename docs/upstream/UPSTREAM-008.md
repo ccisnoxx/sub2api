@@ -35,6 +35,14 @@
 
 ## 交付状态
 
-本地应用代码已提交：`acf05d1fdae3928658c17ccc8db20c7ea77e170e`（迁回）及 `566bba0a86500aa70440b248a4db13382d1dd02b`（HTTP 合同）。后续提交仅补充本记录，不改变已验证源码。本轮未推送或合入远端 personal，未创建 PR；主工作区原分支、HEAD 和计划暂存 blob 保持。
+本地应用代码已提交：`acf05d1fdae3928658c17ccc8db20c7ea77e170e`（迁回）及 `566bba0a86500aa70440b248a4db13382d1dd02b`（HTTP 合同）。后续提交仅补充本记录，不改变已验证源码。首次实施结束时未推送或合入远端 personal，未创建 PR；主工作区原分支、HEAD 和计划暂存 blob 保持。远端集成状态见下文。
 
 独立只读复核审计 `20261012T144000Z-upstream-008-personal-update-6982198c` 已关闭，`audit-verify` 通过，无异常、无残留活跃代理或观察到的复核写入。两次复核分别覆盖原应用候选和最终 HTTP 增量；未独立重跑测试。初始 Go/Vitest/类型/lint 结果由父工具输出确认，没有额外落盘原始 stdout；第二次复核读取了保存的 handler 测试原始 stdout。验证证据未冒用为生产验收。
+
+## 远端集成与记录同步（2026-10-12）
+
+维护者明确授权推送并合入 personal。远端基线仍为 `bea1db12d5f4853c0b85b44840e15de6a74309b1`，普通原子 push 已发布 `codex/upstream-008-personal-update` 并将 personal 快进至候选 `6a7cd4124044e58e329e84a1752db0c47fb95cc0`，远端回读确认；不创建额外 PR，不强推或修改保护。
+
+后续仅同步 REMEDIATION_PLAN.md 和本验收记录。main 文档面从 `d5d1caa6c4df940b058930c7963fc20b2736860f` 隔离同步这两份文档；不合并 personal 应用树。文档同步提交不改变已验证应用、测试、依赖或配置，复用上述定向验证和两次独立复核。旧审计 audit-verify 再次通过；本轮新增检查只核对祖先、源码树一致性、文档字段、实际 diff 和远端结果。
+
+应用 CI、安全扫描和发布工作流的触发方式保持。没有触发 Quick/Full、安全扫描、Release dry-run、正式标签、镜像推送或部署；不把成功 push 冒用为发布验收。主工作区原分支、HEAD 和计划暂存 blob 保留。
