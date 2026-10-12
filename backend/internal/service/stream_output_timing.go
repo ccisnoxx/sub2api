@@ -15,24 +15,22 @@ import (
 type responsesOutputTiming struct {
 	mu           sync.Mutex
 	ctx          context.Context
-	timing       UsageTiming // 时序版本与观测元数据，输出和已接受用量由独立组件持有。
 	outputTiming responsesOutputTimingTracker
 	usage        responsesUsageAccumulator
 	completion   responsesCompletionClassifier
+	observation  responsesServiceObservationEmitter
 	observed     bool
 	stopCancel   func() bool
-	source       *serviceStatusRequest
-	attempt      uint64
 }
 
 func newResponsesOutputTiming(ctx context.Context, start time.Time, account *Account) *responsesOutputTiming {
 	if start.IsZero() || account == nil || account.Platform != PlatformOpenAI {
 		return nil
 	}
-	o := &responsesOutputTiming{ctx: ctx, outputTiming: responsesOutputTimingTracker{start: start}, timing: UsageTiming{TimingVersion: 1}}
-	o.source = serviceStatusOwner(ctx)
-	if o.source != nil {
-		o.attempt = o.source.beginAttempt()
+	o := &responsesOutputTiming{
+		ctx:          ctx,
+		outputTiming: responsesOutputTimingTracker{start: start},
+		observation:  newResponsesServiceObservationEmitter(serviceStatusOwner(ctx)),
 	}
 	if ctx != nil {
 		o.stopCancel = context.AfterFunc(ctx, func() {
@@ -61,13 +59,7 @@ func (o *responsesOutputTiming) finishStatusAt(status string, at time.Time, reas
 	if !o.completion.freeze(status) {
 		return
 	}
-	if o.source != nil {
-		if status == CompletionStatusClientDisconnected {
-			reason = "client_cancelled"
-		}
-		o.timing.ServiceStatusObservation = o.source.observation("terminal", status, reason, at)
-		o.source.observeAttemptCandidate(o.timing.ServiceStatusObservation, o.attempt)
-	}
+	o.observation.emitFrozenTerminal(status, at, reason)
 }
 
 func (o *responsesOutputTiming) observeEvent(payload []byte, eventType string, at time.Time) {
@@ -169,19 +161,14 @@ func (o *responsesOutputTiming) snapshot(clientDisconnected bool) UsageTiming {
 		}
 		o.finishStatusAt(CompletionStatusInterrupted, time.Now(), reason)
 	}
-	if o.source != nil {
-		if o.timing.ServiceStatusObservation == nil {
-			o.timing.ServiceStatusObservation = o.source.observation("terminal", CompletionStatusUnknown, "terminal_missing", time.Now())
-		}
-		o.source.observeAttemptCandidate(o.timing.ServiceStatusObservation, o.attempt)
-	}
-	timing := o.timing.Clone()
-	output := o.outputTiming.snapshot()
-	timing.FirstOutputMs, timing.FirstOutputKind = output.FirstOutputMs, output.FirstOutputKind
-	timing.StrictFirstTokenMs, timing.LastTokenMs = output.StrictFirstTokenMs, output.LastTokenMs
+	observation := o.observation.snapshot(time.Now())
+	timing := o.outputTiming.snapshot()
+	// 只有通过平台/起点校验的观察器才会到达这里；未采集入口仍由 nil 快照保持版本 0。
+	timing.TimingVersion = 1
 	usage := o.usage.snapshot()
 	timing.UsageSource, timing.AudioOutputTokens = usage.UsageSource, usage.AudioOutputTokens
 	timing.CompletionStatus, timing.IsComplete = o.completion.snapshot()
+	timing.ServiceStatusObservation = observation
 	return timing
 }
 
