@@ -53,6 +53,8 @@ func TestResponsesOutputTiming_TerminalOrdering(t *testing.T) {
 		{"failure then DONE", []string{`{"type":"response.output_text.delta","delta":"partial"}`, `{"type":"response.failed","response":{"status":"failed"}}`, `[DONE]`, `{"type":"response.completed"}`}, -1, CompletionStatusUpstreamError},
 		{"cancel before complete", []string{`{"type":"response.output_text.delta","delta":"partial"}`, `{"type":"response.completed"}`}, 1, CompletionStatusClientDisconnected},
 		{"complete before cancel", []string{`{"type":"response.completed"}`}, 1, CompletionStatusCompleted},
+		{"complete before failure", []string{`{"type":"response.completed"}`, `{"type":"response.failed"}`}, -1, CompletionStatusCompleted},
+		{"interrupted before failure", []string{`{"type":"response.incomplete"}`, `{"type":"response.failed"}`}, -1, CompletionStatusInterrupted},
 		{"transport without terminal", []string{`{"type":"response.output_text.delta","delta":"partial"}`}, -1, CompletionStatusInterrupted},
 		{"no protocol fact", nil, -1, CompletionStatusUnknown},
 		{"incomplete terminal", []string{`{"type":"response.incomplete"}`, `[DONE]`}, -1, CompletionStatusInterrupted},

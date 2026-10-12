@@ -17,6 +17,7 @@ type responsesOutputTiming struct {
 	start      time.Time
 	ctx        context.Context
 	timing     UsageTiming
+	completion responsesCompletionClassifier
 	observed   bool
 	audioSeen  bool
 	stopCancel func() bool
@@ -28,7 +29,7 @@ func newResponsesOutputTiming(ctx context.Context, start time.Time, account *Acc
 	if start.IsZero() || account == nil || account.Platform != PlatformOpenAI {
 		return nil
 	}
-	o := &responsesOutputTiming{start: start, ctx: ctx, timing: UsageTiming{TimingVersion: 1, CompletionStatus: CompletionStatusUnknown, UsageSource: UsageSourceUnknown}}
+	o := &responsesOutputTiming{start: start, ctx: ctx, timing: UsageTiming{TimingVersion: 1, UsageSource: UsageSourceUnknown}}
 	o.source = serviceStatusOwner(ctx)
 	if o.source != nil {
 		o.attempt = o.source.beginAttempt()
@@ -57,13 +58,9 @@ func (o *responsesOutputTiming) finishStatus(status string) {
 }
 
 func (o *responsesOutputTiming) finishStatusAt(status string, at time.Time, reason string) {
-	// 首次终态冻结；取消后 drain 到的完成只更新用量来源，不能改写客户端生命周期。
-	if o.timing.CompletionStatus != CompletionStatusUnknown {
+	if !o.completion.freeze(status) {
 		return
 	}
-	o.timing.CompletionStatus = status
-	complete := status == CompletionStatusCompleted
-	o.timing.IsComplete = &complete
 	if o.source != nil {
 		if status == CompletionStatusClientDisconnected {
 			reason = "client_cancelled"
@@ -197,25 +194,6 @@ func responsesTimingProviderReason(upstreamError gjson.Result) string {
 		}
 	}
 	return ServiceStatusProviderReason(status, upstreamError.Get("code").String())
-}
-
-func responsesTimingStatus(eventType, status string) string {
-	switch eventType {
-	case "error", "response.failed":
-		return CompletionStatusUpstreamError
-	case "response.incomplete", "response.cancelled", "response.canceled":
-		return CompletionStatusInterrupted
-	case "response.completed", "response.done":
-		switch status {
-		case "failed":
-			return CompletionStatusUpstreamError
-		case "incomplete", "cancelled", "canceled":
-			return CompletionStatusInterrupted
-		default:
-			return CompletionStatusCompleted
-		}
-	}
-	return ""
 }
 
 func nonemptyTimingString(v gjson.Result) bool {
@@ -437,7 +415,7 @@ func (o *responsesOutputTiming) snapshot(clientDisconnected bool) UsageTiming {
 	if clientDisconnected || (o.ctx != nil && errors.Is(o.ctx.Err(), context.Canceled)) {
 		o.finishStatus(CompletionStatusClientDisconnected)
 	}
-	if o.timing.CompletionStatus == CompletionStatusUnknown && o.observed {
+	if o.completion.pending() && o.observed {
 		reason := "service_transport"
 		if o.ctx != nil && errors.Is(o.ctx.Err(), context.DeadlineExceeded) {
 			reason = "service_timeout"
@@ -450,7 +428,9 @@ func (o *responsesOutputTiming) snapshot(clientDisconnected bool) UsageTiming {
 		}
 		o.source.observeAttemptCandidate(o.timing.ServiceStatusObservation, o.attempt)
 	}
-	return o.timing.Clone()
+	timing := o.timing.Clone()
+	timing.CompletionStatus, timing.IsComplete = o.completion.snapshot()
+	return timing
 }
 
 func responsesTimingStart(starts []time.Time) time.Time {
