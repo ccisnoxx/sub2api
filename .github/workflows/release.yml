@@ -37,6 +37,7 @@ permissions:
   contents: read
 
 env:
+  GOTOOLCHAIN: local
   SIMPLE_RELEASE: ${{ inputs.simple_release == true || github.event_name == 'push' || vars.SIMPLE_RELEASE == 'true' }}
   DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
 
@@ -80,6 +81,9 @@ jobs:
           SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
         run: |
           [[ $(git rev-parse HEAD) == "$SOURCE_SHA" ]] || { echo '实际源码 SHA 与请求不一致'; exit 1; }
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - name: Authorize personal publication
         id: guard
         if: env.DRY_RUN != 'true'
@@ -91,10 +95,8 @@ jobs:
         run: |
           [[ "$SIMPLE_RELEASE" == true ]] || { echo '个人发布必须选择 simple_release'; exit 1; }
           python3 "$RUNNER_TEMP/release-tools/personal_release.py" authorize --sha "$SOURCE_SHA" --tag "$RELEASE_TAG" --ci-run-id "$CI_RUN_ID"
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: '3.12'
-      - run: python -m pip install -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+      - run: |
+          python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
       - name: Resolve one source commit and target matrix
         id: plan
         env:
@@ -128,18 +130,37 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-tooling
+          path: ${{ runner.temp }}/release-tools/
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
-          version: 9
+          version: 9.15.9
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: '20'
+          node-version: '20.20.2'
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Verify frontend tool versions
+        run: |
+          node --version
+          pnpm --version
       - run: pnpm install --frozen-lockfile
         working-directory: frontend
       - run: pnpm run build
         working-directory: frontend
+      - name: Record frontend build tool versions
+        run: python "$RUNNER_TEMP/release-tools/toolchain.py" --tools python node pnpm --output frontend-toolchain.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: toolchain-frontend
+          path: frontend-toolchain.json
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: frontend-dist
@@ -180,6 +201,7 @@ jobs:
       - name: Verify Go version
         run: |
           expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          go version
           [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: Restore target-specific Go cache
         id: go-cache
@@ -194,24 +216,35 @@ jobs:
             release-go-${{ runner.os }}-${{ runner.arch }}-${{ matrix.goos }}-${{ matrix.goarch }}-
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+          python-version: '3.12.13'
+      - run: |
+          python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
       - name: Select one GoReleaser target
         env:
           TARGET_OS: ${{ matrix.goos }}
           TARGET_ARCH: ${{ matrix.goarch }}
         run: python "$RUNNER_TEMP/release-tools/release_matrix.py" config build --goos "$TARGET_OS" --goarch "$TARGET_ARCH" --output "$RUNNER_TEMP/goreleaser.matrix.yaml"
-      - name: Build and archive without publishing
+      - name: Install pinned binary build tool
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
-          version: '~> v2'
-          args: release --snapshot --clean --skip=validate,publish,docker,announce --config=${{ runner.temp }}/goreleaser.matrix.yaml
+          version: '2.18.3'
+          install-only: true
+      - name: Build and archive without publishing
+        run: goreleaser release --snapshot --clean --skip=validate,publish,docker,announce --config="$RUNNER_TEMP/goreleaser.matrix.yaml"
         env:
           GITHUB_REPO_OWNER: ${{ github.repository_owner }}
           GITHUB_REPO_OWNER_LOWER: ${{ needs.prepare.outputs.owner_lower }}
           GITHUB_REPO_NAME: ${{ github.event.repository.name }}
           DOCKERHUB_USERNAME: skip
           TAG_MESSAGE: ''
+      - name: Record binary build tool versions
+        run: python "$RUNNER_TEMP/release-tools/toolchain.py" --tools python pyyaml go goreleaser --output binary-toolchain.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: toolchain-binary-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: binary-toolchain.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Verify and collect the target archive
         env:
           TARGET_OS: ${{ matrix.goos }}
@@ -267,8 +300,9 @@ jobs:
           merge-multiple: true
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+          python-version: '3.12.13'
+      - run: |
+          python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
       - name: Verify transported control tooling imports
         run: python "$RUNNER_TEMP/release-tools/personal_release.py" --help
       - name: Verify complete matrix and prepare Docker contexts
@@ -279,11 +313,33 @@ jobs:
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: backend/go.mod
+          check-latest: false
           cache: false
       - name: Set up QEMU
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+        with:
+          image: tonistiigi/binfmt:qemu-v10.2.3-68@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        with:
+          version: v0.38.0
+          driver-opts: image=moby/buildkit:v0.34.0@sha256:b059f8d7226d0b326bc871af489a5dddf65e36af4d20d14251b072974d9ee87c
+      - name: Install pinned publication tool
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
+        with:
+          version: '2.18.3'
+          install-only: true
+      - name: Record publication tool versions
+        run: |
+          docker version
+          docker buildx inspect --bootstrap
+          python "$RUNNER_TEMP/release-tools/toolchain.py" --tools python pyyaml go goreleaser buildx --output publication-toolchain.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: toolchain-publication
+          path: publication-toolchain.json
+          if-no-files-found: error
+          retention-days: 90
       - name: Login to DockerHub
         if: ${{ env.DRY_RUN != 'true' && env.SIMPLE_RELEASE != 'true' && env.DOCKERHUB_USERNAME != '' }}
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
@@ -352,7 +408,7 @@ jobs:
       - name: Publish existing archives and release notes
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
-          version: '~> v2'
+          version: '2.18.3'
           args: release --clean --skip=validate,before,docker ${{ env.DRY_RUN == 'true' && '--snapshot --skip=publish,announce' || '' }} --config=${{ runner.temp }}/goreleaser.publisher.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -371,6 +427,7 @@ jobs:
             dist/checksums.txt
             dist/artifacts.json
             dist/metadata.json
+            publication-toolchain.json
           if-no-files-found: error
           retention-days: 3
 

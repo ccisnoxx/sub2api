@@ -1,0 +1,13 @@
+{
+  "node": "20.20.2",
+  "docker_node": "24.16.0",
+  "pnpm": "9.15.9",
+  "python": "3.12.13",
+  "pyyaml": "6.0.3",
+  "govulncheck": "v1.9.0",
+  "goreleaser": "2.18.3",
+  "golangci_lint": "v2.14.0",
+  "buildx": "v0.38.0",
+  "buildkit_image": "moby/buildkit:v0.34.0@sha256:b059f8d7226d0b326bc871af489a5dddf65e36af4d20d14251b072974d9ee87c",
+  "qemu_image": "tonistiigi/binfmt:qemu-v10.2.3-68@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0"
+}

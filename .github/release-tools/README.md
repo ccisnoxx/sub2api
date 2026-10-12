@@ -25,10 +25,16 @@ Dry-run artifacts are available in the Actions run, including `release-dry-run-r
 Helper checks:
 
 ```bash
-python -m pip install -r .github/release-tools/requirements-release.txt
+python -m pip install --require-hashes --only-binary=:all: -r .github/release-tools/requirements-release.txt
 python -m unittest discover -s .github/release-tools -p 'test_*.py'
 bash -n .github/release-tools/release-images.sh
 ```
+
+Tool versions, platform-specific wheel hashes, runtime metadata and the monthly
+manual upgrade review are specified in [CI-002](../../docs/ci/CI-002.md).
+Use CPython 3.12.13 for the helper checks above. The hash allowlist covers Linux
+x86_64 CI and macOS arm64/x86_64; an unsupported platform fails rather than
+building an unpinned source distribution.
 
 ## personal 发布
 

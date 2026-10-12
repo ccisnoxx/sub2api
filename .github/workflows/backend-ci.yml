@@ -28,6 +28,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  GOTOOLCHAIN: local
+
 jobs:
   shell:
     runs-on: macos-15
@@ -63,7 +66,11 @@ jobs:
       - name: Verify Go version
         run: |
           expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          go version
           [[ $(go env GOVERSION) == "go${expected_go}" ]]
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - name: Unit tests
         working-directory: backend
         run: |
@@ -94,13 +101,17 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
-          version: 9
+          version: 9.15.9
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: '20'
+          node-version: '20.20.2'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Verify frontend tool versions
+        run: |
+          node --version
+          pnpm --version
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
@@ -123,6 +134,7 @@ jobs:
       - name: Verify Go version
         run: |
           expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          go version
           [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
@@ -140,7 +152,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: '3.12'
-      - run: python -m pip install -r .github/release-tools/requirements-release.txt
+          python-version: '3.12.13'
+      - run: |
+          python -m pip install --require-hashes --only-binary=:all: -r .github/release-tools/requirements-release.txt
       - run: python -m unittest discover -s .github/release-tools -p 'test_*.py'
       - run: bash -n .github/release-tools/release-images.sh
