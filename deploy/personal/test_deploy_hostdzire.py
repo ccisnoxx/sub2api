@@ -1427,7 +1427,8 @@ class ForwardGitTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "repository"
         actual = Path(deploy.__file__).resolve().parents[2]
-        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)], check=True,
+        subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                        "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)], check=True,
                        capture_output=True)
         self.git("config", "user.email", "fixture@example.invalid")
         self.git("config", "user.name", "Deployment Fixture")
@@ -1436,7 +1437,9 @@ class ForwardGitTests(unittest.TestCase):
         self.target = dict(NEW, revision=deploy.FORWARD_NEW_REVISION, version="0.2.14-klno.5-tps.1")
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", str(self.root), *args], check=True,
+        # 临时仓库的自动维护同步完成，避免清理时仍有 Git 后台进程写入。
+        return subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                               "-C", str(self.root), *args], check=True,
                               capture_output=True).stdout.decode().strip()
 
     def commit(self, message):
@@ -1523,7 +1526,8 @@ class CumulativeGitTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "repository"
         actual = Path(deploy.__file__).resolve().parents[2]
-        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
+        subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                        "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
                        check=True, capture_output=True)
         self.git("config", "user.email", "fixture@example.invalid")
         self.git("config", "user.name", "Deployment Fixture")
@@ -1617,7 +1621,8 @@ class KinGitTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "repository"
         actual = Path(deploy.__file__).resolve().parents[2]
-        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
+        subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                        "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
                        check=True, capture_output=True)
         self.git("config", "user.email", "fixture@example.invalid")
         self.git("config", "user.name", "Deployment Fixture")
