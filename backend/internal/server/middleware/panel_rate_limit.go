@@ -39,6 +39,9 @@ type PanelRateLimiter struct {
 
 // NewPanelRateLimiter 创建面板限流器。
 func NewPanelRateLimiter(redisClient *redis.Client, settingService *service.SettingService) *PanelRateLimiter {
+	if redisClient == nil {
+		return &PanelRateLimiter{settingService: settingService}
+	}
 	return &PanelRateLimiter{
 		limiter:        middleware.NewRateLimiter(redisClient),
 		settingService: settingService,
@@ -54,6 +57,46 @@ func (p *PanelRateLimiter) Global() gin.HandlerFunc {
 // 与 Global 叠加计数：一次重查询同时消耗两档额度。
 func (p *PanelRateLimiter) Heavy() gin.HandlerFunc {
 	return p.userScoped("heavy", func(s service.PanelRateLimitSettings) int { return s.HeavyRPM })
+}
+
+// Diagnostics 共用跨实例用户额度；管理员豁免、面板关闭和 Redis 故障均不能绕过。
+func (p *PanelRateLimiter) Diagnostics() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !RequireDiagnosticsJWT(c) {
+			return
+		}
+		if p == nil || p.limiter == nil {
+			AbortWithError(c, http.StatusServiceUnavailable, "DIAGNOSTICS_LIMIT_UNAVAILABLE", "诊断查询限流暂不可用")
+			return
+		}
+		subject, _ := GetAuthSubjectFromContext(c)
+		key := "panel:diagnostics:user:" + strconv.FormatInt(subject.UserID, 10)
+		result, err := p.limiter.Allow(c.Request.Context(), key, 20, panelRateLimitWindow)
+		if err != nil {
+			AbortWithError(c, http.StatusServiceUnavailable, "DIAGNOSTICS_LIMIT_UNAVAILABLE", "诊断查询限流暂不可用")
+			return
+		}
+		if !result.Allowed {
+			abortPanelRateLimited(c, result.RetryAfter)
+			return
+		}
+		c.Next()
+	}
+}
+
+// RequireDiagnosticsJWT 在读取诊断或计数之前确认真实管理员 JWT 主体。
+func RequireDiagnosticsJWT(c *gin.Context) bool {
+	subject, ok := GetAuthSubjectFromContext(c)
+	if !ok || subject.UserID <= 0 {
+		AbortWithError(c, http.StatusUnauthorized, "UNAUTHORIZED", "需要管理员认证")
+		return false
+	}
+	role, ok := GetUserRoleFromContext(c)
+	if !ok || role != service.RoleAdmin || c.GetString("auth_method") != "jwt" {
+		AbortWithError(c, http.StatusForbidden, "FORBIDDEN", "需要管理员 JWT 认证")
+		return false
+	}
+	return true
 }
 
 func (p *PanelRateLimiter) userScoped(scope string, limitOf func(service.PanelRateLimitSettings) int) gin.HandlerFunc {

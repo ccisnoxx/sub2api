@@ -16,13 +16,13 @@ export interface ServiceStatusConfig {
   recovery_windows: number
 }
 export interface ServiceStatusCounts {
-  success: number
-  failure: number
-  excluded: number
-  unknown: number
+  success: number | null
+  failure: number | null
+  excluded: number | null
+  unknown: number | null
 }
 export interface ServiceStatusMetrics extends ServiceStatusCounts {
-  qualified: number
+  qualified: number | null
   error_rate: number | null
   success_rate: number | null
 }
@@ -61,6 +61,8 @@ export interface ServiceStatusPlatform extends ServiceStatusMetrics {
   unknown_reason?: string
 }
 export interface ServiceStatusSnapshot {
+  privacy_minimum_samples: number
+  privacy_suppressed: boolean
   schema_version: number
   config_version: number
   generated_at: string

@@ -359,6 +359,7 @@ export default {
         rootCause: 'Root Cause',
         diagnosticPayloads: 'Diagnostic Payloads',
         routingDiagnostics: {
+          "unavailable": "Routing diagnostics could not be loaded. The original error details remain available.",
           "title": "Routing selection diagnostics",
           "missing": "No selection snapshot was recorded. Historical or unobserved records do not mean the candidate pool was empty.",
           "unsupported": "This page cannot interpret this version of the selection snapshot.",

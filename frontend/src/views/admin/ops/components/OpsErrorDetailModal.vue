@@ -129,7 +129,10 @@
         </div>
       </div>
 
-      <OpsRoutingDiagnosticsPanel :diagnostics="detail.routing_diagnostics" />
+      <p v-if="diagnosticsUnavailable" role="status" class="text-sm text-gray-500 dark:text-gray-400">
+        {{ t('admin.ops.errorDetail.routingDiagnostics.unavailable') }}
+      </p>
+      <OpsRoutingDiagnosticsPanel v-else :diagnostics="routingDiagnostics" />
 
       <div v-if="rootCauseMessage" class="rounded-xl bg-amber-50 p-6 dark:bg-amber-900/10">
         <h3 class="text-sm font-black uppercase tracking-wider text-amber-900 dark:text-amber-200">{{ t('admin.ops.errorDetail.rootCause') }}</h3>
@@ -237,7 +240,7 @@ import BaseDialog from '@/components/common/BaseDialog.vue'
 import Icon from '@/components/icons/Icon.vue'
 import OpsRoutingDiagnosticsPanel from './OpsRoutingDiagnosticsPanel.vue'
 import { useAppStore } from '@/stores'
-import { opsAPI, type OpsErrorDetail } from '@/api/admin/ops'
+import { opsAPI, type OpsErrorDetail, type OpsRoutingDiagnostics } from '@/api/admin/ops'
 import { formatDateTime } from '@/utils/format'
 import { resolveUpstreamPayload } from '../utils/errorDetailResponse'
 
@@ -264,6 +267,8 @@ let detailGeneration = 0
 onBeforeUnmount(() => { detailGeneration++ })
 const loading = ref(false)
 const detail = ref<OpsErrorDetail | null>(null)
+const routingDiagnostics = ref<OpsRoutingDiagnostics | null>(null)
+const diagnosticsUnavailable = ref(false)
 
 const showUpstreamList = computed(() => props.errorType === 'request')
 
@@ -414,7 +419,7 @@ async function fetchDetail(id: number, generation: number) {
   loading.value = true
   try {
     const kind = props.errorType || 'request'
-    const d = kind === 'upstream' ? await opsAPI.getUpstreamErrorDetail(id) : await opsAPI.getRequestErrorDetail(id)
+    const d = await (kind === 'upstream' ? opsAPI.getUpstreamErrorDetail(id) : opsAPI.getRequestErrorDetail(id))
     if (generation === detailGeneration) detail.value = d
   } catch (err: any) {
     if (generation !== detailGeneration) return
@@ -425,17 +430,29 @@ async function fetchDetail(id: number, generation: number) {
   }
 }
 
+async function fetchDiagnostics(id: number, generation: number) {
+  try {
+    const diagnostics = await opsAPI.getRoutingDiagnostics(id)
+    if (generation === detailGeneration) routingDiagnostics.value = diagnostics
+  } catch {
+    if (generation === detailGeneration) diagnosticsUnavailable.value = true
+  }
+}
+
 watch(
   () => [props.show, props.errorId, props.errorType] as const,
   ([show, id]) => {
     const generation = ++detailGeneration
     detail.value = null
+    routingDiagnostics.value = null
+    diagnosticsUnavailable.value = false
     correlatedUpstream.value = []
     correlatedUpstreamLoading.value = false
     loading.value = false
     expandedUpstreamDetailIds.value = new Set()
     if (!show || typeof id !== 'number' || id <= 0) return
     fetchDetail(id, generation)
+    fetchDiagnostics(id, generation)
     if (props.errorType === 'request') fetchCorrelatedUpstreamErrors(id, generation)
   },
   { immediate: true }

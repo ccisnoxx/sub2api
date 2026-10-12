@@ -446,7 +446,9 @@ func (r *serviceStatusRepository) Snapshot(ctx context.Context, historyRange, pl
 		}
 	}
 	s := &service.ServiceStatusSnapshot{SchemaVersion: 1, ConfigVersion: cfg.Version, GeneratedAt: now, MonitoringEnabled: true, EnabledPlatforms: platforms, Coverage: []service.ServiceStatusCoverage{}, Gaps: []string{}, Platforms: []service.ServiceStatusPlatform{}, Scopes: []service.ServiceStatusLeaf{}, History: []service.ServiceStatusHistoryPoint{}, Incidents: []service.ServiceStatusIncident{}, BoundedObservationNotice: statusBoundedNotice}
-	s.HistoryRange = service.ServiceStatusInterval{Start: now.Truncate(time.Minute).Add(-duration), End: now.Truncate(time.Minute)}
+	s.MinimumSamples = cfg.MinimumSamples
+	// 历史只提供固定 UTC 小时边界，避免通过分钟偏移反复相减小样本。
+	s.HistoryRange = service.ServiceStatusInterval{Start: now.Truncate(time.Hour).Add(-duration), End: now.Truncate(time.Hour)}
 	var coverageRaw []byte
 	var gap, lastError string
 	var sourceErrorAt *time.Time
@@ -509,7 +511,13 @@ func (r *serviceStatusRepository) Snapshot(ctx context.Context, historyRange, pl
 	if err != nil {
 		return nil, service.ErrServiceStatusUnavailable
 	}
-	s.Incidents, err = loadStatusIncidents(ctx, tx, platforms, s.HistoryRange.Start, s.HistoryRange.End, true)
+	// 事件读取保留当前已完成分钟；展示的整点历史边界由隐私投影单独约束。
+	s.Incidents, err = loadStatusIncidents(ctx, tx, platforms, s.HistoryRange.Start, now.Truncate(time.Minute), true)
+	if err != nil {
+		return nil, service.ErrServiceStatusUnavailable
+	}
+	// 展示恢复事件单独占用有界名额，当前小时的隐藏恢复不能挤掉历史事件。
+	s.HistoryIncidents, err = loadStatusResolvedIncidents(ctx, tx, platforms, s.HistoryRange.Start, s.HistoryRange.End, true, true)
 	if err != nil {
 		return nil, service.ErrServiceStatusUnavailable
 	}
