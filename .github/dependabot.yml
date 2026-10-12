@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # 每个 Action 单独提交更新 PR；发布权限相关更新必须人工审查，禁止自动合并。
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: main
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    assignees:
+      - ccisnoxx
+    commit-message:
+      prefix: ci
+      include: scope
