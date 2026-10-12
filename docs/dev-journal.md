@@ -263,3 +263,9 @@
 - 在独立验证分支创建一次性只读 Actions 入口；固定 PR #36 源码 `036ade78ee5732d0dc860c3293aa70807ec1ddf1`、Release dry-run `38196678157`、OCI artifact ID/摘要与既有性能工具字节。只加载镜像，原生身份不符或材料变化时明确失败，不构建、不发布或部署。
 - 五轮 JSON/SSE 负载保持每样本每格式 200 请求、并发 4、预热 10，沿用吞吐下降不超过 15%、p95 增加不超过 20%、意外错误零的门禁。仅保存白名单 JSON；外层截止先 SIGTERM 留出清理时间，私密日志和凭据不上传。
 - 三项截止/故障清理合同、本地 actionlint 与实际只读来源 API 检查通过；独立复核结果和远端运行结果由 REL-001 台账/PR 记录，本入口及既有成功 CI 不代替最终 candidate/base Full 认证。应用、数据库和保护规则不变。
+
+## 2026-10-12：REL-001 最终候选原生复测绑定
+
+- 将验证入口固定到 PR #36 最终候选 `3ded82bcde22dad28ff6c08939369c44d57ff0b1`、成功 Release dry-run `38210844700`、OCI artifact `11729451134`；amd64 index 为 `sha256:9397e21caf01ea1080c84a93809d5a586a9d6864e6923872a58589817b1850e3`，tar SHA-256 为 `c25369794d147d89bc8966a9f3e68e8cea76cbe8dcea98b28f3fe23692553fa3`。材料已完成实际字节及同 SHA 校验，原生执行结果仍待取得。
+- 五轮性能之后，用同一已加载 OCI 执行既有 `TestUPSTREAM007UpgradePaths`：空库、旧 KlN、已 personal 三条合成数据升级路径。固定 Go 1.27.2，要求真实 Go JSON 的根测试及全部子测试通过；不导出原始日志或数据库内容，并在一次性 VM 上清理本轮 Go Testcontainers 资源。
+- 新增数据库结果判定合同，连同既有截止/清理合同共四项通过；最终身份替换后 Python 编译、actionlint、只读来源 API 和 diff 检查通过。新增行为已完成独立只读复核，身份替换不改变流程、阈值、权限、应用代码或上传白名单。最终 candidate/base Full、原生启动/升级/性能结果由 REL-001 台账和 PR 记录。

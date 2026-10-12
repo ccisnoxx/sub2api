@@ -12,14 +12,14 @@ import threading
 import time
 
 REPO = "ccisnoxx/sub2api"
-SHA = "036ade78ee5732d0dc860c3293aa70807ec1ddf1"
-RUN = 38196678157
-ARTIFACT = 11724260850
-ARTIFACT_DIGEST = "sha256:918c8fccf0f13d43726ebc2190c6732c9a674642058ddd90c980a695717398c5"
-OCI_TAR_SHA = "f38bc17e60805d413829c72f5edb9fb5847898fb056b9f8d54d4d13b65804ccf"
-OCI_INDEX = "sha256:1d90265792a83cb65b780b3d068e83d21fbc6d0d63ce771ecd5c998b890df807"
-OCI_MANIFEST = "sha256:78def69cfbd0d1a10c61eb73fb5f8cd62f2e083342c490a2d061fce8c78e5d34"
-OCI_CONFIG = "sha256:8e18fb39845eff2494d435c4fdf0db1cec0af6c5cbd1254557195069eb0fad88"
+SHA = "3ded82bcde22dad28ff6c08939369c44d57ff0b1"
+RUN = 38210844700
+ARTIFACT = 11729451134
+ARTIFACT_DIGEST = "sha256:1922376221cbb1a0d9d042b1c4cc4065d89eb601aaf39588f577ea6d8c82b19d"
+OCI_TAR_SHA = "c25369794d147d89bc8966a9f3e68e8cea76cbe8dcea98b28f3fe23692553fa3"
+OCI_INDEX = "sha256:9397e21caf01ea1080c84a93809d5a586a9d6864e6923872a58589817b1850e3"
+OCI_MANIFEST = "sha256:9cd36d4fa42c6c0b890449f71125652917e406006afbd3618b787d98a42babb1"
+OCI_CONFIG = "sha256:346d4e648967693a1255e0c634874a25336701a446d838f493ba1526e0d5517c"
 HARNESS_SHA = "2a6078d692933f323bd5bea2ae4f3710985f159fb413859f4a624406a79238f5"
 LOCAL_TAG = "ghcr.io/ccisnoxx/sub2api:0.2.15-klno.2-tps.1-rc.1-amd64"
 
@@ -60,11 +60,11 @@ def sha256(path):
     return digest.hexdigest()
 
 
-def execute_harness(args, timeout=900, grace=60):
+def execute_harness(args, timeout=900, grace=60, cwd=None, env=None, captured=None):
     # SIGTERM 允许固定工具执行 finally、删除合成凭据并落盘失败 JSON。
-    with subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+    with subprocess.Popen(args, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
         try:
-            process.communicate(timeout=timeout)
+            stdout, _ = process.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.terminate()
             try:
@@ -74,7 +74,51 @@ def execute_harness(args, timeout=900, grace=60):
                 process.communicate(timeout=10)
                 raise RuntimeError("harness_hard_timeout") from None
             raise RuntimeError("harness_timeout") from None
+        if captured is not None:
+            captured.append(stdout)
         return process.returncode
+
+
+def database_result(stdout, exit_code):
+    """只接受实际 Go JSON 的固定测试判定，不运输原始输出或数据库内容。"""
+    root = "TestUPSTREAM007UpgradePaths"
+    expected = {root, *(root + "/" + name for name in ("empty", "old-kin", "already-personal"))}
+    passed = {}
+    for line in stdout.splitlines():
+        row = json.loads(line)
+        name = row.get("Test")
+        if name in expected and row.get("Action") == "pass":
+            passed[name] = row.get("Elapsed")
+        require(row.get("Action") not in ("fail", "skip"), "database_failed_or_skipped")
+    require(exit_code == 0 and set(passed) == expected, "database_upgrade_gate_failed")
+    return {"status": "PASS", "exit_code": exit_code, "tests": passed}
+
+
+def database(loaded):
+    env = dict(os.environ, CI="true", GOTOOLCHAIN="local", TESTCONTAINERS_RYUK_DISABLED="false",
+               UPSTREAM007_CANDIDATE_IMAGE=loaded["id"], UPSTREAM007_CANDIDATE_SHA=SHA)
+    output = []
+    try:
+        code = execute_harness(["go", "test", "-json", "-tags=integration,upstream007",
+            "-run", "^TestUPSTREAM007UpgradePaths$", "-count=1", "-timeout=30m", "./internal/repository"],
+            timeout=2100, cwd="application/backend", env=env, captured=output)
+        return database_result(output[0], code)
+    finally:
+        # TestMain 的 os.Exit 不运行 defer；专属一次性 VM 上按 Go Testcontainers 标签清理。
+        for kind, listing, removal in (
+            ("container", ("ps", "-aq"), ("rm", "-fv")),
+            ("network", ("network", "ls", "-q"), ("network", "rm")),
+        ):
+            owned = command("docker", *listing, "--filter", "label=org.testcontainers.lang=go")
+            for identity in owned.splitlines():
+                require(bool(re.fullmatch(r"[0-9a-f]{12,64}", identity)), "unexpected_database_resource_id")
+                removal_result = subprocess.run(["docker", *removal, identity], capture_output=True, timeout=120)
+                if removal_result.returncode:
+                    # Ryuk 可能已并发删除该对象；仅确认对象消失后接受这个非零结果。
+                    require(not command("docker", *listing, "--filter", "id=" + identity),
+                            "database_resource_removal_failed")
+            require(not command("docker", *listing, "--filter", "label=org.testcontainers.lang=go"),
+                    kind + "_database_cleanup_incomplete")
 
 
 def cleanup(report, output):
@@ -186,6 +230,7 @@ def run():
                 performance["environment"]["emulated"] is False and len(performance["samples"]) == 10,
                 "native_performance_gate_failed")
         require(not any(row["oom_killed"] for row in report["application_states"].values()), "native_kernel_oom_seen")
+        report["database_upgrade"] = database(loaded)
         report["status"] = "PASS"
     except (RuntimeError, subprocess.SubprocessError, OSError, ValueError, KeyError) as error:
         report["failure_code"] = str(error) if isinstance(error, RuntimeError) else type(error).__name__

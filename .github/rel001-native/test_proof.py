@@ -12,6 +12,21 @@ spec.loader.exec_module(proof)
 
 
 class HarnessDeadlineTest(unittest.TestCase):
+    def test_database_requires_all_real_paths_and_never_exports_log_output(self):
+        import json
+        names = ['TestUPSTREAM007UpgradePaths' + suffix for suffix in
+                 ('/empty', '/old-kin', '/already-personal', '')]
+        rows = [{'Action': 'output', 'Output': 'synthetic-private-fixture'},
+                *({'Action': 'pass', 'Test': name, 'Elapsed': 1.0} for name in names)]
+        encoded = '\n'.join(json.dumps(row) for row in rows)
+        self.assertEqual(set(proof.database_result(encoded, 0)['tests']), set(names))
+        self.assertNotIn('synthetic-private-fixture', str(proof.database_result(encoded, 0)))
+        for invalid, code in ((rows[:-1], 0), (rows, 1),
+            ([*rows, {'Action': 'skip', 'Test': names[0]}], 0),
+            ([*rows, {'Action': 'fail', 'Test': names[0]}], 0)):
+            with self.assertRaises(RuntimeError):
+                proof.database_result('\n'.join(json.dumps(row) for row in invalid), code)
+
     def test_missing_diagnostics_does_not_block_resource_cleanup(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
