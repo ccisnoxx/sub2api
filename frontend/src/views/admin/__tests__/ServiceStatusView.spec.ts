@@ -76,6 +76,73 @@ describe('管理员服务状态的可见合同', () => {
     expect(wrapper.text()).not.toContain('100.0%')
     expect(wrapper.text()).not.toContain('visible-model')
   })
+
+  describe.each(['zh', 'en'])('%s 状态与 reason code', locale => {
+    const messages = (locale === 'zh' ? zh : en).admin.serviceStatus
+    it.each([
+      ['operational', 'bg-green-100', 'dark:bg-green-900/30'], ['degraded', 'bg-amber-100', 'dark:bg-amber-900/30'],
+      ['outage', 'bg-red-100', 'dark:bg-red-900/30'], ['recovering', 'bg-amber-100', 'dark:bg-amber-900/30'], ['unknown', 'bg-gray-100', 'dark:bg-dark-700']
+    ])('%s 的摘要、平台和叶子使用相同文案与颜色', async (health, color, darkColor) => {
+      const result = snapshot()
+      result.health = health
+      result.platforms[0]!.health = health
+      result.scopes[0]!.health = health
+      api.getSnapshot.mockResolvedValue(result)
+      open(locale); await flushPromises()
+      const label = messages.health[health as keyof typeof messages.health]
+      const badges = wrapper.findAll('span').filter(item => item.text() === label && item.classes().some(name => name.startsWith('bg-')))
+      expect(badges).toHaveLength(3)
+      for (const badge of badges) {
+        expect(badge.classes()).toContain(color)
+        expect(badge.classes()).toContain(darkColor)
+        if (health !== 'operational') expect(badge.classes().some(name => name.includes('green'))).toBe(false)
+      }
+      if (health === 'unknown') expect(wrapper.text()).not.toContain('100.0%')
+    })
+
+    it.each([
+      'no_recent_requests', 'no_qualified_requests', 'insufficient_samples', 'terminal_unknown',
+      'watermark_missing', 'invalid_watermark', 'watermark_stale', 'configuration_changed',
+      'aggregation_error', 'source_error', 'scope_unavailable', 'coverage_gap',
+      'linkage_unavailable', 'terminal_missing', 'terminal_conflict', 'unsupported_entry',
+      'unclassified', 'awaiting_data', 'no_enabled_platforms'
+    ])('%s 有明确原因文案，未知与历史均灰显且不显示比例', async reason => {
+      const reasonMessages: Record<string, string> = messages.reasons
+      expect(reasonMessages[reason]).toBeTruthy()
+      expect(reasonMessages[reason]).not.toBe(reasonMessages.unknown)
+      const result = snapshot()
+      result.health = 'unknown'; result.unknown_reason = reason; result.gaps = [reason]
+      result.platforms[0] = { ...result.platforms[0]!, health: 'unknown', unknown_reason: reason }
+      result.scopes[0] = { ...result.scopes[0]!, health: 'unknown', unknown_reason: reason }
+      result.history[0] = { ...result.history[0]!, covered: true, unknown_reason: reason, success_rate: 1, error_rate: 0 }
+      api.getSnapshot.mockResolvedValue(result)
+      open(locale); await flushPromises()
+      expect(wrapper.get('[data-testid="status-summary"]').text()).toContain(reasonMessages[reason])
+      expect(wrapper.get('[data-testid="status-summary"] span').classes()).toContain('bg-gray-100')
+      expect(wrapper.get('[data-testid="status-history"] li').classes()).toContain('bg-gray-100')
+      expect(wrapper.get('[data-testid="status-history"] li').classes()).toContain('dark:bg-dark-800')
+      expect(wrapper.get('[data-testid="status-history"]').text()).toContain(reasonMessages[reason])
+      expect(wrapper.text()).toContain(messages.unavailableRate)
+      expect(wrapper.text()).not.toMatch(/\b(?:100|0)\.0%/)
+    })
+
+    it('disabled 使用独立提示，保留配置而不显示健康快照', async () => {
+      api.getConfig.mockResolvedValue({ ...config, enabled: false })
+      open(locale); await flushPromises()
+      expect(wrapper.get('[role="alert"]').text()).toBe(messages.disabled)
+      expect(wrapper.find('[data-testid="status-summary"]').exists()).toBe(false)
+      expect(wrapper.find('[data-testid="save-config"]').exists()).toBe(true)
+      expect(api.getSnapshot).not.toHaveBeenCalled()
+    })
+
+    it('明确说明仅代表本部署已观察请求，不代表供应商全局 SLA', async () => {
+      open(locale); await flushPromises()
+      expect(wrapper.text()).toContain(messages.description)
+      expect(wrapper.text()).toContain(messages.boundedNotice)
+      expect(messages.boundedNotice).toContain('SLA')
+    })
+  })
+
   it.each([[false, false], [true, false]])('认证 %s / 管理员 %s 时禁止读取配置与快照', async (authenticated, admin) => {
     state.isAuthenticated = authenticated; state.isAdmin = admin
     open(); await flushPromises()
