@@ -11,25 +11,25 @@ import (
 )
 
 // responsesOutputTiming 只观察协议事实，不参与用量解析、重试或下游提交。
-// start 是现有 duration 的起点；锁仅用于与请求取消通知排序。
+// 输出字段由 outputTiming 持有；锁用于与请求取消通知排序。
 type responsesOutputTiming struct {
-	mu         sync.Mutex
-	start      time.Time
-	ctx        context.Context
-	timing     UsageTiming
-	completion responsesCompletionClassifier
-	observed   bool
-	audioSeen  bool
-	stopCancel func() bool
-	source     *serviceStatusRequest
-	attempt    uint64
+	mu           sync.Mutex
+	ctx          context.Context
+	timing       UsageTiming // 已接受用量与观测元数据，不持有输出时点。
+	outputTiming responsesOutputTimingTracker
+	completion   responsesCompletionClassifier
+	observed     bool
+	audioSeen    bool
+	stopCancel   func() bool
+	source       *serviceStatusRequest
+	attempt      uint64
 }
 
 func newResponsesOutputTiming(ctx context.Context, start time.Time, account *Account) *responsesOutputTiming {
 	if start.IsZero() || account == nil || account.Platform != PlatformOpenAI {
 		return nil
 	}
-	o := &responsesOutputTiming{start: start, ctx: ctx, timing: UsageTiming{TimingVersion: 1, UsageSource: UsageSourceUnknown}}
+	o := &responsesOutputTiming{ctx: ctx, outputTiming: responsesOutputTimingTracker{start: start}, timing: UsageTiming{TimingVersion: 1, UsageSource: UsageSourceUnknown}}
 	o.source = serviceStatusOwner(ctx)
 	if o.source != nil {
 		o.attempt = o.source.beginAttempt()
@@ -70,29 +70,6 @@ func (o *responsesOutputTiming) finishStatusAt(status string, at time.Time, reas
 	}
 }
 
-func (o *responsesOutputTiming) output(kind string, token bool, at time.Time) {
-	ms := int(at.Sub(o.start).Milliseconds())
-	if ms < 0 {
-		return
-	}
-	if o.timing.FirstOutputMs == nil {
-		o.timing.FirstOutputMs = &ms
-		k := kind
-		o.timing.FirstOutputKind = &k
-	}
-	if kind == "audio" {
-		o.audioSeen = true
-	}
-	if token {
-		if o.timing.StrictFirstTokenMs == nil {
-			first := ms
-			o.timing.StrictFirstTokenMs = &first
-		}
-		last := ms
-		o.timing.LastTokenMs = &last
-	}
-}
-
 func (o *responsesOutputTiming) observeEvent(payload []byte, eventType string, at time.Time) {
 	if o == nil {
 		return
@@ -110,7 +87,9 @@ func (o *responsesOutputTiming) applyProtocolFacts(facts responsesProtocolFacts,
 	o.observed = o.observed || facts.observed
 	o.audioSeen = o.audioSeen || facts.audioSeen
 	for _, output := range facts.outputs {
-		o.output(output.kind, output.token, at)
+		if o.outputTiming.observe(output, at) && output.kind == "audio" {
+			o.audioSeen = true
+		}
 	}
 	if facts.terminalStatus != "" {
 		o.finishStatusAt(facts.terminalStatus, at, facts.terminalReason)
@@ -260,6 +239,9 @@ func (o *responsesOutputTiming) snapshot(clientDisconnected bool) UsageTiming {
 		o.source.observeAttemptCandidate(o.timing.ServiceStatusObservation, o.attempt)
 	}
 	timing := o.timing.Clone()
+	output := o.outputTiming.snapshot()
+	timing.FirstOutputMs, timing.FirstOutputKind = output.FirstOutputMs, output.FirstOutputKind
+	timing.StrictFirstTokenMs, timing.LastTokenMs = output.StrictFirstTokenMs, output.LastTokenMs
 	timing.CompletionStatus, timing.IsComplete = o.completion.snapshot()
 	return timing
 }
