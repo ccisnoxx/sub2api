@@ -21,8 +21,9 @@ func TestResponsesOutputTiming_StrictEventsAndMedia(t *testing.T) {
 	} {
 		o.observeEvent([]byte(event), "", start.Add(5*time.Millisecond))
 	}
-	require.Nil(t, o.timing.StrictFirstTokenMs)
-	require.Nil(t, o.timing.FirstOutputMs)
+	output := o.outputTiming.snapshot()
+	require.Nil(t, output.StrictFirstTokenMs)
+	require.Nil(t, output.FirstOutputMs)
 	o.observeEvent([]byte(`{"type":"response.image_generation_call.partial_image","partial_image_b64":"image"}`), "", start.Add(10*time.Millisecond))
 	o.observeEvent([]byte(`{"type":"response.reasoning_text.delta","delta":"think"}`), "", start.Add(20*time.Millisecond))
 	o.observeEvent([]byte(`{"type":"response.custom_tool_call_input.delta","delta":"pwd"}`), "", start.Add(30*time.Millisecond))

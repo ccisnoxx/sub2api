@@ -52,3 +52,31 @@ func TestResponsesOutputTiming_TerminalFreezePreservesAcceptedUsage(t *testing.T
 		})
 	}
 }
+
+// 快照交付后继续 drain 的时点按观察顺序推进，不与已交付快照共享可变字段。
+func TestResponsesOutputTiming_OutputSnapshotAndObservedOrder(t *testing.T) {
+	start := time.Unix(100, 0)
+	o := newResponsesOutputTiming(context.Background(), start, &Account{Platform: PlatformOpenAI})
+	defer o.stop()
+	o.observeEvent([]byte(`{"type":"response.image_generation_call.partial_image","partial_image_b64":"image"}`), "", start.Add(10*time.Millisecond))
+	o.observeEvent([]byte(`{"type":"response.reasoning_text.delta","delta":"think"}`), "", start.Add(20*time.Millisecond))
+	first := o.snapshot(false)
+	require.Equal(t, 10, *first.FirstOutputMs)
+	require.Equal(t, "image", *first.FirstOutputKind)
+	require.Equal(t, 20, *first.StrictFirstTokenMs)
+	require.Equal(t, 20, *first.LastTokenMs)
+	*first.FirstOutputMs = 99
+	*first.FirstOutputKind = "text"
+	*first.StrictFirstTokenMs = 99
+	*first.LastTokenMs = 99
+
+	// 原实现记录最后观察到的有效 Token 时点，不把不同帧时点重新排序。
+	o.observeEvent([]byte(`{"type":"response.function_call_arguments.delta","delta":"call"}`), "", start.Add(15*time.Millisecond))
+	next := o.snapshot(false)
+	require.Equal(t, 10, *next.FirstOutputMs)
+	require.Equal(t, "image", *next.FirstOutputKind)
+	require.Equal(t, 20, *next.StrictFirstTokenMs)
+	require.Equal(t, 15, *next.LastTokenMs)
+	*next.FirstOutputKind = "tool"
+	require.Equal(t, "image", *o.snapshot(false).FirstOutputKind)
+}
