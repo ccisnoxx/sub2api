@@ -3,6 +3,7 @@ package handler
 import (
 	"sort"
 
+	apperrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
 	"github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
@@ -43,11 +44,12 @@ func NewAvailableChannelHandler(
 }
 
 // featureEnabled 返回 available-channels 开关是否启用。默认关闭（opt-in）。
-func (h *AvailableChannelHandler) featureEnabled(c *gin.Context) bool {
+func (h *AvailableChannelHandler) featureEnabled(c *gin.Context) (bool, error) {
 	if h.settingService == nil {
-		return false
+		return false, nil
 	}
-	return h.settingService.GetAvailableChannelsRuntime(c.Request.Context()).Enabled
+	runtime := h.settingService.GetAvailableChannelsRuntime(c.Request.Context())
+	return runtime.Enabled, runtime.Err
 }
 
 // userAvailableGroup 用户可见的分组概要（白名单字段）。
@@ -135,11 +137,16 @@ func (h *AvailableChannelHandler) List(c *gin.Context) {
 		return
 	}
 
-	// 未启用时按视图返回空数组或空目录。认证先于开关检查，保留原 401 行为。
+	// 目录明确区分禁用与读取失败；旧数组视图保留既有关闭行为。认证仍先于开关。
 	catalog := isCatalogRequest(c)
-	if !h.featureEnabled(c) {
+	enabled, featureErr := h.featureEnabled(c)
+	if catalog && featureErr != nil {
+		response.ErrorFrom(c, apperrors.ServiceUnavailable("MODEL_CATALOG_UNAVAILABLE", "模型目录配置暂不可用").WithCause(featureErr))
+		return
+	}
+	if !enabled {
 		if catalog {
-			response.Success(c, emptyUserModelCatalog())
+			response.ErrorFrom(c, apperrors.ServiceUnavailable("MODEL_CATALOG_DISABLED", "模型目录未启用"))
 			return
 		}
 		response.Success(c, []userAvailableChannel{})

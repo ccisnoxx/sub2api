@@ -89,7 +89,8 @@ type OpsErrorLogDetail struct {
 	UpstreamErrors       string `json:"upstream_errors,omitempty"` // JSON array (string) for display/parsing
 
 	// 仅管理员详情暴露经过固定版本白名单验证的历史选择快照。
-	RoutingDiagnostics *RoutingDiagnostics `json:"routing_diagnostics,omitempty"`
+	RoutingDiagnostics        *RoutingDiagnostics `json:"routing_diagnostics,omitempty"`
+	RoutingDiagnosticsEnabled *bool               `json:"routing_diagnostics_enabled,omitempty"`
 
 	// Timings (optional)
 	AuthLatencyMs      *int64 `json:"auth_latency_ms"`

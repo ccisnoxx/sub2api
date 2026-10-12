@@ -493,6 +493,7 @@ func (s *SettingService) GetChannelMonitorRuntime(ctx context.Context) ChannelMo
 // switch consumed by the user-facing handler.
 type AvailableChannelsRuntime struct {
 	Enabled bool
+	Err     error
 }
 
 // GetAvailableChannelsRuntime reads the available-channels feature switch directly
@@ -501,7 +502,7 @@ type AvailableChannelsRuntime struct {
 func (s *SettingService) GetAvailableChannelsRuntime(ctx context.Context) AvailableChannelsRuntime {
 	vals, err := s.settingRepo.GetMultiple(ctx, []string{SettingKeyAvailableChannelsEnabled})
 	if err != nil {
-		return AvailableChannelsRuntime{Enabled: false}
+		return AvailableChannelsRuntime{Enabled: false, Err: err}
 	}
 	return AvailableChannelsRuntime{
 		Enabled: vals[SettingKeyAvailableChannelsEnabled] == "true",

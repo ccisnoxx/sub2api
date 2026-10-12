@@ -1116,7 +1116,8 @@ func (state *opsCaptureWriterState) shouldCapture() bool {
 // - Streaming errors after the response has started (SSE) may still need explicit logging.
 func OpsErrorLoggerMiddleware(ops *service.OpsService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Request = c.Request.WithContext(service.WithServiceStatusRequest(c.Request.Context(), 0))
+		ctx := service.WithRoutingDiagnosticsEnabled(c.Request.Context(), ops.IsRoutingDiagnosticsEnabled(c.Request.Context()))
+		c.Request = c.Request.WithContext(service.WithServiceStatusRequest(ctx, 0))
 		originalWriter := c.Writer
 		w := acquireOpsCaptureWriter(originalWriter)
 		w.setContext(c)

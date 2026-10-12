@@ -228,6 +228,10 @@ func registerOpsRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 		ops.GET("/advanced-settings", h.Admin.Ops.GetAdvancedSettings)
 		ops.PUT("/advanced-settings", h.Admin.Ops.UpdateAdvancedSettings)
 
+		// 独立诊断开关的配置入口在关闭时仍可访问，继承管理认证、限流与审计。
+		ops.GET("/routing-diagnostics/config", h.Admin.Ops.GetRoutingDiagnosticsConfig)
+		ops.PUT("/routing-diagnostics/config", h.Admin.Ops.UpdateRoutingDiagnosticsConfig)
+
 		// Settings group (DB-backed)
 		settings := ops.Group("/settings")
 		{
