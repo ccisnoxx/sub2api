@@ -8,6 +8,14 @@ Go caches are isolated by target and refreshed on each source commit, with fallb
 
 All build jobs use the commit resolved by `prepare`, including a manual release's selected tag. Helper scripts come from the workflow revision and are passed as a run-local artifact, so older application tags do not need to contain the new scripts. The workflow serializes release runs to prevent simultaneous updates to moving image tags.
 
+## 许可与对应源码
+
+前端构建生成 `backend/internal/web/dist/THIRD_PARTY_LICENSES.txt`，缺少实际分发依赖的完整许可时必须失败。二进制构建前运行 `release_matrix.py materials --sha "$RELEASE_SHA" --version "$RELEASE_VERSION"`：核对当前 HEAD，要求所选源码自己的 `LICENSE`、`LICENSE-GPL-3.0.txt`、`NOTICE` 和前端声明非空，生成 `SOURCE.json`，记录完整 SHA、精确源码树/源码归档链接和各许可材料的 SHA256。
+
+tar.gz/zip 的收集和传输校验同时检查这些材料及对应平台二进制，拒绝缺失、重复、非普通文件、来源不匹配及原有项目许可字节变化。容器上下文使用已验证归档中的材料；镜像保存于 `/usr/share/licenses/sub2api/`。Release notes 和 OCI revision 使用完整提交，source 指向本 fork，version 与所选版本一致。
+
+旧应用提交缺少这些材料时，可信工具会明确阻止发布，不从工作流提交借用 NOTICE 或第三方声明。正式发布前必须把 LEGAL-001/002 的所需材料与构建配置纳入 `personal` 应用候选并重新验证；当前历史产物不会因修改 main 自动补齐。直接运行 GoReleaser 也须先构建前端、生成 `SOURCE.json`；源码 Docker 构建须明确传入实际 `--build-arg COMMIT=<完整SHA>` 和 `--build-arg VERSION=<版本>`。
+
 ## Validate without publication
 
 From a branch containing this workflow:
