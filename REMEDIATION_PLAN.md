@@ -89,7 +89,7 @@
 - **CI 流程：** CI-001—005 的 [PR #26](https://github.com/ccisnoxx/sub2api/pull/26)—[PR #30](https://github.com/ccisnoxx/sub2api/pull/30) 已普通合入 main；必要控制文件随后经 CI-000 同步到 personal。CI-000 已按“当前简化验收”记录关闭，旧自动 Quick/Full、strict personal-ready、周扫和十任务观察要求已被替代，不再按旧记录判定任务未完成。此次 API 回读两分支均禁止强推/删除，required checks 与 PR 审查要求为空。
 - **已整合应用：** UPSTREAM-007 已随 [PR #25](https://github.com/ccisnoxx/sub2api/pull/25) 完成基线切换；DOC-002、LEGAL-001/002、SEC-002 和 S1—S5 的必要材料以该任务完成记录及实际 personal 文件为准。原阶段 PR #14—#24 仍有开放草稿，不能写成逐个已合并，也不能仅凭 PR 开放状态认定必要材料未整合。UPSTREAM-008 已普通快进合入 personal；仅文档同步至 main。
 - **结构治理与候选：** REL-001 的 [PR #36](https://github.com/ccisnoxx/sub2api/pull/36)、ARCH-001 的 [PR #43](https://github.com/ccisnoxx/sub2api/pull/43)—[PR #47](https://github.com/ccisnoxx/sub2api/pull/47)、ARCH-004 的 [PR #48](https://github.com/ccisnoxx/sub2api/pull/48) 已合入 personal；ARCH-005 的 [PR #49](https://github.com/ccisnoxx/sub2api/pull/49) 已合入 main。LEGAL-002 的早期许可材料阻塞及 REL-001 的早期性能失败已由后续候选验收记录替代；原失败和 REL-001 合并轮 digest 校验失败仍保留，不改记为成功。
-- **安全例外差异：** personal 仅保留 owner 为 `@ccisnoxx`、到期日 `2026-11-09` 的两项精确 XLSX 例外；main 的 `.github/audit-exceptions.yml` 仍含占位 owner 和 `2026-07-02` / `2026-07-10` 已过期条目。SEC-002 的应用候选验收保持完成，两个分支整体清理尚未完成；本轮仅登记差异，不修改例外或重跑扫描。
+- **安全例外续作：** 上轮发现的 main 过期条目和占位 owner 已在本轮 SEC-002 定向修复中清理。两分支实际生产审计均为 high 2 / critical 0，仅保留 `xlsx@0.18.5`、完整路径 `. > xlsx@0.18.5` 的两项精确 GHSA 例外，owner 为 `@ccisnoxx`，到期日 `2026-11-09`。main 无对应发现的 lodash、lodash-es、axios、nanoid 例外已删除；严格版本/路径/owner/报告校验与 XLSX 写出门禁已有定向通过证据，两分支 Security Scan 补入已有政策/规则检查入口。候选和边界见 SEC-002 续作记录；不表示 XLSX 包内漏洞已移除或已经发布。
 - **OBS 整合缺口：** OBS-001—004 已完成各自候选验收，但 [PR #31](https://github.com/ccisnoxx/sub2api/pull/31)、[PR #32](https://github.com/ccisnoxx/sub2api/pull/32)、[PR #33](https://github.com/ccisnoxx/sub2api/pull/33)、[PR #34](https://github.com/ccisnoxx/sub2api/pull/34) 仍为开放草稿，候选 head 均不是当前 personal 的祖先，相关增量未整合。当前第 8 节不据此宣称完整隐私治理和运行监控已具备；外部告警调度、通知路由和真实送达也未部署。
 - **发布与回退：** REL-001 完成的是固定历史候选的部署前验证，不能作为当前 personal SHA 的发布资格。跨 KIN `account.extra` 全业务写入的无损回退未获证明，现有部署适配仍禁止自动和显式旧镜像恢复。`PERSONAL_RELEASE_ENABLED=false`，现有三个个人 Release 均为旧基线 prerelease；ARCH-002、REL-002、REL-003 保持待办，本轮不发布、不部署。
 
@@ -518,6 +518,17 @@ python tools/check_pnpm_audit_exceptions.py \
 - 冻结依赖安装、有效审计报告例外校验、14 项审计门禁回归、33 项 XLSX 静态规则回归、全部前端源码扫描及 14 项 UsageView 测试均通过。
 - 同一最终提交的 [Security Scan 38109232020](https://github.com/ccisnoxx/sub2api/actions/runs/38109232020) 与 [CI 38109232016](https://github.com/ccisnoxx/sub2api/actions/runs/38109232016) 全部通过；独立只读复核确认发现已修正，最终候选无确认阻断。
 - 详细验收、风险及回滚记录见本 PR 的 `docs/security/SEC-002.md`；本任务未修改业务代码或数据库。
+
+### main 定向续作验收（2026-10-12）
+
+- 本轮从 main `b4ecd4794e464b334a82cce63dc114ac93dcda75` 与 personal `0dc428e8ad9156302660efcac994d0c986773504` 隔离实施；上轮发现的 main 清理缺口由本记录关闭，原 SEC-002 历史候选/PR #15 状态与审计记录保留。代码候选 main `9fdc2a0c943885466d19e30dcd28af278ba1d395`、personal `b6ac9cee01840c7b06c62d87f5fb6aa652d0b3d1`；[main 续作报告](https://github.com/ccisnoxx/sub2api/blob/9fdc2a0c943885466d19e30dcd28af278ba1d395/docs/security/SEC-002-MAIN.md)保存实际依赖、报告摘要、命令和回退。
+- 逐项核对实际生产路径与锁文件差异：main 仍有两项 Airwallex 依赖，其余相关依赖版本与 personal 一致；不合并应用树、不更新依赖或 lockfile。两个有效官方 registry 生产审计均为 high 2 / critical 0，仅为 `xlsx@0.18.5` 的 `GHSA-4r6h-8v6p-xvw6`、`GHSA-5pgg-2g8v-p4x9`，路径 `. > xlsx@0.18.5`。
+- main 删除无对应发现的 lodash、lodash-es、axios、nanoid 四例外；两项 XLSX 例外采用真实 owner `@ccisnoxx`、精确版本/完整路径与 personal 同一 `2026-11-09` 期限。main evidence 指向本轮报告，personal 例外配置不变；没有延长期限或按包名忽略新漏洞。
+- main 复用 personal 既有严格校验器、XLSX 静态规则及两组既有测试，四份文件逐字相同；原校验器的 14 项回归含子测试出现 19 个失败断言，修复后全部 14 项通过。33 项 XLSX 规则回归、两个分支当前源码扫描、两份实际报告匹配、Security Scan actionlint v1.7.12（未运行 ShellCheck/pyflakes）与 CRLF 感知 diff 检查通过。两分支原 Check audit exceptions 步骤补入既有政策/规则检查命令，触发方式、权限、扫描等级和发布绑定保持。
+- personal 首次在未安装环境取得空 finding 路径报告，不计有效验收；冻结安装后新报告与原严格校验器匹配成功，未放宽路径校验。报告的 high 非零导致原 audit 命令退出 1，不冒称没有漏洞；例外校验通过只证明当前限定写出路径和期限。
+- 本轮只做上述定向验证，没有全量后端/前端回归、云端 Quick/Full、安全工作流 dispatch、Release dry-run、镜像构建、数据库演练、发布或部署。数据库影响 none；回退使用普通 revert 并保持两分支门禁消费者一致，不能以恢复占位/过期例外冒充安全验收。XLSX 替换仍须在到期前另行处理；第 8 节仅本项由待办更新为完成，OBS 整合、回退兼容和发布项继续待办。
+
+- fresh `critical_reviewer` 对上述固定 main/personal 代码候选独立只读复核，未确认任务内阻断；核对实际例外、报告摘要、消费者/固定 SHA 调用、依赖/应用树和原始定向证据，并用内存反例确认空路径、未知报告、缺失 critical 明细、新 GHSA 与 XLSX 引用逃逸均拒绝。未独立重跑完整 suite，也未审查本轮随后追加的计划文本。审计 `20261012T153408Z-sec-002-main-audit-cleanup-6575bf35` 已闭合、audit-verify 通过，SUBAGENT_EXECUTION_DIGEST 有效；父代理未观察到复核写入，保留覆盖限制。
 
 ---
 
@@ -1973,12 +1984,12 @@ python tools/check_pnpm_audit_exceptions.py \
 
 只有满足以下全部条件，整个修复计划才可视为完成：
 
-2026-10-12 依据 §3.3 的固定分支输入、已有任务证据和 GitHub API 核对：7 项完成，7 项待办，整个计划尚未完成。以下勾选不表示本轮重新运行应用测试、Full、安全扫描、产物构建或数据库演练。
+2026-10-12 依据 §3.3、SEC-002 续作的实际依赖/定向审计证据及已有任务记录核对：8 项完成，6 项待办，整个计划尚未完成。本轮仅重验依赖审计例外与 XLSX 写出门禁，未重跑应用回归、Full、云端安全工作流、产物构建或数据库演练。
 
 - [x] README 明确说明 fork 身份、分支职责和正确安装入口；DOC-001、DOC-002 及当前两分支 README 已提供 personal、GHCR 和固定版本安装入口。
 - [x] 根目录存在完整 NOTICE 或第三方来源说明；LEGAL-001/002、ARCH-005 与当前两分支 NOTICE 保留 KIN/原始上游/Plus 来源和归属边界。
 - [x] 本 fork 拥有可用的私密安全报告渠道；SEC-001 已合入，当前安全政策指向本仓库，API 回读 Private Vulnerability Reporting 为 `enabled=true`。
-- [ ] 不存在过期安全例外或占位 owner；personal 已满足 SEC-002 候选标准，但 main 仍有 §3.3 登记的过期条目和占位 owner，待必要控制文件同步后核对。
+- [x] 不存在过期安全例外或占位 owner；SEC-002 续作已按两个分支的实际依赖审计清理 main，保留的两项精确 XLSX 例外均有真实 owner 和 `2026-11-09` 到期日，两份有效报告由严格校验器匹配通过；XLSX 漏洞仍受短期例外管理。
 - [x] 新 `personal` 基于重新确认的 KIN 稳定版本人工重放完成；UPSTREAM-007/008 已整合，来源为 `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`。
 - [x] 未绕过历史分叉、祖先检查或分支保护；UPSTREAM-007 保存旧 personal 与新 KIN 的真实历史，后续普通合并/快进记录及当前祖先核对一致；CI-000 保护调整有维护者授权，禁止强推/删除保持。
 - [ ] 所有数据库升级路径和回退兼容路径完成验证；MIG-001、UPSTREAM-007、REL-001 已验证空库/旧 KIN/已迁移 personal 三路径和合成库恢复，但跨 KIN 全业务写入的无损回退、实际发布恢复点与写入损失评估仍待闭环，不解除现有旧镜像恢复禁令。

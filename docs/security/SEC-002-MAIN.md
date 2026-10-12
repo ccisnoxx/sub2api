@@ -34,10 +34,16 @@ pnpm --dir frontend run check:xlsx-write-only
 - actionlint v1.7.12 对修改的 Security Scan 通过，未运行 ShellCheck/pyflakes；两分支工作流字节相同。新增脚本由已有 ESLint/Vue/TypeScript 依赖运行，不新增依赖。
 - `git -c core.whitespace=cr-at-eol diff --check` 通过。安装环境 Node v24.16.0、Python 3.12.13；未将此本地检查写成 CI Node 20.20.2 的云端验收。
 
-没有运行后端回归、全量前端测试/构建、云端 Quick/Full、安全工作流 dispatch、Release dry-run、镜像构建或数据库演练。未增加或修改应用业务代码、SQL、迁移身份、源 manifest、发布 tag 或镜像。当前任务的固定候选与独立复核结果随后登记在 REMEDIATION_PLAN.md；此记录不替代尚未取得的复核。
+没有运行后端回归、全量前端测试/构建、云端 Quick/Full、安全工作流 dispatch、Release dry-run、镜像构建或数据库演练。未增加或修改应用业务代码、SQL、迁移身份、源 manifest、发布 tag 或镜像。固定候选与独立复核结果登记在 REMEDIATION_PLAN.md；此记录只证明已执行的定向验证。
 
 ## 风险与回退
 
 XLSX 包中漏洞仍存在；本次收紧的是两个已知 advisory 的有限写出路径例外，并未消除包内漏洞。到期、新版本、新路径、新 advisory、缺失/错误报告均继续失败。moderate/low 未扩大为本轮整改范围。静态检查不证明外部运行时注入安全，也不替代未来正式发布的完整门禁。
 
 数据库影响：none。必要回退使用普通 revert 撤销任务控制增量，并同步两分支的 Security Scan 命令/消费者；优先保留已清理例外与严格校验器。不能恢复占位/过期配置后声称安全验收仍通过，不强推、不改发布版本或生产数据。
+
+## 固定候选独立复核
+
+fresh critical_reviewer 对 main `9fdc2a0c943885466d19e30dcd28af278ba1d395` 与 personal `b6ac9cee01840c7b06c62d87f5fb6aa652d0b3d1` 独立只读复核，未确认任务内阻断。复核读取实际报告与原始定向证据，内存验证空 finding 路径、未知报告、缺失 critical 明细、新 GHSA 及 XLSX 模块引用逃逸拒绝；没有重跑整套测试或执行云端/生产验证。两分支锁文件、应用源码和非脚本 manifest 未变得到独立核对。
+
+审计 `20261012T153408Z-sec-002-main-audit-cleanup-6575bf35` 已 closed、audit-verify 通过，SUBAGENT_EXECUTION_DIGEST 校验成功；父代理对固定候选 tracked 文件及未跟踪清单核对，未观察到复核写入。本次追加仅文档，不改变已审查门禁或已有测试输入；复核没有检查随后更新的 REMEDIATION_PLAN.md。原始错误、不完整报告和覆盖边界保留。
