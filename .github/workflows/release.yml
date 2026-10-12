@@ -317,6 +317,10 @@ jobs:
           python-version: '3.12.13'
       - run: |
           python -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+      - name: Bind license materials to selected source
+        env:
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+        run: python "$RUNNER_TEMP/release-tools/release_matrix.py" materials --sha "$RELEASE_SHA" --version "$RELEASE_VERSION"
       - name: Select one GoReleaser target
         env:
           TARGET_OS: ${{ matrix.goos }}

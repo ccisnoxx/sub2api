@@ -27,6 +27,21 @@ class ReleaseControlTest(unittest.TestCase):
         self.assertLess(preserve, source)
         self.assertIn('$RUNNER_TEMP/release-tools/personal_release.py', steps[-1]["run"])
 
+    def test_binary_archive_generates_bound_source_materials_first(self):
+        steps = self.release['jobs']['build-binaries']['steps']
+        material = [i for i, s in enumerate(steps) if 'release_matrix.py" materials ' in s.get('run', '')]
+        self.assertEqual(len(material), 1, '归档前必须生成绑定源码及许可摘要的 SOURCE.json')
+        downloaded = next(i for i, s in enumerate(steps) if s.get('with', {}).get('name') == 'frontend-dist')
+        build = next(i for i, s in enumerate(steps) if s.get('name') == 'Build and archive without publishing')
+        self.assertLess(downloaded, material[0])
+        self.assertLess(material[0], build)
+        step = steps[material[0]]
+        self.assertEqual(step['env']['RELEASE_SHA'], '${{ needs.prepare.outputs.sha }}')
+        self.assertIn('$RUNNER_TEMP/release-tools/release_matrix.py', step['run'])
+        self.assertIn('--sha "$RELEASE_SHA" --version "$RELEASE_VERSION"', step['run'])
+        self.assertNotIn('if', step)
+        self.assertFalse(step.get('continue-on-error', False))
+
     def test_quick_eligibility_ignores_application_modules(self):
         step = next(s for s in self.personal['jobs']['prepare']['steps'] if s.get('id') == 'eligibility')
         for full in (False, True):

@@ -262,3 +262,8 @@
 
 - 原生 amd64 同一 036ade78 OCI 五轮性能通过后，独立复核确认新增发布资格 stdin Python 缺少模块隔离、Full 丢失既有安装来源/token 合同入口。仅补 `python3 -I -`，恢复 Full 两项离线测试；绑定 personal 源码时文件缺失明确失败，main 尚无安装来源文件时只标记该项不适用，token 测试始终执行。
 - 两项新增回归检查先在修复前失败，再在修复后通过，覆盖应用模块遮蔽、Full 固定源码必检与子检查失败传播；不改变 Quick 选择、发布权限、祖先/源码/CI 绑定、应用或迁移。独立复核和适用控制面 Quick 必须通过后普通合入 main，再同步必要字节。无正式发布、registry push、部署或生产数据访问。
+
+### REL-001：恢复归档前源码材料绑定（2026-10-12）
+
+- 最终 ff6c79c7 候选 dry-run 38209816504 的五个二进制均在归档前因缺失 SOURCE.json 失败。确认 CI-000 同步的 release workflow 相对原已验收 036 仅遗漏既有四行 materials 步骤；恢复同次可信工具在 frontend 材料下载后、归档前按 prepare SHA/VERSION 生成来源及许可摘要，不制造静态 SOURCE 或放宽收集验证。
+- 新 workflow 入口回归先因入口缺失失败，恢复后 release_control 10 项、release_matrix 19 项、actionlint/diffcheck 通过。仅 workflow/对应入口检查与记录；保留失败运行，修复后固定新候选重新取得所需同 SHA 门禁；不改应用、迁移、阈值、保护、发布权限或正式发布状态。
