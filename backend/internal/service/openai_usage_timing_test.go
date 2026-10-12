@@ -126,25 +126,34 @@ func TestResponsesUsageTiming_HTTPFailureCancellationAndRetryIsolation(t *testin
 			}
 			require.Nil(t, next.StrictFirstTokenMs)
 			require.Equal(t, CompletionStatusCompleted, next.CompletionStatus)
-			ctx, cancel := context.WithCancel(context.Background())
+			ctx, cancel := context.WithCancel(WithServiceStatusRequest(context.Background(), 0))
 			defer cancel()
 			writer := &cancelOnFirstWriteResponseWriter{cancel: cancel}
 			c, _ = gin.CreateTestContext(writer)
 			c.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", nil).WithContext(ctx)
 			resp = &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"text/event-stream"}}, Body: io.NopCloser(strings.NewReader(partial + passthroughSSEData(timingFinalEvent)))}
 			var canceled UsageTiming
+			var canceledUsage *OpenAIUsage
 			if pass {
 				r, e := svc.handleStreamingResponsePassthrough(ctx, resp, c, account, time.Now(), "gpt-5.1", "gpt-5.1")
 				require.NoError(t, e)
 				canceled = r.usageTiming
+				canceledUsage = r.usage
 			} else {
 				r, e := svc.handleStreamingResponse(ctx, resp, c, account, time.Now(), "gpt-5.1", "gpt-5.1")
 				require.NoError(t, e)
 				canceled = r.usageTiming
+				canceledUsage = r.usage
 			}
 			require.Equal(t, CompletionStatusClientDisconnected, canceled.CompletionStatus)
 			require.False(t, *canceled.IsComplete)
 			require.Equal(t, UsageSourceUpstreamFinal, canceled.UsageSource)
+			require.Equal(t, 5, canceledUsage.InputTokens)
+			require.Equal(t, 7, canceledUsage.OutputTokens)
+			require.NotNil(t, canceled.ServiceStatusObservation)
+			require.Equal(t, CompletionStatusClientDisconnected, *canceled.ServiceStatusObservation.TerminalKind)
+			CommitServiceStatusObservation(ctx, canceled.ServiceStatusObservation)
+			require.Equal(t, CompletionStatusClientDisconnected, *ServiceStatusFinalObservation(ctx, "provider_capacity").TerminalKind)
 		})
 	}
 }
