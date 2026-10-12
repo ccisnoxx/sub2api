@@ -1,11 +1,17 @@
+第三方归属与来源说明（LEGAL-001）
+
 本仓库 ccisnoxx/sub2api 是 KlN-4096/sub2api 的个人维护 fork。
+下列应用基线字段描述 personal 实际应用；main 承载维护记录和控制工具，
+不以 main 中的同名应用文件或旧发布版本代替该应用来源。
 原始上游为 Wei-Shaw/sub2api，部分个人功能选择性参考
 LuckyKuang/sub2api-plus，并按 KIN 的接口、权限和数据合同适配。
 
 原始上游： https://github.com/Wei-Shaw/sub2api
 直接上游： https://github.com/KlN-4096/sub2api
-应用基线标签： v0.2.14-klno.5
-应用基线提交： c7aacf5d3ae383d0d5c75f471f66e61690a5701d
+应用基线标签： v0.2.15-klno.2
+应用基线提交： ca686de5e5ac14834e12701c156831abd5ec6b71
+旧稳定回退标签： v0.2.14-klno.5-tps.2
+旧稳定回退提交： 3d5e1fde82707900a21f2b5538b112c7bab3c04a
 
 Plus 参考仓库： https://github.com/LuckyKuang/sub2api-plus
 Plus 发行标签： v0.2.14+custom.002
@@ -17,10 +23,32 @@ Plus 固定阅读与适配参考提交： 90da415c62b94c9417d9ce2b72b1507ed22f03
 UPSTREAM.md 不同，引用的功能源码与文档相同。这里分别记录标签
 提交和阅读提交，不将两个 SHA 混称为标签解析结果。
 
+借鉴范围与实质修改：
+
+- 用量计时与完成状态：结构参考 Plus 的指标、helper 和 schema；
+  保留 KIN 既有首字字段，新增独立严格首字、可空媒体计数及终态快照，
+  按 KIN 的转发与计费入口接线。当前采集范围不等同于 Plus 全平台实现。
+- 模型与价格目录：概念参考 Plus 的 opt-in 目录组织；使用 KIN 的分组
+  授权、模型映射和真实计费探针，本地实现目录 DTO 与展示页面。
+- 结构化路由诊断：结构参考 Plus 的决策快照字段；在 KIN 的实际选择
+  分支采集，适配请求与逻辑 turn、Ops 队列及管理员字段白名单。
+- 真实请求服务状态：概念参考 Plus V3 的终态、分钟事实、水位与故障
+  事件；本地实现独立 observation key、表和开关，仅向管理员开放，
+  不沿用 Plus 的全登录用户可见范围或 TTFT 健康判定。
+
+上述模块已针对 KIN 架构做出实质修改；“结构参考”“概念参考”仍保留
+Plus 来源归属，不表示整模块直接复制，也不表示完全自主实现。
+
 当前来源矩阵、改动方式、维护 owner、重放文件与测试入口见 UPSTREAM.md。
+其中 owner 仅表示本 fork 的维护协调责任，不等同于原作者或版权人。
 本声明记录已核实来源，不替代原有 LICENSE、版权头或完整第三方许可
-材料；不因使用相同许可证而抹去归属，也不据此宣称全部代码自主原创。
-后续逐文件版权和发行材料审核由 LEGAL-001/LEGAL-002 独立处理。
+材料，不改变它们规定的许可条件。使用相同许可证不表示无需署名；
+直接复制或显著改写的文件必须保留来源已有的版权头与 SPDX 信息。
+历史固定应用源码的文件头核对、完整许可证副本与分发材料分别见
+personal 的 docs/legal/LEGAL-001.md、docs/legal/LEGAL-002.md；
+对应固定源码链接由 UPSTREAM.md 和 docs/upstream/records/ 提供。
+迁移候选的源码与产物身份按固定 personal 的
+docs/upstream/UPSTREAM-007.md 执行验收；当前手动流程见 docs/ci/CI-000.md。
 
 本 fork 由自身维护者协调维护。上述来源关系不代表任何上游维护者对
 本 fork 提供认可、支持或背书。

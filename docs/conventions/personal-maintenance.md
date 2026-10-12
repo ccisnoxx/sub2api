@@ -1,28 +1,28 @@
-# personal 同步合同
+# personal 来源、重放与发布记录合同
 
-`main` 是默认分支和调度宿主，`personal` 是 KlN 应用及 TPS 的维护分支。两条分支维护相同的 `.github/personal-sync/`、同步/Personal CI/既有 CI/安全扫描/个人发布及 Release 定义，以及 `.github/release-tools/`。搬运维护文件使用普通提交，不合并整个 main 的应用代码。
+`main` 管理同步/CI/发布/部署控制工具和长期维护记录；`personal` 保存实际应用。维护文档以固定的 personal 完整 SHA 读取源码、测试、`deploy/personal-source.json` 与 NOTICE，不能用 main 的同名文件认定应用状态。当前源矩阵入口是 [UPSTREAM.md](../../UPSTREAM.md)；操作与授权规则以 [CONTRIBUTING_PERSONAL.md](../../CONTRIBUTING_PERSONAL.md) 和 [CI-000](../ci/CI-000.md) 为准。
 
-- 上游固定 `KlN-4096/sub2api` 的 `klno`，自动选择数字最大的 `vX.Y.Z-klno.N` 标签，包括 prerelease。上游标签使用 `refs/personal-sync/tags/`，不覆盖 fork 标签。解析后固定目标 SHA，标签在解析期间变化则停止。
-- `deploy/personal-source.json` 沿用 `upstream_repository`、`upstream_tag`、`upstream_sha`。标签记录真实发布来源；显式未发布 SHA 的 `upstream_tag=null`，后续发布必须先明确版本归属，不能借旧标签冒充。
-- 从最新远端 personal 以普通 merge 准备独立候选。来源提交、personal 基础和目标必须有正确祖先关系。冲突、上游改写、控制文件变化、同名候选内容变化及权限失败均明确停止，不自动选 ours/theirs、删除工作流差异或强推。
-- 同一目标/基础重跑比较候选树并复用现有 SHA/草稿 PR。无更新不创建候选或运行构建；关闭的 PR 尊重人工处理结果。基础前进时创建新候选，旧结果不能复用。
-- Personal CI 从指定完整候选 SHA checkout，dispatch ref 必须指向该 SHA，开始/结束核对实际 PR、仓库、候选及最新 personal。通过 reusable workflows 保留既有 shell、Go 单元/集成/race/lint、前端关键检查、发布 helper 和安全扫描。pnpm 9 + frozen lockfile；CI 不持久保存 Git 写入凭据。
-- 机器人创建 PR 后显式 dispatch Personal CI；成功复用仅限同一候选、分支和基础。`personal-ready` 汇总所有必需检查并在结束时再次核对基础。远端 personal 的严格状态检查应要求 `personal-ready` 以及分支与最新基础同步，防止结束后基础变化仍合入旧结果。
-- 同步 PR 使用 merge commit，保留 TPS 与 KlN 的祖先关系。草稿 PR 明确记录来源、基础、候选 SHA、迁移和 Actions 链接。仓库仅允许 merge commit，禁止 squash/rebase 合入，以维护同步历史。
-- `verify_ci=true` 是显式流程演练：只添加候选元数据，草稿 PR 标明“无上游升级、请勿合并”。它不修改来源记录或引入上游代码，不算真实升级。定时入口永远不启用该选项。
-- 默认用短期 GITHUB_TOKEN。推送、PR 创建或 dispatch 权限不足时停止；本机已有授权凭据可处理已审查候选。自动推送工作流变化需要实际 Workflows 权限，新增令牌或扩大权限须另获授权。
-- 同步不创建个人发布标签、不触发 Release、不部署生产。真实升级 PR 保持待审；P3/P4 独立处理镜像和部署。
+## 固定来源与证据 owner
 
-手动检查：`gh workflow run sync-upstream.yml --repo ccisnoxx/sub2api --ref main`；指定目标使用 `-f target=vX.Y.Z-klno.N`。基础变动后重新运行同步；合入前核对最新基础、候选 SHA 和 `personal-ready`，使用 `gh pr merge <编号> --repo ccisnoxx/sub2api --merge --match-head-commit <完整候选SHA>`，遵守保护规则。
+- KIN 来源文件保留 `upstream_repository`、`upstream_tag`、`upstream_sha` 三字段。上游标签须记录 tag object 和 peeled commit 的区别，以完整 SHA 固定；未发布 SHA 不能借旧标签冒充发行来源。Plus 标签提交和固定阅读提交分别登记于 NOTICE，不把参考版本背景当作自动同步基线。
+- 应用版本、上游版本、实际发布标签、应用 SHA、控制工具 revision、镜像 digest 是不同字段。`VERSION` 中的 RC 值、成功 dry-run、PR 合并和旧版本的成功 Full 都不表示当前应用已经发布。
+- 来源、维护 owner 和原作者归属分别记录；沿用版权头/SPDX/许可证。不因文件被重写、功能同名或相同许可证认定完全自主原创或整模块复制。当前文件/测试只证明入口存在，实际测试结果绑定其执行的代码和环境。
+- [来源记录目录](../upstream/records/README.md)保存每次发布与上游迁移记录。main 记录应用 SHA 可避免把应用自己的 SHA 写入自身提交造成循环；记录提交本身不改 personal 来源或发布产物。
 
-运行证据、阶段任务勾选和开发日志以默认 main 的最新记录为准；personal 的固定源码保留阶段记录。每日 UTC 03:17 的入口只有仓库变量 `PERSONAL_SYNC_SCHEDULE_ENABLED=true` 才执行，部署维护定义时先保持 false，实际候选 CI、独立复核和严格基础保护验收后启用。
+## 下一次 KIN 迁移闭环
 
-个人发布使用 `personal-release.yml`，自动入口仅接受本仓库 personal 的成功 Personal CI，手动恢复也必须绑定当前完整 SHA。`PERSONAL_RELEASE_ENABLED=true` 才准备版本；首次启用前必须完成新候选 CI、simple dry run 和独立复核。主流程从默认 main 执行可信工具，应用 checkout 只来自 personal；Release 的工具 revision 和应用 SHA 都固定并记录。
+1. 从实际最新 personal 与 main 控制基准开始，保存完整 SHA 和工作树状态；固定旧来源/旧稳定回退 tag、目标 KIN tag object/commit、merge-base 和目标分叉。命令与字段来自记录目录，不依赖某个本地工作树。
+2. 同源后代更新可复用 `.github/personal-sync/sync.py` 的候选准备。来源分叉、标签移动、控制文件变化或冲突时停止自动合并，人工审查后按模块重放；不改脚本跳过祖先/基础检查，不自动 ours/theirs、强推或删除历史。上游 refs 使用独立空间，不覆盖 fork 标签。
+3. 先核对迁移身份/checksum、旧 schema/数据与应用回退边界，再按 S1 计时、S2 目录、S3 诊断、S4 状态、S5 展示/导出的依赖分小批次重放。每一模块登记冲突文件、语义取舍、实际 owner/test、变更和必要定向证据；同名 KIN 能力先按来源矩阵核实原生覆盖，再决定删薄包装或保留个人增量。
+4. 基线切换采用普通 merge 保留旧 personal、目标 KIN 和已验收重放历史的真实祖先；不可把分叉的旧 KIN 错写为目标 KIN 祖先。连接 tree 和 parents 的核对单独记入迁移记录。原 SQL/迁移账本、来源和旧稳定标签保留。
+5. 实际切换后，把固定个人应用的来源字段与其 NOTICE、模块矩阵和新记录核对；main 只搬运必要维护/控制增量，不合入整棵应用树。个人新功能与更新服务等未重放缺口明确登记，不能根据旧 A 的文档推断新 I 已具备。
 
-发布 helper 复用来源/祖先检查，另核对 KlN 实际标签；从来源标签分配 `tps.N`，同 SHA 复用版本。只接受 GitHub Actions App 15368 的严格 personal-ready，并验证同一 personal SHA 的完整 Personal CI，PR 检查不可用于生产。准备和 Release 分别串行；正式构建前检查当前 personal、实际 CI 和版本占用；个人运行镜像先 buildx --load，再在实际 docker push 前重新核对全部门禁与最新 personal。只发布 simple/linux/amd64，机器人创建标签后显式 dispatch。个人发布跳过 main VERSION 写回。
+## 定向验证、交付与发布
 
-个人 simple 只发布 canonical 版本标签，不使用冗余 -amd64 标签；版本成功后以其固定 digest 独立移动 latest，避免多标签部分推送覆盖已占用版本。已存在镜像必须校验 revision、version、source 和唯一 linux/amd64 后复用，禁止再次推送该版本。镜像已发布但 Release 未完成时，同标签恢复只补 Release；已完成版本直接跳过，已完成 Release 缺镜像时明确停止。文档提交相对最近成功版本无应用/构建/运行资源变化时不分配新版本。只读包查询失败不当作包不存在。GHCR 首次创建后需要将包可见性设置为 public，并以匿名完整拉取确认 P4 可使用。
+普通 push、PR 更新、Ready 和 full-ci 标签不触发应用 CI/安全扫描。开发按变更的实际边界选择必要本地定向检查，输入未变的成功证据复用；需要云端反馈时维护者手动选择 Quick。同步仅准备候选，只有显式手动 CI 演练才调度 Quick，不在每个任务补跑 Full。
 
-手动恢复：`gh workflow run personal-release.yml --repo ccisnoxx/sub2api --ref main -f source_sha=<当前personal完整SHA>`。simple dry run：`gh workflow run release.yml --repo ccisnoxx/sub2api --ref personal -f tag=personal -f source_sha=<当前personal完整SHA> -f simple_release=true -f dry_run=true`。版本标签和 digest 作为固定部署输入；P3 不连接或更新 hostdzire。
+正式发布是另一次明确授权的操作：固定最终 personal SHA → 手动 Personal CI Full → main 手动 Personal release → Release → 维护者手动 Docker 部署。发布 guard 仍要求来源/祖先、同一次手动 Full 的全部必要成功 jobs、固定 run ID、tag、可信 main 工具与 digest；普通合并不启动发布，分支 required checks 不代替发布资格。保留禁止强推/删除规则，成功旧 SHA 不能换成当前候选证据。
 
-P4 的本机/远端部署工具 `deploy/personal/` 及其定向 Actions 检查属于 main 的部署控制线，工具 revision 与应用 revision 分开记录。应用仍从已发布 personal 标签和固定 digest 选择；工具变化不改变已发布的应用源码、标签或镜像，不需要把 main 的应用树合入 personal。阶段结果和生产验收继续只登记 main。
+每次实际发布后在记录目录保存真实个人 tag/SHA、KIN tag/SHA、Plus 标签/阅读 SHA 和借鉴范围、控制 revision、同次 Full/Release run、平台与 digest、Release notes 链接。用固定 personal SHA 的 NOTICE/来源文件及 Release notes 实际源码身份交叉核对。若 Notes 没直接列出 Plus 等字段，记录中注明其来源于对应源码/NOTICE；不冒称模板已经自动输出这些字段，不在普通任务改写历史 Release。
+
+迁移记录和候选记录不分配正式版本，也不创建 tag、运行发布 dry-run、构建镜像或访问生产。历史旧流程、保护要求和自动发布描述以其固定执行日期保存；本合同和 CI-000 定义当前手动流程。只有准备发布/迁移的明确门禁才执行相应完整验证，静态文档检查不替代这些门禁。
