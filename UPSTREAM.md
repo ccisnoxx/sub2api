@@ -20,6 +20,10 @@ N 的 annotated tag object 是 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d`，peel
 
 发布与迁移事实见 [记录目录](docs/upstream/records/README.md)、[三次历史发布](docs/upstream/records/published-personal.md)、[本次 KIN 迁移](docs/upstream/records/2026-10-11-kin-v0.2.15-klno.2.md)。下一次操作按 [维护合同](docs/conventions/personal-maintenance.md)和 [CI-000](docs/ci/CI-000.md)进行；历史自动 CI/发布规则不作为当前流程。
 
+## 第8节OBS整合续作的来源边界
+
+当前personal已依次普通合入PR #32 `fe27c725c42de005358b23c964faad81bf3ae4b3`、PR #31 `04937e64879f19a07a2edf0e1c931a8008c0b7c9`、PR #34 `423f690bec2ee9d0ebccd1672906d6b688c220c3`（携带PR #33语义依赖），完成当前组合的定向验证和独立复核。正式I/tag/Full/Release/digest保持不变，新增OBS代码尚未进入生产429镜像，通知路由/真实送达未验收。固定旧/新KIN持久化合同评估已发现实际不兼容，旧休整状态写回会丢失 `quality_gateways`，隔离定向验证确认信息丢失，旧镜像恢复禁令保持。源码、运行接入与回退证据边界见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)；下方固定I矩阵只代表已发布源码，不作为新增OBS完整实现或部署证明。
+
 ## 当前个人模块 owner 与测试矩阵
 
 以下所有应用文件/测试属于固定 I。测试列确认源码入口存在，不能解释为 ARCH-005 重跑或全部通过。S1/S2/S3/S4 分别为计时、目录、诊断、服务状态；S5 为展示/导出。Plus 改动方式沿用结构/概念参考，不能把本地适配写成整模块直接复制或完全自主原创。

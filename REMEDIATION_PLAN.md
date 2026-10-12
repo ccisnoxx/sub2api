@@ -9,7 +9,7 @@
 
 > **当前执行策略（2026-10-12，覆盖后文历史流程）：** 普通 push/PR 不运行应用 CI 或安全扫描，不强制每个任务创建 PR。日常按任务批次选择本地定向检查，Quick 仅按需手动执行；准备发布时固定当前 personal 完整 SHA，手动执行一次 Full，再手动发布镜像与候选部署验证。安全扫描改为每月一次；main/personal 只禁止强推和删除。迁移、计费、权限、并发等变化仍做直接覆盖合同的定向检查。旧 Quick/Full 自动触发、required personal-ready 和十任务观察记录仅保留为历史，不再作为当前开发前置。
 
-> **本次授权补充（2026-10-12）：** 维护者撤销此前“暂不发布或部署”限制，按 REL-002 → REL-003 → ARCH-002 顺序执行固定源码 Full、手动镜像发布及已核实测试/生产目标的分阶段部署。历史记录中的限制保留其当时边界；当前进度和验收见 [REL-002 续作](docs/upstream/records/2026-10-12-rel-002-recovery.md)、[REL-003](docs/upstream/records/2026-10-12-rel-003.md) 及 [ARCH-002](docs/upstream/records/2026-10-12-arch-002.md)；三项本轮均已实际验收，第8节全计划缺口保持待办。
+> **本次授权补充（2026-10-12）：** 维护者撤销此前“暂不发布或部署”限制，按 REL-002 → REL-003 → ARCH-002 顺序执行固定源码 Full、手动镜像发布及已核实测试/生产目标的分阶段部署。历史记录中的限制保留其当时边界；当前进度和验收见 [REL-002 续作](docs/upstream/records/2026-10-12-rel-002-recovery.md)、[REL-003](docs/upstream/records/2026-10-12-rel-003.md) 及 [ARCH-002](docs/upstream/records/2026-10-12-arch-002.md)；三项均已实际验收。随后维护者授权继续第8节：依次整合OBS-002、OBS-001/004与实际监控，最后验证跨KIN回退；保持当前基线和正式产物，未证明无损时保留禁令。当前结果见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
 
 ---
 
@@ -92,8 +92,8 @@
 - **已整合应用：** UPSTREAM-007 已随 [PR #25](https://github.com/ccisnoxx/sub2api/pull/25) 完成基线切换；DOC-002、LEGAL-001/002、SEC-002 和 S1—S5 的必要材料以该任务完成记录及实际 personal 文件为准。原阶段 PR #14—#24 仍有开放草稿，不能写成逐个已合并，也不能仅凭 PR 开放状态认定必要材料未整合。UPSTREAM-008 已普通快进合入 personal；仅文档同步至 main。
 - **结构治理与候选：** REL-001 的 [PR #36](https://github.com/ccisnoxx/sub2api/pull/36)、ARCH-001 的 [PR #43](https://github.com/ccisnoxx/sub2api/pull/43)—[PR #47](https://github.com/ccisnoxx/sub2api/pull/47)、ARCH-004 的 [PR #48](https://github.com/ccisnoxx/sub2api/pull/48) 已合入 personal；ARCH-005 的 [PR #49](https://github.com/ccisnoxx/sub2api/pull/49) 已合入 main。LEGAL-002 的早期许可材料阻塞及 REL-001 的早期性能失败已由后续候选验收记录替代；原失败和 REL-001 合并轮 digest 校验失败仍保留，不改记为成功。
 - **安全例外续作：** 上轮发现的 main 过期条目和占位 owner 已在本轮 SEC-002 定向修复中清理。两分支实际生产审计均为 high 2 / critical 0，仅保留 `xlsx@0.18.5`、完整路径 `. > xlsx@0.18.5` 的两项精确 GHSA 例外，owner 为 `@ccisnoxx`，到期日 `2026-11-09`。main 无对应发现的 lodash、lodash-es、axios、nanoid 例外已删除；严格版本/路径/owner/报告校验与 XLSX 写出门禁已有定向通过证据，两分支 Security Scan 补入已有政策/规则检查入口。候选和边界见 SEC-002 续作记录；不表示 XLSX 包内漏洞已移除或已经发布。
-- **OBS 整合缺口：** OBS-001—004 已完成各自候选验收，但 [PR #31](https://github.com/ccisnoxx/sub2api/pull/31)、[PR #32](https://github.com/ccisnoxx/sub2api/pull/32)、[PR #33](https://github.com/ccisnoxx/sub2api/pull/33)、[PR #34](https://github.com/ccisnoxx/sub2api/pull/34) 仍为开放草稿，候选 head 均不是当前 personal 的祖先，相关增量未整合。当前第 8 节不据此宣称完整隐私治理和运行监控已具备；外部告警调度、通知路由和真实送达也未部署。
-- **发布与回退：** REL-001 完成的是固定历史候选的部署前验证，不能作为当前 personal SHA 的发布资格。跨 KIN `account.extra` 全业务写入的无损回退未获证明，现有部署适配仍禁止自动和显式旧镜像恢复。`PERSONAL_RELEASE_ENABLED=false`，现有三个个人 Release 均为旧基线 prerelease；ARCH-002、REL-002、REL-003 保持待办，本轮不发布、不部署。
+- **OBS 整合进度（第8节续作）：** [PR #32](https://github.com/ccisnoxx/sub2api/pull/32)已在最新personal组合并完成定向Race/独立复核，普通合并为 `fe27c725c42de005358b23c964faad81bf3ae4b3`。PR #31已普通合并为 `04937e64879f19a07a2edf0e1c931a8008c0b7c9`，配置前置失败和整轮耗时两项组合P2已修复并fresh复核通过。PR #34已普通合并为 `423f690bec2ee9d0ebccd1672906d6b688c220c3`，携带既有PR #33语义依赖；定向真实PG、Source Race、前端68用例/typecheck和fresh独立复核通过。实际监控接入仍待通知渠道及新producer交付边界明确；源码合入不能代表当前正式429镜像已包含新代码。生产现有通知收件人为0、SMTP未配置且无外部timer，真实送达待明确渠道。完整边界见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
+- **发布与回退（后续记录已替代原准备状态）：** REL-002/003、ARCH-002均已完成实际验收；正式应用为 `42907bcab278f93db48d7e1b39b28e28f664569e` / `v0.2.15-klno.2-tps.1`，唯一Full38274106520、Release410901327与FA immutable digest绑定保持。当前OBS源码合入不冒充正式源码或复用原Full发布资格。跨KIN持久化合同已发现实际不兼容：旧休整状态读写会丢失 `quality_gateways`，真实旧类型序列化与原仓储JSONB表达式的隔离验证均确认信息丢失；联系人上限及多协议凭据还有独立静态反例。部署适配继续禁止自动和显式旧镜像恢复；真实备份完整隔离恢复及生产验收以REL-002续作为准。
 
 ---
 
@@ -1582,6 +1582,10 @@ ServiceObservationEmitter
 - 首轮只读reviewer发现MEMBER不能代表未继承统计角色当前可用权限；改USAGE并用真实角色验证activity_complete=false。fresh最终reviewer覆盖固定候选七文件、直接合同、提交/回滚/采样/隐私及保存动态证据，无确认新增问题；未独立重跑测试或连接生产。COMMIT真实断连与专项并发采样未动态重现；新监控未生产运行、长期p95/p99及外部告警投递未验证。执行审计 `20261011T161338Z-obs-001-status-capacity-06c93d0c` 已关闭、校验通过，无异常。
 - 无DDL、迁移、账本、依赖、前端、API或发布控制面变更；原45秒事务预算和31天TTL保留。PR记录短样本/日志级别/受限统计/小时重试风险、数据库影响及撤销两个任务提交并保留schema/历史/配置/ledger的回滚方法；未合并、发布或生产部署。固定告警码提供应用信号，外部通知路由和水位/source-error运行手册留OBS-004。仅本任务勾选，其他任务状态不变。
 
+### 当前整合验收与运行边界（2026-10-12）
+
+PR #31已普通合并为 `04937e64879f19a07a2edf0e1c931a8008c0b7c9`。当前ARCH004组合暴露的配置前置失败漏报和成功配置等待漏计整轮耗时两项P2已修复；真实Start路径RED→GREEN、一次真实45秒deadline、41秒慢配置及直接Race、定向PG/消费者编译/vet与fresh最终复核通过，输入未变SQL证据复用。本次生产只读容量样本为1490事实/总360448字节，约58小时15分，不称31天长期实测。新应用监控信号尚未进入固定429生产镜像，外部调度/真实投递仍未验收。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
+
 ---
 
 ## OBS-002：增加低样本保护、查询限流和诊断数据隐私控制
@@ -1622,6 +1626,10 @@ ServiceObservationEmitter
 - 前端4文件39项Vitest、最终详情11项（404/429/503与晚响应隔离）、实际Axios无timezone、typecheck、定向ESLint、生产build含i18n通过；go vet、make build、差异/本地链接检查通过。最终固定SHA [Personal CI 38163070709](https://github.com/ccisnoxx/sub2api/actions/runs/38163070709) 11个作业全部success，完整unit/integration/OpenAI recording concurrency、lint、前端/严格build、双端安全、脚本/发布工具、绑定及personal-ready均通过；旧失败已修正，取消候选不计通过。
 - 六次fresh只读独立复核覆盖初始候选及后续实际增量，确认问题均修正；最后提示增量无新增阻断，核读原始RED但未独立重跑测试。不把主代理测试冒充独立执行。汇总审计 `20261011T175621Z-obs-002-final-incident-review-6aadfc4f` 已关闭、校验通过，无异常；复核交付验收6次不表示旧候选从未有问题。
 - 门槛不等同严格匿名：小部署同一主体多次请求、既有日志权限、滚动窗口差分与完整历史候选限额仍有组合关联风险；无生产运行、长期流量或混用旧前端验证。无DDL/迁移/账本、事实写入、保留期、计费、依赖或发布控制面改动；回滚通过受保护PR撤销五个任务提交并一起交付原前后端，保留schema/事实/事件/配置，无SQL回退或清库。未合并、发布或部署；只勾选本任务，原暂存与其他任务记录保留。
+
+### 当前整合验收（2026-10-12）
+
+PR #32 已普通合并至personal `fe27c725c42de005358b23c964faad81bf3ae4b3`，与冻结整合树一致。当前ARCH004组合新增3文件精确JSON测试修复，34唯一顶层定向Race成功证据和fresh独立复核通过；仓储/相关前端输入未变证据复用，不重跑Full。正式应用仍为42907bc，生产新增保护尚未部署。测试、旧失败、审计边界与普通revert方法见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
 
 ---
 
@@ -1710,6 +1718,10 @@ ServiceObservationEmitter
 - 同固定候选 [Personal CI38191718143](https://github.com/ccisnoxx/sub2api/actions/runs/38191718143)11个作业全部success，实际完整unit/integration/OpenAI recording concurrency、lint、前端/严格build、双端安全、脚本/发布工具、绑定及personal-ready通过。重复push CI38191655043 cancelled、CLA38191717872 skipped，均不计通过；重复push Security Scan38191654966 success不另计独立门禁。最终PR头、personal基准和隔离工作树再次核对一致。
 - 无DDL、迁移身份/账本、依赖、前端、公开API/权限、事实/事故/保留期或发布控制面变更；独立诊断仅SELECT，源错误沿用原持久化owner。未触发高风险独立代理审查要求，没有把自审称为独立审查。PR已记录外部调度前提、源观测/恢复边界、无生产/长期送达证明、数据库影响none及撤销OBS-004单独提交并移除对应调度/规则、保留前置与schema/历史/配置/ledger的回滚方法。未合并、发布、部署、生产读写或发送通知；只勾选本任务。
 
+
+### 当前整合验收与运行边界（2026-10-12）
+
+PR #34已普通合并为 `423f690bec2ee9d0ebccd1672906d6b688c220c3`，携带既有OBS-003/PR #33语义依赖；实际merge tree等于最终候选。定向真实PG2顶层/28含子例、Source Race5、前端68用例和typecheck通过，fresh独立复核无源码阻断；其文档P2已按复核方向纠正跨KIN回退禁令。生产只读同SQL探测成功，未安装外部timer、发送通知或部署新producer；现有收件人/SMTP缺口已询问维护者。历史“只交付手册”边界不冒充当前接入验收。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
 
 ---
 
@@ -2004,7 +2016,7 @@ python tools/check_pnpm_audit_exceptions.py \
 
 只有满足以下全部条件，整个修复计划才可视为完成：
 
-2026-10-12 根据实际发布及分阶段部署验收逐项核对：11 项完成、3 项待办。REL-002/003 已完成正式发布、部署和来源闭环，ARCH-002 已完成控制工具拆分及只读现场验收。跨 KIN 全业务写入无损回退、OBS-002 和 OBS-001/004 的计划外整合/外部运行接入仍保持未完成；不以这三项扩大本轮范围。
+2026-10-12 第8节续作当前核对：12项完成、2项待办。REL-002/003与ARCH-002验收保留；OBS-002已完成当前personal源码整合验收。PR #31/#34已完成源码整合，但服务状态完整运行监控/通知接入仍缺目标和新producer交付；跨KIN回退评估及定向负向验证已完成，确认旧写入丢失新字段，无法满足全业务无损验收，禁令保留。不能据源码合并或可读备份宣称整计划完成。正式发布源码、Full与镜像保持不变，源码验收不代表新版已运行于生产。
 
 - [x] README 明确说明 fork 身份、分支职责和正确安装入口；DOC-001、DOC-002 及当前两分支 README 已提供 personal、GHCR 和固定版本安装入口。
 - [x] 根目录存在完整 NOTICE 或第三方来源说明；LEGAL-001/002、ARCH-005 与当前两分支 NOTICE 保留 KIN/原始上游/Plus 来源和归属边界。
@@ -2012,12 +2024,12 @@ python tools/check_pnpm_audit_exceptions.py \
 - [x] 不存在过期安全例外或占位 owner；SEC-002 续作已按两个分支的实际依赖审计清理 main，保留的两项精确 XLSX 例外均有真实 owner 和 `2026-11-09` 到期日，两份有效报告由严格校验器匹配通过；XLSX 漏洞仍受短期例外管理。
 - [x] 新 `personal` 基于重新确认的 KIN 稳定版本人工重放完成；UPSTREAM-007/008 已整合，来源为 `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`。
 - [x] 未绕过历史分叉、祖先检查或分支保护；UPSTREAM-007 保存旧 personal 与新 KIN 的真实历史，后续普通合并/快进记录及当前祖先核对一致；CI-000 保护调整有维护者授权，禁止强推/删除保持。
-- [ ] 所有数据库升级路径和回退兼容路径完成验证；MIG-001、UPSTREAM-007、REL-001 已验证空库/旧 KIN/已迁移 personal 三路径和合成库恢复，REL-002 同次生产备份已完整隔离恢复、写入损失边界已说明，但跨 KIN 全业务写入的无损回退仍未证明，不解除现有旧镜像恢复禁令。
+- [ ] 所有数据库升级路径和回退兼容路径完成验证；MIG-001、UPSTREAM-007、REL-001 已验证空库/旧 KIN/已迁移 personal 三路径和合成库恢复，REL-002 同次生产备份已完整隔离恢复、写入损失边界已说明，跨KIN定向验证已确认旧休整状态读写丢失 `quality_gateways`，静态审计另确认联系人64/300上限和多协议凭据不兼容；全业务无损条件不成立，现有旧镜像恢复禁令保持。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
 - [x] GitHub Actions 和关键工具版本可复现；CI-001—005 已整合必要控制文件，两分支各 91 处远程 Action 引用均为完整 SHA，关键工具版本/摘要已固定。沿用既有验收边界，不宣称 runner、apk 或漏洞数据库逐字节恒定。
 - [x] 正式产物包含许可证、NOTICE、SBOM 和源码 revision；REL-002 恢复验证、已发布 OCI/Release assets 与实际测试镜像核对完成，绑定固定应用 42907bc、唯一 Full 及 immutable digest，原失败记录保留。
 - [x] 模型目录不会因多渠道遍历顺序产生不确定结果；UPSTREAM-003/ARCH-003 已整合“一组最多一个渠道”约束及冲突显式拒绝，正逆顺序回归已有通过证据。
-- [ ] 路由诊断和服务状态具有低样本与隐私保护；既有 S3/S4 提供管理员和低样本基础边界，OBS-002 的展示裁剪、共享限流和安全审计候选已验证但 PR #32 未整合，待当前应用整合验收。
-- [ ] 服务状态容量、清理、聚合失败和水位停滞均可监控；OBS-001/004 候选及手册已有定向验证，但 PR #31/#34 未整合，外部调度和通知送达未部署，待整合及运行接入验收。
+- [x] 路由诊断和服务状态具有低样本与隐私保护；OBS-002的展示裁剪、跨实例共享限流与安全审计已在最新personal整合，PR #32普通合并为fe27c725，34唯一顶层定向Race成功证据与fresh独立复核通过；本项为当前源码整合验收，正式429镜像仍保持原发布边界，未部署这些新增保护。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
+- [ ] 服务状态容量、清理、聚合失败和水位停滞均可监控；PR #31/#34已普通整合至personal `423f690bec2ee9d0ebccd1672906d6b688c220c3`并定向验证/独立复核通过；生产只读watch和容量SQL探测通过，但固定429镜像没有新聚合日志producer、通知收件人为0且SMTP未配置，无外部timer或真实送达。通知目标/认证配置路径与新producer发布授权待明确，不将只读探测或源码合并记为运行接入验收。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
 - [x] 正式发布通过分阶段部署并保留旧稳定 tag；REL-002 独立测试、生产备份/迁移/流量/业务和完整聚合验收实际通过，旧 v0.2.14-klno.5-tps.2 tag/digest 与恢复材料保留。
 - [x] `UPSTREAM.md`、NOTICE、`personal-source.json` 和 Release notes 相互一致；REL-003 对固定发布源码、KIN/Plus 字段、Full/Release/digest/部署及旧基线逐项核对；NOTICE 字段相同而导航说明字节不同已分别记录，后续文档 HEAD 不冒充发布 SHA。
 
