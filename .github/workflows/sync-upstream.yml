@@ -1,6 +1,6 @@
 name: Sync KlN into personal
 
-# 每日候选准备由维护者按需开启；仅提供 Quick 反馈，不自动发布。
+# 每日候选准备由维护者按需开启；不自动运行 CI 或发布。
 on:
   schedule:
     - cron: '17 3 * * *'
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.12.13'
-      - name: Prepare merge candidate and dispatch checks
+      - name: Prepare merge candidate; CI rehearsal only when requested
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SYNC_TARGET: ${{ inputs.target }}

@@ -180,7 +180,7 @@ def create_pr(candidate):
 - 迁移文件：{candidate['migrations'] or '无'}
 - 检查：[候选 SHA 的 Actions](https://github.com/{REPOSITORY}/actions?query=branch%3A{branch})；创建 PR 不代表检查成功。
 
-显式 dispatch Personal CI Quick，按变更路径提供反馈；准备发布时由维护者在最终 personal SHA 手动运行 Full。检查绑定候选 SHA 和最新 personal 基础，基础变化后重新准备候选。
+候选准备不自动运行 CI；需要反馈时由维护者手动运行 Quick，准备发布时在最终 personal SHA 手动运行 Full。检查绑定候选 SHA 和最新 personal 基础，基础变化后重新准备候选。
 升级 PR 必须使用 **merge commit**，保留 TPS 与上游祖先关系，不使用 squash/rebase。首次 TPS 发布仍使用原上游基线；本 PR 不触发发布或部署。
 """
     with tempfile.TemporaryDirectory() as directory:
@@ -238,7 +238,10 @@ def main():
     git("config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
     candidate = prepare(base, tag, target, rehearsal)
     if candidate["state"] == "candidate":
-        candidate = dispatch_ci(create_pr(publish(candidate)))
+        candidate = create_pr(publish(candidate))
+        # 只有维护者显式选择 CI 演练时调度 Quick；日常同步仅准备候选。
+        if rehearsal:
+            candidate = dispatch_ci(candidate)
     print(json.dumps(candidate, ensure_ascii=False, indent=2))
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:

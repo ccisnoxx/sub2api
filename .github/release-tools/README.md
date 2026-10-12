@@ -46,7 +46,7 @@ building an unpinned source distribution.
 
 ## personal 发布
 
-本 fork 的正式入口只接受 `vX.Y.Z-klno.N-tps.N`，使用 simple/linux/amd64。`personal-release.yml` 从默认 main 的可信工具准备版本，仅由维护者在 main 手动触发；只有当前 personal 完整 SHA 的成功手动 Full CI，且该次运行的全部必要 jobs（含 personal-ready/full-ci-certified）成功，才可创建标签及显式 dispatch Release。CI 完成和推送标签均不会自动发布；分支保护设置不参与发布授权。完整操作命令见 [CI-000](../../docs/ci/CI-000.md)。开关为仓库变量 `PERSONAL_RELEASE_ENABLED`，默认未设置时关闭。
+本 fork 的正式入口只接受 `vX.Y.Z-klno.N-tps.N`，使用 simple/linux/amd64。`personal-release.yml` 从默认 main 的可信工具准备版本，仅由维护者在 main 手动触发；日常 push/PR 不运行应用 CI；只有当前 personal 完整 SHA 的成功手动 Full CI，且该次运行的全部必要 jobs（含 personal-ready/full-ci-certified）成功，才可创建标签及显式 dispatch Release。CI 完成和推送标签均不会自动发布；分支保护设置不参与发布授权。完整操作命令见 [CI-000](../../docs/ci/CI-000.md)。开关为仓库变量 `PERSONAL_RELEASE_ENABLED`，默认未设置时关闭。
 
 来源与版本规则集中在 `personal_release.py`，复用 sibling `.github/personal-sync/sync.py` 的来源和祖先合同。Personal release 的准备脚本从 main 保存；正式 Release 的发布 guard 及构建/发布控制 helpers 全部从同一次 main checkout 保存，记录完整 control SHA 并作为同次运行 artifact 传到后续 runner。应用 checkout 与应用自带的 release_matrix、supply_chain、release-images、personal_release 或 sync 脚本均不参与正式控制执行。dry-run 的控制工具取候选工作流 revision，以验证未合并的修改。正式工作流 revision 必须与应用 personal SHA 对应；`source_sha` 输入在 dry run 中也必须等于实际 checkout。个人发布跳过 main VERSION 写回。
 

@@ -228,6 +228,19 @@ class GitTests(unittest.TestCase):
 
 
 class DispatchTests(unittest.TestCase):
+    def test_sync_only_dispatches_ci_for_explicit_rehearsal(self):
+        for rehearsal in ("false", "true"):
+            with self.subTest(rehearsal=rehearsal), \
+                 patch.dict(os.environ, {"VERIFY_CI": rehearsal, "SYNC_TARGET": "", "GITHUB_STEP_SUMMARY": ""}), \
+                 patch.object(sync, "git", side_effect=lambda *a: "" if a[0] == "status" else "a" * 40), \
+                 patch.object(sync, "resolve_target", return_value=("v0.2.14-klno.10", "b" * 40)), \
+                 patch.object(sync, "prepare", return_value={"state": "candidate"}), \
+                 patch.object(sync, "publish", side_effect=lambda c: c), \
+                 patch.object(sync, "create_pr", side_effect=lambda c: c), \
+                 patch.object(sync, "dispatch_ci", side_effect=lambda c: c) as dispatch, patch("builtins.print"):
+                sync.main()
+                self.assertEqual(dispatch.call_count, int(rehearsal == "true"))
+
     def test_running_quick_is_reused_without_another_dispatch(self):
         candidate = {"branch": "codex/example", "candidate_sha": "a" * 40,
                      "base_sha": "b" * 40, "pr_number": 12}

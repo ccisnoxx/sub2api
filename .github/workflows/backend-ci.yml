@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  pull_request:
-    branches-ignore: [personal]
   workflow_dispatch:
     inputs:
       mode:
@@ -25,9 +23,9 @@ on:
         type: string
         default: ''
 
-# 同一分支连续推送时取消还在跑的上一轮，只留最新的那次。
+# 同一手动入口取消尚未完成的上一轮；复用调用以父运行隔离。
 concurrency:
-  group: backend-ci-${{ github.event.pull_request.number || github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
+  group: backend-ci-${{ github.ref }}-${{ inputs.source_sha && github.run_id || 'manual' }}
   cancel-in-progress: true
 
 permissions:
