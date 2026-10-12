@@ -57,3 +57,7 @@
 
 - 同原候选 OCI/SHA 的原生 amd64 完整五轮通过；旧 QEMU 7.0.0 的 MADV_DONTNEED 错误成功和堆回收反例支持环境归因。实际门禁不设置诊断 workaround，应用代码和 SQL 不变，详见 [候选验证合同](release/REL-001.md)。
 - 普通 merge 纳入当前 personal 的已验收 CI-000 控制历史；六处独立同步冲突均采用最新 personal 的控制字节。保留原 RC 标签、运行树证明和迁移身份，最终候选按分层规则取得一次新 Full/同 SHA dry-run 材料；结果由任务台账和 PR 记录，全部验收完成前不勾选。
+
+### REL-001：最终控制修复同步（2026-10-12）
+
+- 仅同步 PR #41 的两份 workflow 和 release_control 回归文件：发布资格模块隔离、Full 安装来源/token 必检。没有应用、迁移、VERSION、依赖、阈值、Quick 分类或权限变更。绑定最新 personal 7ebb60b2 后，最终稳定候选必须取得新的 Full/同 SHA 全材料 dry-run，并在原生 amd64 对实际 OCI 重做三路径升级恢复和完整五轮性能。原 036ade78 的原生成功用于定位 OOM，不代替最终新 SHA 验收。

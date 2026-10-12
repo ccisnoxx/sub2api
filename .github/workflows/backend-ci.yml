@@ -211,6 +211,18 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.12.13'
+      - name: Check fork installation sources and GitHub token protection
+        if: fromJSON(needs.changes.outputs.plan).mode == 'full'
+        env:
+          INSTALL_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          # 固定 personal 候选不得因文件缺失跳过；main 尚无 DOC-001 来源测试。
+          if [[ -n "$INSTALL_SOURCE_SHA" || -f deploy/tests/install-source-test.py ]]; then
+            python3 deploy/tests/install-source-test.py
+          else
+            echo '当前 main 源码没有安装来源测试，此专项检查不适用。'
+          fi
+          /bin/bash deploy/tests/install-github-token-test.sh
       - run: |
           python -m pip install --require-hashes --only-binary=:all: -r .github/release-tools/requirements-release.txt
       - run: python -m unittest discover -s .github/release-tools -p 'test_*.py'
