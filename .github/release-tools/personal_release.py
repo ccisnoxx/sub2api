@@ -53,6 +53,7 @@ def pages(path, key=None):
 
 def trusted_ci(run, sha, workflow_id):
     return (run["workflow_id"] == workflow_id and run["path"] == ".github/workflows/personal-ci.yml"
+            and run["repository"]["full_name"] == REPOSITORY
             and run["head_repository"]["full_name"] == REPOSITORY
             and run["head_branch"] == "personal" and run["head_sha"] == sha
             and run["status"] == "completed" and run["conclusion"] == "success"
@@ -171,6 +172,14 @@ def publication(tag, sha):
     return digest, bool(release and not release["draft"] and digest)
 
 
+def bound_release(tag, sha, ci_run_id):
+    """远端查询后及每次写入前，重新读取同一源码的 CI 和标签占用。"""
+    source, run = gate(sha, ci_run_id)
+    if not tag.startswith(source["upstream_tag"] + "-tps.") or tags().get(tag) != sha:
+        raise SyncError("个人标签不等于最终 SHA 或来源版本")
+    return source, run
+
+
 def output(data):
     print(json.dumps(data, ensure_ascii=False, indent=2))
     if os.environ.get("GITHUB_OUTPUT"):
@@ -198,15 +207,19 @@ def prepare(args):
                     output({"state": "documentation_only", "tag": prior, "sha": args.sha})
                     return
                 break
+        source, run = gate(args.sha, str(run["id"]))
+        if not tag.startswith(source["upstream_tag"] + "-tps."):
+            raise SyncError("分配的个人标签与当前来源版本不一致")
         assert_base(args.sha)
         api(f"repos/{REPOSITORY}/git/refs", {"ref": f"refs/tags/{tag}", "sha": args.sha})
     if tags().get(tag) != args.sha:
         raise SyncError("个人标签发生冲突，禁止移动标签")
     digest, completed = publication(tag, args.sha)
+    source, run = bound_release(tag, args.sha, str(run["id"]))
+    assert_base(args.sha)
     if completed:
         output({"state": "already_published", "tag": tag, "sha": args.sha, "digest": digest})
         return
-    assert_base(args.sha)
     api(f"repos/{REPOSITORY}/actions/workflows/release.yml/dispatches", {"ref": "personal", "inputs": {
         "tag": tag, "source_sha": args.sha, "ci_run_id": str(run["id"]), "simple_release": True, "dry_run": False}})
     output({"state": "dispatched", "tag": tag, "sha": args.sha, "ci_run_id": run["id"],
@@ -219,10 +232,9 @@ def authorize(args):
     if (os.environ["GITHUB_REF"] not in ("refs/heads/personal", "refs/tags/" + args.tag)
             or os.environ["GITHUB_SHA"] != args.sha):
         raise SyncError("正式 Release 必须从同一 personal SHA 的工具定义 dispatch")
-    source, run = gate(args.sha, args.ci_run_id)
-    if not args.tag.startswith(source["upstream_tag"] + "-tps.") or tags().get(args.tag) != args.sha:
-        raise SyncError("个人标签不等于最终 SHA 或来源版本")
+    source, run = bound_release(args.tag, args.sha, args.ci_run_id)
     digest, completed = publication(args.tag, args.sha)
+    source, run = bound_release(args.tag, args.sha, str(run["id"]))
     assert_base(args.sha)
     output({"skip": completed, "reuse_image": bool(digest), "digest": digest or "",
         "ci_run_id": run["id"], "upstream_tag": source["upstream_tag"], "upstream_sha": source["upstream_sha"]})

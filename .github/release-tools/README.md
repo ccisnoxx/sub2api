@@ -40,8 +40,16 @@ building an unpinned source distribution.
 
 本 fork 的正式入口只接受 `vX.Y.Z-klno.N-tps.N`，使用 simple/linux/amd64。`personal-release.yml` 从默认 main 的可信工具准备版本，只有当前 personal 完整 SHA 的成功 Personal CI 和实际 personal-ready 门禁才可创建标签及显式 dispatch Release。开关为仓库变量 `PERSONAL_RELEASE_ENABLED`，默认未设置时关闭。
 
-来源与版本规则集中在 `personal_release.py`，复用 sibling `.github/personal-sync/sync.py` 的来源和祖先合同；两目录均作为本次运行 artifact 传到发布 runner。正式 Release 的工具 revision 必须与应用 personal SHA 对应；`source_sha` 输入在 dry run 中也必须等于实际 checkout。个人发布跳过 main VERSION 写回。
+来源与版本规则集中在 `personal_release.py`，复用 sibling `.github/personal-sync/sync.py` 的来源和祖先合同。Personal release 的准备脚本从 main 保存；正式 Release 的发布 guard 及构建/发布控制 helpers 全部从同一次 main checkout 保存，记录完整 control SHA 并作为同次运行 artifact 传到后续 runner。应用 checkout 与应用自带的 release_matrix、supply_chain、release-images、personal_release 或 sync 脚本均不参与正式控制执行。dry-run 的控制工具取候选工作流 revision，以验证未合并的修改。正式工作流 revision 必须与应用 personal SHA 对应；`source_sha` 输入在 dry run 中也必须等于实际 checkout。个人发布跳过 main VERSION 写回。
 
-个人运行镜像先本地 buildx --load，再完成最后一次 SHA/CI/占用核对后仅 push canonical 版本，独立把 latest 指向核验后的 digest。部分失败重跑保持 tag/SHA，已存在的正确镜像不重新构建或推送；已完成 Release 直接跳过。正式构建前和写入前均检查，拒绝错误标签、错误 SHA、PR CI、失败检查和来源改变。文档变化相对最近成功版本无构建/运行变化时不分配新版本。
+个人运行镜像先本地导出带证明的 OCI，再完成 SHA/CI/占用核对后仅 push canonical 版本，独立把 latest 指向核验后的 digest。部分失败重跑保持 tag/SHA，已存在的正确镜像不重新构建或推送；已完成 Release 直接跳过。正式构建前、标签创建/dispatch 前、镜像推送前、latest 更新前和 Release 写入前均检查，远端查询后重新核对 CI 和 tag，拒绝错误标签、错误 SHA、其他仓库或旧 SHA 的 CI、PR CI、失败检查和来源改变。文档变化相对最近成功版本无构建/运行变化时不分配新版本。
+
+prepare 选定的 CI run ID 在发布全过程保持固定，原 run 失效时不能换用同 SHA 的另一成功 run。最终 Release 同时比较当前 guard、publication 记录和 published image 摘要的 digest，版本镜像已删除或替换时失败关闭。
+
+CI-004 的负向测试与只读 dry-run 边界见 [CI-004](../../docs/ci/CI-004.md)。正式发布需要先将经审查的控制增量合入 main，再按同步规则更新 personal；候选分支不会自动替换 main 的生产 guard。各外部服务间没有原子事务，最后一次检查之后的并发变更仍可能留下部分发布，恢复时必须保留 tag/SHA/digest，不能覆盖既有版本。
 
 新标签的第一次包默认可能 private；创建后使用包设置将其公开，并验证匿名完整拉取。最终运行记录保存 tag、source/workflow SHA、上游标签/SHA、CI/Release run、平台及 OCI digest。P3 不访问生产服务器。
+
+正式 Release 在应用 checkout 后、任何 artifact 下载与输出写入前移除已知生成入口及 symlink，再由可信流程创建上下文与发布材料，避免应用输出路径将写入引向保存的 main guard。
+
+正式 prepare/release 中的 Python 模块安装、内联 JSON 解析和最终 stdin 检查使用 `-I`，排除应用当前目录、PYTHONPATH 与 user site 的隐式模块导入；保存的工具脚本继续使用可信绝对路径。
