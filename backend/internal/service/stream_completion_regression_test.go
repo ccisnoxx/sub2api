@@ -108,3 +108,38 @@ func TestResponsesOutputTiming_AcceptedUsageSourceAndSnapshot(t *testing.T) {
 	require.Equal(t, 3, *next.AudioOutputTokens)
 	require.Equal(t, CompletionStatusUnknown, got.CompletionStatus, "接受用量本身不生成协议终态")
 }
+
+// 缺失终态快照只保存未知事实，不能冻结后续真实终态，也不与请求 owner 共享可变字段。
+func TestResponsesOutputTiming_MissingObservationThenTerminal(t *testing.T) {
+	ctx := WithServiceStatusRequest(context.Background(), 3)
+	start := time.Unix(100, 0).UTC()
+	o := newResponsesOutputTiming(ctx, start, &Account{Platform: PlatformOpenAI})
+	defer o.stop()
+	missing := o.snapshot(false)
+	require.EqualValues(t, 1, missing.TimingVersion)
+	require.Equal(t, CompletionStatusUnknown, missing.CompletionStatus)
+	require.Nil(t, missing.IsComplete)
+	require.NotNil(t, missing.ServiceStatusObservation)
+	require.Equal(t, CompletionStatusUnknown, *missing.ServiceStatusObservation.TerminalKind)
+	require.Equal(t, "terminal_missing", *missing.ServiceStatusObservation.ReasonCode)
+	key := missing.ServiceStatusObservation.ObservationKey
+	*missing.ServiceStatusObservation.LogicalTurn = 99
+	*missing.ServiceStatusObservation.TerminalKind = CompletionStatusUpstreamError
+	*missing.ServiceStatusObservation.ReasonCode = "provider_capacity"
+	stillMissing := o.snapshot(false).ServiceStatusObservation
+	require.Equal(t, 3, *stillMissing.LogicalTurn)
+	require.Equal(t, CompletionStatusUnknown, *stillMissing.TerminalKind)
+	require.Equal(t, "terminal_missing", *stillMissing.ReasonCode)
+
+	o.observeEvent([]byte(`{"type":"response.completed","response":{"status":"completed"}}`), "", start.Add(time.Millisecond))
+	completed := o.snapshot(false)
+	require.Equal(t, CompletionStatusCompleted, completed.CompletionStatus)
+	require.True(t, *completed.IsComplete)
+	require.Equal(t, key, completed.ServiceStatusObservation.ObservationKey)
+	require.Equal(t, 3, *completed.ServiceStatusObservation.LogicalTurn)
+	require.Equal(t, CompletionStatusCompleted, *completed.ServiceStatusObservation.TerminalKind)
+	require.Nil(t, completed.ServiceStatusObservation.ReasonCode)
+	require.Equal(t, start.Add(time.Millisecond), completed.ServiceStatusObservation.ObservedAt)
+	require.Equal(t, completed.ServiceStatusObservation, ServiceStatusFinalObservation(ctx, "provider_capacity"))
+	require.Equal(t, CompletionStatusUnknown, *stillMissing.TerminalKind)
+}

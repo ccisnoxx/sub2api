@@ -83,3 +83,9 @@
 - PR45 普通 merge 到 personal `96b12ef8a3d0b34607d758da7611d49481e75338`，parents/tree 与固定基准/候选一致，复用第三阶段成功验证和独立复核，没有触发应用 CI。
 - [第四阶段报告](architecture/ARCH-001-04.md)记录实际 accepted raw 的纯事实解析、UsageSource/音频拆分/已见音频状态 owner、基线回归、组件与真实入口/计费检查及定向 Race。HTTP 与 relay 原有来源选择、全零终态拒绝替换、取消/drain 和快照复制保持。
 - 没有 DTO、SQL/schema、计费用量 parser、依赖、权限、控制面或生产操作。本阶段不发布或部署，整体 ARCH-001 仍待服务状态观测提交职责和最终验收。
+
+## 2026-10-12：ARCH-001 第四阶段合并与第五阶段观测上报
+
+- PR46 普通 merge 到 personal `fd6324f387a3cd204a1ec4d50c033dc349abb5f9`，parents/tree 与固定基准/候选一致，复用第四阶段成功验证和独立复核，没有触发应用 CI。
+- [第五阶段报告](architecture/ARCH-001-05.md)记录独立观测 emitter、attempt 候选与 unknown 提升、原首次终态/提交 owner、五职责单一状态归属和快照组成。缺失观测基线、组件/实际入口/费用、service 与真实 handler/异步交付定向 Race 通过。
+- 五阶段已形成完整可审查候选，整体 ARCH-001 等待第五阶段整合后关闭。没有 DTO、SQL/schema、计费 parser、依赖、权限、控制面或生产操作，本轮不发布或部署。
