@@ -31,8 +31,9 @@ const (
 )
 
 type opsRuntimeSettingsSnapshot struct {
-	monitoringEnabled bool
-	advanced          OpsAdvancedSettings
+	monitoringEnabled         bool
+	routingDiagnosticsEnabled bool
+	advanced                  OpsAdvancedSettings
 }
 
 type OpsRuntimeSettingsRefreshHealth struct {
@@ -178,8 +179,11 @@ func (s *OpsService) initRuntimeSettings(ctx context.Context) {
 		return
 	}
 	defaults := defaultOpsAdvancedSettingsForConfig(s.cfg)
-	s.runtimeSettings.Store(&opsRuntimeSettingsSnapshot{monitoringEnabled: true, advanced: *defaults})
-	_ = s.RefreshRuntimeSettings(ctx)
+	// 尚未读取到配置时只关闭诊断；旧监控和错误采集保留既有冷启动语义。
+	s.runtimeSettings.Store(&opsRuntimeSettingsSnapshot{monitoringEnabled: true, routingDiagnosticsEnabled: s.settingRepo == nil, advanced: *defaults})
+	if err := s.RefreshRuntimeSettings(ctx); err != nil {
+		s.logRuntimeSettingsRefreshFailure(err)
+	}
 }
 
 // RefreshRuntimeSettings is the cold-path database load used at startup and by
@@ -199,6 +203,7 @@ func (s *OpsService) RefreshRuntimeSettings(ctx context.Context) error {
 		SettingKeyOpsMonitoringEnabled,
 		SettingKeyOpsAdvancedSettings,
 		SettingKeyOpsRuntimeLogConfig,
+		SettingKeyRoutingDiagnosticsEnabled,
 	})
 	if err != nil {
 		return err
@@ -216,7 +221,12 @@ func (s *OpsService) RefreshRuntimeSettings(ctx context.Context) error {
 	}
 	normalizeOpsAdvancedSettings(advanced)
 
-	s.runtimeSettings.Store(&opsRuntimeSettingsSnapshot{monitoringEnabled: monitoringEnabled, advanced: *advanced})
+	routingEnabled, routingErr := parseRoutingDiagnosticsEnabled(values)
+	if routingErr != nil {
+		// 非法值不能启用诊断，也不能改变其它 Ops 配置的刷新合同。
+		routingEnabled = s.IsRoutingDiagnosticsEnabled(ctx)
+	}
+	s.runtimeSettings.Store(&opsRuntimeSettingsSnapshot{monitoringEnabled: monitoringEnabled, routingDiagnosticsEnabled: routingEnabled, advanced: *advanced})
 	if s.systemLogSink != nil {
 		persistAccessLogs := false
 		if raw, ok := values[SettingKeyOpsRuntimeLogConfig]; ok {
@@ -229,7 +239,7 @@ func (s *OpsService) RefreshRuntimeSettings(ctx context.Context) error {
 		}
 		s.systemLogSink.SetPersistAccessLogs(persistAccessLogs)
 	}
-	return nil
+	return routingErr
 }
 
 // StartRuntimeSettingsRefresh keeps DB-backed Ops settings converged across
@@ -373,9 +383,10 @@ func (s *OpsService) SetMonitoringEnabled(enabled bool) {
 	}
 	s.runtimeSettingsMu.Lock()
 	current := s.runtimeSettings.Load()
-	next := &opsRuntimeSettingsSnapshot{monitoringEnabled: enabled, advanced: *defaultOpsAdvancedSettingsForConfig(s.cfg)}
+	next := &opsRuntimeSettingsSnapshot{monitoringEnabled: enabled, routingDiagnosticsEnabled: true, advanced: *defaultOpsAdvancedSettingsForConfig(s.cfg)}
 	if current != nil {
-		next.advanced = current.advanced
+		*next = *current
+		next.monitoringEnabled = enabled
 	}
 	s.runtimeSettings.Store(next)
 	s.runtimeSettingsMu.Unlock()
@@ -387,9 +398,10 @@ func (s *OpsService) storeAdvancedSettingsSnapshot(cfg *OpsAdvancedSettings) {
 	}
 	s.runtimeSettingsMu.Lock()
 	current := s.runtimeSettings.Load()
-	next := &opsRuntimeSettingsSnapshot{monitoringEnabled: true, advanced: *cfg}
+	next := &opsRuntimeSettingsSnapshot{monitoringEnabled: true, routingDiagnosticsEnabled: true, advanced: *cfg}
 	if current != nil {
-		next.monitoringEnabled = current.monitoringEnabled
+		*next = *current
+		next.advanced = *cfg
 	}
 	s.runtimeSettings.Store(next)
 	s.runtimeSettingsMu.Unlock()
@@ -424,6 +436,9 @@ func (s *OpsService) RecordError(ctx context.Context, entry *OpsInsertErrorLogIn
 	if !ok {
 		return nil
 	}
+	if err := s.filterRoutingDiagnosticsForPersistence(ctx, []*OpsInsertErrorLogInput{prepared}); err != nil {
+		return err
+	}
 
 	if _, err := s.opsRepo.InsertErrorLog(ctx, prepared); err != nil {
 		if prepared.ServiceStatusObservation != nil {
@@ -456,6 +471,9 @@ func (s *OpsService) RecordErrorBatch(ctx context.Context, entries []*OpsInsertE
 	}
 	if len(prepared) == 0 {
 		return nil
+	}
+	if err := s.filterRoutingDiagnosticsForPersistence(ctx, prepared); err != nil {
+		return err
 	}
 	if len(prepared) == 1 {
 		_, err := s.opsRepo.InsertErrorLog(ctx, prepared[0])
@@ -580,7 +598,6 @@ func (s *OpsService) prepareErrorLogInput(ctx context.Context, entry *OpsInsertE
 	if err := sanitizeOpsUpstreamErrors(entry); err != nil {
 		return nil, false, err
 	}
-
 	return entry, true, nil
 }
 
@@ -800,7 +817,26 @@ func (s *OpsService) GetErrorLogByID(ctx context.Context, id int64) (*OpsErrorLo
 		}
 		return nil, infraerrors.InternalServer("OPS_ERROR_LOAD_FAILED", "Failed to load ops error log").WithCause(err)
 	}
-	if detail != nil && strings.TrimSpace(detail.UpstreamErrors) != "" {
+	if detail == nil {
+		return nil, nil
+	}
+	// 返回独立 DTO；历史读取不能修改 repository 的缓存或其他调用者。
+	copy := *detail
+	detail = &copy
+	enabled := s.IsRoutingDiagnosticsEnabled(ctx)
+	detail.RoutingDiagnosticsEnabled = &enabled
+	if !enabled {
+		detail.RoutingDiagnostics = nil
+		// 历史整体 null 与空串均表示没有事件，保留已有读取合同。
+		if strings.TrimSpace(detail.UpstreamErrors) != "null" {
+			stripped, stripErr := OpsUpstreamErrorsWithoutRoutingDiagnostics(detail.UpstreamErrors)
+			if stripErr != nil {
+				return nil, infraerrors.InternalServer("OPS_ERROR_LOAD_FAILED", "无法裁剪历史路由诊断").WithCause(stripErr)
+			}
+			detail.UpstreamErrors = stripped
+		}
+	}
+	if strings.TrimSpace(detail.UpstreamErrors) != "" {
 		if normalized, normalizeErr := normalizeOpsUpstreamErrorsJSON(detail.UpstreamErrors); normalizeErr == nil {
 			detail.UpstreamErrors = normalized
 		}

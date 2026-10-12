@@ -54,9 +54,7 @@ func (a *ServiceStatusAggregator) loop(ctx context.Context) {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 	for {
-		run, cancel := context.WithTimeout(ctx, 45*time.Second)
-		err := a.repo.Aggregate(run, time.Now().UTC())
-		cancel()
+		err := a.runOnce(ctx, time.Now().UTC())
 		if err != nil && ctx.Err() == nil {
 			// 仅输出固定原因，不记录原始数据库错误或源请求内容。
 			logger.LegacyPrintf("service.service_status", "服务状态聚合失败 stage=aggregate code=%s", apperrors.Reason(err))
@@ -67,4 +65,21 @@ func (a *ServiceStatusAggregator) loop(ctx context.Context) {
 		case <-ticker.C:
 		}
 	}
+}
+
+// 每轮读取独立开关，以便同一实例在重新启用后恢复；仓储锁内检查仍处理并发关闭。
+func (a *ServiceStatusAggregator) runOnce(ctx context.Context, at time.Time) error {
+	run, cancel := context.WithTimeout(ctx, 45*time.Second)
+	defer cancel()
+	cfg, err := a.repo.GetConfig(run)
+	if err != nil {
+		return err
+	}
+	if cfg == nil {
+		return ErrServiceStatusUnavailable
+	}
+	if !cfg.Enabled || len(cfg.Platforms) == 0 {
+		return nil
+	}
+	return a.repo.Aggregate(run, at)
 }

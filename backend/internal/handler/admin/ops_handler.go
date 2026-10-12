@@ -429,6 +429,7 @@ func (h *OpsHandler) ListRequestErrorUpstreamErrors(c *gin.Context) {
 			listDetail := *d
 			d = &listDetail
 			d.RoutingDiagnostics = nil
+			d.RoutingDiagnosticsEnabled = nil
 			if events, stripErr := service.OpsUpstreamErrorsWithoutRoutingDiagnostics(d.UpstreamErrors); stripErr == nil {
 				d.UpstreamErrors = events
 			} else {

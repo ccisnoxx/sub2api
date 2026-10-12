@@ -54,6 +54,17 @@ func (d *RoutingDiagnostics) Clone() *RoutingDiagnostics {
 type routingDiagnosticsRequestKey struct{}
 type routingDiagnosticsSelectionKey struct{}
 type routingDiagnosticsPoolObservationKey struct{}
+type routingDiagnosticsEnabledKey struct{}
+
+// WithRoutingDiagnosticsEnabled 固定请求的采集开关，WS 派生上下文保留关闭状态。
+func WithRoutingDiagnosticsEnabled(ctx context.Context, enabled bool) context.Context {
+	return context.WithValue(ctx, routingDiagnosticsEnabledKey{}, enabled)
+}
+
+func routingDiagnosticsEnabled(ctx context.Context) bool {
+	enabled, configured := ctx.Value(routingDiagnosticsEnabledKey{}).(bool)
+	return !configured || enabled
+}
 
 type routingDiagnosticsRequest struct {
 	mu      sync.Mutex
@@ -64,6 +75,9 @@ type routingDiagnosticsRequest struct {
 
 // WithRoutingDiagnosticsRequest 创建全新请求或 WS turn；HTTP 与建连前评估传 0。
 func WithRoutingDiagnosticsRequest(ctx context.Context, turn int) context.Context {
+	if !routingDiagnosticsEnabled(ctx) {
+		return ctx
+	}
 	owner := &routingDiagnosticsRequest{}
 	if turn > 0 {
 		owner.turn = routingValue(turn)
@@ -74,6 +88,9 @@ func WithRoutingDiagnosticsRequest(ctx context.Context, turn int) context.Contex
 
 // EnsureRoutingDiagnosticsRequest 只补齐缺失的归属，不重置已有 turn 或序号。
 func EnsureRoutingDiagnosticsRequest(ctx context.Context) context.Context {
+	if !routingDiagnosticsEnabled(ctx) {
+		return ctx
+	}
 	if owner, _ := ctx.Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest); owner != nil {
 		return ctx
 	}
@@ -82,6 +99,9 @@ func EnsureRoutingDiagnosticsRequest(ctx context.Context) context.Context {
 
 // EnsureRoutingDiagnosticsTurn 只在进入新的连接逻辑 turn 时重置归属。
 func EnsureRoutingDiagnosticsTurn(ctx context.Context, turn int) context.Context {
+	if !routingDiagnosticsEnabled(ctx) {
+		return ctx
+	}
 	owner, _ := ctx.Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
 	if owner != nil {
 		owner.mu.Lock()
@@ -97,6 +117,9 @@ func EnsureRoutingDiagnosticsTurn(ctx context.Context, turn int) context.Context
 // WithRoutingDiagnosticsOwner 重绑现有请求归属，保留业务 ctx 的取消、定价与其他值。
 // ownerCtx 只提供诊断 owner，不传播它的取消或其他上下文。
 func WithRoutingDiagnosticsOwner(ctx, ownerCtx context.Context) context.Context {
+	if !routingDiagnosticsEnabled(ctx) || !routingDiagnosticsEnabled(ownerCtx) {
+		return WithRoutingDiagnosticsEnabled(ctx, false)
+	}
 	owner, _ := ownerCtx.Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
 	if owner == nil {
 		return ctx
@@ -107,6 +130,9 @@ func WithRoutingDiagnosticsOwner(ctx, ownerCtx context.Context) context.Context 
 
 // GetRoutingDiagnostics 返回当前评估的完成快照；评估开始后、完成前为 nil。
 func GetRoutingDiagnostics(ctx context.Context) *RoutingDiagnostics {
+	if !routingDiagnosticsEnabled(ctx) {
+		return nil
+	}
 	owner, _ := ctx.Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
 	if owner == nil {
 		return nil
@@ -146,6 +172,9 @@ type routingDiagnosticsBuilder struct {
 }
 
 func beginRoutingDiagnosticsSelection(ctx context.Context) (context.Context, *routingDiagnosticsBuilder) {
+	if !routingDiagnosticsEnabled(ctx) {
+		return ctx, nil
+	}
 	ctx = EnsureRoutingDiagnosticsRequest(ctx)
 	owner, _ := ctx.Value(routingDiagnosticsRequestKey{}).(*routingDiagnosticsRequest)
 	owner.mu.Lock()
@@ -166,6 +195,9 @@ func ensureRoutingDiagnosticsSelection(ctx context.Context) (context.Context, *r
 }
 
 func routingDiagnosticsBuilderFromContext(ctx context.Context) *routingDiagnosticsBuilder {
+	if !routingDiagnosticsEnabled(ctx) {
+		return nil
+	}
 	b, _ := ctx.Value(routingDiagnosticsSelectionKey{}).(*routingDiagnosticsBuilder)
 	return b
 }
@@ -373,6 +405,9 @@ func finishRoutingDiagnosticsSelection(b *routingDiagnosticsBuilder, selection *
 
 // 外层准入终检输出同次评估的新副本；已返回的选择与错误副本不被修改。
 func rejectRoutingDiagnosticsSelection(ctx context.Context, selection *AccountSelectionResult, previous *RoutingDiagnostics, reason string, err error) (*RoutingDiagnostics, error) {
+	if !routingDiagnosticsEnabled(ctx) {
+		return nil, err
+	}
 	d := previous.Clone()
 	if selection != nil && selection.RoutingDiagnostics != nil {
 		d = selection.RoutingDiagnostics.Clone()

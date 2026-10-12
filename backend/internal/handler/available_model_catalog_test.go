@@ -231,11 +231,13 @@ func TestAvailableModelCatalog_AuthenticationAndFeatureShortCircuit(t *testing.T
 	for _, query := range []string{"", "?view=catalog"} {
 		require.Equal(t, http.StatusUnauthorized, catalogRequest(t, &AvailableChannelHandler{}, query, 0).Code)
 		w := catalogRequest(t, &AvailableChannelHandler{}, query, 1)
-		require.Equal(t, http.StatusOK, w.Code)
 		if query == "" {
+			require.Equal(t, http.StatusOK, w.Code)
 			require.JSONEq(t, `{"code":0,"message":"success","data":[]}`, w.Body.String())
 		} else {
-			require.JSONEq(t, `{"code":0,"message":"success","data":{"groups":[],"user_rate_status":"not_requested"}}`, w.Body.String())
+			require.Equal(t, http.StatusServiceUnavailable, w.Code)
+			require.Contains(t, w.Body.String(), "MODEL_CATALOG_DISABLED")
+			require.NotContains(t, w.Body.String(), `"data"`)
 		}
 	}
 	for _, failure := range []bool{false, true} {
@@ -245,12 +247,42 @@ func TestAvailableModelCatalog_AuthenticationAndFeatureShortCircuit(t *testing.T
 			f.settings.enabled = true
 			f.settings.err = errors.New("setting read failed")
 		}
-		got := readCatalog(t, catalogRequest(t, f.handler, "?view=catalog", 1))
-		require.NotNil(t, got.Groups)
-		require.Empty(t, got.Groups)
-		require.Equal(t, "not_requested", got.UserRateStatus)
+		w := catalogRequest(t, f.handler, "?view=catalog", 1)
+		require.Equal(t, http.StatusServiceUnavailable, w.Code)
+		reason := "MODEL_CATALOG_DISABLED"
+		if failure {
+			reason = "MODEL_CATALOG_UNAVAILABLE"
+		}
+		require.Contains(t, w.Body.String(), reason)
+		require.NotContains(t, w.Body.String(), "setting read failed")
+		require.NotContains(t, w.Body.String(), `"data"`)
 		require.Empty(t, f.events)
 	}
+}
+
+func TestAvailableModelCatalog_ReenableUsesCurrentAuthorizationAndPrices(t *testing.T) {
+	f := catalogFixtureForHTTP()
+	f.settings.enabled = false
+	require.Equal(t, http.StatusServiceUnavailable, catalogRequest(t, f.handler, "?view=catalog", 1).Code)
+	require.Empty(t, f.events)
+	f.settings.enabled = true
+	f.channels.channels[0].ModelPricing[0].InputPrice = catalogFloat(2e-6)
+	got := readCatalog(t, catalogRequest(t, f.handler, "?view=catalog", 1))
+	require.Len(t, got.Groups, 1)
+	require.Equal(t, int64(1), got.Groups[0].ID)
+	require.NotEmpty(t, got.Groups[0].Models)
+	aliasFound := false
+	for _, model := range got.Groups[0].Models {
+		if model.Name == "Alias" {
+			aliasFound = true
+			require.NotNil(t, model.Pricing)
+			require.NotEmpty(t, model.Pricing.ServiceTiers)
+			require.Equal(t, 2e-6, *model.Pricing.ServiceTiers[0].Context.Intervals[0].InputPrice)
+		}
+	}
+	require.True(t, aliasFound)
+	require.Contains(t, f.events, "rates")
+	require.Contains(t, f.events, "channels")
 }
 
 func TestAvailableModelCatalog_EmptyAuthorizationAvoidsChannelAndRateReads(t *testing.T) {

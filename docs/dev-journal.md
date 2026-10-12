@@ -89,3 +89,9 @@
 - PR46 普通 merge 到 personal `fd6324f387a3cd204a1ec4d50c033dc349abb5f9`，parents/tree 与固定基准/候选一致，复用第四阶段成功验证和独立复核，没有触发应用 CI。
 - [第五阶段报告](architecture/ARCH-001-05.md)记录独立观测 emitter、attempt 候选与 unknown 提升、原首次终态/提交 owner、五职责单一状态归属和快照组成。缺失观测基线、组件/实际入口/费用、service 与真实 handler/异步交付定向 Race 通过。
 - 五阶段已形成完整可审查候选，整体 ARCH-001 等待第五阶段整合后关闭。没有 DTO、SQL/schema、计费 parser、依赖、权限、控制面或生产操作，本轮不发布或部署。
+
+## 2026-10-12：ARCH-001 关闭与 ARCH-004 独立开关
+
+- PR47 普通 merge 到 personal `2867ad10d46d7b774a2e8c2b3406f9e6ad75f0e0`，parents/tree 与固定基准/候选一致，复用第五阶段成功定向验证和独立复核。五职责依序整合，ARCH-001 总台账关闭，没有触发应用 CI。
+- 下一可执行任务是 ARCH-004；ARCH-002 的 REL-002 依赖未完成且本轮暂不发布部署。[开关报告](architecture/ARCH-004.md)记录既有目录/服务状态开关复用、目录明确禁用/读取失败、独立路由诊断控制、服务状态每轮门控和重新启用的原事务 owner。
+- 数据库 schema/迁移、计费/真实选路合同保持；本地 Docker daemon 不可用，真实 DB 关开生命周期未动态验证，不能把集成 harness 的跳过当作通过。报告记录必要定向检查及候选验收，不运行 Quick/Full、全量回归、扫描、发布或部署。
