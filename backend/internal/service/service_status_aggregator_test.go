@@ -20,7 +20,7 @@ func (r *statusAggregatorRepo) GetConfig(context.Context) (*ServiceStatusConfig,
 	return &ServiceStatusConfig{Enabled: true, Platforms: []string{"openai"}}, nil
 }
 
-func (r *statusAggregatorRepo) Aggregate(ctx context.Context, _ time.Time) error {
+func (r *statusAggregatorRepo) Aggregate(ctx context.Context, _ time.Time, _ time.Time) error {
 	deadline, _ := ctx.Deadline()
 	r.called <- time.Until(deadline)
 	<-ctx.Done()
@@ -48,21 +48,30 @@ func TestServiceStatusAggregatorCancellationAndBudget(t *testing.T) {
 
 type statusAggregatorSwitchRepo struct {
 	ServiceStatusRepository
-	cfg       *ServiceStatusConfig
-	err       error
-	called    int
-	remaining time.Duration
+	cfg          *ServiceStatusConfig
+	err          error
+	called       int
+	remaining    time.Duration
+	reported     []error
+	configCtx    context.Context
+	aggregateCtx context.Context
 }
 
-func (r *statusAggregatorSwitchRepo) GetConfig(context.Context) (*ServiceStatusConfig, error) {
+func (r *statusAggregatorSwitchRepo) GetConfig(ctx context.Context) (*ServiceStatusConfig, error) {
+	r.configCtx = ctx
 	return r.cfg, r.err
 }
 
-func (r *statusAggregatorSwitchRepo) Aggregate(ctx context.Context, _ time.Time) error {
+func (r *statusAggregatorSwitchRepo) Aggregate(ctx context.Context, _ time.Time, _ time.Time) error {
+	r.aggregateCtx = ctx
 	r.called++
 	deadline, _ := ctx.Deadline()
 	r.remaining = time.Until(deadline)
 	return nil
+}
+
+func (r *statusAggregatorSwitchRepo) ReportAggregatePreflightFailure(_ context.Context, _ time.Time, err error) {
+	r.reported = append(r.reported, err)
 }
 
 func TestServiceStatusAggregatorIndependentSwitchAndReenable(t *testing.T) {
@@ -74,6 +83,7 @@ func TestServiceStatusAggregatorIndependentSwitchAndReenable(t *testing.T) {
 		require.NoError(t, a.runOnce(context.Background(), time.Now().UTC()))
 		if enabled {
 			require.Equal(t, before+1, r.called)
+			require.Same(t, r.configCtx, r.aggregateCtx, "配置读取与聚合共用同一个预算 context")
 			require.Greater(t, r.remaining, 44*time.Second)
 			require.LessOrEqual(t, r.remaining, 45*time.Second)
 		} else {
@@ -83,10 +93,14 @@ func TestServiceStatusAggregatorIndependentSwitchAndReenable(t *testing.T) {
 	r.cfg.Platforms = []string{}
 	require.NoError(t, a.runOnce(context.Background(), time.Now().UTC()))
 	require.Equal(t, 2, r.called)
+	require.Empty(t, r.reported, "关闭或空平台的正常轮次不报告前置失败")
 	r.err = errors.New("配置读取失败")
 	require.ErrorIs(t, a.runOnce(context.Background(), time.Now().UTC()), r.err)
 	require.Equal(t, 2, r.called, "读取失败不能猜测启用")
+	require.Equal(t, []error{r.err}, r.reported)
 	r.err, r.cfg = nil, nil
 	require.ErrorIs(t, a.runOnce(context.Background(), time.Now().UTC()), ErrServiceStatusUnavailable)
 	require.Equal(t, 2, r.called)
+	require.Len(t, r.reported, 2)
+	require.ErrorIs(t, r.reported[1], ErrServiceStatusUnavailable)
 }

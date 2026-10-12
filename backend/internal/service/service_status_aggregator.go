@@ -69,17 +69,20 @@ func (a *ServiceStatusAggregator) loop(ctx context.Context) {
 
 // 每轮读取独立开关，以便同一实例在重新启用后恢复；仓储锁内检查仍处理并发关闭。
 func (a *ServiceStatusAggregator) runOnce(ctx context.Context, at time.Time) error {
+	started := time.Now()
 	run, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
 	cfg, err := a.repo.GetConfig(run)
 	if err != nil {
+		a.repo.ReportAggregatePreflightFailure(run, started, err)
 		return err
 	}
 	if cfg == nil {
+		a.repo.ReportAggregatePreflightFailure(run, started, ErrServiceStatusUnavailable)
 		return ErrServiceStatusUnavailable
 	}
 	if !cfg.Enabled || len(cfg.Platforms) == 0 {
 		return nil
 	}
-	return a.repo.Aggregate(run, at)
+	return a.repo.Aggregate(run, at, started)
 }

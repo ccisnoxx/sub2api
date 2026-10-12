@@ -23,7 +23,10 @@ type ServiceStatusRepository interface {
 	GetConfig(context.Context) (*ServiceStatusConfig, error)
 	UpdateConfig(context.Context, *ServiceStatusConfig) (*ServiceStatusConfig, error)
 	Snapshot(context.Context, string, string) (*ServiceStatusSnapshot, error)
-	Aggregate(context.Context, time.Time) error
+	// at 决定观察窗口，started 是配置读取前的整轮起点。
+	Aggregate(ctx context.Context, at, started time.Time) error
+	// 仅报告任务进入 Aggregate 前的失败，与 Aggregate 共用仓储监控计数。
+	ReportAggregatePreflightFailure(context.Context, time.Time, error)
 	RecordSourceError(context.Context, time.Time) error
 }
 
