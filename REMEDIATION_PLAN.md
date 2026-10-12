@@ -157,7 +157,7 @@
 
 - [x] `REL-001` 构建迁移后的候选版本并完成部署前验证
 - [x] `REL-002` 在测试环境和生产环境分阶段发布
-- [ ] `REL-003` 完成发布后验证、文档更新和旧基线归档
+- [x] `REL-003` 完成发布后验证、文档更新和旧基线归档
 
 ---
 
@@ -1824,13 +1824,17 @@ ServiceObservationEmitter
 
 ### 实施步骤
 
-- [ ] 更新 README 支持版本；
-- [ ] 更新 `UPSTREAM.md`；
-- [ ] 更新 NOTICE 中的参考基线；
-- [ ] 记录 Release、CI、镜像 digest 和数据库迁移结果；
-- [ ] 标记旧基线为归档而非删除；
-- [ ] 关闭已完成任务并保留验收证据；
-- [ ] 建立下一次上游检查日期。
+- [x] 更新 README 支持版本；
+- [x] 更新 `UPSTREAM.md`；
+- [x] 更新 NOTICE 中的参考基线；
+- [x] 记录 Release、CI、镜像 digest 和数据库迁移结果；
+- [x] 标记旧基线为归档而非删除；
+- [x] 关闭已完成任务并保留验收证据；
+- [x] 建立下一次上游检查日期。
+
+### 本次验收（2026-10-12）
+
+三语 README 固定本次实际预发行 tag/source/digest，支持政策和 UPSTREAM.md 更新；NOTICE 的 KIN/Plus 来源字段与固定发布源码相同，main 的分支导航补充导致字节不同，摘要分别明确记录，没有改写正式镜像许可材料。Release notes 已追加真实 Full/恢复/来源/迁移/部署及回退边界，原证明正文、12 个 assets、tag/source/prerelease 标志回读保持。BASELINE.md 只增加归档前言，旧 tag/digest/恢复点保留，下一次人工来源检查为 2026-10-26。main/personal 普通快进、选择性控制/文档同步，应用运行树不变；详见 [REL-003 记录](docs/upstream/records/2026-10-12-rel-003.md)。第 8 节逐项核对 11 项完成、3 项计划外限制；不声称整个计划已经完成。
 
 ### 验收标准
 
@@ -1990,7 +1994,7 @@ python tools/check_pnpm_audit_exceptions.py \
 
 只有满足以下全部条件，整个修复计划才可视为完成：
 
-2026-10-12 根据实际发布及分阶段部署验收逐项核对：10 项完成、4 项待办。REL-002 已完成；REL-003 完成来源文档与 Release notes 同一身份闭环后将该项再核对。跨 KIN 全业务写入无损回退、OBS-002 和 OBS-001/004 的计划外整合/外部运行接入仍保持未完成；不以这三项扩大本轮范围。
+2026-10-12 根据实际发布及分阶段部署验收逐项核对：11 项完成、3 项待办。REL-002/003 已完成正式发布、部署和来源闭环。跨 KIN 全业务写入无损回退、OBS-002 和 OBS-001/004 的计划外整合/外部运行接入仍保持未完成；不以这三项扩大本轮范围。
 
 - [x] README 明确说明 fork 身份、分支职责和正确安装入口；DOC-001、DOC-002 及当前两分支 README 已提供 personal、GHCR 和固定版本安装入口。
 - [x] 根目录存在完整 NOTICE 或第三方来源说明；LEGAL-001/002、ARCH-005 与当前两分支 NOTICE 保留 KIN/原始上游/Plus 来源和归属边界。
@@ -2005,7 +2009,7 @@ python tools/check_pnpm_audit_exceptions.py \
 - [ ] 路由诊断和服务状态具有低样本与隐私保护；既有 S3/S4 提供管理员和低样本基础边界，OBS-002 的展示裁剪、共享限流和安全审计候选已验证但 PR #32 未整合，待当前应用整合验收。
 - [ ] 服务状态容量、清理、聚合失败和水位停滞均可监控；OBS-001/004 候选及手册已有定向验证，但 PR #31/#34 未整合，外部调度和通知送达未部署，待整合及运行接入验收。
 - [x] 正式发布通过分阶段部署并保留旧稳定 tag；REL-002 独立测试、生产备份/迁移/流量/业务和完整聚合验收实际通过，旧 v0.2.14-klno.5-tps.2 tag/digest 与恢复材料保留。
-- [ ] `UPSTREAM.md`、NOTICE、`personal-source.json` 和 Release notes 相互一致；新基线来源记录已有核对证据，当前旧 Release notes 不能代表新基线正式产物，待 REL-003 完成同一发布身份闭环。
+- [x] `UPSTREAM.md`、NOTICE、`personal-source.json` 和 Release notes 相互一致；REL-003 对固定发布源码、KIN/Plus 字段、Full/Release/digest/部署及旧基线逐项核对；NOTICE 字段相同而导航说明字节不同已分别记录，后续文档 HEAD 不冒充发布 SHA。
 
 ---
 
