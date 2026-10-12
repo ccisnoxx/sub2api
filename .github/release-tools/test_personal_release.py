@@ -13,7 +13,7 @@ RUN = {"id": 123, "workflow_id": 42, "path": ".github/workflows/personal-ci.yml"
        "repository": {"full_name": release.REPOSITORY},
        "head_repository": {"full_name": release.REPOSITORY}, "head_branch": "personal",
        "head_sha": SHA, "status": "completed", "conclusion": "success", "event": "push",
-       "display_title": f"Personal CI | {SHA} | base {SHA}", "check_suite_id": 7}
+       "display_title": release.ci_title(SHA, SHA, "auto"), "check_suite_id": 7}
 SOURCE = {"upstream_tag": BASE, "upstream_sha": "b" * 40}
 
 
@@ -68,6 +68,9 @@ class PersonalReleaseTest(unittest.TestCase):
                    "app": {"id": 15368}, "check_suite": {"id": check_suite}}]
         def git(*args):
             return SHA if args[0] == "rev-parse" else "b" * 40 + "\trefs/tags/" + BASE
+        checks.extend({"name": name, "status": "completed", "conclusion": "success",
+                       "app": {"id": 15368}, "check_suite": {"id": check_suite}}
+                      for name in release.FULL_JOBS - {"personal-ready"})
         return api, checks, git
 
     def test_gate_rejects_successful_check_from_another_run(self):
@@ -81,6 +84,82 @@ class PersonalReleaseTest(unittest.TestCase):
                 else:
                     with self.assertRaisesRegex(release.SyncError, "必要检查未通过"):
                         release.gate(SHA, "123")
+
+    def test_quick_success_missing_failed_and_skipped_full_evidence_cannot_release(self):
+        for conclusion in (None, "skipped", "failure", "cancelled"):
+            api, checks, git = self.gate_fixture()
+            jobs = [] if conclusion is None else [{"name": "full-ci-certified", "status": "completed", "conclusion": conclusion}]
+            def pages(path, key):
+                return jobs if key == "jobs" else checks
+            with self.subTest(conclusion=conclusion), patch.object(release, "api", side_effect=api), \
+                 patch.object(release, "pages", side_effect=pages), patch.object(release, "git", side_effect=git), \
+                 patch.object(release, "assert_base"), patch.object(release, "source_at", return_value=SOURCE):
+                with self.assertRaisesRegex(release.SyncError, "Full CI"):
+                    release.gate(SHA, "123")
+
+    def test_reused_merge_requires_current_root_full_jobs_and_exact_candidate_base(self):
+        head, base = "c" * 40, "d" * 40
+        root = {**RUN, "id": 122, "head_sha": head, "event": "pull_request", "head_branch": "codex/candidate",
+                "display_title": release.ci_title(head, base, "auto")}
+        marker = [{"name": name, "status": "completed", "conclusion": "success"}
+                  for name in ("personal-ready", "full-ci-certified")]
+        full = [{"name": name, "status": "completed", "conclusion": "success"} for name in release.FULL_JOBS]
+        for state in ("success", "deleted", "rerun-failed", "job-skipped", "wrong-base", "wrong-repo"):
+            rows, jobs = [root.copy()], copy.deepcopy(full)
+            if state == "deleted":
+                rows = []
+            elif state == "rerun-failed":
+                rows[0]["conclusion"] = "failure"
+            elif state == "job-skipped":
+                jobs[0]["conclusion"] = "skipped"
+            elif state == "wrong-base":
+                rows[0]["display_title"] = f"Personal CI | {head} | base {SHA}"
+            elif state == "wrong-repo":
+                rows[0]["head_repository"] = {"full_name": "foreign/repo"}
+            def pages(path, key):
+                if key == "workflow_runs":
+                    return rows
+                return marker if "/123/" in path else jobs
+            with self.subTest(state=state), patch.object(release, "pages", side_effect=pages), \
+                 patch.object(release, "merge_candidate", return_value=(head, base)):
+                self.assertEqual(release.release_evidence(RUN, SHA, 42), state == "success")
+        with patch.object(release, "pages", side_effect=lambda path, key: [] if key == "workflow_runs" else marker), \
+             patch.object(release, "merge_candidate", return_value=None):
+            self.assertFalse(release.release_evidence(RUN, SHA, 42))
+
+    def test_automatic_selection_skips_newer_quick_and_uses_valid_full(self):
+        api, checks, git = self.gate_fixture()
+        quick = {**RUN, "id": 124, "event": "workflow_dispatch"}
+        def pages(path, key):
+            if key == "workflow_runs":
+                return [quick, RUN]
+            if key == "jobs" and "/124/" in path:
+                return [{"name": "personal-ready", "status": "completed", "conclusion": "success"}]
+            return checks
+        with patch.object(release, "api", side_effect=api), patch.object(release, "pages", side_effect=pages), \
+             patch.object(release, "git", side_effect=git), patch.object(release, "assert_base"), \
+             patch.object(release, "source_at", return_value=SOURCE):
+            self.assertEqual(release.gate(SHA)[1]["id"], 123)
+
+    def test_reused_dispatch_requires_live_real_full_at_same_final_sha(self):
+        run = {**RUN, "id": 124, "event": "workflow_dispatch"}
+        marker = [{"name": name, "status": "completed", "conclusion": "success"}
+                  for name in ("personal-ready", "full-ci-certified")]
+        full = [{"name": name, "status": "completed", "conclusion": "success"} for name in release.FULL_JOBS]
+        for state in ("success", "deleted", "rerun-failed", "job-skipped"):
+            roots, jobs = [RUN.copy()], copy.deepcopy(full)
+            if state == "deleted":
+                roots = []
+            elif state == "rerun-failed":
+                roots[0]["conclusion"] = "failure"
+            elif state == "job-skipped":
+                jobs[0]["conclusion"] = "skipped"
+            def pages(path, key):
+                return roots if key == "workflow_runs" else marker if "/124/" in path else jobs
+            with self.subTest(state=state), patch.object(release, "pages", side_effect=pages), \
+                 patch.object(release, "merge_candidate") as merge:
+                self.assertEqual(release.release_evidence(run, SHA, 42), state == "success")
+                merge.assert_not_called()
 
     def test_wrong_checkout_and_changed_personal_stop_before_api(self):
         with patch.object(release, "git", return_value="c" * 40), patch.object(release, "api") as api:

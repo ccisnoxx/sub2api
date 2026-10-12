@@ -1,10 +1,7 @@
 name: "CLA Assistant"
 
 on:
-  issue_comment:
-    types: [created]
-  pull_request_target:
-    types: [opened, reopened, closed, synchronize]
+  workflow_dispatch:
 
 permissions:
   # 上游 CLA 在本 fork 的两个 job 均跳过，不授予其任何写权限。

@@ -16,7 +16,8 @@ JOB_PERMISSIONS = {
     ("release.yml", "release"): {"contents": "write", "packages": "write", "actions": "read", "checks": "read"},
     ("personal-release.yml", "prepare"): {"contents": "write", "actions": "write", "checks": "read", "packages": "read"},
     ("sync-upstream.yml", "sync"): {"contents": "write", "pull-requests": "write", "actions": "write"},
-    ("personal-ci.yml", "binding"): {**READ, "pull-requests": "read"},
+    ("personal-ci.yml", "binding"): {**READ, "pull-requests": "read", "actions": "read"},
+    ("personal-ci.yml", "full-ci-certified"): {**READ, "actions": "read"},
     ("personal-ci.yml", "personal-ready"): {**READ, "pull-requests": "read"},
 }
 EXCLUSIONS = {
@@ -102,10 +103,19 @@ def policy_errors(name, workflow):
     if name == "sync-upstream.yml":
         if set(events) != {"schedule", "workflow_dispatch"} or "github.ref == 'refs/heads/main'" not in workflow["jobs"]["sync"].get("if", ""):
             errors.append("同步写权限只能用于 main 调度")
+    if name == "personal-ci.yml":
+        if workflow["jobs"]["personal-ready"].get("if") != "always() && github.repository == 'ccisnoxx/sub2api'":
+            errors.append("personal-ready 必须始终执行，不得以标签或候选分支跳过 required check")
     return errors
 
 
 class WorkflowSecurityTests(unittest.TestCase):
+    def test_required_gate_cannot_be_skipped_by_labels_or_sync_branch(self):
+        for condition in ("github.event.label.name == 'full-ci'", "!startsWith(github.head_ref, 'codex/sync-klno-')"):
+            flow = load("personal-ci.yml")
+            flow["jobs"]["personal-ready"]["if"] += " && " + condition
+            self.assertTrue(any("必须始终执行" in e for e in policy_errors("personal-ci.yml", flow)))
+
     def test_repository_workflows_follow_policy(self):
         for path in sorted(WORKFLOWS.glob("*.yml")):
             with self.subTest(workflow=path.name):
@@ -138,6 +148,7 @@ class WorkflowSecurityTests(unittest.TestCase):
     def test_target_pr_code_execution_is_rejected(self):
         for step in ({"run": "python pr.py"}, {"uses": "actions/checkout@sha"}):
             flow = load("cla.yml")
+            flow["on"] = {"pull_request_target": {}}
             flow["jobs"]["cla-check"]["steps"].append(step)
             self.assertIn("cla-check：CLA 禁止检出或执行 PR 代码", policy_errors("cla.yml", flow))
 
