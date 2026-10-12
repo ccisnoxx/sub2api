@@ -15,11 +15,11 @@ import (
 type responsesOutputTiming struct {
 	mu           sync.Mutex
 	ctx          context.Context
-	timing       UsageTiming // 已接受用量与观测元数据，不持有输出时点。
+	timing       UsageTiming // 时序版本与观测元数据，输出和已接受用量由独立组件持有。
 	outputTiming responsesOutputTimingTracker
+	usage        responsesUsageAccumulator
 	completion   responsesCompletionClassifier
 	observed     bool
-	audioSeen    bool
 	stopCancel   func() bool
 	source       *serviceStatusRequest
 	attempt      uint64
@@ -29,7 +29,7 @@ func newResponsesOutputTiming(ctx context.Context, start time.Time, account *Acc
 	if start.IsZero() || account == nil || account.Platform != PlatformOpenAI {
 		return nil
 	}
-	o := &responsesOutputTiming{ctx: ctx, outputTiming: responsesOutputTimingTracker{start: start}, timing: UsageTiming{TimingVersion: 1, UsageSource: UsageSourceUnknown}}
+	o := &responsesOutputTiming{ctx: ctx, outputTiming: responsesOutputTimingTracker{start: start}, timing: UsageTiming{TimingVersion: 1}}
 	o.source = serviceStatusOwner(ctx)
 	if o.source != nil {
 		o.attempt = o.source.beginAttempt()
@@ -85,10 +85,12 @@ func (o *responsesOutputTiming) observeEvent(payload []byte, eventType string, a
 // applyProtocolFacts 在原有锁内更新状态，解析不能改变取消与首次终态的排序。
 func (o *responsesOutputTiming) applyProtocolFacts(facts responsesProtocolFacts, at time.Time) {
 	o.observed = o.observed || facts.observed
-	o.audioSeen = o.audioSeen || facts.audioSeen
+	if facts.audioSeen {
+		o.usage.markAudioSeen()
+	}
 	for _, output := range facts.outputs {
 		if o.outputTiming.observe(output, at) && output.kind == "audio" {
-			o.audioSeen = true
+			o.usage.markAudioSeen()
 		}
 	}
 	if facts.terminalStatus != "" {
@@ -123,38 +125,7 @@ func (o *responsesOutputTiming) observeAcceptedUsage(payload []byte, eventType s
 	}
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	o.timing.UsageSource = UsageSourceUpstreamPartial
-	status := gjson.GetBytes(payload, "response.status").String()
-	if status == "" {
-		status = gjson.GetBytes(payload, "status").String()
-	}
-	if (eventType == "response.completed" || eventType == "response.done") && responsesTimingStatus(eventType, status) == CompletionStatusCompleted {
-		o.timing.UsageSource = UsageSourceUpstreamFinal
-	}
-	if eventType == "json" {
-		switch status {
-		case "completed":
-			o.timing.UsageSource = UsageSourceUpstreamFinal
-		case "failed", "incomplete", "cancelled", "canceled", "queued", "in_progress":
-			o.timing.UsageSource = UsageSourceUpstreamPartial
-		default:
-			o.timing.UsageSource = UsageSourceUnknown
-			if status == "" && gjson.GetBytes(payload, "object").String() == "response.compaction" {
-				o.timing.UsageSource = UsageSourceUpstreamFinal
-			}
-		}
-	}
-	// 权威总量已被既有解析器接受；拆分须随同替换，缺失/非法不能沿用部分值。
-	if eventType == "json" || openAIStreamEventTypeIsTerminal(eventType) {
-		o.timing.AudioOutputTokens = nil
-	}
-	if v := raw.Get("output_tokens_details.audio_tokens"); v.Type == gjson.Number && v.Int() >= 0 && v.Float() == float64(v.Int()) {
-		n := int(v.Int())
-		o.timing.AudioOutputTokens = &n
-		if n > 0 {
-			o.audioSeen = true
-		}
-	}
+	o.usage.observeAccepted(parseResponsesAcceptedUsage(payload, eventType, raw))
 }
 
 // observeJSON 使用已完整读到的内容时刻；绝不将终态里的内容当成流式首 token。
@@ -171,46 +142,12 @@ func (o *responsesOutputTiming) observeJSON(payload []byte, at time.Time) {
 }
 
 func (o *responsesOutputTiming) confirmNoAudio(payload []byte) {
-	if o == nil {
+	if o == nil || !responsesCanConfirmNoAudio(payload) {
 		return
-	}
-	// 两类既有 parser 的 usage 优先级不同；帧中已有音频拆分时不能凭纯文本猜零。
-	for _, path := range []string{"usage.output_tokens_details.audio_tokens", "response.usage.output_tokens_details.audio_tokens"} {
-		if gjson.GetBytes(payload, path).Exists() {
-			return
-		}
-	}
-	if _, raw, ok := extractOpenAIUsageAndRawFromJSONBytes(payload); ok && raw.Get("output_tokens_details.audio_tokens").Exists() {
-		return
-	}
-	output := gjson.GetBytes(payload, "response.output")
-	if !output.IsArray() {
-		output = gjson.GetBytes(payload, "output")
-	}
-	if !output.IsArray() {
-		return
-	}
-	for _, item := range output.Array() {
-		switch item.Get("type").String() {
-		case "message":
-			for _, part := range item.Get("content").Array() {
-				switch part.Get("type").String() {
-				case "output_text", "refusal":
-				default:
-					return
-				}
-			}
-		case "reasoning", "function_call", "custom_tool_call", "mcp_call", "tool_search_call", "code_interpreter_call", "shell_call", "image_generation_call", "compaction", "compaction_summary":
-		default:
-			return
-		}
 	}
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	if !o.audioSeen && o.timing.AudioOutputTokens == nil {
-		zero := 0
-		o.timing.AudioOutputTokens = &zero
-	}
+	o.usage.confirmNoAudio()
 }
 
 func (o *responsesOutputTiming) snapshot(clientDisconnected bool) UsageTiming {
@@ -242,6 +179,8 @@ func (o *responsesOutputTiming) snapshot(clientDisconnected bool) UsageTiming {
 	output := o.outputTiming.snapshot()
 	timing.FirstOutputMs, timing.FirstOutputKind = output.FirstOutputMs, output.FirstOutputKind
 	timing.StrictFirstTokenMs, timing.LastTokenMs = output.StrictFirstTokenMs, output.LastTokenMs
+	usage := o.usage.snapshot()
+	timing.UsageSource, timing.AudioOutputTokens = usage.UsageSource, usage.AudioOutputTokens
 	timing.CompletionStatus, timing.IsComplete = o.completion.snapshot()
 	return timing
 }

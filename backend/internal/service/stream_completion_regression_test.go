@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tidwall/gjson"
 )
 
 // 完成冻结不停止 drain 的用量采集，两个快照的可空字段也不能共享可变状态。
@@ -79,4 +80,31 @@ func TestResponsesOutputTiming_OutputSnapshotAndObservedOrder(t *testing.T) {
 	require.Equal(t, 15, *next.LastTokenMs)
 	*next.FirstOutputKind = "tool"
 	require.Equal(t, "image", *o.snapshot(false).FirstOutputKind)
+}
+
+// 只记录 relay 实际接受的对象，部分帧缺失拆分不能清空旧值，快照也不能反向污染状态。
+func TestResponsesOutputTiming_AcceptedUsageSourceAndSnapshot(t *testing.T) {
+	o := newResponsesOutputTiming(context.Background(), time.Unix(100, 0), &Account{Platform: PlatformOpenAI})
+	defer o.stop()
+	payload := []byte(`{"usage":{"output_tokens_details":{"audio_tokens":99}},"response":{"usage":{"input_tokens":2,"output_tokens":3,"output_tokens_details":{"audio_tokens":3}}}}`)
+	o.observeAcceptedUsage(payload, "response.in_progress", gjson.GetBytes(payload, "response.usage"))
+	first := o.snapshot(false)
+	require.Equal(t, UsageSourceUpstreamPartial, first.UsageSource)
+	require.Equal(t, 3, *first.AudioOutputTokens)
+	*first.AudioOutputTokens = 99
+
+	o.observeAcceptedUsage([]byte(`{}`), "response.in_progress", gjson.Parse(`{"input_tokens":2,"output_tokens":4}`))
+	// 非对象 usage 从未被接受，不能借终态 envelope 把部分事实改为 final。
+	o.observeAcceptedUsage([]byte(`{"status":"completed"}`), "json", gjson.Parse(`null`))
+	next := o.snapshot(false)
+	require.Equal(t, UsageSourceUpstreamPartial, next.UsageSource)
+	require.Equal(t, 3, *next.AudioOutputTokens)
+
+	final := []byte(`{"usage":{"output_tokens_details":{"audio_tokens":99}},"response":{"status":"completed","usage":{"input_tokens":2,"output_tokens":4,"output_tokens_details":{"audio_tokens":0}}}}`)
+	o.observeAcceptedUsage(final, "response.completed", gjson.GetBytes(final, "response.usage"))
+	got := o.snapshot(false)
+	require.Equal(t, UsageSourceUpstreamFinal, got.UsageSource)
+	require.Equal(t, 0, *got.AudioOutputTokens)
+	require.Equal(t, 3, *next.AudioOutputTokens)
+	require.Equal(t, CompletionStatusUnknown, got.CompletionStatus, "接受用量本身不生成协议终态")
 }
