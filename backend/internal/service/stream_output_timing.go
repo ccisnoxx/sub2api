@@ -102,170 +102,18 @@ func (o *responsesOutputTiming) observeEvent(payload []byte, eventType string, a
 	if o.ctx != nil && errors.Is(o.ctx.Err(), context.Canceled) {
 		o.finishStatus(CompletionStatusClientDisconnected)
 	}
-	if strings.TrimSpace(string(payload)) == "[DONE]" {
-		return
-	} // Responses 完成以协议终态为准。
-	if !gjson.ValidBytes(payload) {
-		return
-	}
-	if eventType == "" {
-		eventType = gjson.GetBytes(payload, "type").String()
-	}
-	if strings.HasPrefix(eventType, "response.") || eventType == "error" {
-		o.observed = true
-	}
-	switch eventType {
-	case "response.output_text.delta", "response.refusal.delta":
-		if nonemptyTimingString(gjson.GetBytes(payload, "delta")) {
-			o.output("text", true, at)
-		}
-	case "response.audio.transcript.delta", "response.audio_transcript.delta":
-		o.audioSeen = true
-		if nonemptyTimingString(gjson.GetBytes(payload, "delta")) {
-			o.output("text", true, at)
-		}
-	case "response.reasoning_text.delta", "response.reasoning_summary_text.delta":
-		if nonemptyTimingString(gjson.GetBytes(payload, "delta")) {
-			o.output("reasoning", true, at)
-		}
-	case "response.function_call_arguments.delta", "response.custom_tool_call_input.delta", "response.mcp_call_arguments.delta", "response.code_interpreter_call_code.delta", "response.shell_call_command.delta":
-		if nonemptyTimingString(gjson.GetBytes(payload, "delta")) {
-			o.output("tool", true, at)
-		}
-	case "response.shell_call_command.added":
-		if nonemptyTimingString(gjson.GetBytes(payload, "command")) {
-			o.output("tool", true, at)
-		}
-	case "response.shell_call_output_content.delta":
-		if nonemptyTimingString(gjson.GetBytes(payload, "delta.stdout")) || nonemptyTimingString(gjson.GetBytes(payload, "delta.stderr")) {
-			o.output("tool", true, at)
-		}
-	case "response.output_item.added":
-		o.observeItem(gjson.GetBytes(payload, "item"), true, at)
-	case "response.output_item.done":
-		// 完整 item 不能为流式补造 token；媒体/压缩结果仍是可识别的输出。
-		o.observeItem(gjson.GetBytes(payload, "item"), false, at)
-	case "response.content_part.added":
-		o.observePart(gjson.GetBytes(payload, "part"), true, at)
-	case "response.reasoning_summary_part.added":
-		if nonemptyTimingString(gjson.GetBytes(payload, "part.text")) {
-			o.output("reasoning", true, at)
-		}
-	case "response.image_generation_call.partial_image":
-		if nonemptyTimingString(gjson.GetBytes(payload, "partial_image_b64")) {
-			o.output("image", false, at)
-		}
-	case "response.audio.delta", "response.output_audio.delta":
-		if nonemptyTimingString(gjson.GetBytes(payload, "delta")) {
-			o.output("audio", false, at)
-		}
-	case "response.audio.done", "response.output_audio.done", "response.audio.transcript.done", "response.audio_transcript.done":
-		// 结束标记不形成输出时点，但已知音频模式不能冒充确认纯文本。
-		o.audioSeen = true
-	}
-	if openAIStreamEventTypeIsTerminal(eventType) {
-		for _, item := range gjson.GetBytes(payload, "response.output").Array() {
-			o.observeItem(item, false, at)
-		}
-	}
-	status := responsesTimingStatus(eventType, gjson.GetBytes(payload, "response.status").String())
-	if status != "" {
-		reason := ""
-		if status == CompletionStatusUpstreamError || status == CompletionStatusInterrupted {
-			upstreamError := gjson.GetBytes(payload, "response.error")
-			if !upstreamError.IsObject() {
-				upstreamError = gjson.GetBytes(payload, "error")
-			}
-			reason = responsesTimingProviderReason(upstreamError)
-		}
-		o.finishStatusAt(status, at, reason)
-	}
+	o.applyProtocolFacts(parseResponsesEvent(payload, eventType), at)
 }
 
-// 两种 Responses 传输都只采纳原始 error 对象中的数字 HTTP 状态。
-// 未知码、字符串或小数状态不能通过客户端状态/错误文本补造归因。
-func responsesTimingProviderReason(upstreamError gjson.Result) string {
-	status := 0
-	for _, field := range []string{"status_code", "status"} {
-		value := upstreamError.Get(field)
-		if value.Type == gjson.Number && value.Num >= 100 && value.Num <= 599 && value.Num == float64(int(value.Num)) {
-			status = int(value.Num)
-			break
-		}
+// applyProtocolFacts 在原有锁内更新状态，解析不能改变取消与首次终态的排序。
+func (o *responsesOutputTiming) applyProtocolFacts(facts responsesProtocolFacts, at time.Time) {
+	o.observed = o.observed || facts.observed
+	o.audioSeen = o.audioSeen || facts.audioSeen
+	for _, output := range facts.outputs {
+		o.output(output.kind, output.token, at)
 	}
-	return ServiceStatusProviderReason(status, upstreamError.Get("code").String())
-}
-
-func nonemptyTimingString(v gjson.Result) bool {
-	return v.Type == gjson.String && v.String() != ""
-}
-
-func (o *responsesOutputTiming) observePart(part gjson.Result, token bool, at time.Time) {
-	switch part.Get("type").String() {
-	case "output_text", "text", "refusal":
-		if token && (nonemptyTimingString(part.Get("text")) || nonemptyTimingString(part.Get("refusal"))) {
-			o.output("text", true, at)
-		}
-	case "reasoning_text", "summary_text":
-		if token && nonemptyTimingString(part.Get("text")) {
-			o.output("reasoning", true, at)
-		}
-	case "output_audio", "audio":
-		if nonemptyTimingString(part.Get("data")) || nonemptyTimingString(part.Get("audio")) {
-			o.output("audio", false, at)
-		}
-	case "output_image", "image":
-		if nonemptyTimingString(part.Get("image_url")) || nonemptyTimingString(part.Get("data")) {
-			o.output("image", false, at)
-		}
-	}
-}
-
-func (o *responsesOutputTiming) observeItem(item gjson.Result, token bool, at time.Time) {
-	switch item.Get("type").String() {
-	case "message":
-		for _, part := range item.Get("content").Array() {
-			o.observePart(part, token, at)
-		}
-	case "reasoning":
-		if token {
-			for _, part := range item.Get("summary").Array() {
-				o.observePart(part, true, at)
-			}
-			for _, part := range item.Get("content").Array() {
-				o.observePart(part, true, at)
-			}
-		}
-	case "function_call", "custom_tool_call", "mcp_call":
-		if token && (nonemptyTimingString(item.Get("arguments")) || nonemptyTimingString(item.Get("input"))) {
-			o.output("tool", true, at)
-		}
-	case "tool_search_call":
-		arguments := item.Get("arguments")
-		if token && (nonemptyTimingString(arguments) || (arguments.IsObject() && len(arguments.Map()) > 0)) {
-			o.output("tool", true, at)
-		}
-	case "code_interpreter_call":
-		if token && nonemptyTimingString(item.Get("code")) {
-			o.output("tool", true, at)
-		}
-	case "shell_call":
-		if token {
-			for _, command := range item.Get("action.commands").Array() {
-				if nonemptyTimingString(command) {
-					o.output("tool", true, at)
-					break
-				}
-			}
-		}
-	case "image_generation_call":
-		if nonemptyTimingString(item.Get("result")) {
-			o.output("image", false, at)
-		}
-	case "compaction", "compaction_summary":
-		if nonemptyTimingString(item.Get("encrypted_content")) {
-			o.output("compaction", false, at)
-		}
+	if facts.terminalStatus != "" {
+		o.finishStatusAt(facts.terminalStatus, at, facts.terminalReason)
 	}
 }
 
@@ -340,24 +188,7 @@ func (o *responsesOutputTiming) observeJSON(payload []byte, at time.Time) {
 	if o.ctx != nil && errors.Is(o.ctx.Err(), context.Canceled) {
 		o.finishStatus(CompletionStatusClientDisconnected)
 	}
-	compact := gjson.GetBytes(payload, "object").String() == "response.compaction"
-	for _, item := range gjson.GetBytes(payload, "output").Array() {
-		if compact && item.Get("type").String() != "compaction" && item.Get("type").String() != "compaction_summary" {
-			continue
-		}
-		o.observeItem(item, true, at)
-	}
-	if compact {
-		o.finishStatusAt(CompletionStatusCompleted, at, "")
-	}
-	switch gjson.GetBytes(payload, "status").String() {
-	case "completed":
-		o.finishStatusAt(CompletionStatusCompleted, at, "")
-	case "failed":
-		o.finishStatusAt(CompletionStatusUpstreamError, at, responsesTimingProviderReason(gjson.GetBytes(payload, "error")))
-	case "incomplete", "cancelled", "canceled":
-		o.finishStatusAt(CompletionStatusInterrupted, at, "unclassified")
-	}
+	o.applyProtocolFacts(parseResponsesJSON(payload), at)
 }
 
 func (o *responsesOutputTiming) confirmNoAudio(payload []byte) {
