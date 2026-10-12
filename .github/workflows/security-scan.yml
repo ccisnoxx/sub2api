@@ -148,6 +148,9 @@ jobs:
           python-version: '3.12.13'
       - name: Check audit exceptions
         run: |
+          python tools/test_check_pnpm_audit_exceptions.py
+          pnpm --dir frontend run test:xlsx-write-only
+          pnpm --dir frontend run check:xlsx-write-only
           python tools/check_pnpm_audit_exceptions.py \
             --audit frontend/audit.json \
             --exceptions .github/audit-exceptions.yml
