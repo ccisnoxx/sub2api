@@ -106,25 +106,25 @@ func TestServiceStatusRepositoryAtomicEventsRepeatAndRecovery(t *testing.T) {
 	statusEnableSQL(t, now)
 	ctx := context.Background()
 	statusInsertOps(t, gid, now.Add(-12*time.Minute), 5, "upstream_error", "provider_5xx")
-	require.NoError(t, r.Aggregate(ctx, now.Add(-11*time.Minute)))
-	require.NoError(t, r.Aggregate(ctx, now.Add(-11*time.Minute)))
+	require.NoError(t, r.Aggregate(ctx, now.Add(-11*time.Minute), time.Now()))
+	require.NoError(t, r.Aggregate(ctx, now.Add(-11*time.Minute), time.Now()))
 	var count int
 	require.NoError(t, integrationDB.QueryRow(`SELECT count(*) FROM service_status_incidents`).Scan(&count))
 	require.Zero(t, count)
 	statusInsertOps(t, gid, now.Add(-11*time.Minute), 5, "upstream_error", "provider_5xx")
-	require.NoError(t, r.Aggregate(ctx, now.Add(-10*time.Minute)))
+	require.NoError(t, r.Aggregate(ctx, now.Add(-10*time.Minute), time.Now()))
 	phase, _ := statusIncidentPhaseSQL(t)
 	require.Equal(t, "detected", phase)
 	// 故障旧样本移出窗口；没有新请求不能恢复。
-	require.NoError(t, r.Aggregate(ctx, now.Add(-5*time.Minute)))
+	require.NoError(t, r.Aggregate(ctx, now.Add(-5*time.Minute), time.Now()))
 	phase, _ = statusIncidentPhaseSQL(t)
 	require.Equal(t, "awaiting_data", phase)
 	for j := 0; j < 3; j++ {
 		at := now.Add(time.Duration(j-5) * time.Minute)
 		statusInsertSuccess(t, gid, at, 5)
 		end := at.Add(time.Minute)
-		require.NoError(t, r.Aggregate(ctx, end))
-		require.NoError(t, r.Aggregate(ctx, end))
+		require.NoError(t, r.Aggregate(ctx, end, time.Now()))
+		require.NoError(t, r.Aggregate(ctx, end, time.Now()))
 		phase, recovery := statusIncidentPhaseSQL(t)
 		if j < 2 {
 			require.Equal(t, "recovering", phase)
@@ -148,7 +148,7 @@ func TestServiceStatusRepositoryAtomicEventsRepeatAndRecovery(t *testing.T) {
 	require.NoError(t, integrationDB.QueryRow(`SELECT service_status_observation,created_at FROM usage_logs WHERE group_id=$1 LIMIT 1`, gid).Scan(&raw, &at))
 	_, err = integrationDB.Exec(`INSERT INTO ops_error_logs(group_id,model,requested_model,error_phase,error_type,created_at,service_status_observation) VALUES($1,'gpt','gpt','upstream','recovered',$2,$3)`, gid, at, string(raw))
 	require.NoError(t, err)
-	require.NoError(t, r.Aggregate(ctx, now.Add(-2*time.Minute)))
+	require.NoError(t, r.Aggregate(ctx, now.Add(-2*time.Minute), time.Now()))
 	require.NoError(t, integrationDB.QueryRow(`SELECT SUM(success) FROM service_status_facts_1m WHERE group_id=$1`, gid).Scan(&success))
 	require.Equal(t, int64(15), success)
 }
@@ -157,7 +157,7 @@ func TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes(t *testi
 	statusEnableSQL(t, now)
 	statusInsertUnscopedLegacyOps(t, now.Add(-time.Minute+30*time.Second))
 	ctx := context.Background()
-	require.NoError(t, r.Aggregate(ctx, now))
+	require.NoError(t, r.Aggregate(ctx, now, time.Now()))
 	var through time.Time
 	require.NoError(t, integrationDB.QueryRow(`SELECT observed_through FROM service_status_watermark`).Scan(&through))
 	const factsQuery = `SELECT COALESCE(jsonb_agg(to_jsonb(f) ORDER BY bucket_start,platform,group_id,requested_model),'[]'::jsonb)::text FROM service_status_facts_1m f`
@@ -166,7 +166,7 @@ func TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes(t *testi
 	require.NotEqual(t, "[]", factsBefore, "受控旧源必须使扫描前已有事实")
 	_, err := integrationDB.Exec(`INSERT INTO ops_error_logs(group_id,model,error_phase,error_type,created_at) SELECT $1,'overflow','upstream','test',$2 FROM generate_series(1,50001)`, gid, now.Add(-time.Minute))
 	require.NoError(t, err)
-	err = r.Aggregate(ctx, now)
+	err = r.Aggregate(ctx, now, time.Now())
 	require.ErrorIs(t, err, service.ErrServiceStatusObservationLimit)
 	var after time.Time
 	var code string
@@ -185,7 +185,7 @@ func TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes(t *testi
 	require.True(t, held)
 	short, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	require.NoError(t, r.Aggregate(short, now))
+	require.NoError(t, r.Aggregate(short, now, time.Now()))
 	require.NoError(t, lock.Rollback())
 	rowlock, err := integrationDB.BeginTx(ctx, nil)
 	require.NoError(t, err)
@@ -207,7 +207,7 @@ func TestServiceStatusRepositoryLimitRollsBackAndLeaderConfigSerializes(t *testi
 	errs := make(chan error, 2)
 	for j := 0; j < 2; j++ {
 		wg.Add(1)
-		go func() { defer wg.Done(); errs <- r.Aggregate(ctx, now) }()
+		go func() { defer wg.Done(); errs <- r.Aggregate(ctx, now, time.Now()) }()
 	}
 	wg.Wait()
 	close(errs)
@@ -227,7 +227,7 @@ func TestServiceStatusRepositoryTTLFilterLimitAndPersistentSourceGap(t *testing.
 	require.NoError(t, err)
 	_, err = integrationDB.Exec(`UPDATE service_status_config SET enabled=false`)
 	require.NoError(t, err)
-	require.NoError(t, r.Aggregate(ctx, now))
+	require.NoError(t, r.Aggregate(ctx, now, time.Now()))
 	var count int
 	require.NoError(t, integrationDB.QueryRow(`SELECT count(*) FROM service_status_facts_1m`).Scan(&count))
 	require.Zero(t, count)
@@ -244,7 +244,7 @@ func TestServiceStatusRepositoryTTLFilterLimitAndPersistentSourceGap(t *testing.
 	require.Empty(t, s.Incidents)
 	require.Zero(t, s.OpenIncidentCount)
 	require.NoError(t, r.RecordSourceError(ctx, now.Add(-time.Minute)))
-	require.NoError(t, r.Aggregate(ctx, now))
+	require.NoError(t, r.Aggregate(ctx, now, time.Now()))
 	s, err = r.Snapshot(ctx, "24h", "openai")
 	require.NoError(t, err)
 	require.Equal(t, "source_error", s.UnknownReason)
@@ -263,7 +263,7 @@ func TestServiceStatusRepositoryMissingModelIsVisibleGlobalGap(t *testing.T) {
 	row := statusRow(uuid.NewString(), "upstream_error", "provider_5xx", at)
 	_, err := integrationDB.Exec(`INSERT INTO ops_error_logs(group_id,model,requested_model,error_phase,error_type,created_at,service_status_observation) VALUES($1,'','','upstream','upstream_error',$2,$3)`, gid, at, string(row.metadata))
 	require.NoError(t, err)
-	require.NoError(t, r.Aggregate(context.Background(), now))
+	require.NoError(t, r.Aggregate(context.Background(), now, time.Now()))
 	s, err := r.Snapshot(context.Background(), "24h", "openai")
 	require.NoError(t, err)
 	require.Equal(t, "scope_unavailable", s.UnknownReason)
@@ -287,7 +287,7 @@ func TestServiceStatusRepositoryGroupVisibilityRestartsRecovery(t *testing.T) {
 	phase, count := statusIncidentPhaseSQL(t)
 	require.Equal(t, "awaiting_data", phase)
 	require.Zero(t, count, "组失去可见性必须立即清零连续恢复")
-	require.NoError(t, r.Aggregate(ctx, now.Add(time.Minute)))
+	require.NoError(t, r.Aggregate(ctx, now.Add(time.Minute), time.Now()))
 	_, err = integrationDB.ExecContext(ctx, `UPDATE groups SET status='active' WHERE id=$1`, gid)
 	require.NoError(t, err)
 	var visibleAt time.Time
@@ -297,7 +297,7 @@ func TestServiceStatusRepositoryGroupVisibilityRestartsRecovery(t *testing.T) {
 	for j := 1; j <= 3; j++ {
 		at := recoveryStart.Add(time.Duration(j-1)*time.Minute + time.Second)
 		statusInsertSuccess(t, gid, at, 5)
-		require.NoError(t, r.Aggregate(ctx, at.Add(time.Minute)))
+		require.NoError(t, r.Aggregate(ctx, at.Add(time.Minute), time.Now()))
 		phase, count = statusIncidentPhaseSQL(t)
 		if j < 3 {
 			require.Equal(t, "recovering", phase)
@@ -331,7 +331,7 @@ func TestServiceStatusRepositoryEmptyEnabledPlatformIsUnknown(t *testing.T) {
 	_, err = integrationDB.ExecContext(ctx, `UPDATE service_status_config SET platforms='["openai","anthropic"]',observation_starts=$1`, string(epochs))
 	require.NoError(t, err)
 	statusInsertSuccess(t, gid, now.Add(-time.Minute), 5)
-	require.NoError(t, r.Aggregate(ctx, now))
+	require.NoError(t, r.Aggregate(ctx, now, time.Now()))
 	snap, err := r.Snapshot(ctx, "24h", "")
 	require.NoError(t, err)
 	for _, leaf := range snap.Scopes {
@@ -395,7 +395,7 @@ func TestServiceStatusRepositoryFrozenIncidentHasNullRates(t *testing.T) {
 		}
 	}
 	require.True(t, foundFrozen)
-	require.NoError(t, r.Aggregate(ctx, snapshotMinute))
+	require.NoError(t, r.Aggregate(ctx, snapshotMinute, time.Now()))
 	snap, err := r.Snapshot(ctx, "24h", "openai")
 	require.NoError(t, err)
 	require.Contains(t, snap.Gaps, "scope_unavailable", "旧源的全站缺口不得被事件冻结掩盖")
@@ -520,7 +520,7 @@ func TestServiceStatusRepositoryGroupPlatformOwnerAndNewConcretePlatforms(t *tes
 	metadata := statusRow(uuid.NewString(), "upstream_error", "provider_5xx", now.Add(-time.Minute+2*time.Second)).metadata
 	_, err = integrationDB.ExecContext(ctx, `INSERT INTO ops_error_logs(group_id,platform,model,requested_model,error_phase,error_type,created_at,service_status_observation) VALUES($1,'openai','missing-account','missing-account','upstream','test',$2,$3)`, composite, now.Add(-time.Minute+2*time.Second), string(metadata))
 	require.NoError(t, err)
-	require.NoError(t, r.Aggregate(ctx, now))
+	require.NoError(t, r.Aggregate(ctx, now, time.Now()))
 	for _, platform := range []string{"openai", "command_code", "cline"} {
 		var success int
 		require.NoError(t, integrationDB.QueryRowContext(ctx, `SELECT SUM(success) FROM service_status_facts_1m WHERE platform=$1`, platform).Scan(&success))
