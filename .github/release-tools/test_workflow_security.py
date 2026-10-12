@@ -12,12 +12,11 @@ WORKFLOWS = Path(__file__).resolve().parents[1] / "workflows"
 READ = {"contents": "read"}
 # 每项额外授权的实际 API/Git 用途见 docs/ci/CI-005.md。
 JOB_PERMISSIONS = {
-    ("release.yml", "prepare"): {**READ, "actions": "read", "checks": "read", "packages": "read"},
-    ("release.yml", "release"): {"contents": "write", "packages": "write", "actions": "read", "checks": "read"},
-    ("personal-release.yml", "prepare"): {"contents": "write", "actions": "write", "checks": "read", "packages": "read"},
+    ("release.yml", "prepare"): {**READ, "actions": "read", "packages": "read"},
+    ("release.yml", "release"): {"contents": "write", "packages": "write", "actions": "read"},
+    ("personal-release.yml", "prepare"): {"contents": "write", "actions": "write", "packages": "read"},
     ("sync-upstream.yml", "sync"): {"contents": "write", "pull-requests": "write", "actions": "write"},
-    ("personal-ci.yml", "binding"): {**READ, "pull-requests": "read", "actions": "read"},
-    ("personal-ci.yml", "full-ci-certified"): {**READ, "actions": "read"},
+    ("personal-ci.yml", "binding"): {**READ, "pull-requests": "read"},
     ("personal-ci.yml", "personal-ready"): {**READ, "pull-requests": "read"},
 }
 EXCLUSIONS = {
@@ -91,15 +90,16 @@ def policy_errors(name, workflow):
     if name == "release.yml":
         if workflow["concurrency"] != {"group": RELEASE_GROUP, "cancel-in-progress": "false"}:
             errors.append("正式发布和 dry-run 必须隔离并发，禁止取消运行中发布")
-        if set(events) != {"push", "workflow_dispatch"} or events["push"]["tags"] != ["v*-klno.*-tps.*"]:
-            errors.append("Release 只能由正式标签或维护者手动触发")
+        if set(events) != {"workflow_dispatch"}:
+            errors.append("Release 只能由维护者手动触发")
     if name == "personal-release.yml":
         gate = workflow["jobs"]["prepare"].get("if", "")
-        for required in ("github.event.workflow_run.head_repository.full_name == github.repository", "github.event.workflow_run.head_branch == 'personal'", "github.event.workflow_run.event == 'push'", "github.event.workflow_run.event == 'workflow_dispatch'"):
+        for required in ("github.repository == 'ccisnoxx/sub2api'", "github.ref == 'refs/heads/main'",
+                         "vars.PERSONAL_RELEASE_ENABLED == 'true'"):
             if required not in gate:
-                errors.append("Personal release 必须拒绝 fork/PR workflow_run")
-        if set(events) != {"workflow_run", "workflow_dispatch"} or workflow["concurrency"].get("cancel-in-progress") != "false":
-            errors.append("Personal release 禁止 PR 触发或取消运行中发布")
+                errors.append("Personal release 必须绑定本 fork/main 和维护者发布开关")
+        if set(events) != {"workflow_dispatch"} or workflow["concurrency"].get("cancel-in-progress") != "false":
+            errors.append("Personal release 只能手动触发，禁止取消运行中发布")
     if name == "sync-upstream.yml":
         if set(events) != {"schedule", "workflow_dispatch"} or "github.ref == 'refs/heads/main'" not in workflow["jobs"]["sync"].get("if", ""):
             errors.append("同步写权限只能用于 main 调度")
@@ -169,7 +169,7 @@ class WorkflowSecurityTests(unittest.TestCase):
     def test_fork_release_gate_and_pr_trigger_regressions_are_rejected(self):
         flow = load("personal-release.yml")
         flow["jobs"]["prepare"]["if"] = "github.event.workflow_run.conclusion == 'success'"
-        self.assertTrue(any("fork/PR" in e for e in policy_errors("personal-release.yml", flow)))
+        self.assertTrue(any("fork/main" in e for e in policy_errors("personal-release.yml", flow)))
         flow = load("release.yml")
         flow["on"]["pull_request"] = {}
         self.assertTrue(any("只能" in e for e in policy_errors("release.yml", flow)))

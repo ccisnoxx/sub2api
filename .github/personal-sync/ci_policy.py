@@ -1,4 +1,4 @@
-"""CI 路径分类、完整检查证据复用与最终聚合；不执行远端写入。"""
+"""CI 路径分类、手动完整检查与结果聚合；不执行远端写入。"""
 
 import argparse
 import json
@@ -6,7 +6,7 @@ import os
 from pathlib import Path, PurePosixPath
 import subprocess
 
-from sync import REPOSITORY, SHA, SyncError, ancestor, gh_json, git
+from sync import SHA, SyncError, git
 
 FULL_JOBS = {
     "existing-ci / shell", "existing-ci / test", "existing-ci / frontend",
@@ -14,7 +14,7 @@ FULL_JOBS = {
     "existing-security / backend-security", "existing-security / frontend-security",
     "sync-contracts", "full-ci-certified", "personal-ready",
 }
-# 只对已确认的局部展示/无状态辅助合同开放低风险；新增运行路径默认 Full。
+# 只对已确认的局部展示/无状态辅助合同标记低风险；风险标记供维护者选择验证。
 # 账号、用户、配置和凭据经常不含敏感关键词，不能以名称未命中推断安全。
 LOW_RISK_PATHS = {
     "backend/internal/pkg/pagination/pagination.go",
@@ -51,7 +51,7 @@ def classify(paths):
         elif path.startswith((".github/", "tools/")):
             flags["tooling"] = flags["high_risk"] = True
         else:
-            # 未归类的构建、配置或运行文件必须人工复核和 Full，不能冒充文档。
+            # 未归类的构建、配置或运行文件需要人工复核，不能冒充文档。
             flags["tooling"] = flags["high_risk"] = True
         flags["migrations"] |= path.startswith(("backend/migrations/", "backend/ent/migrate/"))
         flags["workflows"] |= path.startswith(".github/workflows/")
@@ -70,16 +70,6 @@ def changed_paths(base, source):
     return [p for p in result.stdout.decode().split("\0") if p]
 
 
-def pages(path, key):
-    rows = []
-    for page in range(1, 101):
-        data = gh_json("api", f"repos/{REPOSITORY}/{path}&per_page=100&page={page}")[key]
-        rows.extend(data)
-        if len(data) < 100:
-            return rows
-    raise SyncError("CI 证据分页超限")
-
-
 def successful_jobs(jobs, required):
     return all(any(j["name"] == name and j["status"] == "completed" and
                    j["conclusion"] == "success" for j in jobs) for name in required)
@@ -87,42 +77,6 @@ def successful_jobs(jobs, required):
 
 def ci_title(source, base, request):
     return f"Personal CI | {source} | base {base} | request {request}"
-
-
-def is_full_run(run, source, base, workflow_id):
-    return (run["workflow_id"] == workflow_id and run["path"] == ".github/workflows/personal-ci.yml" and
-            run["repository"]["full_name"] == REPOSITORY and
-            run["head_repository"]["full_name"] == REPOSITORY and run["head_sha"] == source and
-            run["event"] in {"pull_request", "workflow_dispatch", "push"} and
-            run["status"] == "completed" and run["conclusion"] == "success" and
-            run["display_title"] in {ci_title(source, base, "full"), ci_title(source, base, "auto")})
-
-
-def full_evidence(source, base):
-    workflow = gh_json("api", f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml")
-    for run in pages(f"actions/workflows/personal-ci.yml/runs?head_sha={source}", "workflow_runs"):
-        if (str(run["id"]) == os.environ.get("GITHUB_RUN_ID") or
-            not is_full_run(run, source, base, workflow["id"])):
-            continue
-        jobs = pages(f"actions/runs/{run['id']}/jobs?filter=latest", "jobs")
-        if successful_jobs(jobs, FULL_JOBS):
-            return str(run["id"])
-    return ""
-
-
-def merge_candidate(source, before=None):
-    parents = git("rev-list", "--parents", "-n", "1", source).split()[1:]
-    # 只复用保留历史且无合并内容变更的普通 merge；squash/rebase 和冲突解决重新 Full。
-    if len(parents) != 2 or (before is not None and parents[0] != before) or not ancestor(parents[0], parents[1]):
-        return None
-    if git("rev-parse", f"{source}^{{tree}}") != git("rev-parse", f"{parents[1]}^{{tree}}"):
-        return None
-    return parents[1], parents[0]
-
-
-def merge_evidence(source, before):
-    candidate = merge_candidate(source, before)
-    return full_evidence(*candidate) if candidate else ""
 
 
 def plan(event, event_name, source, requested="quick", personal=False):
@@ -139,33 +93,16 @@ def plan(event, event_name, source, requested="quick", personal=False):
         raise SyncError("手动 Quick 必须指定不同于候选的有效 base SHA；完整检查请选择 full")
     paths = changed_paths(base, source)
     flags = classify(paths)
-    mode, evidence = requested, ""
+    # PR、push 和机器人反馈都保持 Quick，Full 只接受明确的手动请求。
+    mode = requested if event_name == "workflow_dispatch" else "quick"
     check_only = personal and event_name == "pull_request" and pr.get("head", {}).get("ref", "").startswith(
         ("codex/sync-klno-", "codex/verify-personal-ci-"))
-    if personal:
-        explicitly_full = (event_name == "workflow_dispatch" and requested == "full") or (
-            event_name == "pull_request" and (event.get("action") == "ready_for_review" or
-            (event.get("action") == "labeled" and event.get("label", {}).get("name") == "full-ci")))
-        docs_only = bool(paths) and all(is_document(p) for p in paths)
-        if check_only:
-            mode, evidence = "quick", full_evidence(source, base)
-        elif explicitly_full and not (event.get("action") == "ready_for_review" and docs_only):
-            evidence = full_evidence(source, base)
-            mode = "quick" if evidence else "full"
-        elif event_name == "push":
-            if not docs_only:
-                evidence = merge_evidence(source, base)
-            mode = "quick" if evidence or docs_only else "full"
-        else:
-            mode = "quick"
-            if flags["high_risk"]:
-                evidence = full_evidence(source, base)
     return {**flags, "mode": mode, "source_sha": source, "diff_base": base,
-            "paths": paths, "evidence_run_id": evidence,
+            "paths": paths,
             "check_only": check_only,
-            "require_full": personal and (check_only or flags["high_risk"] or mode == "full"),
-            "scan_go": not evidence and (mode == "full" or flags["go_dependencies"]),
-            "scan_frontend": not evidence and (mode == "full" or flags["frontend_dependencies"])}
+            "require_full": personal and mode == "full",
+            "scan_go": mode == "full" or flags["go_dependencies"],
+            "scan_frontend": mode == "full" or flags["frontend_dependencies"]}
 
 
 def require_results(results, selected):
@@ -205,23 +142,16 @@ def main():
     value = json.loads(os.environ["CI_PLAN"])
     results = json.loads(os.environ["RESULTS"])
     if args.command == "certify":
-        if value["mode"] == "full":
-            require_results(results, {"binding", "existing-ci", "existing-security", "sync-contracts"})
-        else:
-            expected = (merge_evidence(value["source_sha"], value["diff_base"])
-                        if os.environ["GITHUB_EVENT_NAME"] == "push" else
-                        full_evidence(value["source_sha"], value["diff_base"]))
-            if not expected:
-                raise SyncError("高风险候选尚无完整检查证据；请 Ready、添加 full-ci 标签或手动 Full")
-            if value["evidence_run_id"] and expected != value["evidence_run_id"]:
-                raise SyncError("完整检查证据已变化或不再有效")
+        if value["mode"] != "full" or os.environ["GITHUB_EVENT_NAME"] != "workflow_dispatch":
+            raise SyncError("完整检查认证只接受手动 Full，不接受 Quick 或自动事件")
+        require_results(results, {"binding", "existing-ci", "existing-security", "sync-contracts"})
     elif args.personal:
         selected = {"binding"} if value["check_only"] else {"binding", "existing-ci"}
         if not value["check_only"] and (value["scan_go"] or value["scan_frontend"]):
             selected.add("existing-security")
         if not value["check_only"] and (value["mode"] == "full" or value["tooling"] or value["workflows"]):
             selected.add("sync-contracts")
-        if value["require_full"] or value["evidence_run_id"]:
+        if value["require_full"]:
             selected.add("full-ci-certified")
         require_results(results, selected)
     else:

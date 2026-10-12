@@ -21,9 +21,9 @@ class CIConcurrencyTests(unittest.TestCase):
                  ("pull_request", "labeled", "codex/verify-personal-ci-v1", "full-ci", "", "quick"),
                  ("workflow_dispatch", "", "", "", "full", "full"),
                  ("workflow_dispatch", "", "", "", "quick", "quick"),
-                 ("pull_request", "ready_for_review", "codex/feature", "", "", "full"),
+                 ("pull_request", "ready_for_review", "codex/feature", "", "", "quick"),
                  ("pull_request", "synchronize", "codex/feature", "", "", "quick"),
-                 ("push", "", "", "", "", "full")]
+                 ("push", "", "", "", "", "quick")]
         for event, action, head, label, mode, expected in cases:
             with self.subTest(event=event, action=action, head=head):
                 context = {"github": SimpleNamespace(event_name=event, head_ref=head,

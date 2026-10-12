@@ -231,7 +231,7 @@ class SupplyChainTest(unittest.TestCase):
     def test_workflow_preserves_permissions_and_generates_dry_run_materials(self):
         workflow = yaml.safe_load((ROOT / '.github/workflows/release.yml').read_text())
         self.assertEqual(workflow['permissions'], {'contents': 'read'})
-        self.assertEqual(workflow['jobs']['release']['permissions'], {'contents': 'write', 'packages': 'write', 'actions': 'read', 'checks': 'read'})
+        self.assertEqual(workflow['jobs']['release']['permissions'], {'contents': 'write', 'packages': 'write', 'actions': 'read'})
         steps = workflow['jobs']['release']['steps']
         upload = next(s for s in steps if s.get('with', {}).get('name', '').startswith('release-supply-chain-'))
         self.assertNotIn('if', upload)

@@ -4,13 +4,13 @@ run-name: Personal CI | ${{ inputs.candidate_sha || github.event.pull_request.he
 on:
   pull_request:
     branches: [personal]
-    types: [opened, synchronize, reopened, ready_for_review, labeled]
+    types: [opened, synchronize, reopened]
   push:
     branches: [personal]
   workflow_dispatch:
     inputs:
       mode:
-        description: '最终候选运行 full；中间反馈运行 quick'
+        description: '准备发布时手动运行 full；开发反馈运行 quick'
         type: choice
         options: [quick, full]
         default: full
@@ -28,7 +28,7 @@ on:
         required: false
 
 concurrency:
-  group: personal-ci-${{ inputs.pr_number || github.event.pull_request.number || github.ref }}-${{ (github.event_name != 'pull_request' || !startsWith(github.head_ref, 'codex/sync-klno-') && !startsWith(github.head_ref, 'codex/verify-personal-ci-')) && (github.event_name == 'workflow_dispatch' && inputs.mode == 'full' || github.event.action == 'ready_for_review' || github.event.action == 'labeled' && github.event.label.name == 'full-ci' || github.event_name == 'push') && 'full' || 'quick' }}
+  group: personal-ci-${{ inputs.pr_number || github.event.pull_request.number || github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'full' && 'full' || 'quick' }}
   cancel-in-progress: true
 
 permissions:
@@ -46,7 +46,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      actions: read
     outputs:
       source_sha: ${{ steps.sha.outputs.source_sha }}
       plan: ${{ steps.plan.outputs.plan }}
@@ -108,12 +107,9 @@ jobs:
 
   full-ci-certified:
     name: full-ci-certified
-    if: always() && needs.binding.result == 'success' && (fromJSON(needs.binding.outputs.plan).require_full || fromJSON(needs.binding.outputs.plan).evidence_run_id != '')
+    if: always() && needs.binding.result == 'success' && fromJSON(needs.binding.outputs.plan).require_full
     needs: [binding, existing-ci, existing-security, sync-contracts]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: read
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:

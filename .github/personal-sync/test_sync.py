@@ -228,7 +228,7 @@ class GitTests(unittest.TestCase):
 
 
 class DispatchTests(unittest.TestCase):
-    def test_running_quick_does_not_suppress_required_full_dispatch(self):
+    def test_running_quick_is_reused_without_another_dispatch(self):
         candidate = {"branch": "codex/example", "candidate_sha": "a" * 40,
                      "base_sha": "b" * 40, "pr_number": 12}
         quick = {"display_title": f"Personal CI | {'a' * 40} | base {'b' * 40} | request quick",
@@ -236,7 +236,8 @@ class DispatchTests(unittest.TestCase):
                  "conclusion": None, "html_url": "quick"}
         with patch.object(sync, "gh_json", return_value={"workflow_runs": [quick]}), patch.object(sync, "run") as call:
             sync.dispatch_ci(candidate)
-            call.assert_called_once()
+            call.assert_not_called()
+            self.assertEqual(candidate["ci_run"], "quick")
 
     def test_dispatch_uses_candidate_branch_and_complete_shas(self):
         candidate = {"branch": "codex/example", "candidate_sha": "a" * 40,
@@ -244,7 +245,7 @@ class DispatchTests(unittest.TestCase):
         with patch.object(sync, "gh_json", return_value={"workflow_runs": []}), patch.object(sync, "run") as call:
             sync.dispatch_ci(candidate)
         args = call.call_args.args
-        self.assertIn("mode=full", args)
+        self.assertIn("mode=quick", args)
         self.assertIn("candidate_sha=" + "a" * 40, args)
         self.assertIn("base_sha=" + "b" * 40, args)
         self.assertEqual(args[args.index("--ref") + 1], "codex/example")
@@ -257,10 +258,9 @@ class DispatchTests(unittest.TestCase):
         with patch.object(sync, "gh_json", return_value={"workflow_runs": [old]}), patch.object(sync, "run") as call:
             sync.dispatch_ci(candidate)
             call.assert_called_once()
-        old["display_title"] = f"Personal CI | {'a' * 40} | base {'b' * 40} | request full"
+        old["display_title"] = f"Personal CI | {'a' * 40} | base {'b' * 40} | request quick"
         with patch.object(sync, "gh_json", return_value={"workflow_runs": [old]}), patch.object(sync, "run") as call:
-            with patch("ci_policy.full_evidence", return_value="123"):
-                self.assertEqual(sync.dispatch_ci(candidate)["ci_run"], "old")
+            self.assertEqual(sync.dispatch_ci(candidate)["ci_run"], "old")
             call.assert_not_called()
 
 

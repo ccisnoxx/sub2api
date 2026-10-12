@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "personal-sync"))
 from sync import REPOSITORY, SHA, SyncError, UPSTREAM, assert_base, git, source_at
-from ci_policy import FULL_JOBS, ci_title, is_full_run, merge_candidate, successful_jobs
+from ci_policy import FULL_JOBS, ci_title, successful_jobs
 
 PERSONAL_TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-klno\.(0|[1-9][0-9]*)-tps\.([1-9][0-9]*)")
 IMAGE = "ghcr.io/ccisnoxx/sub2api"
@@ -58,36 +58,14 @@ def trusted_ci(run, sha, workflow_id):
             and run["head_repository"]["full_name"] == REPOSITORY
             and run["head_branch"] == "personal" and run["head_sha"] == sha
             and run["status"] == "completed" and run["conclusion"] == "success"
-            and run["event"] in ("push", "workflow_dispatch")
-            and run["display_title"] in {ci_title(sha, sha, "full"), ci_title(sha, sha, "auto")})
+            and run["event"] == "workflow_dispatch"
+            and run["display_title"] == ci_title(sha, sha, "full"))
 
 
-def current_full(source, base, workflow_id, exclude_id):
-    roots = pages(f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?head_sha={source}", "workflow_runs")
-    for root in roots:
-        if root["id"] != exclude_id and is_full_run(root, source, base, workflow_id):
-            root_jobs = pages(f"repos/{REPOSITORY}/actions/runs/{root['id']}/jobs?filter=latest", "jobs")
-            if successful_jobs(root_jobs, FULL_JOBS):
-                return True
-    return False
-
-
-def release_evidence(run, sha, workflow_id):
-    """由可信 main 工具实时核对 Full；认证 marker 只用于识别入口。"""
+def release_evidence(run):
+    """核对已绑定手动运行的全部必要 job，不依赖分支保护或其他运行。"""
     jobs = pages(f"repos/{REPOSITORY}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
-    if not successful_jobs(jobs, {"full-ci-certified", "personal-ready"}):
-        return False
-    if successful_jobs(jobs, FULL_JOBS):
-        return True
-    if current_full(sha, sha, workflow_id, run["id"]):
-        return True
-    if run["event"] != "push":
-        return False
-    candidate = merge_candidate(sha)
-    if not candidate:
-        return False
-    head, base = candidate
-    return current_full(head, base, workflow_id, run["id"])
+    return successful_jobs(jobs, FULL_JOBS)
 
 
 def gate(sha, run_id=""):
@@ -111,28 +89,13 @@ def gate(sha, run_id=""):
         run = api(f"repos/{REPOSITORY}/actions/runs/{run_id}")
     else:
         runs = pages(f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?head_sha={sha}&branch=personal", "workflow_runs")
-        run = next((r for r in runs if trusted_ci(r, sha, workflow["id"]) and release_evidence(r, sha, workflow["id"])), None)
+        run = next((r for r in runs if trusted_ci(r, sha, workflow["id"]) and release_evidence(r)), None)
         if run is None:
-            raise SyncError("最终 personal SHA 没有可信的完整成功 CI")
+            raise SyncError("最终 personal SHA 没有可信的成功手动 Full CI")
     if not trusted_ci(run, sha, workflow["id"]):
         raise SyncError("CI 不是当前仓库、最终 personal SHA 的成功检查；PR 结果不可用于发布")
-    if run_id and not release_evidence(run, sha, workflow["id"]):
-        raise SyncError("发布必须有当前有效的 Full CI 证据；Quick 或失效的复用证据不能用于发布")
-    branch = api(f"repos/{REPOSITORY}/branches/personal")
-    required = branch["protection"]["required_status_checks"]
-    if not branch["protected"] or required["enforcement_level"] != "everyone":
-        raise SyncError("personal 保护或管理员约束被关闭")
-    if {"context": "personal-ready", "app_id": 15368} not in required["checks"]:
-        raise SyncError("personal-ready/GitHub Actions 必要保护缺失")
-    checks = pages(f"repos/{REPOSITORY}/commits/{sha}/check-runs?filter=latest", "check_runs")
-    for rule in required["checks"]:
-        matching = [c for c in checks if c["name"] == rule["context"]
-                    and (rule["app_id"] in (None, -1) or c["app"]["id"] == rule["app_id"])
-                    and c["status"] == "completed" and c["conclusion"] == "success"]
-        if rule["context"] == "personal-ready":
-            matching = [c for c in matching if c["check_suite"]["id"] == run["check_suite_id"]]
-        if not matching:
-            raise SyncError(f"最终 SHA 的实际必要检查未通过：{rule['context']}")
+    if run_id and not release_evidence(run):
+        raise SyncError("发布必须有同一次手动 Full CI 的全部成功检查；Quick、跳过或失败不能用于发布")
     return source, run
 
 

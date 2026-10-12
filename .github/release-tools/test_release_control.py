@@ -42,26 +42,12 @@ class ReleaseControlTest(unittest.TestCase):
         self.assertNotIn('if', step)
         self.assertFalse(step.get('continue-on-error', False))
 
-    def test_quick_eligibility_ignores_application_modules(self):
-        step = next(s for s in self.personal['jobs']['prepare']['steps'] if s.get('id') == 'eligibility')
-        for full in (False, True):
-            with self.subTest(full=full), tempfile.TemporaryDirectory() as directory:
-                root = Path(directory)
-                for module in ('json', 'pathlib'):
-                    (root / (module + '.py')).write_text('raise SystemExit("应用模块被执行")\n')
-                jobs = [{'jobs': [{'name': 'full-ci-certified', 'status': 'completed',
-                                  'conclusion': 'success'}] if full else []}]
-                (root / 'jobs.json').write_text(json.dumps(jobs))
-                fake = root / 'gh'
-                fake.write_text('#!/bin/sh\ncat "$RUNNER_TEMP/jobs.json"\n')
-                fake.chmod(0o755)
-                env = {'PATH': str(root) + os.pathsep + os.environ['PATH'], 'RUNNER_TEMP': str(root),
-                       'GITHUB_OUTPUT': str(root / 'output'), 'GITHUB_REPOSITORY': 'fixture/repo',
-                       'CI_RUN_ID': '123', 'PYTHONPATH': str(root), 'GH_TOKEN': 'synthetic'}
-                result = subprocess.run(['bash', '-e', '-c', step['run']], cwd=root, env=env,
-                                        text=True, capture_output=True)
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual((root / 'output').read_text(), f'full={str(full).lower()}\n')
+    def test_release_entrypoints_are_manual_and_simple_defaults_to_docker(self):
+        for name in ("personal-release.yml", "release.yml"):
+            workflow = yaml.load((ROOT / ".github/workflows" / name).read_text(), Loader=yaml.BaseLoader)
+            self.assertEqual(set(workflow["on"]), {"workflow_dispatch"})
+        self.assertIs(self.release[True]["workflow_dispatch"]["inputs"]["simple_release"]["default"], True)
+        self.assertIn("github.ref == 'refs/heads/main'", self.personal["jobs"]["prepare"]["if"])
 
     def test_full_install_checks_require_bound_sources_and_propagate_failures(self):
         workflow = yaml.safe_load((ROOT / '.github/workflows/backend-ci.yml').read_text())
