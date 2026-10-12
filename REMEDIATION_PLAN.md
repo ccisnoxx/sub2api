@@ -80,6 +80,19 @@
 4. 验收标准逐项核对完成；
 5. 未引入新的占位值、失效链接或未解释例外。
 
+### 3.3 当前状态核对与历史记录边界（2026-10-12）
+
+本次文档核对固定输入为 main `320f9e36cfa0f770d7cb490f9b861c3a004b7255`、personal `00fa2a3d33570e931c8cb7f483589ad7b2db35ce`。第 4、5 节的任务勾选沿用各任务已约定的准备、候选或整合验收边界；第 8 节核对当前控制面、已整合应用及最终发布闭环。候选任务完成不自动等于已合并、已发布或已部署。
+
+下文记录中的“未完成”“尚未合并”“当前”“下一任务”和保护配置均描述记录当时的状态。后续完成或替代记录更新当前结论，但不改写原始失败、取消、跳过、审计异常和未验证边界。
+
+- **CI 流程：** CI-001—005 的 [PR #26](https://github.com/ccisnoxx/sub2api/pull/26)—[PR #30](https://github.com/ccisnoxx/sub2api/pull/30) 已普通合入 main；必要控制文件随后经 CI-000 同步到 personal。CI-000 已按“当前简化验收”记录关闭，旧自动 Quick/Full、strict personal-ready、周扫和十任务观察要求已被替代，不再按旧记录判定任务未完成。此次 API 回读两分支均禁止强推/删除，required checks 与 PR 审查要求为空。
+- **已整合应用：** UPSTREAM-007 已随 [PR #25](https://github.com/ccisnoxx/sub2api/pull/25) 完成基线切换；DOC-002、LEGAL-001/002、SEC-002 和 S1—S5 的必要材料以该任务完成记录及实际 personal 文件为准。原阶段 PR #14—#24 仍有开放草稿，不能写成逐个已合并，也不能仅凭 PR 开放状态认定必要材料未整合。UPSTREAM-008 已普通快进合入 personal；仅文档同步至 main。
+- **结构治理与候选：** REL-001 的 [PR #36](https://github.com/ccisnoxx/sub2api/pull/36)、ARCH-001 的 [PR #43](https://github.com/ccisnoxx/sub2api/pull/43)—[PR #47](https://github.com/ccisnoxx/sub2api/pull/47)、ARCH-004 的 [PR #48](https://github.com/ccisnoxx/sub2api/pull/48) 已合入 personal；ARCH-005 的 [PR #49](https://github.com/ccisnoxx/sub2api/pull/49) 已合入 main。LEGAL-002 的早期许可材料阻塞及 REL-001 的早期性能失败已由后续候选验收记录替代；原失败和 REL-001 合并轮 digest 校验失败仍保留，不改记为成功。
+- **安全例外差异：** personal 仅保留 owner 为 `@ccisnoxx`、到期日 `2026-11-09` 的两项精确 XLSX 例外；main 的 `.github/audit-exceptions.yml` 仍含占位 owner 和 `2026-07-02` / `2026-07-10` 已过期条目。SEC-002 的应用候选验收保持完成，两个分支整体清理尚未完成；本轮仅登记差异，不修改例外或重跑扫描。
+- **OBS 整合缺口：** OBS-001—004 已完成各自候选验收，但 [PR #31](https://github.com/ccisnoxx/sub2api/pull/31)、[PR #32](https://github.com/ccisnoxx/sub2api/pull/32)、[PR #33](https://github.com/ccisnoxx/sub2api/pull/33)、[PR #34](https://github.com/ccisnoxx/sub2api/pull/34) 仍为开放草稿，候选 head 均不是当前 personal 的祖先，相关增量未整合。当前第 8 节不据此宣称完整隐私治理和运行监控已具备；外部告警调度、通知路由和真实送达也未部署。
+- **发布与回退：** REL-001 完成的是固定历史候选的部署前验证，不能作为当前 personal SHA 的发布资格。跨 KIN `account.extra` 全业务写入的无损回退未获证明，现有部署适配仍禁止自动和显式旧镜像恢复。`PERSONAL_RELEASE_ENABLED=false`，现有三个个人 Release 均为旧基线 prerelease；ARCH-002、REL-002、REL-003 保持待办，本轮不发布、不部署。
+
 ---
 
 ## 4. 总体任务清单
@@ -382,7 +395,7 @@ docker compose config
 - 容器 OCI labels 包含 revision、source 和 version；
 - 不删除上游已有版权或许可证信息。
 
-### 历史候选记录（未完成，2026-10-10）
+### 历史候选记录（当时未完成，2026-10-10；后由 personal 应用候选验收替代）
 
 - 开始前为 `codex/doc-002-install-sources`，HEAD `e0f1643daef7847d8ff2c144de82b0ad758964ca`，工作树仅 `AM REMEDIATION_PLAN.md`；原暂存内容保留。前置 LEGAL-001 提交 `dbb4cb099f96218e7cb53040fadcd17467936541` 和验收记录已完成，[PR #16](https://github.com/ccisnoxx/sub2api/pull/16) 尚未合并，因此使用其提交作为独立候选基线。
 - 候选分支 `codex/legal-002-license-audit`，提交 `2b17e595471b0d01da7a9fb2764e41d11ed7adaf`；[草稿 PR #17](https://github.com/ccisnoxx/sub2api/pull/17) 基于 LEGAL-001 分支，仅包含本任务19个文件。根 LGPL LICENSE 字节未变，补齐官方 GPLv3 与 Vue 精确版本许可副本；实现实际分发依赖材料、归档许可/源码绑定、镜像材料运输和完整 SHA 的 Release notes。
@@ -400,7 +413,7 @@ docker compose config
 - [官方 CDN 的 v1.30.2 脚本](https://static.airwallex.com/components/sdk/v1.30.2/index.js) HTTP 200、SHA-256 `10ba0c3ea915932eef145c55c18bd102f3944692729b0920c3ba4fc3d6adf612`，但未含完整许可/版权通知，且无法仅凭 URL 将其源码绑定到 npm 包；同目录探查的 `index.js.LICENSE.txt`、`LICENSE`、`LICENSE.txt`、`NOTICE`、`index.js.map` 均为404。官方集成文档和其他 Airwallex 项目的许可不能替代这两个精确包的完整原文。
 - 本轮未取得可核实的两项官方完整许可和版权材料，因此未补充许可文件、未修改 Vite 配置或依赖，候选 HEAD 仍为 `2b17e595471b0d01da7a9fb2764e41d11ed7adaf`。补齐后再重跑最小 Release dry-run 的前置条件尚未满足，本轮未 dispatch 或重试同因失败的38113665007。解除阻塞需要 Airwallex 官方提供完整原文及明确适用于这两个版本的来源/确认；取得后保留原文字节、登记精确版本和固定来源，运行定向许可测试及真实构建，再按新 SHA 执行 Linux amd64 dry-run。LEGAL-002 继续未完成，所有任务勾选不变。
 
-### 授权停用 Airwallex 续作（未完成，2026-10-11 UTC）
+### 授权停用 Airwallex 续作（当时未完成，2026-10-11 UTC；后由 personal 应用候选验收替代）
 
 - 用户明确授权禁用 Airwallex 并移除前端 SDK 与支付入口，保留现有订单及数据库记录。续作前候选分支 `codex/legal-002-license-audit`、HEAD `2b17e595471b0d01da7a9fb2764e41d11ed7adaf`、工作树干净；LEGAL-001 基线及未合并状态不变，原工作区 `AM REMEDIATION_PLAN.md` 的暂存内容保留。
 - 已推送候选 `b165664967939b664edcb83d76adc37eb416fc3d` 到同一 [草稿 PR #17](https://github.com/ccisnoxx/sub2api/pull/17)。新增提交只处理授权停用和验收留存的35个文件；整体PR相对LEGAL-001为50个文件。服务层在配置读取及订单事务前拒绝请求，并在实例选择后拒绝真实Airwallex provider；目录及启用类型排除。历史查询、取消、退款、签名与履约、实例配置均保留，无迁移或数据删除。
@@ -967,7 +980,7 @@ python tools/check_pnpm_audit_exceptions.py \
 - [x] 控制候选完成定向测试、独立只读复核和 PR 记录，合入 main 后仅同步必要控制增量至 personal，并执行首次高风险 Full；
 - [ ] 上线后连续记录至少十个独立任务：文档约三分钟、小任务首次反馈十分钟内、普通任务最多一次 Full、无重复 Full、旧 Quick 快速取消、周扫保留。
 
-### 当前状态
+### 旧分层方案当时状态（已由当前简化验收替代）
 
 控制面 [PR #37](https://github.com/ccisnoxx/sub2api/pull/37) 已合入 main，合并提交 `cd5afc67fc83c021c72aa056c9f29277949ae4ff`；必要控制同步 [PR #38](https://github.com/ccisnoxx/sub2api/pull/38) 已合入 personal，上线合并 SHA 为 `7ebb60b2f6bf43e5f73c38e37b61de6cb5f063e6`。唯一候选 Full、安全扫描、Ready/标签/dispatch、文档 Quick、旧 Quick 取消、merge 复用及只读发布门禁已完成本轮验收。原工作区/暂存内容保留；完整证据与覆盖边界随 `docs/ci/CI-000-ROLLOUT.md` 交付。十个后续独立任务观察仍待完成，整体 CI-000 保持未勾选；不以本次验收事件充数。发布开关保持 false，未发布或部署。
 
@@ -995,7 +1008,7 @@ python tools/check_pnpm_audit_exceptions.py \
 - 上线记录 [PR #40](https://github.com/ccisnoxx/sub2api/pull/40) 已普通merge到main `083eb0e5e4fc105db4a259e48aa55cad91667e43`，文档候选 `53e11a33984d37c6816bfd932974b82d39248b7f`；[文档CI38205286430](https://github.com/ccisnoxx/sub2api/actions/runs/38205286430) success，43秒，changes/docs/ci-ready成功，其他应用/工具job按路径跳过。两份文档通过fresh独立只读复核，主记录不变，未重复Full或安全扫描。
 - 十个后续独立任务观察保持待完成；未人为删除/重跑失败远端根Full，精确binding后/certify前完成窗口、失效根拒绝及同最终SHA真实Full复用以本地合同/独立反例覆盖，真实merge复用不冒称这些现场演练。当前实现与主要真实验收子项可勾选，整体任务继续未勾选。
 
-### 后续独立任务观察
+### 旧流程后续独立任务观察（历史；不再作为完成条件）
 
 1. **ARCH-001（2026-10-12，首阶段已合入并验收，整任务未完）**：personal基础 `4cf71d60901e524daf933ba2eebd985d1d378108`，新增首次终态组件及真实返回边界回归；本地定向检查和fresh独立复核通过，固定候选 `0b6f7ea0fdca4b2a87f7e1dddaf0b69ab5850ca3` / [PR43](https://github.com/ccisnoxx/sub2api/pull/43)只一次推送；[Quick38222159383](https://github.com/ccisnoxx/sub2api/actions/runs/38222159383)整轮9分21秒，首次应用反馈8分25秒；应用/文档检查成功，仅完整证据门禁预期拒绝。前端、扫描、全库lint、部署和发布辅助job跳过。Ready唯一[Full38223491602](https://github.com/ccisnoxx/sub2api/actions/runs/38223491602) success，20分23秒，15job全success；PR43普通merge为 `08c3ebb5ef6b87a08955241c62640f1da531b084`，基础/候选父与tree已核对一致。合并后[38226219264](https://github.com/ccisnoxx/sub2api/actions/runs/38226219264) success，9分30秒，真实mode=quick引用同一Full，前端/全库lint/部署/发布辅助/扫描job跳过。认证/ready成功，无第二Full。该Quick仍重跑service包分批单测/vet/后端编译，额外重复包检查成本作为后续优化依据；本轮测试/基础设施失败0，仅缺Full证据预期门禁拒绝1；没有旧Quick需要取消，不冒称完成取消演练。完整任务分阶段推进，同一任务后续PR不另算独立观察。本条已记录首阶段真实云端结论、耗时、失败分类及合并复用；整体ARCH-001仍需后续阶段，十任务观察总项保持未勾选。
 
@@ -1241,7 +1254,7 @@ ServiceObservationEmitter
 - 不增加新的 goroutine 泄漏或 data race；
 - 取消、完成和错误优先级只有一个权威实现。
 
-### 当前推进（2026-10-12）
+### 第一阶段历史推进（2026-10-12；整体状态见第五阶段完成记录）
 
 - 本轮按计划分多个小 PR 推进第一阶段：提取每次 Responses observer 的首次终态分类与冻结，保持 HTTP/SSE/WS 接线、公开 DTO、数据库和计费解析器。协议解析/计时/用量/观测职责进一步拆分及整个任务验收仍待后续阶段，不把一个组件抽取视为整体 ARCH-001 完成。
 - 从最新 personal `4cf71d60901e524daf933ba2eebd985d1d378108` 创建隔离分支 `codex/arch-001-stream-observation`；该基础已包含 UPSTREAM-007 与 REL-001 普通合并，继续新的 CI-000 控制。原工作区分支/HEAD/暂存 blob 保留，没有发布或部署。
@@ -1249,7 +1262,7 @@ ServiceObservationEmitter
 - 七文件稳定候选 `0b6f7ea0fdca4b2a87f7e1dddaf0b69ab5850ca3` 已提交并只一次推送，[PR #43](https://github.com/ccisnoxx/sub2api/pull/43) 面向personal。fresh独立critical_reviewer对冻结差异无确认新增代码问题；分析/审查审计 `20261012T075115Z-arch-001-stream-observation-first-task-fae8018f` 已关闭并校验，无写入观测、活跃残留或异常。实际[Quick38222159383](https://github.com/ccisnoxx/sub2api/actions/runs/38222159383)应用/文档检查成功，首次应用反馈8分25秒、整轮9分21秒；仅full-ci-certified/personal-ready按预期拒绝缺Full证据，非代码/测试/扫描/基础设施失败。Ready事件唯一[Full38223491602](https://github.com/ccisnoxx/sub2api/actions/runs/38223491602) success，20分23秒，15job全success，真实mode=full且两类扫描启用通过；没有再次dispatch/re-run。PR43于2026-10-12T08:51:55Z普通merge，personal `08c3ebb5ef6b87a08955241c62640f1da531b084`两个父为基础与候选，tree逐字节一致。[合并后38226219264](https://github.com/ccisnoxx/sub2api/actions/runs/38226219264) success，9分30秒；真实mode=quick、evidence_run_id=38223491602，两类扫描关闭，full-ci-certified/personal-ready成功，无第二次Full。此Quick仍重跑整个受影响service包分批单测/vet/后端编译，额外成本保留为后续CI优化依据，不冒称仅绑定冒烟。
 - CI-000首项观察记录使用唯一任务ID ARCH-001；后续阶段只补充同一条记录，不重复凑任务数量。
 
-### 第一阶段验收
+### 第一阶段历史验收（后续职责已由第二至第五阶段完成）
 
 - [x] 第一批边界回归在原实现绿；纯首次终态组件与独立快照单测通过。
 - [x] 原mutex/AfterFunc/不同owner/用量/DTO/数据库合同保持，定向入口、异步提交、Race与独立审查通过。
@@ -1701,7 +1714,7 @@ ServiceObservationEmitter
 - 数据库升级和启动成功；
 - 核心网关吞吐和错误率没有不可接受回归。
 
-### 本轮前置检查（受阻，2026-10-11）
+### 历史前置检查（当时受阻，2026-10-11；后由最终原生验收替代）
 
 - REL-001 尚未完成。开始时分支 `codex/doc-002-install-sources`、HEAD `e0f1643daef7847d8ff2c144de82b0ad758964ca`，工作树仅 `AM REMEDIATION_PLAN.md`；原分支、HEAD、原有台账内容和暂存 blob `25c8e20e0d99304fee304b5ef1c998d66e47951a` 保留，本轮只增加本节记录。
 - 重新 fetch 后，`origin/main` 为 `c1dae6357b4de7cc11d81547013b87550c4ba586`，`origin/personal` 为 `fb3be6334d97cc1c5b3a1418ecfcf9f560530cfb`。KIN 标签对象 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d` 和 peeled commit `ca686de5e5ac14834e12701c156831abd5ec6b71` 与冻结记录一致；personal 来源三字段仍指向该基线。自动正式发布开关 `PERSONAL_RELEASE_ENABLED=false`。
@@ -1716,7 +1729,7 @@ ServiceObservationEmitter
 - 新隔离候选 `codex/rel-001-candidate` 从该 personal 基准开始；控制同步提交 `776b4887daf883776b03f6951ca25e9b277b849d` 只纳入必要 M3 控制文件、工具固定版本/对应文档，并保留 personal 原有许可、安装来源和 XLSX 安全检查。预发布 VERSION 为 `0.2.15-klno.2-tps.1-rc.1`，hash-only PyYAML 安装与 81 项发布工具测试通过；完整本轮 CI/dry-run 尚待固定最终源码后执行，不代替最终验收。
 - 维护者确认使用仓库现有合成数据库副本作为本轮输入，不接触真实生产数据。REL-001 继续验证实际镜像、三条升级/恢复路径、旧/新真实网关基本性能及告警/开关边界；未创建正式 Release、未推送 registry 或部署，任务仍未勾选。
 
-### 本轮验证结果（未通过，2026-10-11）
+### 历史验证结果（当时未通过，2026-10-11；后由最终原生验收替代）
 
 - M3 的必要 LEGAL/SOURCE 控制集成修复 [PR #35](https://github.com/ccisnoxx/sub2api/pull/35)，固定源 `a90f15759c82a397741f56abd328975682461f78`，fresh 只读复核及 [CI 38195883738](https://github.com/ccisnoxx/sub2api/actions/runs/38195883738)、[Security Scan 38195883622](https://github.com/ccisnoxx/sub2api/actions/runs/38195883622) 均通过，普通 merge 为 `b3b42f13f292851cf11c9780e6694c1bdd25b615`，parents/tree 核对成功；正式 helpers/guard 继续来自同一次可信 main checkout。
 - 隔离 personal 候选 [草稿 PR #36](https://github.com/ccisnoxx/sub2api/pull/36)，base `fb3be6334d97cc1c5b3a1418ecfcf9f560530cfb`，固定 HEAD `036ade78ee5732d0dc860c3293aa70807ec1ddf1`。源码 RC tag `rel-001-rc/v0.2.15-klno.2-tps.1-rc.1` 的 annotated 对象 `3ac07674f41eb8c012bd10bbb093c3007533807b` peeled 到该 HEAD，名称避开正式发布触发器，没有改写 tag。候选未合并或部署。
@@ -1960,20 +1973,22 @@ python tools/check_pnpm_audit_exceptions.py \
 
 只有满足以下全部条件，整个修复计划才可视为完成：
 
-- [ ] README 明确说明 fork 身份、分支职责和正确安装入口；
-- [ ] 根目录存在完整 NOTICE 或第三方来源说明；
-- [ ] 本 fork 拥有可用的私密安全报告渠道；
-- [ ] 不存在过期安全例外或占位 owner；
-- [ ] 新 `personal` 基于重新确认的 KIN 稳定版本人工重放完成；
-- [ ] 未绕过历史分叉、祖先检查或分支保护；
-- [ ] 所有数据库升级路径和回退兼容路径完成验证；
-- [ ] GitHub Actions 和关键工具版本可复现；
-- [ ] 正式产物包含许可证、NOTICE、SBOM 和源码 revision；
-- [ ] 模型目录不会因多渠道遍历顺序产生不确定结果；
-- [ ] 路由诊断和服务状态具有低样本与隐私保护；
-- [ ] 服务状态容量、清理、聚合失败和水位停滞均可监控；
-- [ ] 正式发布通过分阶段部署并保留旧稳定 tag；
-- [ ] `UPSTREAM.md`、NOTICE、`personal-source.json` 和 Release notes 相互一致。
+2026-10-12 依据 §3.3 的固定分支输入、已有任务证据和 GitHub API 核对：7 项完成，7 项待办，整个计划尚未完成。以下勾选不表示本轮重新运行应用测试、Full、安全扫描、产物构建或数据库演练。
+
+- [x] README 明确说明 fork 身份、分支职责和正确安装入口；DOC-001、DOC-002 及当前两分支 README 已提供 personal、GHCR 和固定版本安装入口。
+- [x] 根目录存在完整 NOTICE 或第三方来源说明；LEGAL-001/002、ARCH-005 与当前两分支 NOTICE 保留 KIN/原始上游/Plus 来源和归属边界。
+- [x] 本 fork 拥有可用的私密安全报告渠道；SEC-001 已合入，当前安全政策指向本仓库，API 回读 Private Vulnerability Reporting 为 `enabled=true`。
+- [ ] 不存在过期安全例外或占位 owner；personal 已满足 SEC-002 候选标准，但 main 仍有 §3.3 登记的过期条目和占位 owner，待必要控制文件同步后核对。
+- [x] 新 `personal` 基于重新确认的 KIN 稳定版本人工重放完成；UPSTREAM-007/008 已整合，来源为 `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`。
+- [x] 未绕过历史分叉、祖先检查或分支保护；UPSTREAM-007 保存旧 personal 与新 KIN 的真实历史，后续普通合并/快进记录及当前祖先核对一致；CI-000 保护调整有维护者授权，禁止强推/删除保持。
+- [ ] 所有数据库升级路径和回退兼容路径完成验证；MIG-001、UPSTREAM-007、REL-001 已验证空库/旧 KIN/已迁移 personal 三路径和合成库恢复，但跨 KIN 全业务写入的无损回退、实际发布恢复点与写入损失评估仍待闭环，不解除现有旧镜像恢复禁令。
+- [x] GitHub Actions 和关键工具版本可复现；CI-001—005 已整合必要控制文件，两分支各 91 处远程 Action 引用均为完整 SHA，关键工具版本/摘要已固定。沿用既有验收边界，不宣称 runner、apk 或漏洞数据库逐字节恒定。
+- [ ] 正式产物包含许可证、NOTICE、SBOM 和源码 revision；LEGAL-002、CI-003、REL-001 已核验固定候选 dry-run 材料，但新基线尚未正式发布，待 REL-002/003 核验正式产物。
+- [x] 模型目录不会因多渠道遍历顺序产生不确定结果；UPSTREAM-003/ARCH-003 已整合“一组最多一个渠道”约束及冲突显式拒绝，正逆顺序回归已有通过证据。
+- [ ] 路由诊断和服务状态具有低样本与隐私保护；既有 S3/S4 提供管理员和低样本基础边界，OBS-002 的展示裁剪、共享限流和安全审计候选已验证但 PR #32 未整合，待当前应用整合验收。
+- [ ] 服务状态容量、清理、聚合失败和水位停滞均可监控；OBS-001/004 候选及手册已有定向验证，但 PR #31/#34 未整合，外部调度和通知送达未部署，待整合及运行接入验收。
+- [ ] 正式发布通过分阶段部署并保留旧稳定 tag；旧固定回退 tag 已保留，REL-002 的测试/生产分阶段部署和发布后观察尚未执行。
+- [ ] `UPSTREAM.md`、NOTICE、`personal-source.json` 和 Release notes 相互一致；新基线来源记录已有核对证据，当前旧 Release notes 不能代表新基线正式产物，待 REL-003 完成同一发布身份闭环。
 
 ---
 
