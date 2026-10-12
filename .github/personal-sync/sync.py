@@ -200,15 +200,23 @@ def create_pr(candidate):
 
 
 def dispatch_ci(candidate):
-    title = f"Personal CI | {candidate['candidate_sha']} | base {candidate['base_sha']}"
+    from ci_policy import ci_title, full_evidence
+    title = ci_title(candidate['candidate_sha'], candidate['base_sha'], "full")
     runs = gh_json("api", f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?head_sha={candidate['candidate_sha']}&per_page=100")
-    matching = [r for r in runs["workflow_runs"] if r["display_title"] == title and r["head_branch"] == candidate["branch"]]
-    if matching and (matching[0]["status"] != "completed" or matching[0]["conclusion"] == "success"):
-        candidate["ci_run"] = matching[0]["html_url"]
-        return candidate
+    matching = [r for r in runs["workflow_runs"] if r["display_title"] == title and r["head_branch"] == candidate["branch"]
+                and r["event"] == "workflow_dispatch"]
+    if matching:
+        current = matching[0]
+        if current["status"] != "completed":
+            candidate["ci_run"] = current["html_url"]
+            return candidate
+        if current["conclusion"] == "success":
+            if full_evidence(candidate["candidate_sha"], candidate["base_sha"]):
+                candidate["ci_run"] = current["html_url"]
+                return candidate
     run("gh", "workflow", "run", "personal-ci.yml", "--repo", REPOSITORY, "--ref", candidate["branch"],
         "-f", f"candidate_sha={candidate['candidate_sha']}", "-f", f"base_sha={candidate['base_sha']}",
-        "-f", f"pr_number={candidate['pr_number']}")
+        "-f", f"pr_number={candidate['pr_number']}", "-f", "mode=full")
     candidate["ci_run"] = "dispatched"
     return candidate
 

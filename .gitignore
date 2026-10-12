@@ -145,6 +145,7 @@ docs/*
 !docs/legal/
 !docs/legal/*.md
 !docs/ci/
+!docs/ci/CI-000.md
 !docs/ci/CI-001.md
 !docs/ci/CI-002.md
 !docs/ci/CI-003.md

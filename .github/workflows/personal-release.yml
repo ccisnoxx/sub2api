@@ -58,7 +58,25 @@ jobs:
           ref: personal
           fetch-depth: 0
           persist-credentials: false
+      - name: Ignore automatic Quick completions
+        id: eligibility
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID/jobs?filter=latest&per_page=100" > "$RUNNER_TEMP/ci-jobs.json"
+          python3 - <<'PYCODE'
+          import json, os
+          from pathlib import Path
+          rows = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-jobs.json').read_text())
+          full = any(job['name'] == 'full-ci-certified' and job['status'] == 'completed' and job['conclusion'] == 'success'
+                     for page in rows for job in page['jobs'])
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+              stream.write(f'full={str(full).lower()}\n')
+          PYCODE
       - name: Gate final SHA, allocate version and explicitly dispatch Release
+        if: github.event_name == 'workflow_dispatch' || steps.eligibility.outputs.full == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ inputs.source_sha || github.event.workflow_run.head_sha }}

@@ -1,24 +1,25 @@
 name: Security Scan
 
 on:
-  push:
-    # personal 候选由 Personal CI 调用相同安全检查。
-    branches-ignore:
-      - main
-      - personal
-      - 'codex/sync-klno-*'
-      - 'codex/verify-personal-ci-*'
-    paths-ignore:
-      - '**.md'
-      - 'LICENSE'
   pull_request:
-    branches-ignore:
-      - personal
+    branches-ignore: [personal]
+    paths:
+      - 'backend/go.mod'
+      - 'backend/go.sum'
+      - 'frontend/package.json'
+      - 'frontend/pnpm-lock.yaml'
+  workflow_dispatch:
   workflow_call:
     inputs:
       source_sha:
         required: true
         type: string
+      scan_go:
+        type: boolean
+        default: true
+      scan_frontend:
+        type: boolean
+        default: true
   schedule:
     - cron: '0 3 * * 1'
 
@@ -33,7 +34,45 @@ env:
   GOTOOLCHAIN: local
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.paths.outputs.go }}
+      frontend: ${{ steps.paths.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - id: paths
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          SCAN_GO: ${{ inputs.scan_go }}
+          SCAN_FRONTEND: ${{ inputs.scan_frontend }}
+        run: |
+          python3 - <<'PYCODE'
+          import json, os, sys
+          from pathlib import Path
+          sys.path.insert(0, '.github/personal-sync')
+          from ci_policy import changed_paths, classify
+          from sync import git
+          event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+          if os.environ['SOURCE_SHA']:
+              go, frontend = os.environ['SCAN_GO'], os.environ['SCAN_FRONTEND']
+          elif os.environ['GITHUB_EVENT_NAME'] == 'pull_request':
+              flags = classify(changed_paths(event['pull_request']['base']['sha'], git('rev-parse', 'HEAD')))
+              go, frontend = str(flags['go_dependencies']).lower(), str(flags['frontend_dependencies']).lower()
+          else:
+              go = frontend = 'true'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
+              stream.write(f'go={go}\nfrontend={frontend}\n')
+          PYCODE
+
   backend-security:
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -47,7 +86,7 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           # 默认分支仅承载调度，周扫固定 personal；候选使用调用者固定 SHA。
-          ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
+          ref: ${{ inputs.source_sha || ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'personal') || github.sha }}
           persist-credentials: false
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
@@ -91,11 +130,13 @@ jobs:
           retention-days: 30
 
   frontend-security:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          ref: ${{ inputs.source_sha || (github.event_name == 'schedule' && 'personal') || github.sha }}
+          ref: ${{ inputs.source_sha || ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'personal') || github.sha }}
           persist-credentials: false
       - name: Set up pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -117,7 +158,7 @@ jobs:
       - name: Run pnpm audit
         working-directory: frontend
         run: |
-          pnpm audit --prod --audit-level=high --json > audit.json || true
+          pnpm audit --prod --audit-level=high --json --registry=https://registry.npmjs.org > audit.json || true
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.12.13'
