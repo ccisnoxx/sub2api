@@ -84,6 +84,9 @@ class ReleaseMatrixTest(unittest.TestCase):
         self.assertIn('{{ .Env.RELEASE_DATE }}', '\n'.join(leaf['builds'][0]['ldflags']))
 
     def test_publication_config_has_no_compilation_or_docker_work(self):
+        Path('release-evidence').mkdir()
+        evidence = [{'glob': 'release-evidence/example.json', 'name_template': 'run-1234-attempt-1-example.json'}]
+        Path('release-evidence/publish-assets.json').write_text(json.dumps(evidence))
         for simple in (False, True):
             with self.subTest(simple=simple):
                 original = release.config(simple)
@@ -94,9 +97,11 @@ class ReleaseMatrixTest(unittest.TestCase):
                 self.assertFalse(data['dockers'])
                 self.assertEqual(data['release']['header'], original['release']['header'])
                 self.assertEqual(data['release']['footer'], original['release']['footer'])
+                self.assertEqual(data['release']['mode'], 'append')
                 if simple:
                     self.assertTrue(data['checksum']['disable'])
-                    self.assertTrue(data['release']['skip_upload'])
+                    self.assertFalse(data['release']['skip_upload'])
+                    self.assertEqual(data['release']['extra_files'], evidence)
                 else:
                     self.assertEqual(data['checksum']['extra_files'], data['release']['extra_files'])
 
@@ -200,6 +205,43 @@ class ReleaseMatrixTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     release.verify(args)
 
+    def test_application_output_symlinks_cannot_overwrite_the_main_guard(self):
+        args = self.fixture_artifacts(True)
+        Path(args.input).rename('verified-input')
+        args.input = 'verified-input'
+        args.output = '.release-context'
+        Path('Dockerfile.goreleaser').write_text('FROM scratch\nCOPY sub2api /sub2api\n')
+        Path('deploy').mkdir()
+        Path('deploy/docker-entrypoint.sh').write_text('#!/bin/sh\nexec /app/sub2api\n')
+        Path('backend/resources').mkdir()
+        Path('backend/resources/personal_release.py').write_text('raise SystemExit("应用 guard 被执行")\n')
+        guard = Path(self.temp.name) / 'runner/release-guard/release-tools/personal_release.py'
+        guard.parent.mkdir(parents=True)
+        shutil.copy2(ROOT / '.github/release-tools/personal_release.py', guard)
+        original = guard.read_bytes()
+        resource_output = Path('.release-context/amd64/backend/resources')
+        resource_output.parent.mkdir(parents=True)
+        resource_output.symlink_to(guard.parent, target_is_directory=True)
+        directories = ('release-input', 'release-evidence', 'dist')
+        files = ('publication.json', 'publication-toolchain.json')
+        for name in directories:
+            Path(name).symlink_to(guard.parent, target_is_directory=True)
+        for name in files:
+            Path(name).symlink_to(guard)
+        steps = yaml.safe_load((ROOT / '.github/workflows/release.yml').read_text())['jobs']['release']['steps']
+        cleanup = next((s for s in steps if s.get('name') == 'Prepare owned publication outputs'), None)
+        if cleanup is not None:
+            subprocess.run(['bash', '-e', '-c', cleanup['run']], check=True, capture_output=True)
+        release.contexts(args)
+        self.assertEqual(guard.read_bytes(), original, '应用输出 symlink 改写了 main guard')
+        for name in (*directories, *files):
+            self.assertFalse(Path(name).exists(), name)
+            self.assertFalse(Path(name).is_symlink(), name)
+        self.assertEqual((Path(args.output) / 'amd64/sub2api').read_bytes(), b'fixture')
+        cleanup_index = steps.index(cleanup)
+        first_download = next(i for i, s in enumerate(steps) if s.get('uses', '').startswith('actions/download-artifact@'))
+        self.assertLess(cleanup_index, first_download)
+
     def test_plan_requires_a_tag_for_publication(self):
         args = argparse.Namespace(ref='main', dry_run=False, simple=False)
         with patch.object(subprocess, 'check_output', return_value='a' * 40 + '\n'):
@@ -218,102 +260,151 @@ class ReleaseMatrixTest(unittest.TestCase):
         self.assertEqual(output['owner_lower'], 'exampleowner')
         self.assertEqual(len(json.loads(output['matrix'])['include']), 5)
 
-    def test_docker_commands_do_not_publish_during_dry_run(self):
+    def image_commands(self, simple=False, dry_run=False, personal=False, reuse=False, gate_fail=False, proof_fail=False,
+                       gate_fail_at=0, digest_changed=False, script_path=None, shadow_modules=False):
+        if shadow_modules:
+            for module in ('json', 're', 'pathlib'):
+                Path(module + '.py').write_text('raise SystemExit(\"应用模块被执行\")\n')
         fake_bin = Path('bin')
-        fake_bin.mkdir()
-        docker = fake_bin / 'docker'
-        docker.write_text('#!/bin/sh\nprintf "%s\\n" "$*" >> "$DOCKER_LOG"\n')
-        docker.chmod(0o755)
-        env = {**os.environ, 'PATH': str(fake_bin.resolve()) + os.pathsep + os.environ['PATH'],
-               'DOCKER_LOG': str(Path('docker.log').resolve()), 'RUNNER_TEMP': self.temp.name,
-               'RELEASE_VERSION': '9.8.7', 'RELEASE_SHA': 'a' * 40, 'GITHUB_REPOSITORY': 'ExampleOwner/sub2api',
-               'DRY_RUN': 'true', 'SIMPLE_RELEASE': 'false', 'DOCKERHUB_USERNAME': 'skip'}
-        subprocess.run(['bash', str(ROOT / '.github/release-tools/release-images.sh')], env=env, check=True)
-        log = Path('docker.log').read_text()
-        self.assertEqual(log.count('buildx build'), 2)
-        self.assertIn('linux/arm64', log)
-        self.assertNotIn('--push', log)
-        self.assertNotIn('imagetools', log)
-        self.assertNotIn('skip/sub2api', log)
-        self.assertIn('ghcr.io/exampleowner/sub2api', log)
-
-
-    def test_published_full_and_simple_image_tags(self):
-        fake_bin = Path('bin')
-        fake_bin.mkdir()
-        docker = fake_bin / 'docker'
-        docker.write_text('#!/bin/sh\nprintf "%s\\n" "$*" >> "$DOCKER_LOG"\n')
-        docker.chmod(0o755)
-        for simple in (False, True):
-            with self.subTest(simple=simple):
-                log_path = Path(f'docker-{simple}.log').resolve()
-                env = {**os.environ, 'PATH': str(fake_bin.resolve()) + os.pathsep + os.environ['PATH'],
-                       'DOCKER_LOG': str(log_path), 'RUNNER_TEMP': self.temp.name,
-                       'RELEASE_VERSION': '9.8.7', 'RELEASE_SHA': 'a' * 40, 'GITHUB_REPOSITORY': 'ExampleOwner/sub2api',
-                       'DRY_RUN': 'false', 'SIMPLE_RELEASE': str(simple).lower(), 'DOCKERHUB_USERNAME': 'fixturehub'}
-                subprocess.run(['bash', str(ROOT / '.github/release-tools/release-images.sh')], env=env, check=True)
-                log = log_path.read_text()
-                self.assertIn('--push', log)
-                self.assertEqual(log.count('buildx build'), 1 if simple else 2)
-                if simple:
-                    self.assertNotIn('fixturehub', log)
-                    self.assertNotIn('imagetools', log)
-                    self.assertIn('ghcr.io/exampleowner/sub2api:latest', log)
-                else:
-                    self.assertEqual(log.count('imagetools create'), 2)
-                    self.assertIn('fixturehub/sub2api:9.8', log)
-                    self.assertIn('ghcr.io/exampleowner/sub2api:9', log)
-
-    def test_personal_image_push_is_after_build_and_final_gate_and_recovery_never_rebuilds(self):
-        fake_bin = Path('bin')
-        fake_bin.mkdir()
-        docker = fake_bin / 'docker'
-        docker.write_text('#!/bin/sh\nprintf "%s\\n" "$*" >> "$DOCKER_LOG"\n')
-        docker.chmod(0o755)
+        fake_bin.mkdir(exist_ok=True)
+        (Path(self.temp.name) / 'release-tools').mkdir(exist_ok=True)
+        shutil.copy2(ROOT / '.github/release-tools/supply-chain-tools.json', Path(self.temp.name) / 'release-tools')
+        for tool in ('docker', 'oras'):
+            executable = fake_bin / tool
+            executable.write_text('#!/bin/sh\nprintf "%s %s\\n" "' + tool + '" "$*" >> "$DOCKER_LOG"\nif [ "$1" = resolve ]; then printf "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\\n"; fi\n')
+            executable.chmod(0o755)
         python = fake_bin / 'python3'
         python.write_text(f'''#!{sys.executable}
 import json, os, sys
-if len(sys.argv) > 2 and sys.argv[1].endswith('/personal_release.py'):
+args = sys.argv[1:]
+if args and args[0] == '-I':
+    args = args[1:]
+if len(args) > 1 and args[0].endswith(('/personal_release.py', '/supply_chain.py')):
     with open(os.environ['DOCKER_LOG'], 'a') as out:
-        out.write(sys.argv[2] + '\\n')
-    if sys.argv[2] == 'authorize':
-        if os.environ['GATE_FAIL'] == 'true':
+        out.write(args[1] + '\\n')
+    if args[1] == 'authorize':
+        if '/release-guard/release-tools/' not in args[0]:
+            raise SystemExit('没有使用 main 控制面 guard')
+        count = open(os.environ['DOCKER_LOG']).read().splitlines().count('authorize')
+        if os.environ['GATE_FAIL'] == 'true' or count == int(os.environ['GATE_FAIL_AT']):
             raise SystemExit('personal 基础已变化')
-        print(json.dumps({{'reuse_image': os.environ['REUSE_IMAGE'] == 'true'}}))
+        digest = ('e' if os.environ['DIGEST_CHANGED'] == 'true' and count == 2 else 'd') * 64
+        print(json.dumps({{'reuse_image': os.environ['REUSE_IMAGE'] == 'true', 'digest': 'sha256:' + digest}}))
+    elif args[1] == 'image':
+        if os.environ['PROOF_FAIL'] == 'true':
+            raise SystemExit('镜像证明缺失')
+        print('sha256:' + 'd' * 64)
     else:
         print(json.dumps({{'digest': 'sha256:' + 'd' * 64}}))
 else:
     os.execv({sys.executable!r}, [{sys.executable!r}, *sys.argv[1:]])
 ''')
         python.chmod(0o755)
-        for reuse, gate_fail in ((False, False), (True, False), (False, True)):
-            with self.subTest(reuse=reuse, gate_fail=gate_fail):
-                log_path = Path(f'personal-{reuse}-{gate_fail}.log').resolve()
-                env = {**os.environ, 'PATH': str(fake_bin.resolve()) + os.pathsep + os.environ['PATH'],
-                       'DOCKER_LOG': str(log_path), 'RUNNER_TEMP': self.temp.name,
-                       'RELEASE_VERSION': '9.8.7-klno.3-tps.1', 'RELEASE_SHA': 'a' * 40,
-                       'RELEASE_TAG': 'v9.8.7-klno.3-tps.1', 'GITHUB_REPOSITORY': 'ccisnoxx/sub2api',
-                       'DRY_RUN': 'false', 'SIMPLE_RELEASE': 'true', 'REUSE_IMAGE': str(reuse).lower(),
-                       'GATE_FAIL': str(gate_fail).lower()}
-                result = subprocess.run(['bash', str(ROOT / '.github/release-tools/release-images.sh')], env=env,
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-                log = log_path.read_text()
-                self.assertEqual(result.returncode, 1 if gate_fail else 0)
-                self.assertNotIn('--push', log)
-                self.assertNotIn('-tps.1-amd64', log)
-                self.assertNotIn('--tag ghcr.io/ccisnoxx/sub2api:latest --load', log)
-                if gate_fail:
-                    self.assertNotIn('\npush ', log)
-                    self.assertNotIn('imagetools', log)
+        log_path = Path('docker.log').resolve()
+        if log_path.exists():
+            log_path.unlink()
+        env = {**os.environ, 'PATH': str(fake_bin.resolve()) + os.pathsep + os.environ['PATH'],
+               'DOCKER_LOG': str(log_path), 'RUNNER_TEMP': self.temp.name,
+               'RELEASE_VERSION': '9.8.7-klno.3-tps.1', 'RELEASE_SHA': 'a' * 40,
+               'RELEASE_DATE': '2026-10-11T12:00:00Z', 'RELEASE_TAG': 'v9.8.7-klno.3-tps.1',
+               'GITHUB_REPOSITORY': 'ccisnoxx/sub2api' if personal else 'ExampleOwner/sub2api',
+               'DRY_RUN': str(dry_run).lower(), 'SIMPLE_RELEASE': str(simple).lower(),
+               'DOCKERHUB_USERNAME': 'skip', 'REUSE_IMAGE': str(reuse).lower(),
+               'GATE_FAIL': str(gate_fail).lower(), 'PROOF_FAIL': str(proof_fail).lower(),
+               'GATE_FAIL_AT': str(gate_fail_at), 'DIGEST_CHANGED': str(digest_changed).lower()}
+        for name in ('GH_TOKEN', 'GITHUB_TOKEN', 'DOCKERHUB_TOKEN'):
+            env.pop(name, None)
+        result = subprocess.run(['bash', str(script_path or ROOT / '.github/release-tools/release-images.sh')], env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return result, log_path.read_text() if log_path.exists() else ""
+
+    def test_dry_run_generates_proofs_for_each_platform_without_registry_writes(self):
+        result, log = self.image_commands(dry_run=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log.count('buildx build'), 2)
+        self.assertEqual(log.count('\nimage\n'), 2)
+        self.assertIn('linux/arm64', log)
+        self.assertIn('--attest type=sbom,generator=', log)
+        self.assertIn('--attest type=provenance,mode=max', log)
+        self.assertIn('--tag ghcr.io/exampleowner/sub2api:9.8.7-klno.3-tps.1-amd64', log)
+        self.assertNotIn('oras ', log)
+        self.assertNotIn('--push', log)
+        self.assertNotIn('--load', log)
+
+    def test_published_full_and_simple_image_tags(self):
+        for simple in (False, True):
+            with self.subTest(simple=simple):
+                result, log = self.image_commands(simple=simple)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(log.count('buildx build'), 1 if simple else 2)
+                self.assertEqual(log.count('oras cp --from-oci-layout'), 1 if simple else 2)
+                self.assertIn('oras cp --to-oci-layout', log)
+                self.assertNotIn('--load', log)
+                if simple:
+                    self.assertNotIn('imagetools create', log)
+                    self.assertIn('oras tag ghcr.io/exampleowner/sub2api@', log)
+                else:
+                    self.assertEqual(log.count('imagetools create'), 1)
+                    self.assertIn('9.8.7-klno.3-tps.1-amd64', log)
+                    self.assertIn('9.8.7-klno.3-tps.1-arm64', log)
+                    self.assertIn(' latest 9.8 9', log)
+
+    def test_personal_oci_copy_preserves_guard_order_and_existing_image_recovery(self):
+        for reuse, gate_fail, proof_fail in ((False, False, False), (True, False, False), (False, True, False), (False, False, True)):
+            with self.subTest(reuse=reuse, gate_fail=gate_fail, proof_fail=proof_fail):
+                result, log = self.image_commands(simple=True, personal=True, reuse=reuse, gate_fail=gate_fail, proof_fail=proof_fail)
+                self.assertEqual(result.returncode, 1 if gate_fail or proof_fail else 0, result.stderr)
+                self.assertNotIn('--load', log)
+                if gate_fail or proof_fail:
+                    self.assertNotIn('oras cp --from-oci-layout', log)
+                    self.assertNotIn('oras tag', log)
                 elif reuse:
                     self.assertNotIn('buildx build', log)
-                    self.assertNotIn('\npush ', log)
-                    self.assertIn('imagetools create', log)
+                    self.assertNotIn('oras cp --from-oci-layout', log)
+                    self.assertIn('oras cp --to-oci-layout', log)
+                    self.assertIn('oras tag', log)
                 else:
-                    self.assertLess(log.index('buildx build'), log.index('authorize'))
-                    self.assertLess(log.index('authorize'), log.index('\npush '))
-                    self.assertLess(log.index('\npush '), log.index('imagetools create'))
+                    self.assertLess(log.index('buildx build'), log.index('\nimage\n'))
+                    self.assertLess(log.index('\nimage\n'), log.index('authorize'))
+                    self.assertLess(log.index('authorize'), log.index('oras cp --from-oci-layout'))
+                    self.assertLess(log.index('oras cp --to-oci-layout'), log.index('oras tag'))
 
+    def test_personal_changes_or_digest_replacement_after_push_prevent_latest(self):
+        for change in ('source_or_ci', 'digest'):
+            with self.subTest(change=change):
+                result, log = self.image_commands(simple=True, personal=True,
+                    gate_fail_at=2 if change == 'source_or_ci' else 0, digest_changed=change == 'digest')
+                self.assertEqual(result.returncode, 1, result.stderr)
+                self.assertEqual(log.splitlines().count('authorize'), 2)
+                self.assertIn('oras cp --from-oci-layout', log)
+                self.assertNotIn('oras tag', log)
+
+    def test_personal_dry_run_needs_no_publication_guard_or_registry_permissions(self):
+        result, log = self.image_commands(simple=True, dry_run=True, personal=True, gate_fail=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log.count('buildx build'), 1)
+        self.assertNotIn('authorize', log)
+        self.assertNotIn('verify-image', log)
+        self.assertNotIn('oras ', log)
+
+    def test_application_modules_cannot_run_during_image_publication(self):
+        result, log = self.image_commands(simple=True, personal=True, shadow_modules=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(log.splitlines().count('authorize'), 2)
+        self.assertIn('oras tag', log)
+
+    def test_transported_main_image_helper_ignores_application_replacement(self):
+        tools = Path(self.temp.name) / 'transported-main'
+        tools.mkdir()
+        script = tools / 'release-images.sh'
+        shutil.copy2(ROOT / '.github/release-tools/release-images.sh', script)
+        app = Path('.github/release-tools')
+        app.mkdir(parents=True)
+        (app / 'release-images.sh').write_text('#!/bin/sh\necho 应用控制脚本被执行 >&2\nexit 91\n')
+        result, log = self.image_commands(simple=True, personal=True, script_path=script)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('oras tag', log)
+        self.assertEqual(log.splitlines().count('authorize'), 2)
 
 
 if __name__ == '__main__':
