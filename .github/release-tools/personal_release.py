@@ -20,9 +20,9 @@ PERSONAL_TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-k
 IMAGE = "ghcr.io/ccisnoxx/sub2api"
 
 
-def request(url, headers=None, payload=None, missing=False):
+def request(url, headers=None, payload=None, missing=False, method=None):
     data = json.dumps(payload).encode() if payload is not None else None
-    req = Request(url, data=data, headers=headers or {})
+    req = Request(url, data=data, headers=headers or {}, method=method)
     try:
         with urlopen(req, timeout=60) as response:
             body = response.read()
@@ -34,11 +34,11 @@ def request(url, headers=None, payload=None, missing=False):
         raise SyncError(f"远端请求失败：HTTP {error.code}，{url.split('?')[0]}") from error
 
 
-def api(path, payload=None, missing=False):
+def api(path, payload=None, missing=False, method=None):
     return request("https://api.github.com/" + path, {
         "Authorization": "Bearer " + os.environ["GH_TOKEN"],
         "Accept": "application/vnd.github+json", "Content-Type": "application/json",
-        "X-GitHub-Api-Version": "2026-03-10"}, payload, missing)[0]
+        "X-GitHub-Api-Version": "2026-03-10"}, payload, missing, method)[0]
 
 
 def pages(path, key=None):
@@ -219,18 +219,23 @@ def prepare(args):
         "upstream_tag": source["upstream_tag"], "upstream_sha": source["upstream_sha"], "digest": digest or ""})
 
 
-def authorize(args):
-    if not PERSONAL_TAG.fullmatch(args.tag):
+def publication_authorization(sha, tag, ci_run_id):
+    """共享远端授权所有者；入口各自核对工作流身份，不伪装另一入口的身份。"""
+    if not PERSONAL_TAG.fullmatch(tag):
         raise SyncError("正式发布只接受个人版本标签")
+    source, run = bound_release(tag, sha, ci_run_id)
+    digest, completed = publication(tag, sha)
+    source, run = bound_release(tag, sha, str(run["id"]))
+    assert_base(sha)
+    return {"skip": completed, "reuse_image": bool(digest), "digest": digest or "",
+        "ci_run_id": run["id"], "upstream_tag": source["upstream_tag"], "upstream_sha": source["upstream_sha"]}
+
+
+def authorize(args):
     if (os.environ["GITHUB_REF"] not in ("refs/heads/personal", "refs/tags/" + args.tag)
             or os.environ["GITHUB_SHA"] != args.sha):
         raise SyncError("正式 Release 必须从同一 personal SHA 的工具定义 dispatch")
-    source, run = bound_release(args.tag, args.sha, args.ci_run_id)
-    digest, completed = publication(args.tag, args.sha)
-    source, run = bound_release(args.tag, args.sha, str(run["id"]))
-    assert_base(args.sha)
-    output({"skip": completed, "reuse_image": bool(digest), "digest": digest or "",
-        "ci_run_id": run["id"], "upstream_tag": source["upstream_tag"], "upstream_sha": source["upstream_sha"]})
+    output(publication_authorization(args.sha, args.tag, args.ci_run_id))
 
 
 def main():

@@ -1,0 +1,122 @@
+name: Release recovery verification
+run-name: Verify release recovery | ${{ inputs.original_run_id }} | ${{ inputs.source_sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      original_run_id:
+        description: '仅 release job 失败、simple 生产 jobs 已成功的原 Release run ID'
+        required: true
+        type: string
+      source_sha:
+        description: '原 run 与当前 personal 的同一完整源码 SHA'
+        required: true
+        type: string
+      tag:
+        description: '原发布的不可移动个人版本标签'
+        required: true
+        type: string
+      ci_run_id:
+        description: '原发布绑定的同 SHA 成功手动 Full CI run ID'
+        required: true
+        type: string
+      expected_digest:
+        description: '原发布已经推送的固定 OCI 主 index sha256 digest'
+        required: true
+        type: string
+
+concurrency:
+  # 与原正式 Release 共用队列；恢复不取消任何运行中的发布。
+  group: release-${{ github.repository }}-publication
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DRY_RUN: 'false'
+  CI_RUN_ID: ${{ inputs.ci_run_id }}
+
+jobs:
+  release:
+    if: >-
+      github.repository == 'ccisnoxx/sub2api' &&
+      github.ref == 'refs/heads/main' &&
+      vars.PERSONAL_RELEASE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      actions: read
+    steps:
+      - name: Checkout fixed main control revision
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.sha }}
+          path: control
+          persist-credentials: false
+      - name: Preserve current main tooling outside application checkout
+        run: |
+          [[ $(git -C control rev-parse HEAD) == "$GITHUB_SHA" ]]
+          cp -R control/.github/release-tools "$RUNNER_TEMP/release-tools"
+          cp -R control/.github/personal-sync "$RUNNER_TEMP/personal-sync"
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
+      - name: Install fixed control dependencies
+        run: |
+          python -I -m pip install --require-hashes --only-binary=:all: -r "$RUNNER_TEMP/release-tools/requirements-release.txt"
+      - name: Checkout original immutable application source for data checks
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ inputs.source_sha }}
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Bind original run and verify transported successful producer data
+        id: prepare
+        working-directory: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_RUN_ID: ${{ inputs.original_run_id }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          EXPECTED_DIGEST: ${{ inputs.expected_digest }}
+        run: |
+          python -I "$RUNNER_TEMP/release-tools/release_recovery.py" prepare \
+            --state "$RUNNER_TEMP/release-recovery/state.json" \
+            --original-run-id "$ORIGINAL_RUN_ID" --sha "$SOURCE_SHA" --tag "$RELEASE_TAG" \
+            --ci-run-id "$CI_RUN_ID" --expected-digest "$EXPECTED_DIGEST"
+      - name: Install verified OCI transport tool
+        if: steps.prepare.outputs.skip != 'true'
+        run: |
+          python "$RUNNER_TEMP/release-tools/supply_chain.py" install --tools oras --output "$RUNNER_TEMP/supply-chain-bin"
+          echo "$RUNNER_TEMP/supply-chain-bin" >> "$GITHUB_PATH"
+      - name: Read and verify complete existing OCI and finalize recovery evidence
+        id: verify
+        if: steps.prepare.outputs.skip != 'true'
+        working-directory: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -I "$RUNNER_TEMP/release-tools/release_recovery.py" verify --state "$RUNNER_TEMP/release-recovery/state.json"
+      - name: Preserve verified recovery evidence for explicit local publication
+        if: steps.prepare.outputs.skip != 'true' && steps.verify.outputs.skip != 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-recovery-supply-chain-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/release-recovery/evidence/
+            !${{ runner.temp }}/**/.env
+            !${{ runner.temp }}/**/.env.*
+            !${{ runner.temp }}/**/*.env
+            !${{ runner.temp }}/**/*.sql
+            !${{ runner.temp }}/**/*.dump
+            !${{ runner.temp }}/**/*.backup
+            !${{ runner.temp }}/**/*.bak
+            !${{ runner.temp }}/**/*.db
+            !${{ runner.temp }}/**/*.sqlite*
+            !${{ runner.temp }}/**/*.log
+            !${{ runner.temp }}/**/.git/**
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 90

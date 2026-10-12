@@ -90,13 +90,13 @@ def binary_prefix(archive):
     return archive.name + '.' + run_prefix()
 
 
-def provenance(subjects, sha, version, target, materials):
+def provenance(subjects, sha, version, target, materials, workflow='release.yml'):
     repo, workflow_sha, run = identity()
     return {
         '_type': STATEMENT, 'subject': subjects, 'predicateType': SLSA,
         'predicate': {
             'buildDefinition': {
-                'buildType': f'https://github.com/{repo}/.github/workflows/release.yml@{workflow_sha}',
+                'buildType': f'https://github.com/{repo}/.github/workflows/{workflow}@{workflow_sha}',
                 'externalParameters': {'source': f'https://github.com/{repo}', 'source_sha': sha,
                                        'version': version, 'target': target},
                 'internalParameters': {'workflow_sha': workflow_sha, 'ci_run_id': os.environ.get('CI_RUN_ID') or None,
@@ -167,14 +167,23 @@ def binary(args):
     save(output / (binary_prefix(archive) + '.provenance.json'), provenance([subject(archive), subject(sbom)], args.sha, args.version, target, materials))
 
 
-def verify_binaries(args):
+def verify_binaries(args, producer=None):
+    # 恢复运行的控制身份与原生产者不同；只允许调用者传入已核对的原身份，
+    # 不修改 GITHUB_*，也不把原证明改写为当前运行产生。
+    if producer is None:
+        repo, workflow_sha, run = identity()
+    else:
+        repo, workflow_sha, run = producer['repository'], producer['workflow_sha'], producer['run_id']
+        if (not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo) or not re.fullmatch(r'[0-9a-f]{40}', workflow_sha) or not run.isdigit()
+                or not re.fullmatch(r'[1-9][0-9]*', producer['run_attempt'])):
+            raise ValueError('原二进制生产者身份无效')
     evidence = Path(args.evidence)
     expected = set()
     for target in targets(args.simple):
         archive = Path(args.input) / archive_name(args.version, target)
-        proofs = list(evidence.glob(archive.name + '.run-' + identity()[2] + '-attempt-*.provenance.json'))
+        proofs = list(evidence.glob(archive.name + '.run-' + run + '-attempt-*.provenance.json'))
         if len(proofs) != 1:
-            raise ValueError('每个目标必须含当前 run 的唯一二进制 provenance')
+            raise ValueError('每个目标必须含指定生产 run 的唯一二进制 provenance')
         proof = proofs[0]
         sbom = evidence / (proof.name.removesuffix('.provenance.json') + '.spdx.json')
         expected.update((sbom.name, proof.name))
@@ -182,16 +191,20 @@ def verify_binaries(args):
         statement = json.loads(proof.read_text())
         definition = statement['predicate']['buildDefinition']
         producer_attempt = definition['internalParameters']['run_attempt']
-        if not producer_attempt.isdigit() or not 1 <= int(producer_attempt) <= int(os.environ['GITHUB_RUN_ATTEMPT']):
+        if (not producer_attempt.isdigit() or not 1 <= int(producer_attempt)
+                or (producer is None and int(producer_attempt) > int(os.environ['GITHUB_RUN_ATTEMPT']))
+                or (producer is not None and producer_attempt != producer['run_attempt'])
+                or proof.name != archive.name + f'.run-{run}-attempt-{producer_attempt}.provenance.json'):
             raise ValueError('二进制生产 attempt 无效')
         if (statement['_type'] != STATEMENT or statement['predicateType'] != SLSA
                 or statement['subject'] != [subject(archive), subject(sbom)]
-                or definition['externalParameters'] != {'source': f'https://github.com/{identity()[0]}',
+                or definition['externalParameters'] != {'source': f'https://github.com/{repo}',
                     'source_sha': args.sha, 'version': args.version, 'target': target}
-                or definition['buildType'] != f'https://github.com/{identity()[0]}/.github/workflows/release.yml@{identity()[1]}'
-                or definition['internalParameters'] != {'workflow_sha': identity()[1], 'ci_run_id': os.environ.get('CI_RUN_ID') or None,
+                or definition['buildType'] != f'https://github.com/{repo}/.github/workflows/release.yml@{workflow_sha}'
+                or definition['internalParameters'] != {'workflow_sha': workflow_sha, 'ci_run_id': os.environ.get('CI_RUN_ID') or None,
                     'dry_run': os.environ.get('DRY_RUN') == 'true', 'run_attempt': producer_attempt}
-                or statement['predicate']['runDetails']['metadata']['invocationId'] != f'https://github.com/{identity()[0]}/actions/runs/{identity()[2]}'):
+                or statement['predicate']['runDetails']['builder']['id'] != f'https://github.com/{repo}/actions'
+                or statement['predicate']['runDetails']['metadata']['invocationId'] != f'https://github.com/{repo}/actions/runs/{run}'):
             raise ValueError('二进制 SBOM/provenance 绑定不匹配')
     if {p.name for p in evidence.iterdir()} != expected:
         raise ValueError('证明矩阵缺失或存在额外文件')
@@ -214,7 +227,7 @@ def layout_reader(path):
             yield read
 
 
-def inspect_image(path, sha, version, expected_platforms, created=None):
+def inspect_image(path, sha, version, expected_platforms, created=None, expected_digest=None):
     with layout_reader(path) as read:
         def blob(desc):
             match = DIGEST.fullmatch(desc['digest'])
@@ -225,10 +238,23 @@ def inspect_image(path, sha, version, expected_platforms, created=None):
                 raise ValueError('OCI blob 与 digest/size 不符')
             return data
         roots = json.loads(read('index.json'))['manifests']
-        if len(roots) != 1:
-            raise ValueError('OCI 布局必须含唯一根索引')
-        root = roots[0]
-        index = json.loads(blob(root))
+        if not roots or len({r['digest'] for r in roots}) != len(roots):
+            raise ValueError('OCI 布局根描述符为空或重复')
+        # ORAS 1.3.4 会把已复制的 index、运行 manifest 和证明 manifest
+        # 都登记到布局 index.json；布局的描述符数量不是主 index 数量。
+        contents = {r['digest']: json.loads(blob(r)) for r in roots}
+        indexes = [r for r in roots if isinstance(contents[r['digest']].get('manifests'), list)]
+        if expected_digest is not None:
+            if not DIGEST.fullmatch(expected_digest):
+                raise ValueError('预期 OCI 根 digest 无效')
+            indexes = [r for r in indexes if r['digest'] == expected_digest]
+        if len(indexes) != 1:
+            raise ValueError('OCI 布局没有唯一匹配的主 index，禁止猜测根 digest')
+        root = indexes[0]
+        index = contents[root['digest']]
+        reachable = {root['digest'], *(d['digest'] for d in index['manifests'])}
+        if any(r['digest'] not in reachable for r in roots):
+            raise ValueError('OCI 布局含不属于所选主 index 的额外根')
         runnable, attestations, dates = {}, {}, set()
         for desc in index['manifests']:
             image = json.loads(blob(desc))
@@ -274,12 +300,17 @@ def inspect_image(path, sha, version, expected_platforms, created=None):
         return root['digest'], runnable, attestations, dates.pop()
 
 
-def image(args):
-    digest, platforms, attestations, created = inspect_image(args.layout, args.sha, args.version, args.platforms, args.created)
+def image(args, workflow='release.yml'):
+    digest, platforms, attestations, created = inspect_image(args.layout, args.sha, args.version, args.platforms,
+                                                           args.created, getattr(args, 'expected_digest', None))
     dest = Path(args.output)
     report = {'sha': args.sha, 'version': args.version, 'created': created, 'digest': digest,
               'platforms': platforms, 'verified': True, 'dry_run': os.environ.get('DRY_RUN') == 'true',
               'workflow_sha': identity()[1], 'release_run': f'https://github.com/{identity()[0]}/actions/runs/{identity()[2]}'}
+    if workflow == 'release-recovery.yml':
+        report['verification_run'] = report['release_run']
+        report['release_run'] = None
+        report['publication_performed'] = False
     subjects = [{'name': 'container-image', 'digest': {'sha256': digest.removeprefix('sha256:')}}]
     for name, leaf_digest in platforms.items():
         prefix = dest.name + '-' + name.replace('/', '-') + '.' + run_prefix()
@@ -293,13 +324,13 @@ def image(args):
                 save(attestation, statement)
                 subjects.append(subject(attestation))
     materials = [{'uri': f'git+https://github.com/{identity()[0]}', 'digest': {'gitCommit': args.sha}}]
-    save(dest / (dest.name + '.' + run_prefix() + '.pipeline-provenance.json'), provenance(subjects, args.sha, args.version, sorted(platforms), materials))
+    save(dest / (dest.name + '.' + run_prefix() + '.pipeline-provenance.json'), provenance(subjects, args.sha, args.version, sorted(platforms), materials, workflow))
     save(dest / (dest.name + '.' + run_prefix() + '.verification.json'), report)
     print(digest)
 
 
 
-def finalize(args):
+def finalize(args, recovery=None):
     directory = Path(args.input)
     files = sorted(directory.glob('*/*.json'))
     if not files or len({p.name for p in files}) != len(files):
@@ -321,6 +352,12 @@ def finalize(args):
                'release_run': f'https://github.com/{repo}/actions/runs/{run}',
                'dry_run': os.environ.get('DRY_RUN') == 'true', 'images': selected,
                'signature': 'unsigned; verify digest and trusted Actions artifact transport'}
+    if recovery is not None:
+        summary['recovery'] = recovery
+        if recovery['mode'] == 'verify-only':
+            summary['verification_run'] = summary['release_run']
+            summary['release_run'] = None
+            summary['publication'] = {'method': 'verification-only', 'performed': False}
     # 重跑 failed jobs 时成功 binary job 的证明仍属于原生产 attempt。
     # 公开运输可使用本次 attempt 的新文件名；summary 登记逻辑名、公开名和相同内容哈希。
     def public_name(path):
@@ -353,6 +390,7 @@ def main():
     for arg in ('layout', 'output', 'sha', 'version'):
         p.add_argument('--' + arg, required=True)
     p.add_argument('--created')
+    p.add_argument('--expected-digest', help='已解析的 registry/OCI 主 index digest；必须精确匹配')
     p.add_argument('--platforms', nargs='+', required=True)
     p.set_defaults(run=image)
     p = commands.add_parser('finalize')
