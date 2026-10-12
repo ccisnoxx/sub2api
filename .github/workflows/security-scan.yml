@@ -1,13 +1,6 @@
 name: Security Scan
 
 on:
-  pull_request:
-    branches-ignore: [personal]
-    paths:
-      - 'backend/go.mod'
-      - 'backend/go.sum'
-      - 'frontend/package.json'
-      - 'frontend/pnpm-lock.yaml'
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -21,7 +14,7 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '0 3 * * 1'
+    - cron: '0 3 1 * *'
 
 concurrency:
   group: security-scan-${{ github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
@@ -47,23 +40,14 @@ jobs:
           persist-credentials: false
       - id: paths
         env:
-          GH_TOKEN: ${{ github.token }}
           SOURCE_SHA: ${{ inputs.source_sha }}
           SCAN_GO: ${{ inputs.scan_go }}
           SCAN_FRONTEND: ${{ inputs.scan_frontend }}
         run: |
           python3 - <<'PYCODE'
-          import json, os, sys
-          from pathlib import Path
-          sys.path.insert(0, '.github/personal-sync')
-          from ci_policy import changed_paths, classify
-          from sync import git
-          event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+          import os
           if os.environ['SOURCE_SHA']:
               go, frontend = os.environ['SCAN_GO'], os.environ['SCAN_FRONTEND']
-          elif os.environ['GITHUB_EVENT_NAME'] == 'pull_request':
-              flags = classify(changed_paths(event['pull_request']['base']['sha'], git('rev-parse', 'HEAD')))
-              go, frontend = str(flags['go_dependencies']).lower(), str(flags['frontend_dependencies']).lower()
           else:
               go = frontend = 'true'
           with open(os.environ['GITHUB_OUTPUT'], 'a') as stream:
@@ -85,7 +69,7 @@ jobs:
         run: cp -R .github/release-tools "$RUNNER_TEMP/security-tools"
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          # 默认分支仅承载调度，周扫固定 personal；候选使用调用者固定 SHA。
+          # 默认分支仅承载调度，月扫固定 personal；候选使用调用者固定 SHA。
           ref: ${{ inputs.source_sha || ((github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'personal') || github.sha }}
           persist-credentials: false
       - name: Set up Go

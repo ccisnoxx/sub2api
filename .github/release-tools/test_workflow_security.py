@@ -104,8 +104,17 @@ def policy_errors(name, workflow):
         if set(events) != {"schedule", "workflow_dispatch"} or "github.ref == 'refs/heads/main'" not in workflow["jobs"]["sync"].get("if", ""):
             errors.append("同步写权限只能用于 main 调度")
     if name == "personal-ci.yml":
+        if set(events) != {"workflow_dispatch"}:
+            errors.append("Personal CI 只能手动触发")
         if workflow["jobs"]["personal-ready"].get("if") != "always() && github.repository == 'ccisnoxx/sub2api'":
             errors.append("personal-ready 必须始终执行，不得以标签或候选分支跳过 required check")
+    if name == "backend-ci.yml" and set(events) != {"workflow_dispatch", "workflow_call"}:
+        errors.append("应用 CI 只允许手动或复用调用")
+    if name == "security-scan.yml":
+        if set(events) != {"workflow_dispatch", "workflow_call", "schedule"}:
+            errors.append("安全扫描只允许手动、复用或定时调用")
+        if events.get("schedule") != [{"cron": "0 3 1 * *"}]:
+            errors.append("安全扫描必须按月执行")
     return errors
 
 
@@ -138,12 +147,25 @@ class WorkflowSecurityTests(unittest.TestCase):
     def test_pr_production_secret_and_inheritance_are_rejected(self):
         for mutation in ({"secrets": "inherit"}, {"env": {"TOKEN": "${{ secrets.DEPLOY_TOKEN }}"}}):
             flow = load("personal-ci.yml")
+            flow["on"]["pull_request"] = {}
             flow["jobs"]["existing-ci"].update(mutation)
             self.assertTrue(any("PR 禁止" in e for e in policy_errors("personal-ci.yml", flow)))
         for expression in ("${{ secrets.DEPLOY_TOKEN }}", "${{ secrets['DEPLOY_TOKEN'] }}", "${{ toJSON(secrets) }}"):
             flow = load("personal-ci.yml")
+            flow["on"]["pull_request"] = {}
             flow["env"]["TOKEN"] = expression
             self.assertTrue(any("PR 禁止" in e for e in policy_errors("personal-ci.yml", flow)))
+
+    def test_development_events_cannot_restart_ci_or_security_scans(self):
+        for name in ("personal-ci.yml", "backend-ci.yml", "security-scan.yml"):
+            for event in ("push", "pull_request"):
+                with self.subTest(workflow=name, event=event):
+                    flow = load(name)
+                    flow["on"][event] = {}
+                    self.assertTrue(any("只" in e for e in policy_errors(name, flow)))
+        flow = load("security-scan.yml")
+        flow["on"]["schedule"] = [{"cron": "0 3 * * 1"}]
+        self.assertIn("安全扫描必须按月执行", policy_errors("security-scan.yml", flow))
 
     def test_target_pr_code_execution_is_rejected(self):
         for step in ({"run": "python pr.py"}, {"uses": "actions/checkout@sha"}):

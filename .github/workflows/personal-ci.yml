@@ -1,12 +1,7 @@
 name: Personal CI
-run-name: Personal CI | ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }} | base ${{ inputs.base_sha || github.event.pull_request.base.sha || github.sha }} | request ${{ inputs.mode || 'auto' }}
+run-name: Personal CI | ${{ inputs.candidate_sha }} | base ${{ inputs.base_sha }} | request ${{ inputs.mode }}
 
 on:
-  pull_request:
-    branches: [personal]
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [personal]
   workflow_dispatch:
     inputs:
       mode:
@@ -28,16 +23,16 @@ on:
         required: false
 
 concurrency:
-  group: personal-ci-${{ inputs.pr_number || github.event.pull_request.number || github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'full' && 'full' || 'quick' }}
+  group: personal-ci-${{ inputs.pr_number || github.ref }}-${{ inputs.mode }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 env:
-  CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }}
-  BASE_SHA: ${{ inputs.base_sha || github.event.pull_request.base.sha || github.sha }}
-  PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+  CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+  BASE_SHA: ${{ inputs.base_sha }}
+  PR_NUMBER: ${{ inputs.pr_number }}
 
 jobs:
   binding:
