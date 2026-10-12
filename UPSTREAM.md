@@ -1,6 +1,6 @@
 # 功能来源与长期维护归属
 
-核对日期：2026-10-12。当前维护任务：REL-003；PREP-003 的旧稳定基线证据保留在本文末尾。main 管理控制工具和维护记录，personal 保存实际应用。应用 owner、测试和来源一律从固定 I 读取，不用 main 的同名应用文件代替。协调 owner 均为 `ccisnoxx`，不代表原作者、版权归属或上游背书。
+核对日期：2026-10-12。当前维护任务：REL-002/003/ARCH-002 已验收；PREP-003 的旧稳定基线证据保留在本文末尾。main 管理控制工具和维护记录，personal 保存实际应用。应用 owner、测试和来源一律从固定 I 读取，不用 main 的同名应用文件代替。协调 owner 均为 `ccisnoxx`，不代表原作者、版权归属或上游背书。
 
 ## 当前固定来源
 
@@ -11,7 +11,8 @@
 | A | 归档 personal 基线 / 维护恢复来源 | `v0.2.14-klno.5-tps.2` / `3d5e1fde82707900a21f2b5538b112c7bab3c04a` |
 | K | A 的旧 KIN 来源，与 N 分叉 | `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d` |
 | P | [Plus](https://github.com/LuckyKuang/sub2api-plus)，固定借鉴参考 | 版本背景 `v0.2.14+custom.002`；标签 commit `a7749f5826ec0a5c6493c47fde9474dc31525f14`；阅读 SHA `90da415c62b94c9417d9ce2b72b1507ed22f0303` |
-| C | 本次发布/部署控制 revision，无独立工具发行 tag | `83c250dbbbe748ca9a1e96ebc28c7d16727f025b` |
+| C | 本次实际发布/部署控制 revision，线上安装维护控制器保持 | `83c250dbbbe748ca9a1e96ebc28c7d16727f025b` |
+| T | ARCH-002 后已验收部署工具代码/真实生产只读预检 revision，无独立工具发行 tag | `b1f9fb1332db8b705716ebaf0bcb134f5cbb74f5` |
 
 N 的 annotated tag object 是 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d`，peeled commit 为 N。P 的 annotated tag object 是 `4d8a25878fa7d4f99ec5bf2f8576dccb023409eb`；标签 commit 与阅读 P 的完整 tree diff 仅 `UPSTREAM.md`，引用的四份功能文档/代码相同，不把阅读 SHA 冒充标签解析结果。
 
@@ -56,13 +57,14 @@ N 的 annotated tag object 是 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d`，peel
 
 ## 当前控制工具 owner 与测试
 
-以下文件属于固定 C 的 main，不属于 I 应用版本；当前执行语义以 CONTRIBUTING_PERSONAL/CI-000 为准，无独立工具发行 tag。main 增量只按需要同步控制文件到 personal，不合入整棵应用树。
+以下发布文件属于固定 C、部署模块属于固定 T 的 main，不属于 I 应用版本；当前执行语义以 CONTRIBUTING_PERSONAL/CI-000 为准，无独立工具发行 tag。main 增量只按需要同步控制文件到 personal，不合入整棵应用树。
 
 | 责任 | main owner 文件 | 直接测试入口 |
 |---|---|---|
 | 上游候选/来源绑定 | `.github/personal-sync/sync.py` / `check_binding.py`；`.github/workflows/sync-upstream.yml` / `personal-ci.yml` | `.github/personal-sync/test_sync.py`；`.github/release-tools/test_ci_concurrency.py` |
 | 手动发布/来源材料 | `.github/release-tools/personal_release.py` / `release_matrix.py` / `release-images.sh`；`.github/workflows/personal-release.yml` / `release.yml` | `.github/release-tools/test_personal_release.py` / `test_release_matrix.py` / `test_release_control.py` |
-| 主机部署/兼容回退 | `deploy/personal/deploy_hostdzire.py` / `deploy-hostdzire.sh`；`.github/workflows/personal-deploy-ci.yml` | `deploy/personal/test_deploy_hostdzire.py` |
+| 主机部署/兼容回退 | `deploy/personal/deploy_hostdzire.py` / `deploy-hostdzire.sh`；`deploy_lifecycle.py`（唯一状态owner）、`deploy_compatibility.py`、`deploy_database.py`、`deploy_images.py`、`deploy_health.py`；`.github/workflows/personal-deploy-ci.yml` | `deploy/personal/test_deploy_hostdzire.py` |
+| 部署配置/可信运输/只读预检 | `deploy/personal/hostdzire.json` / `deploy_config.py`；`deploy_trust.py` / `deploy_transport.py` / `deploy_local.py` | `deploy/personal/test_arch002.py`；95合同和真实dry-run见[ARCH-002](docs/upstream/records/2026-10-12-arch-002.md) |
 
 ## Plus 停止跟踪与原生收敛决策
 
