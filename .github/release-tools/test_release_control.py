@@ -27,6 +27,52 @@ class ReleaseControlTest(unittest.TestCase):
         self.assertLess(preserve, source)
         self.assertIn('$RUNNER_TEMP/release-tools/personal_release.py', steps[-1]["run"])
 
+    def test_quick_eligibility_ignores_application_modules(self):
+        step = next(s for s in self.personal['jobs']['prepare']['steps'] if s.get('id') == 'eligibility')
+        for full in (False, True):
+            with self.subTest(full=full), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                for module in ('json', 'pathlib'):
+                    (root / (module + '.py')).write_text('raise SystemExit("应用模块被执行")\n')
+                jobs = [{'jobs': [{'name': 'full-ci-certified', 'status': 'completed',
+                                  'conclusion': 'success'}] if full else []}]
+                (root / 'jobs.json').write_text(json.dumps(jobs))
+                fake = root / 'gh'
+                fake.write_text('#!/bin/sh\ncat "$RUNNER_TEMP/jobs.json"\n')
+                fake.chmod(0o755)
+                env = {'PATH': str(root) + os.pathsep + os.environ['PATH'], 'RUNNER_TEMP': str(root),
+                       'GITHUB_OUTPUT': str(root / 'output'), 'GITHUB_REPOSITORY': 'fixture/repo',
+                       'CI_RUN_ID': '123', 'PYTHONPATH': str(root), 'GH_TOKEN': 'synthetic'}
+                result = subprocess.run(['bash', '-e', '-c', step['run']], cwd=root, env=env,
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual((root / 'output').read_text(), f'full={str(full).lower()}\n')
+
+    def test_full_install_checks_require_bound_sources_and_propagate_failures(self):
+        workflow = yaml.safe_load((ROOT / '.github/workflows/backend-ci.yml').read_text())
+        job = workflow['jobs']['release-helpers']
+        steps = [s for s in job['steps'] if 'install-source-test.py' in s.get('run', '')]
+        self.assertEqual(len(steps), 1, 'Full 必须执行安装来源和 token 合同')
+        step = steps[0]
+        self.assertIn("mode == 'full'", job['if'])
+        self.assertIn("mode == 'full'", step['if'])
+        self.assertEqual(step['env']['INSTALL_SOURCE_SHA'], '${{ inputs.source_sha }}')
+        for bound, present, failure, expected in (
+            (False, False, '', 0), (True, False, '', 2), (True, True, '', 0),
+            (True, True, 'source', 3), (True, True, 'token', 4),
+        ):
+            with self.subTest(bound=bound, present=present, failure=failure), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                tests = root / 'deploy/tests'
+                tests.mkdir(parents=True)
+                if present:
+                    (tests / 'install-source-test.py').write_text(f'raise SystemExit({3 if failure == "source" else 0})\n')
+                (tests / 'install-github-token-test.sh').write_text(f'exit {4 if failure == "token" else 0}\n')
+                env = {'PATH': os.environ['PATH'], 'INSTALL_SOURCE_SHA': 'a' * 40 if bound else ''}
+                result = subprocess.run(['bash', '-e', '-c', step['run']], cwd=root, env=env,
+                                        text=True, capture_output=True)
+                self.assertEqual(result.returncode, expected, result.stderr)
+
     def test_formal_guard_is_transported_from_main_and_rechecked_before_each_publisher(self):
         prepare = self.release["jobs"]["prepare"]["steps"]
         control = next(i for i, s in enumerate(prepare) if s.get("name") == "Checkout workflow tooling")

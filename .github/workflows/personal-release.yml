@@ -66,7 +66,7 @@ jobs:
           CI_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID/jobs?filter=latest&per_page=100" > "$RUNNER_TEMP/ci-jobs.json"
-          python3 - <<'PYCODE'
+          python3 -I - <<'PYCODE'
           import json, os
           from pathlib import Path
           rows = json.loads((Path(os.environ['RUNNER_TEMP']) / 'ci-jobs.json').read_text())
