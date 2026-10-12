@@ -377,7 +377,7 @@ CUMULATIVE_MIGRATIONS = {
     "254_service_status.sql": "21522e3ef19e18bbe00bef39d48b153b61e0eee3e33b4047b7d045c5edaf0102",
 }
 
-# REL-001 离线审定的单向基线；正式 merge 须包含此锚点且完整运行树不变。
+# REL-002 固定发布源码的单向基线；须包含此锚点且完整运行树不变。
 KIN_UPGRADE_ID = "klno.5-tps.2-to-0.2.15-klno.2"
 KIN_OLD_REVISION = "3d5e1fde82707900a21f2b5538b112c7bab3c04a"
 KIN_OLD_VERSION = "0.2.14-klno.5-tps.2"
@@ -386,11 +386,11 @@ KIN_NEW_SOURCE = {
     "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.15-klno.2",
     "upstream_sha": "ca686de5e5ac14834e12701c156831abd5ec6b71",
 }
-KIN_NEW_REVISION = "776b4887daf883776b03f6951ca25e9b277b849d"
+KIN_NEW_REVISION = "42907bcab278f93db48d7e1b39b28e28f664569e"
 KIN_OLD_RUNTIME = "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747"
-KIN_NEW_RUNTIME = "be49127eed6d9a3fd039a238530a518b51e9f876451d37507aee27e14fc6d0d3"
+KIN_NEW_RUNTIME = "90e2851678966e6c27e41f5d7ec6e4d0c1196f2a7a8c0c81a1ba84a34c30e7a6"
 # 绑定完整排序后的 changed_paths JSON，而非路径范围；证明仍保存全部实际路径。
-KIN_CHANGED_PATHS_SHA256 = "1a21da2155518f87babf4bc75682f2b223082e6c9ff9547201be65a9a0ffb8c4"
+KIN_CHANGED_PATHS_SHA256 = "e22db48c79378e47c4b30d02541d83476aede91a58886afa6dcf794562e21c24"
 KIN_MIGRATIONS = {
     "242_drop_platform_check_constraints.sql": "a7725f31f637208d200e0f37d5270e9f263743d99fa9e4f1bb9a7387e8be5a61",
 }

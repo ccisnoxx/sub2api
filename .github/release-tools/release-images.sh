@@ -14,9 +14,10 @@ arches=(amd64 arm64)
 if [[ ${SIMPLE_RELEASE:-false} == true ]]; then arches=(amd64); fi
 scanner=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["sbom_generator"])' "$RUNNER_TEMP/release-tools/supply-chain-tools.json")
 verify_image() {
-  local layout=$1 arch=$2 stage=$3
+  local layout=$1 arch=$2 stage=$3 expected=${4:-}
   local created_args=()
   if [[ $stage == built ]]; then created_args=(--created "$RELEASE_DATE"); fi
+  if [[ -n $expected ]]; then created_args+=(--expected-digest "$expected"); fi
   python3 "$RUNNER_TEMP/release-tools/supply_chain.py" image --layout "$layout" \
     --sha "$RELEASE_SHA" --version "$RELEASE_VERSION" --platforms "linux/$arch" \
     "${created_args[@]}" --output "release-evidence/image-$arch-$stage"
@@ -50,7 +51,7 @@ for arch in "${arches[@]}"; do
     published=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["digest"])' "$RUNNER_TEMP/pushed-image.json")
     if [[ $reuse != true && $published != "$digest" ]]; then echo '发布 digest 与已校验 OCI 产物不同'; exit 1; fi
     oras cp --to-oci-layout "${registries[0]}@$published" "$RUNNER_TEMP/verify-$arch:verified"
-    verified=$(verify_image "$RUNNER_TEMP/verify-$arch" "$arch" published)
+    verified=$(verify_image "$RUNNER_TEMP/verify-$arch" "$arch" published "$published")
     [[ $verified == "$published" ]] || { echo '远端 OCI digest 不匹配'; exit 1; }
     # latest 仅从已经完整核对的固定 digest 补齐，证明缺失时不推进。
     python3 "$RUNNER_TEMP/release-guard/release-tools/personal_release.py" authorize \
@@ -65,7 +66,7 @@ for arch in "${arches[@]}"; do
     if [[ ${SIMPLE_RELEASE:-false} == true ]]; then tag="$RELEASE_VERSION"; fi
     oras cp --from-oci-layout "$oci@$digest" "$registry:$tag"
     oras cp --to-oci-layout "$registry@$digest" "$RUNNER_TEMP/verify-$arch:verified"
-    verified=$(verify_image "$RUNNER_TEMP/verify-$arch" "$arch" published)
+    verified=$(verify_image "$RUNNER_TEMP/verify-$arch" "$arch" published "$digest")
     [[ $verified == "$digest" ]] || { echo '远端 OCI digest 不匹配'; exit 1; }
     if [[ ${SIMPLE_RELEASE:-false} == true ]]; then oras tag "$registry@$digest" latest; fi
   done
@@ -79,7 +80,7 @@ if [[ ${DRY_RUN:-false} != true && ${SIMPLE_RELEASE:-false} != true ]]; then
     digest=$(oras resolve "$registry:$RELEASE_VERSION")
     oras cp --to-oci-layout "$registry@$digest" "$RUNNER_TEMP/verify-matrix:verified"
     verified=$(python3 "$RUNNER_TEMP/release-tools/supply_chain.py" image \
-      --layout "$RUNNER_TEMP/verify-matrix" --sha "$RELEASE_SHA" --version "$RELEASE_VERSION" \
+      --layout "$RUNNER_TEMP/verify-matrix" --expected-digest "$digest" --sha "$RELEASE_SHA" --version "$RELEASE_VERSION" \
       --platforms linux/amd64 linux/arm64 --output release-evidence/image-matrix-published)
     [[ $verified == "$digest" ]] || { echo '多平台发布 digest 不匹配'; exit 1; }
     oras tag "$registry@$digest" latest "$major.$minor" "$major"

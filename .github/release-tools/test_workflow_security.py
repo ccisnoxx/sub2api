@@ -14,6 +14,7 @@ READ = {"contents": "read"}
 JOB_PERMISSIONS = {
     ("release.yml", "prepare"): {**READ, "actions": "read", "packages": "read"},
     ("release.yml", "release"): {"contents": "write", "packages": "write", "actions": "read"},
+    ("release-recovery.yml", "release"): {"contents": "read", "packages": "read", "actions": "read"},
     ("personal-release.yml", "prepare"): {"contents": "write", "actions": "write", "packages": "read"},
     ("sync-upstream.yml", "sync"): {"contents": "write", "pull-requests": "write", "actions": "write"},
     ("personal-ci.yml", "binding"): {**READ, "pull-requests": "read"},
@@ -37,6 +38,7 @@ ARTIFACTS = {
     "toolchain-publication": (90, ["publication-toolchain.json"]),
     "personal-publication": (90, ["publication.json"]),
     "release-supply-chain-${{ github.run_id }}-${{ github.run_attempt }}": (90, ["release-evidence/"]),
+    "release-recovery-supply-chain-${{ github.run_id }}-${{ github.run_attempt }}": (90, ["${{ runner.temp }}/release-recovery/evidence/"]),
     "release-dry-run-oci-${{ github.run_id }}-${{ github.run_attempt }}": (1, ["${{ runner.temp }}/sub2api-*.oci.tar"]),
     "release-dry-run-report": (3, ["dist/checksums.txt", "dist/artifacts.json", "dist/metadata.json", "publication-toolchain.json"]),
     "security-toolchain": (30, ["${{ runner.temp }}/security-toolchain.json"]),
@@ -100,6 +102,15 @@ def policy_errors(name, workflow):
                 errors.append("Personal release 必须绑定本 fork/main 和维护者发布开关")
         if set(events) != {"workflow_dispatch"} or workflow["concurrency"].get("cancel-in-progress") != "false":
             errors.append("Personal release 只能手动触发，禁止取消运行中发布")
+    if name == "release-recovery.yml":
+        gate = workflow["jobs"]["release"].get("if", "")
+        for required in ("github.repository == 'ccisnoxx/sub2api'", "github.ref == 'refs/heads/main'",
+                         "vars.PERSONAL_RELEASE_ENABLED == 'true'"):
+            if required not in gate:
+                errors.append("Release recovery 必须绑定本 fork/main 和维护者发布开关")
+        if set(events) != {"workflow_dispatch"} or workflow["concurrency"] != {
+                "group": "release-${{ github.repository }}-publication", "cancel-in-progress": "false"}:
+            errors.append("Release recovery 只能手动触发并共用正式发布队列，禁止取消运行中发布")
     if name == "sync-upstream.yml":
         if set(events) != {"schedule", "workflow_dispatch"} or "github.ref == 'refs/heads/main'" not in workflow["jobs"]["sync"].get("if", ""):
             errors.append("同步写权限只能用于 main 调度")

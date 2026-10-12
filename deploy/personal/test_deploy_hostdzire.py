@@ -1427,7 +1427,8 @@ class ForwardGitTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "repository"
         actual = Path(deploy.__file__).resolve().parents[2]
-        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)], check=True,
+        subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                        "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)], check=True,
                        capture_output=True)
         self.git("config", "user.email", "fixture@example.invalid")
         self.git("config", "user.name", "Deployment Fixture")
@@ -1436,7 +1437,9 @@ class ForwardGitTests(unittest.TestCase):
         self.target = dict(NEW, revision=deploy.FORWARD_NEW_REVISION, version="0.2.14-klno.5-tps.1")
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", str(self.root), *args], check=True,
+        # 临时仓库的自动维护同步完成，避免清理时仍有 Git 后台进程写入。
+        return subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                               "-C", str(self.root), *args], check=True,
                               capture_output=True).stdout.decode().strip()
 
     def commit(self, message):
@@ -1523,7 +1526,8 @@ class CumulativeGitTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "repository"
         actual = Path(deploy.__file__).resolve().parents[2]
-        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
+        subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                        "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
                        check=True, capture_output=True)
         self.git("config", "user.email", "fixture@example.invalid")
         self.git("config", "user.name", "Deployment Fixture")
@@ -1617,7 +1621,8 @@ class KinGitTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name) / "repository"
         actual = Path(deploy.__file__).resolve().parents[2]
-        subprocess.run(["git", "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
+        subprocess.run(["git", "-c", "gc.autoDetach=false", "-c", "maintenance.autoDetach=false",
+                        "clone", "--shared", "--no-checkout", "-q", str(actual), str(self.root)],
                        check=True, capture_output=True)
         self.git("config", "user.email", "fixture@example.invalid")
         self.git("config", "user.name", "Deployment Fixture")
@@ -1633,13 +1638,13 @@ class KinGitTests(unittest.TestCase):
         proof = self.evidence.compatibility(self.old, self.target)
         deploy.validate_compatibility_proof(proof, self.old["revision"], self.target["revision"],
                                            self.old["version"], self.target["version"])
-        self.assertEqual(len(proof["changed_paths"]), 265)
+        self.assertEqual(len(proof["changed_paths"]), 292)
         self.assertEqual(deploy.sha(deploy.canonical(proof["changed_paths"])),
-                         "1a21da2155518f87babf4bc75682f2b223082e6c9ff9547201be65a9a0ffb8c4")
+                         "e22db48c79378e47c4b30d02541d83476aede91a58886afa6dcf794562e21c24")
         self.assertEqual(self.evidence.runtime_fingerprint(self.old["revision"]),
                          "ecbf079cd17f89f7604987d35a2740ea90264d7327178ed5c7ee2d61e73f9747")
         self.assertEqual(self.evidence.runtime_fingerprint(self.target["revision"]),
-                         "be49127eed6d9a3fd039a238530a518b51e9f876451d37507aee27e14fc6d0d3")
+                         "90e2851678966e6c27e41f5d7ec6e4d0c1196f2a7a8c0c81a1ba84a34c30e7a6")
         self.assertEqual(self.git("diff", "--name-status", self.old["revision"], self.target["revision"],
                                   "--", "backend/migrations/*.sql"),
                          "A\tbackend/migrations/242_drop_platform_check_constraints.sql")

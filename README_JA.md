@@ -29,7 +29,9 @@
 | 推奨するインストール | Linux x86_64（`linux/amd64`）で Docker Compose とこの fork の GHCR イメージを使用。[デプロイ](#デプロイ)を参照 |
 | イメージリポジトリ | `ghcr.io/ccisnoxx/sub2api` |
 
-**2026-10-10** に確認した公開版は [v0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)、イメージは `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.5-tps.2`、ソースは `3d5e1fde82707900a21f2b5538b112c7bab3c04a` です。GitHub 上では**プレリリース**として公開され、安定版とは表記しません。現在の個人版リリースは Linux amd64 コンテナイメージのみで、ダウンロード可能なバイナリアーカイブや ARM64 イメージはありません。以下では digest を固定します。今後のバージョンは[この fork のリリース](https://github.com/ccisnoxx/sub2api/releases)から選択してください。
+**2026-10-12** に確認した公開版は [v0.2.15-klno.2-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.1)、イメージは `ghcr.io/ccisnoxx/sub2api:0.2.15-klno.2-tps.1`、ソースは `42907bcab278f93db48d7e1b39b28e28f664569e` です。GitHub 上では**プレリリース**として公開され、安定版とは表記しません。現在の個人版リリースは Linux amd64 コンテナイメージのみで、ダウンロード可能なバイナリアーカイブや ARM64 イメージはありません。以下では digest を固定します。今後のバージョンは[この fork のリリース](https://github.com/ccisnoxx/sub2api/releases)から選択してください。
+
+本番はこの固定プレリリースを使用しています。[公開・デプロイ記録](docs/upstream/records/2026-10-12-rel-003.md)はソース、Full、OCI digest と 308 件のマイグレーション台帳を結び付けます。旧 `v0.2.14-klno.5-tps.2` タグはアーカイブ基準として保持します。KIN を跨ぐイメージだけのロールバックは禁止し、保守復元ではバックアップ後の書き込みが失われる可能性があります。
 
 ### 上流との差分
 
@@ -39,7 +41,7 @@
 - 管理者向けの実リクエストに基づくサービス状態。既定で無効、この環境で観測したリクエストのみを表し、無リクエストやサンプル不足は不明。
 - ソース SHA、成功した Personal CI、イメージ digest を結び付ける、この fork の同期・公開・デプロイ制御。
 
-現在の KIN 基準は `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71` で、[personal の出所記録](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)に記載されています。Plus の版は `v0.2.14+custom.002`、タグのコミットは `a7749f5826ec0a5c6493c47fde9474dc31525f14`、適応時の固定参照コミットは `90da415c62b94c9417d9ce2b72b1507ed22f0303` です。差分は出所文書のみです。[出所一覧](UPSTREAM.md)と [NOTICE](NOTICE)、[適応計画](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)と[交付記録](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)を参照してください。上流の全機能を同期する約束ではありません。
+現在の KIN 基準は `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71` で、[personal の出所記録](https://github.com/ccisnoxx/sub2api/blob/42907bcab278f93db48d7e1b39b28e28f664569e/deploy/personal-source.json)に記載されています。Plus の版は `v0.2.14+custom.002`、タグのコミットは `a7749f5826ec0a5c6493c47fde9474dc31525f14`、適応時の固定参照コミットは `90da415c62b94c9417d9ce2b72b1507ed22f0303` です。差分は出所文書のみです。[出所一覧](UPSTREAM.md)と [NOTICE](NOTICE)、[適応計画](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)と[交付記録](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)を参照してください。上流の全機能を同期する約束ではありません。
 
 ### 文書とサポートの範囲
 
@@ -173,8 +175,8 @@
 </tr>
 
 <tr>
-<td width="180"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></td>
-<td>Swiftproxy は開発者向けの高性能プロキシソリューションで、安定して信頼できるレジデンシャルおよび静的レジデンシャルプロキシサービスを提供します。9,000 万以上のクリーンな住宅 IP を保有し、グローバルカバレッジ、柔軟なローテーション、精密なジオターゲティングにより、Web スクレイピング、AI オートメーション、ブラウザ自動化、SEO モニタリング、マルチアカウント管理などのプロジェクトがアクセス制限を克服し、ワークフロー効率を向上させます。HTTP(S) および SOCKS5 プロトコルに対応し、Playwright、Selenium、Puppeteer などの主要な自動化ツールと統合可能。動的プロキシトラフィックは使い切るまで期限切れなし、無料テストも利用可能 — 今すぐ無料テストを開始！</td>
+<td width="180"><a href="https://www.swiftproxy.net/?ref=sub2api"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></a></td>
+<td>Swiftproxy は開発者向けの高性能プロキシソリューションで、安定して信頼できるレジデンシャルおよび静的レジデンシャルプロキシサービスを提供します。9,000 万以上のクリーンな住宅 IP を保有し、グローバルカバレッジ、柔軟なローテーション、精密なジオターゲティングにより、Web スクレイピング、AI オートメーション、ブラウザ自動化、SEO モニタリング、マルチアカウント管理などのプロジェクトがアクセス制限を克服し、ワークフロー効率を向上させます。HTTP(S) および SOCKS5 プロトコルに対応し、Playwright、Selenium、Puppeteer などの主要な自動化ツールと統合可能。動的プロキシトラフィックは使い切るまで期限切れなし、無料テストも利用可能 — <a href="https://www.swiftproxy.net/?ref=sub2api">今すぐ無料テストを開始</a>！</td>
 </tr>
 
 <tr>
@@ -256,12 +258,10 @@ Nginx はデフォルトでアンダースコアを含むヘッダー（例: `se
 
 ### Docker Compose: Linux amd64 への新規インストール（推奨）
 
-最終確認：**2026-10-10**（公開イメージのメタデータと Compose 設定。新規インストールは今回未実行）。更新とテンプレートの確認は[デプロイ手順](deploy/README.md)を参照してください。
-
 Linux x86_64、Docker Engine、`docker compose` プラグインを使用します。公開済みのソースタグと固定イメージ digest を組み合わせる新規インストール例です。既存環境の更新では、バックアップ、移行互換性、対象リリースの説明を別途確認してください。
 
 ```bash
-git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.1 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
 cp .env.example .env
 chmod 600 .env
@@ -270,13 +270,13 @@ nano .env
 
 起動前にテンプレートの PostgreSQL パスワードを変更し、`POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` にそれぞれ `openssl rand -hex 32` で生成した異なる値を設定してください。管理者アカウントを非公開で設定し、`BIND_HOST=127.0.0.1` としてください。明示的に必要な場合を除き、`SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP=false` と `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS=false` を設定します。`.env` のアクセスを制限し、外部アクセスには設定済みの HTTPS リバースプロキシを使用してください。
 
-固定した過去タグの Compose テンプレートには上流のイメージが残っています。現在の main の制御テンプレートはこの fork を選択します。以下の上書きファイルでこの fork のイメージを選択します。**すべての Compose 操作で両方の `-f` を指定してください。** 起動前に `config --images` に以下の `ghcr.io/ccisnoxx/sub2api@sha256:...` と PostgreSQL、Redis が表示されることを確認します。
+継承した Compose テンプレートには上流のイメージが残っています。以下の上書きファイルでこの fork のイメージを選択します。**すべての Compose 操作で両方の `-f` を指定してください。** 起動前に `config --images` に以下の `ghcr.io/ccisnoxx/sub2api@sha256:...` と PostgreSQL、Redis が表示されることを確認します。
 
 ```bash
 cat > compose.personal.yml <<'YAML'
 services:
   sub2api:
-    image: ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530
+    image: ghcr.io/ccisnoxx/sub2api@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3
     platform: linux/amd64
 YAML
 mkdir -p data postgres_data redis_data
@@ -292,8 +292,6 @@ docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 
 ### 開発用のソースビルド
 
-最終確認：**2026-10-10**。以下の固定ソースタグの公開イメージと紐付いた [Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726) を根拠とします。開発用ビルドであり、追加のバイナリ配布経路ではありません。
-
 
 開発やカスタマイズのためにソースコードからビルドして実行します。
 
@@ -308,7 +306,7 @@ docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 
 ```bash
 # 1. リポジトリをクローン
-git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.1 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api
 
 # 2. pnpm をインストール（未インストールの場合）
@@ -484,7 +482,7 @@ go generate ./cmd/server
 
 ## Antigravity サポート
 
-Sub2API は [Antigravity](https://antigravity.google/) アカウントをサポートしています。認証後、Claude および Gemini モデル用の専用エンドポイントが利用可能になります。
+Sub2API は [Antigravity](https://antigravity.so/) アカウントをサポートしています。認証後、Claude および Gemini モデル用の専用エンドポイントが利用可能になります。
 
 ### 専用エンドポイント
 
@@ -533,10 +531,10 @@ sub2api/
     ├── docker-compose.yml    # Docker Compose 設定
     ├── .env.example          # Docker Compose 用環境変数
     ├── config.example.yaml   # バイナリデプロイ用フル設定ファイル
-    └── install.sh            # 保守用ソース。現在バイナリ配布はありません
+    └── install.sh            # ワンクリックインストールスクリプト
 ```
 
-## 原始上流のスター履歴
+## スター履歴
 
 <a href="https://star-history.dera.page/#Wei-Shaw/sub2api&Date">
  <picture>

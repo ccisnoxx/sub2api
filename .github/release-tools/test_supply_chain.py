@@ -91,6 +91,56 @@ class SupplyChainTest(unittest.TestCase):
         self.assertEqual(set(proofs), set(platforms.values()))
         self.assertEqual(date, DATE)
 
+    def oras_roots(self, layout):
+        document = json.loads((layout / 'index.json').read_text())
+        root = document['manifests'][0]
+        index = json.loads((layout / 'blobs/sha256' / root['digest'][7:]).read_text())
+        # ORAS 1.3.4 完整 cp --to-oci-layout 的同一布局合同：主 index 与两个子清单并列。
+        document['manifests'].extend(index['manifests'])
+        supply.save(layout / 'index.json', document)
+        return document
+
+    def test_oras_complete_layout_binds_expected_root_and_retains_all_proofs(self):
+        layout, digest = self.layout()
+        self.oras_roots(layout)
+        for expected in (None, digest):
+            actual, platforms, proofs, date = supply.inspect_image(layout, SHA, '9.8.7', ['linux/amd64'],
+                                                                 expected_digest=expected)
+            self.assertEqual(actual, digest)
+            self.assertEqual(set(platforms), {'linux/amd64'})
+            self.assertEqual(set(proofs), set(platforms.values()))
+            self.assertIn(supply.SPDX, next(iter(proofs.values())))
+            self.assertEqual(date, DATE)
+
+    def test_oras_missing_leaf_wrong_expected_root_duplicate_and_ambiguity_fail(self):
+        layout, digest = self.layout()
+        document = self.oras_roots(layout)
+        for expected in ('sha256:' + '0' * 64, document['manifests'][1]['digest'], 'invalid'):
+            with self.subTest(expected=expected), self.assertRaises(ValueError):
+                supply.inspect_image(layout, SHA, '9.8.7', ['linux/amd64'], expected_digest=expected)
+        duplicate = copy.deepcopy(document)
+        duplicate['manifests'].append(duplicate['manifests'][0])
+        supply.save(layout / 'index.json', duplicate)
+        with self.assertRaisesRegex(ValueError, '重复'):
+            supply.inspect_image(layout, SHA, '9.8.7', ['linux/amd64'], expected_digest=digest)
+        # 第二个主 index 即使内容同样可信，也没有唯一选择依据。
+        alternate = json.loads((layout / 'blobs/sha256' / digest[7:]).read_text())
+        alternate['annotations'] = {'fixture': 'another index'}
+        raw = json.dumps(alternate).encode()
+        second = hashlib.sha256(raw).hexdigest()
+        (layout / 'blobs/sha256' / second).write_bytes(raw)
+        document['manifests'].append({'digest': 'sha256:' + second, 'size': len(raw)})
+        supply.save(layout / 'index.json', document)
+        for expected in (None, digest):
+            with self.subTest(expected=expected), self.assertRaises(ValueError):
+                supply.inspect_image(layout, SHA, '9.8.7', ['linux/amd64'], expected_digest=expected)
+        document['manifests'].pop()
+        supply.save(layout / 'index.json', document)
+        leaf = document['manifests'][1]
+        (layout / 'blobs/sha256' / leaf['digest'][7:]).write_bytes(b'tampered')
+        with self.assertRaisesRegex(ValueError, 'digest/size'):
+            supply.inspect_image(layout, SHA, '9.8.7', ['linux/amd64'], expected_digest=digest)
+
     def test_wrong_revision_source_version_created_platform_and_blob_are_rejected(self):
         for label in ('revision', 'source', 'version', 'created'):
             with self.subTest(label=label):
@@ -168,6 +218,17 @@ class SupplyChainTest(unittest.TestCase):
         archive.write_bytes(b'changed archive')
         with self.assertRaises(ValueError):
             supply.verify_binaries(args)
+
+    def test_recovery_requires_exact_original_binary_producer_without_identity_rewrite(self):
+        args, archive, proof = self.binary_evidence()
+        producer = {'repository': ENV['GITHUB_REPOSITORY'], 'run_id': ENV['GITHUB_RUN_ID'], 'workflow_sha': ENV['GITHUB_SHA'], 'run_attempt': '1'}
+        original = proof.read_bytes()
+        with patch.dict(os.environ, {'GITHUB_RUN_ID': '9999', 'GITHUB_SHA': 'c' * 40}):
+            supply.verify_binaries(args, producer=producer)
+            self.assertEqual(proof.read_bytes(), original)
+            for change in ({'run_id': '9999'}, {'workflow_sha': 'c' * 40}, {'run_attempt': '2'}):
+                with self.subTest(change=change), self.assertRaises(ValueError):
+                    supply.verify_binaries(args, producer={**producer, **change})
 
     def test_final_evidence_and_formal_ci_are_required(self):
         layout, digest = self.layout()

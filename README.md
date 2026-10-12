@@ -29,7 +29,9 @@ This repository, **[ccisnoxx/sub2api](https://github.com/ccisnoxx/sub2api)**, is
 | Recommended installation | Docker Compose with this fork's GHCR image on Linux x86_64 (`linux/amd64`); see [Deployment](#deployment) below |
 | Image repository | `ghcr.io/ccisnoxx/sub2api` |
 
-Verified published example on **2026-10-10**: [v0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2), image `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.5-tps.2`, source commit `3d5e1fde82707900a21f2b5538b112c7bab3c04a`. This release is marked **pre-release** on GitHub; it is not advertised as a stable release. The current personal release path publishes the Linux amd64 container image, with no downloadable binary archive or ARM64 image. Install the fixed image below; select future versions from [this fork's releases](https://github.com/ccisnoxx/sub2api/releases).
+Verified published example on **2026-10-12**: [v0.2.15-klno.2-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.1), image `ghcr.io/ccisnoxx/sub2api:0.2.15-klno.2-tps.1`, source commit `42907bcab278f93db48d7e1b39b28e28f664569e`. This release is marked **pre-release** on GitHub; it is not advertised as a stable release. The current personal release path publishes the Linux amd64 container image, with no downloadable binary archive or ARM64 image. Install the fixed image below; select future versions from [this fork's releases](https://github.com/ccisnoxx/sub2api/releases).
+
+Production now runs this fixed prerelease. [Release and deployment evidence](docs/upstream/records/2026-10-12-rel-003.md) binds source, Full, OCI digest and the 308-row migration ledger. The previous `v0.2.14-klno.5-tps.2` tag remains available as an archived baseline; cross-KIN image-only rollback is blocked and maintenance restoration can lose writes after the backup snapshot.
 
 ### Differences from Upstream
 
@@ -39,7 +41,7 @@ Verified published example on **2026-10-10**: [v0.2.14-klno.5-tps.2](https://git
 - Request-based service status for administrators, disabled by default. It describes requests observed by this deployment; missing or insufficient samples remain unknown.
 - Fork-owned synchronization, manual publication, and deployment controls that bind source SHA, successful manual Personal CI Full, and image digest. Automatic full PR CI and strict branch protection are optional; see the [personal maintenance release workflow](docs/ci/CI-000.md).
 
-The current KIN application baseline is `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`; its record is on [personal](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json). The Plus release context is `v0.2.14+custom.002`, whose tag points to `a7749f5826ec0a5c6493c47fde9474dc31525f14`; adaptation uses the fixed reading commit `90da415c62b94c9417d9ce2b72b1507ed22f0303`. These commits differ only in provenance documentation. See the [source matrix](UPSTREAM.md), [NOTICE](NOTICE), [adaptation plan](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md) and [delivery record](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md). This is selective adaptation, not a promise to synchronize every upstream feature.
+The current KIN application baseline is `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`; its record is on [personal](https://github.com/ccisnoxx/sub2api/blob/42907bcab278f93db48d7e1b39b28e28f664569e/deploy/personal-source.json). The Plus release context is `v0.2.14+custom.002`, whose tag points to `a7749f5826ec0a5c6493c47fde9474dc31525f14`; adaptation uses the fixed reading commit `90da415c62b94c9417d9ce2b72b1507ed22f0303`. These commits differ only in provenance documentation. See the [source matrix](UPSTREAM.md), [NOTICE](NOTICE), [adaptation plan](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md) and [delivery record](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md). This is selective adaptation, not a promise to synchronize every upstream feature.
 
 ### Documentation and Support
 
@@ -171,8 +173,8 @@ Please read the following carefully before using this project:
 </tr>
 
 <tr>
-<td width="180"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></td>
-<td>Swiftproxy is a high-performance proxy solution built for developers, providing stable and reliable residential and static residential proxy services. With 90M+ clean residential IPs, global coverage, flexible rotation, and precise geo-targeting, it helps projects such as web scraping, AI automation, browser automation, SEO monitoring, and multi-account management overcome access restrictions and improve workflow efficiency. It supports HTTP(S) and SOCKS5 protocols, integrates with popular automation tools like Playwright, Selenium, and Puppeteer, with dynamic proxy traffic that never expires until used and free testing available — start your free test now!</td>
+<td width="180"><a href="https://www.swiftproxy.net/?ref=sub2api"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></a></td>
+<td>Swiftproxy is a high-performance proxy solution built for developers, providing stable and reliable residential and static residential proxy services. With 90M+ clean residential IPs, global coverage, flexible rotation, and precise geo-targeting, it helps projects such as web scraping, AI automation, browser automation, SEO monitoring, and multi-account management overcome access restrictions and improve workflow efficiency. It supports HTTP(S) and SOCKS5 protocols, integrates with popular automation tools like Playwright, Selenium, and Puppeteer, with dynamic proxy traffic that never expires until used and free testing available — <a href="https://www.swiftproxy.net/?ref=sub2api">start your free test now</a>!</td>
 </tr>
 
 <tr>
@@ -255,12 +257,10 @@ Nginx drops headers containing underscores by default (e.g. `session_id`), which
 
 ### Docker Compose: New Linux amd64 Installation (Recommended)
 
-Last verified: **2026-10-10** (published image metadata and Compose configuration; this task does not perform a fresh installation). See the [deployment guide](deploy/README.md) for image updates and template checks.
-
 Use Docker Engine with the `docker compose` plugin on Linux x86_64. The following example pairs the published application source tag with its fixed image digest. It prepares a new installation; review backups, migration compatibility, and the target release notes separately for an existing deployment.
 
 ```bash
-git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.1 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
 cp .env.example .env
 chmod 600 .env
@@ -269,13 +269,13 @@ nano .env
 
 Before starting, replace the template PostgreSQL password and set `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` to separate random values generated with `openssl rand -hex 32`. Configure your administrator account privately, set `BIND_HOST=127.0.0.1`, and set `SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP=false` and `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS=false` unless your deployment explicitly needs those endpoints. Keep `.env` private. Expose the service through a configured HTTPS reverse proxy for remote access.
 
-The Compose template at the fixed historical tag still names an upstream image; current main control templates select this fork. The following override selects this fork's published image; **include both `-f` arguments in every Compose operation**. The `config --images` output must contain the `ghcr.io/ccisnoxx/sub2api@sha256:...` reference below, plus PostgreSQL and Redis, before starting.
+The inherited Compose template still names an upstream image. The following override selects this fork's published image; **include both `-f` arguments in every Compose operation**. The `config --images` output must contain the `ghcr.io/ccisnoxx/sub2api@sha256:...` reference below, plus PostgreSQL and Redis, before starting.
 
 ```bash
 cat > compose.personal.yml <<'YAML'
 services:
   sub2api:
-    image: ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530
+    image: ghcr.io/ccisnoxx/sub2api@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3
     platform: linux/amd64
 YAML
 mkdir -p data postgres_data redis_data
@@ -291,8 +291,6 @@ For upgrades, select the new fork release's matching source and image digest, re
 
 ### Build from Source for Development
 
-Last verified: **2026-10-10**, using the published image and its bound [Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726) for the fixed source tag below. This is a development build path, not an additional binary release channel.
-
 
 Build and run from source code for development or customization.
 
@@ -307,7 +305,7 @@ Build and run from source code for development or customization.
 
 ```bash
 # 1. Clone the repository
-git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.1 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api
 
 # 2. Install pnpm (if not already installed)
@@ -672,7 +670,7 @@ The built-in `jev-latest` price is `$0.042` per million input tokens and `$0` fo
 
 ## Antigravity Support
 
-Sub2API supports [Antigravity](https://antigravity.google/) accounts. After authorization, dedicated endpoints are available for Claude and Gemini models.
+Sub2API supports [Antigravity](https://antigravity.so/) accounts. After authorization, dedicated endpoints are available for Claude and Gemini models.
 
 ### Dedicated Endpoints
 
@@ -721,10 +719,10 @@ sub2api/
     ├── docker-compose.yml    # Docker Compose configuration
     ├── .env.example          # Environment variables for Docker Compose
     ├── config.example.yaml   # Full config file for binary deployment
-    └── install.sh            # Retained installer source; no binary release assets
+    └── install.sh            # One-click installation script
 ```
 
-## Original Upstream Star History
+## Star History
 
 <a href="https://star-history.dera.page/#Wei-Shaw/sub2api&Date">
  <picture>

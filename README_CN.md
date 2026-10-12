@@ -29,7 +29,9 @@
 | 默认推荐安装方式 | Linux x86_64（`linux/amd64`）上使用 Docker Compose 和本 fork 的 GHCR 镜像，见下方[部署方式](#部署方式) |
 | 镜像仓库 | `ghcr.io/ccisnoxx/sub2api` |
 
-**2026-10-10** 核实的已发布示例：[v0.2.14-klno.5-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.14-klno.5-tps.2)，镜像 `ghcr.io/ccisnoxx/sub2api:0.2.14-klno.5-tps.2`，源码提交 `3d5e1fde82707900a21f2b5538b112c7bab3c04a`。该 Release 在 GitHub 标记为**预发行**，不宣称为稳定版。当前个人发布入口只发布 Linux amd64 容器镜像，没有可下载的二进制安装包或 ARM64 镜像。下方示例固定镜像 digest；后续版本从[本 fork 的 Release](https://github.com/ccisnoxx/sub2api/releases)选择。
+**2026-10-12** 核实的已发布示例：[v0.2.15-klno.2-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.1)，镜像 `ghcr.io/ccisnoxx/sub2api:0.2.15-klno.2-tps.1`，源码提交 `42907bcab278f93db48d7e1b39b28e28f664569e`。该 Release 在 GitHub 标记为**预发行**，不宣称为稳定版。当前个人发布入口只发布 Linux amd64 容器镜像，没有可下载的二进制安装包或 ARM64 镜像。下方示例固定镜像 digest；后续版本从[本 fork 的 Release](https://github.com/ccisnoxx/sub2api/releases)选择。
+
+生产已部署该固定预发行版。[发布及部署记录](docs/upstream/records/2026-10-12-rel-003.md)绑定源码、Full、OCI digest 和 308 条迁移账本。旧 `v0.2.14-klno.5-tps.2` 标签保留为归档基线；跨 KIN 单独回退镜像被禁止，维护恢复可能丢失备份快照后的写入。
 
 ### 与上游差异
 
@@ -39,7 +41,7 @@
 - 管理员可见的真实请求服务状态，默认关闭；仅代表本部署已观察请求，无请求或样本不足时保持未知。
 - 本 fork 自行维护的同步、手动发布和部署控制，将源码 SHA、成功手动 Personal CI Full 和镜像 digest 绑定；PR 自动全量 CI 和严格分支保护不是上线前置。操作见 [个人维护发布流程](docs/ci/CI-000.md)。
 
-当前 KIN 应用基线为 `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`，来源记录位于 [personal 分支](https://github.com/ccisnoxx/sub2api/blob/personal/deploy/personal-source.json)。Plus 参考的版本背景为 `v0.2.14+custom.002`，该标签实际指向 `a7749f5826ec0a5c6493c47fde9474dc31525f14`；适配时固定阅读提交为 `90da415c62b94c9417d9ce2b72b1507ed22f0303`。两者仅来源文档不同；完整来源见[来源矩阵](UPSTREAM.md)和 [NOTICE](NOTICE)，适配范围见[方案](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)和[交付记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)。这是选择性适配，不承诺同步上游的全部功能。
+当前 KIN 应用基线为 `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`，来源记录位于 [personal 分支](https://github.com/ccisnoxx/sub2api/blob/42907bcab278f93db48d7e1b39b28e28f664569e/deploy/personal-source.json)。Plus 参考的版本背景为 `v0.2.14+custom.002`，该标签实际指向 `a7749f5826ec0a5c6493c47fde9474dc31525f14`；适配时固定阅读提交为 `90da415c62b94c9417d9ce2b72b1507ed22f0303`。两者仅来源文档不同；完整来源见[来源矩阵](UPSTREAM.md)和 [NOTICE](NOTICE)，适配范围见[方案](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)和[交付记录](openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md)。这是选择性适配，不承诺同步上游的全部功能。
 
 ### 文档与支持范围
 
@@ -174,8 +176,8 @@
 </tr>
 
 <tr>
-<td width="180"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></td>
-<td>Swiftproxy 是面向开发者的高性能代理解决方案，提供稳定可靠的住宅代理和静态住宅代理服务。拥有 9000 万+ 纯净住宅 IP，覆盖全球，支持灵活轮换和精准地理定位，帮助网页抓取、AI 自动化、浏览器自动化、SEO 监控和多账号管理等项目突破访问限制，提升工作流效率。支持 HTTP(S) 和 SOCKS5 协议，兼容 Playwright、Selenium、Puppeteer 等主流自动化工具，动态代理流量用完为止永不过期，支持免费测试 — 立即开始免费测试！</td>
+<td width="180"><a href="https://www.swiftproxy.net/?ref=sub2api"><img src="assets/partners/logos/swiftprox.png" alt="Swiftproxy" width="150"></a></td>
+<td>Swiftproxy 是面向开发者的高性能代理解决方案，提供稳定可靠的住宅代理和静态住宅代理服务。拥有 9000 万+ 纯净住宅 IP，覆盖全球，支持灵活轮换和精准地理定位，帮助网页抓取、AI 自动化、浏览器自动化、SEO 监控和多账号管理等项目突破访问限制，提升工作流效率。支持 HTTP(S) 和 SOCKS5 协议，兼容 Playwright、Selenium、Puppeteer 等主流自动化工具，动态代理流量用完为止永不过期，支持免费测试 — <a href="https://www.swiftproxy.net/?ref=sub2api">立即开始免费测试</a>！</td>
 </tr>
 
 <tr>
@@ -281,12 +283,10 @@ fast_mode = true
 
 ### Docker Compose：Linux amd64 新安装（推荐）
 
-最后验证：**2026-10-10**（已发布镜像元数据与 Compose 配置；本任务未执行全新安装）。镜像更新及模板检查见[部署说明](deploy/README.md)。
-
 适用 Linux x86_64、Docker Engine 和 `docker compose` 插件。以下示例使用已发布的应用源码标签及其固定镜像 digest，用于新安装；已有部署升级需要另行核对备份、迁移兼容性和目标版本说明。
 
 ```bash
-git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.1 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
 cp .env.example .env
 chmod 600 .env
@@ -295,13 +295,13 @@ nano .env
 
 启动前，将模板 PostgreSQL 密码及 `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`, `TOTP_ENCRYPTION_KEY` 分别设置为通过 `openssl rand -hex 32` 生成的不同随机值。私下设置管理员账号，将 `BIND_HOST` 设为 `127.0.0.1`；除非部署明确需要这些端点，将 `SECURITY_URL_ALLOWLIST_ALLOW_INSECURE_HTTP` 和 `SECURITY_URL_ALLOWLIST_ALLOW_PRIVATE_HOSTS` 设为 `false`。限制 `.env` 访问权限。远程访问应使用已配置的 HTTPS 反向代理。
 
-固定历史标签中的 Compose 模板仍写有上游镜像；当前 main 控制模板已选择本 fork。以下覆盖文件选择本 fork 的已发布镜像；**每次 Compose 操作都必须保留两个 `-f` 参数**。启动前，`config --images` 应显示下方 `ghcr.io/ccisnoxx/sub2api@sha256:...` 镜像以及 PostgreSQL、Redis。
+继承的 Compose 模板仍写有上游镜像。以下覆盖文件选择本 fork 的已发布镜像；**每次 Compose 操作都必须保留两个 `-f` 参数**。启动前，`config --images` 应显示下方 `ghcr.io/ccisnoxx/sub2api@sha256:...` 镜像以及 PostgreSQL、Redis。
 
 ```bash
 cat > compose.personal.yml <<'YAML'
 services:
   sub2api:
-    image: ghcr.io/ccisnoxx/sub2api@sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530
+    image: ghcr.io/ccisnoxx/sub2api@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3
     platform: linux/amd64
 YAML
 mkdir -p data postgres_data redis_data
@@ -317,8 +317,6 @@ docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 
 ### 开发用源码编译
 
-最后验证：**2026-10-10**，依据下方固定源码标签的已发布镜像及其绑定的 [Personal CI](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726)。这是开发构建路径，不是额外的二进制发行渠道。
-
 
 从源码编译安装，适合开发或定制需求。
 
@@ -333,7 +331,7 @@ docker compose -f docker-compose.local.yml -f compose.personal.yml ps
 
 ```bash
 # 1. 克隆仓库
-git clone --branch v0.2.14-klno.5-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.1 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api
 
 # 2. 安装 pnpm（如果还没有安装）
@@ -576,7 +574,7 @@ curl https://your-sub2api.example.com/v1/systemone \
 
 ## Antigravity 使用说明
 
-Sub2API 支持 [Antigravity](https://antigravity.google/) 账户，授权后可通过专用端点访问 Claude 和 Gemini 模型。
+Sub2API 支持 [Antigravity](https://antigravity.so/) 账户，授权后可通过专用端点访问 Claude 和 Gemini 模型。
 
 ### 专用端点
 
@@ -625,10 +623,10 @@ sub2api/
     ├── docker-compose.yml    # Docker Compose 配置
     ├── .env.example          # Docker Compose 环境变量
     ├── config.example.yaml   # 二进制部署完整配置文件
-    └── install.sh            # 保留安装器源码；当前没有二进制发行附件
+    └── install.sh            # 一键安装脚本
 ```
 
-## 原始上游 Star History
+## Star History
 
 <a href="https://star-history.dera.page/#Wei-Shaw/sub2api&Date">
  <picture>
