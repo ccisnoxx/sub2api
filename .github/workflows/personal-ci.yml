@@ -1,13 +1,19 @@
 name: Personal CI
-run-name: Personal CI | ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }} | base ${{ inputs.base_sha || github.event.pull_request.base.sha || github.sha }}
+run-name: Personal CI | ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }} | base ${{ inputs.base_sha || github.event.pull_request.base.sha || github.sha }} | request ${{ inputs.mode || 'auto' }}
 
 on:
   pull_request:
     branches: [personal]
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   push:
     branches: [personal]
   workflow_dispatch:
     inputs:
+      mode:
+        description: '最终候选运行 full；中间反馈运行 quick'
+        type: choice
+        options: [quick, full]
+        default: full
       candidate_sha:
         description: '被检查的完整 SHA，必须等于 dispatch ref 的 SHA'
         type: string
@@ -22,12 +28,11 @@ on:
         required: false
 
 concurrency:
-  group: personal-ci-${{ github.event.pull_request.number || github.ref }}
+  group: personal-ci-${{ inputs.pr_number || github.event.pull_request.number || github.ref }}-${{ (github.event_name != 'pull_request' || !startsWith(github.head_ref, 'codex/sync-klno-') && !startsWith(github.head_ref, 'codex/verify-personal-ci-')) && (github.event_name == 'workflow_dispatch' && inputs.mode == 'full' || github.event.action == 'ready_for_review' || github.event.action == 'labeled' && github.event.label.name == 'full-ci' || github.event_name == 'push') && 'full' || 'quick' }}
   cancel-in-progress: true
 
 permissions:
   contents: read
-  pull-requests: read
 
 env:
   CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha || github.sha }}
@@ -38,14 +43,22 @@ jobs:
   binding:
     if: github.repository == 'ccisnoxx/sub2api'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
     outputs:
       source_sha: ${{ steps.sha.outputs.source_sha }}
+      plan: ${{ steps.plan.outputs.plan }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ env.CANDIDATE_SHA }}
           fetch-depth: 0
           persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - name: Verify candidate and latest personal
         id: sha
         env:
@@ -54,73 +67,87 @@ jobs:
           python3 .github/personal-sync/check_binding.py
           printf 'source_sha=%s\n' "$CANDIDATE_SHA" >> "$GITHUB_OUTPUT"
 
+      - name: Classify paths and select evidence
+        id: plan
+        env:
+          CI_MODE: ${{ inputs.mode || 'quick' }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/personal-sync/ci_policy.py plan --personal
+
   existing-ci:
     needs: binding
+    if: '!fromJSON(needs.binding.outputs.plan).check_only'
     uses: ./.github/workflows/backend-ci.yml
     with:
       source_sha: ${{ needs.binding.outputs.source_sha }}
+      mode: ${{ fromJSON(needs.binding.outputs.plan).mode }}
+      plan: ${{ needs.binding.outputs.plan }}
 
   existing-security:
     needs: binding
+    if: '!fromJSON(needs.binding.outputs.plan).check_only && (fromJSON(needs.binding.outputs.plan).scan_go || fromJSON(needs.binding.outputs.plan).scan_frontend)'
     uses: ./.github/workflows/security-scan.yml
     with:
       source_sha: ${{ needs.binding.outputs.source_sha }}
-
-  tps:
-    needs: binding
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.binding.outputs.source_sha }}
-          persist-credentials: false
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 9
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-          cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
-      - run: pnpm --dir frontend install --frozen-lockfile
-      - name: TPS contracts and frontend build
-        run: |
-          pnpm --dir frontend exec vitest run src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/__tests__/HelpTooltip.spec.ts
-          pnpm --dir frontend exec eslint src/components/admin/usage/UsageTps.vue src/components/admin/usage/UsageTable.vue src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/HelpTooltip.vue src/components/common/__tests__/HelpTooltip.spec.ts src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts
-          pnpm --dir frontend run build
+      scan_go: ${{ fromJSON(needs.binding.outputs.plan).scan_go }}
+      scan_frontend: ${{ fromJSON(needs.binding.outputs.plan).scan_frontend }}
 
   sync-contracts:
     needs: binding
+    if: '!fromJSON(needs.binding.outputs.plan).check_only && (fromJSON(needs.binding.outputs.plan).mode == ''full'' || fromJSON(needs.binding.outputs.plan).tooling || fromJSON(needs.binding.outputs.plan).workflows)'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ needs.binding.outputs.source_sha }}
           persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
       - run: python3 -m unittest discover -s .github/personal-sync -p 'test_*.py'
 
-  personal-ready:
-    name: personal-ready
-    if: always()
-    needs: [binding, existing-ci, existing-security, tps, sync-contracts]
+  full-ci-certified:
+    name: full-ci-certified
+    if: always() && needs.binding.result == 'success' && (fromJSON(needs.binding.outputs.plan).require_full || fromJSON(needs.binding.outputs.plan).evidence_run_id != '')
+    needs: [binding, existing-ci, existing-security, sync-contracts]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - name: Require every selected check
-        env:
-          RESULTS: ${{ toJSON(needs) }}
-        run: |
-          python3 - <<'PY'
-          import json, os
-          results = json.loads(os.environ['RESULTS'])
-          failed = {name: value['result'] for name, value in results.items() if value['result'] != 'success'}
-          if failed:
-              raise SystemExit(f'必要检查未通过：{failed}')
-          PY
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ env.CANDIDATE_SHA }}
           fetch-depth: 0
           persist-credentials: false
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          CI_PLAN: ${{ needs.binding.outputs.plan }}
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/personal-sync/ci_policy.py certify
+
+  personal-ready:
+    name: personal-ready
+    if: always() && github.repository == 'ccisnoxx/sub2api'
+    needs: [binding, existing-ci, existing-security, sync-contracts, full-ci-certified]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ env.CANDIDATE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require every selected check
+        env:
+          CI_PLAN: ${{ needs.binding.outputs.plan }}
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/personal-sync/ci_policy.py aggregate --personal
       - name: Recheck candidate and current base after CI
         env:
           GH_TOKEN: ${{ github.token }}

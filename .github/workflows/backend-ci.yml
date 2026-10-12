@@ -1,38 +1,65 @@
 name: CI
 
 on:
-  push:
-    # personal 的完整检查由 Personal CI 调用，避免机器人 push 触发问题。
-    branches-ignore:
-      - main
-      - personal
-      - 'codex/sync-klno-*'
-      - 'codex/verify-personal-ci-*'
-    paths-ignore:
-      - '**.md'
-      - 'LICENSE'
   pull_request:
-    branches-ignore:
-      - personal
+    branches-ignore: [personal]
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [quick, full]
+        default: quick
+      base_sha:
+        description: 'Quick 路径比较的完整基础 SHA；Full 可留空'
+        type: string
+        required: false
   workflow_call:
     inputs:
       source_sha:
         required: true
         type: string
+      mode:
+        type: string
+        default: quick
+      plan:
+        type: string
+        default: ''
 
 # 同一分支连续推送时取消还在跑的上一轮，只留最新的那次。
 concurrency:
-  group: backend-ci-${{ github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
+  group: backend-ci-${{ github.event.pull_request.number || github.ref }}-${{ inputs.source_sha && github.run_id || 'event' }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
+env:
+  GOTOOLCHAIN: local
+
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      plan: ${{ steps.plan.outputs.plan }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - id: plan
+        env:
+          CI_PLAN: ${{ inputs.plan }}
+          CI_MODE: ${{ inputs.mode || 'quick' }}
+          BASE_SHA: ${{ github.event.inputs.base_sha || github.sha }}
+        run: python3 .github/personal-sync/ci_policy.py plan
+
   shell:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.plan).mode == 'full' || fromJSON(needs.changes.outputs.plan).deploy
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
@@ -46,15 +73,17 @@ jobs:
           /bin/sh deploy/test-caddyfile-cache.sh
 
   test:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.plan).mode == 'full' || fromJSON(needs.changes.outputs.plan).backend
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - name: Check Docker Compose simple mode environment
         run: /bin/sh deploy/tests/docker-compose-simple-mode-env-test.sh
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: backend/go.mod
           check-latest: false
@@ -63,16 +92,28 @@ jobs:
       - name: Verify Go version
         run: |
           expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          go version
           [[ $(go env GOVERSION) == "go${expected_go}" ]]
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
+      - name: Quick package checks
+        if: fromJSON(needs.changes.outputs.plan).mode == 'quick'
+        env:
+          CI_PLAN: ${{ needs.changes.outputs.plan }}
+        run: python3 .github/personal-sync/ci_checks.py backend
       - name: Unit tests
+        if: fromJSON(needs.changes.outputs.plan).mode == 'full'
         working-directory: backend
         run: |
           python3 ../tools/test_backend_unit_runner_test.py
           make test-unit
       - name: Integration tests
+        if: fromJSON(needs.changes.outputs.plan).mode == 'full'
         working-directory: backend
         run: make test-integration
       - name: OpenAI recording concurrency checks
+        if: fromJSON(needs.changes.outputs.plan).mode == 'full'
         working-directory: backend
         env:
           RECORDING_SOURCE_SHA: ${{ inputs.source_sha }}
@@ -85,36 +126,62 @@ jobs:
           fi
 
   frontend:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.plan).mode == 'full' || fromJSON(needs.changes.outputs.plan).frontend
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
-          version: 9
+          version: 9.15.9
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: '20'
+          node-version: '20.20.2'
           cache: 'pnpm'
           cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Verify frontend tool versions
+        run: |
+          node --version
+          pnpm --version
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
+      - name: Quick frontend checks
+        if: fromJSON(needs.changes.outputs.plan).mode == 'quick'
+        env:
+          CI_PLAN: ${{ needs.changes.outputs.plan }}
+        run: python3 .github/personal-sync/ci_checks.py frontend
       - name: Frontend typecheck and critical vitest
+        if: fromJSON(needs.changes.outputs.plan).mode == 'full'
         run: make test-frontend
+      - name: TPS contracts and frontend build
+        if: fromJSON(needs.changes.outputs.plan).mode == 'full'
+        env:
+          TPS_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          if [[ -z "$TPS_SOURCE_SHA" && ! -f frontend/src/components/admin/usage/UsageTps.vue ]]; then
+            echo '当前 main 源码没有 personal TPS 模块，专项检查不适用。'
+          else
+            pnpm --dir frontend exec vitest run src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/__tests__/HelpTooltip.spec.ts
+            pnpm --dir frontend exec eslint src/components/admin/usage/UsageTps.vue src/components/admin/usage/UsageTable.vue src/components/admin/usage/__tests__/UsageTps.spec.ts src/components/admin/usage/__tests__/UsageTable.spec.ts src/components/common/HelpTooltip.vue src/components/common/__tests__/HelpTooltip.spec.ts src/i18n/locales/zh/dashboard.ts src/i18n/locales/en/dashboard.ts
+          fi
+          pnpm --dir frontend run build
 
   golangci-lint:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.plan).mode == 'full'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: backend/go.mod
           check-latest: false
@@ -123,29 +190,70 @@ jobs:
       - name: Verify Go version
         run: |
           expected_go=$(awk '$1 == "go" {print $2; exit}' backend/go.mod)
+          go version
           [[ $(go env GOVERSION) == "go${expected_go}" ]]
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: v2.14.0
           args: --timeout=30m
           working-directory: backend
 
   release-helpers:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.plan).mode == 'full' || fromJSON(needs.changes.outputs.plan).tooling || fromJSON(needs.changes.outputs.plan).workflows
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ inputs.source_sha || github.sha }}
           persist-credentials: false
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: '3.12'
-      - name: Check documentation links and fork installation sources
-        run: |
-          python tools/check_doc_links.py
-          python deploy/tests/install-source-test.py
-          bash deploy/tests/install-github-token-test.sh
-      - run: python -m pip install -r .github/release-tools/requirements-release.txt
+          python-version: '3.12.13'
+      - run: |
+          python -m pip install --require-hashes --only-binary=:all: -r .github/release-tools/requirements-release.txt
       - run: python -m unittest discover -s .github/release-tools -p 'test_*.py'
+      - if: inputs.source_sha == ''
+        run: python -m unittest discover -s .github/personal-sync -p 'test_*.py'
       - run: bash -n .github/release-tools/release-images.sh
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        if: fromJSON(needs.changes.outputs.plan).workflows
+        with:
+          go-version-file: backend/go.mod
+          check-latest: false
+          cache-dependency-path: backend/go.sum
+      - name: Workflow syntax
+        if: fromJSON(needs.changes.outputs.plan).workflows
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          actionlint -shellcheck='' -pyflakes=''
+
+  docs:
+    needs: changes
+    if: fromJSON(needs.changes.outputs.plan).mode == 'full' || fromJSON(needs.changes.outputs.plan).docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - env:
+          CI_PLAN: ${{ needs.changes.outputs.plan }}
+        run: python3 .github/personal-sync/ci_checks.py docs
+
+  ci-ready:
+    if: always()
+    needs: [changes, shell, test, frontend, golangci-lint, release-helpers, docs]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - env:
+          CI_PLAN: ${{ needs.changes.outputs.plan }}
+          RESULTS: ${{ toJSON(needs) }}
+        run: python3 .github/personal-sync/ci_policy.py aggregate

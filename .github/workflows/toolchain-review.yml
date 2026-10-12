@@ -1,0 +1,57 @@
+name: Toolchain version review
+
+on:
+  schedule:
+    - cron: '23 4 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12.13'
+      - name: Record installed policy and check official releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python .github/release-tools/toolchain.py --tools python --output toolchain-review.json
+          {
+            echo '## 每月工具升级任务（维护者 ccisnoxx）'
+            echo '按 docs/ci/CI-002.md 对照以下官方版本；有更新时提交独立 PR，人工审查后合并。'
+            echo '### 当前固定版本'
+            cat .github/release-tools/toolchain.json
+            echo '### 官方候选版本（只读查询，不安装、不修改固定值）'
+            for repo in goreleaser/goreleaser docker/buildx moby/buildkit tonistiigi/binfmt golangci/golangci-lint pnpm/pnpm; do
+              gh api "repos/$repo/releases/latest" --jq '[.html_url, .tag_name] | join(" ")'
+            done
+            gh api repos/golang/vuln/tags --jq '.[0].name'
+            curl --fail --silent --show-error https://nodejs.org/dist/latest-v20.x/SHASUMS256.txt
+            echo 'Python 支持分支和 Go 工具链按文档中的官方发布入口人工复核。'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: toolchain-review
+          path: |
+            toolchain-review.json
+            !**/.env
+            !**/.env.*
+            !**/*.env
+            !**/*.sql
+            !**/*.dump
+            !**/*.backup
+            !**/*.bak
+            !**/*.db
+            !**/*.sqlite*
+            !**/*.log
+            !**/.git/**
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 35

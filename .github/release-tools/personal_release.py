@@ -14,6 +14,7 @@ from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "personal-sync"))
 from sync import REPOSITORY, SHA, SyncError, UPSTREAM, assert_base, git, source_at
+from ci_policy import FULL_JOBS, ci_title, is_full_run, merge_candidate, successful_jobs
 
 PERSONAL_TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-klno\.(0|[1-9][0-9]*)-tps\.([1-9][0-9]*)")
 IMAGE = "ghcr.io/ccisnoxx/sub2api"
@@ -53,11 +54,40 @@ def pages(path, key=None):
 
 def trusted_ci(run, sha, workflow_id):
     return (run["workflow_id"] == workflow_id and run["path"] == ".github/workflows/personal-ci.yml"
+            and run["repository"]["full_name"] == REPOSITORY
             and run["head_repository"]["full_name"] == REPOSITORY
             and run["head_branch"] == "personal" and run["head_sha"] == sha
             and run["status"] == "completed" and run["conclusion"] == "success"
             and run["event"] in ("push", "workflow_dispatch")
-            and run["display_title"] == f"Personal CI | {sha} | base {sha}")
+            and run["display_title"] in {ci_title(sha, sha, "full"), ci_title(sha, sha, "auto")})
+
+
+def current_full(source, base, workflow_id, exclude_id):
+    roots = pages(f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?head_sha={source}", "workflow_runs")
+    for root in roots:
+        if root["id"] != exclude_id and is_full_run(root, source, base, workflow_id):
+            root_jobs = pages(f"repos/{REPOSITORY}/actions/runs/{root['id']}/jobs?filter=latest", "jobs")
+            if successful_jobs(root_jobs, FULL_JOBS):
+                return True
+    return False
+
+
+def release_evidence(run, sha, workflow_id):
+    """由可信 main 工具实时核对 Full；认证 marker 只用于识别入口。"""
+    jobs = pages(f"repos/{REPOSITORY}/actions/runs/{run['id']}/jobs?filter=latest", "jobs")
+    if not successful_jobs(jobs, {"full-ci-certified", "personal-ready"}):
+        return False
+    if successful_jobs(jobs, FULL_JOBS):
+        return True
+    if current_full(sha, sha, workflow_id, run["id"]):
+        return True
+    if run["event"] != "push":
+        return False
+    candidate = merge_candidate(sha)
+    if not candidate:
+        return False
+    head, base = candidate
+    return current_full(head, base, workflow_id, run["id"])
 
 
 def gate(sha, run_id=""):
@@ -81,12 +111,13 @@ def gate(sha, run_id=""):
         run = api(f"repos/{REPOSITORY}/actions/runs/{run_id}")
     else:
         runs = pages(f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?head_sha={sha}&branch=personal", "workflow_runs")
-        matching = [r for r in runs if trusted_ci(r, sha, workflow["id"])]
-        if not matching:
+        run = next((r for r in runs if trusted_ci(r, sha, workflow["id"]) and release_evidence(r, sha, workflow["id"])), None)
+        if run is None:
             raise SyncError("最终 personal SHA 没有可信的完整成功 CI")
-        run = matching[0]
     if not trusted_ci(run, sha, workflow["id"]):
         raise SyncError("CI 不是当前仓库、最终 personal SHA 的成功检查；PR 结果不可用于发布")
+    if run_id and not release_evidence(run, sha, workflow["id"]):
+        raise SyncError("发布必须有当前有效的 Full CI 证据；Quick 或失效的复用证据不能用于发布")
     branch = api(f"repos/{REPOSITORY}/branches/personal")
     required = branch["protection"]["required_status_checks"]
     if not branch["protected"] or required["enforcement_level"] != "everyone":
@@ -171,6 +202,14 @@ def publication(tag, sha):
     return digest, bool(release and not release["draft"] and digest)
 
 
+def bound_release(tag, sha, ci_run_id):
+    """远端查询后及每次写入前，重新读取同一源码的 CI 和标签占用。"""
+    source, run = gate(sha, ci_run_id)
+    if not tag.startswith(source["upstream_tag"] + "-tps.") or tags().get(tag) != sha:
+        raise SyncError("个人标签不等于最终 SHA 或来源版本")
+    return source, run
+
+
 def output(data):
     print(json.dumps(data, ensure_ascii=False, indent=2))
     if os.environ.get("GITHUB_OUTPUT"):
@@ -198,15 +237,19 @@ def prepare(args):
                     output({"state": "documentation_only", "tag": prior, "sha": args.sha})
                     return
                 break
+        source, run = gate(args.sha, str(run["id"]))
+        if not tag.startswith(source["upstream_tag"] + "-tps."):
+            raise SyncError("分配的个人标签与当前来源版本不一致")
         assert_base(args.sha)
         api(f"repos/{REPOSITORY}/git/refs", {"ref": f"refs/tags/{tag}", "sha": args.sha})
     if tags().get(tag) != args.sha:
         raise SyncError("个人标签发生冲突，禁止移动标签")
     digest, completed = publication(tag, args.sha)
+    source, run = bound_release(tag, args.sha, str(run["id"]))
+    assert_base(args.sha)
     if completed:
         output({"state": "already_published", "tag": tag, "sha": args.sha, "digest": digest})
         return
-    assert_base(args.sha)
     api(f"repos/{REPOSITORY}/actions/workflows/release.yml/dispatches", {"ref": "personal", "inputs": {
         "tag": tag, "source_sha": args.sha, "ci_run_id": str(run["id"]), "simple_release": True, "dry_run": False}})
     output({"state": "dispatched", "tag": tag, "sha": args.sha, "ci_run_id": run["id"],
@@ -219,10 +262,9 @@ def authorize(args):
     if (os.environ["GITHUB_REF"] not in ("refs/heads/personal", "refs/tags/" + args.tag)
             or os.environ["GITHUB_SHA"] != args.sha):
         raise SyncError("正式 Release 必须从同一 personal SHA 的工具定义 dispatch")
-    source, run = gate(args.sha, args.ci_run_id)
-    if not args.tag.startswith(source["upstream_tag"] + "-tps.") or tags().get(args.tag) != args.sha:
-        raise SyncError("个人标签不等于最终 SHA 或来源版本")
+    source, run = bound_release(args.tag, args.sha, args.ci_run_id)
     digest, completed = publication(args.tag, args.sha)
+    source, run = bound_release(args.tag, args.sha, str(run["id"]))
     assert_base(args.sha)
     output({"skip": completed, "reuse_image": bool(digest), "digest": digest or "",
         "ci_run_id": run["id"], "upstream_tag": source["upstream_tag"], "upstream_sha": source["upstream_sha"]})
