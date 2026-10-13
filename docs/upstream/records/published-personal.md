@@ -20,6 +20,12 @@ KIN 仓库三条均为 `KlN-4096/sub2api`。历史 Notes 未显式列出完整 K
 | klno.5-tps.1 | `9397eb8afb621aef483f2ec0bf4b2dd6247c7b92` | [37879317375](https://github.com/ccisnoxx/sub2api/actions/runs/37879317375) / [37880741133](https://github.com/ccisnoxx/sub2api/actions/runs/37880741133) | linux/amd64 / `sha256:a6a2a017622158b8813c9355db816d9cca0b37654553c5bacf8aa304b51f06e6` |
 | klno.5-tps.2 | `3d5e1fde82707900a21f2b5538b112c7bab3c04a` | [38049101726](https://github.com/ccisnoxx/sub2api/actions/runs/38049101726) / [38050231176](https://github.com/ccisnoxx/sub2api/actions/runs/38050231176) | linux/amd64 / `sha256:7446ff8ebdddca5e60989f0a5b8dec670ce3a030a9c8472e2dd3c27986e21530` |
 
-对应 image 均为 `ghcr.io/ccisnoxx/sub2api@` 加表中完整 digest。源代码、SOURCE.json/许可证与 OCI 必须在实际发布/使用时按原材料核验；此记录没有新产物验收结论。旧稳定回退选择 tps.2，但应用兼容、当时数据库恢复点与部署许可仍需按 [迁移记录](2026-10-11-kin-v0.2.15-klno.2.md)及部署合同核对。
+对应 image 均为 `ghcr.io/ccisnoxx/sub2api@` 加表中完整 digest。源代码、SOURCE.json/许可证与 OCI 必须在实际发布/使用时按原材料核验；此记录没有新产物验收结论。旧稳定回退选择 tps.2，但应用兼容、当时数据库恢复点与部署许可仍需按 [迁移记录](https://github.com/ccisnoxx/sub2api/blob/c54b9497d4bee04215384deb494c5467b917a7db/docs/upstream/records/2026-10-11-kin-v0.2.15-klno.2.md)及部署合同核对。
 
 2026-10-12 当前 I 为 `bea1db12d5f4853c0b85b44840e15de6a74309b1`，源码 VERSION `0.2.15-klno.2-tps.1-rc.1`。上述 API 查询没有这个 RC 或新 KIN personal 的正式 Release；本表不生成新 tag/digest/run，也不表示 tps.2 是 I 的产物。
+
+## 2026-10-13 追加：新KIN个人版本与旧429归档
+
+上文三次API/Notes核对是其2026-10-12时点，不用于新版本发布资格。另有原 [v0.2.15-klno.2-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.1) / `42907bcab278f93db48d7e1b39b28e28f664569e` / Release410901327 / Full38274106520 / index `sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3`，原12个assets与正文保留；其恢复/生产验收见REL-002/003，现归档。
+
+当前 [v0.2.15-klno.2-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.2) 为 `c08fba12eb4cd30e65c4177f3acbe20567ecd252`，published_at 2026-10-13T02:37:06Z，draft=false/prerelease=true，Release411195117/14 assets；[Full38335510831](https://github.com/ccisnoxx/sub2api/actions/runs/38335510831)和[Release38337243568](https://github.com/ccisnoxx/sub2api/actions/runs/38337243568)均attempt1 success，实际控制/部署工具 `90aea7ec626aeab41434d72739573aa51d6227ad`。Linux/amd64 index `sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25`，leaf `sha256:7e2d731fb3fd0421cc6c51e8f522f40e70306492f0a604a248483538f5e741e8`；KIN N、Plus P/四模块参考与NOTICE字段保持，没有升级基线。完整来源、未签名证明、实际迁移账本/备份/部署及本机监控见[OBS验收](2026-10-12-obs-release.md)。两个旧个人tag、镜像和恢复点继续保留，不能据归档说明执行被禁止的旧镜像恢复。后继文档HEAD不是上述两个发布源码。

@@ -1,6 +1,8 @@
 # OBS 新版本发布与本机监控验收
 
-## 授权与当前准备状态
+当前实际验收（2026-10-13 UTC）：tps.2 / `c08fba12eb4cd30e65c4177f3acbe20567ecd252` 已完成成功Full、发布、独立测试→生产、完整备份/账本/业务/聚合及生产持久本机timer验收；第8节13/14，跨KIN无损回退禁令保持。下文准备和失败阶段保留当时边界，最新完整结果见“实际发布、分阶段部署与本机监控验收”。
+
+## 授权与当时准备状态
 
 维护者在第8节续作后明确：没有通知渠道且不需要外部通知功能；允许另建新OBS版本并分阶段部署。真实通知送达在本次环境不适用，保留应用监控信号、容量/水位只读检查与本机执行记录，不伪装外部告警能力。跨KIN回退的已验证信息丢失、旧镜像禁令及原429发布产物保持。
 
@@ -55,14 +57,46 @@ binding、sync-contracts、changes、docs、shell、frontend、backend-security�
 有效审计17项artifact均有封存hash，errors为空；三个configuration快照文件仅有未分类warning，内容保留在私密本机Bundle，不上传Git或外部。历史配置漂移Bundle不重写、不混入本轮统计。复核后仓库仅追加本段实际结果，已审定控制/应用/操作字节保持。
 
 
+## 实际发布、分阶段部署与本机监控验收（2026-10-13 UTC）
+
+此前的准备、失败Full和配置漂移属于各自历史时点；下面实际结果替代当时的待发布/待部署结论，不重写失败。源码固定为 `c08fba12eb4cd30e65c4177f3acbe20567ecd252`，实际发布/部署工具 `90aea7ec626aeab41434d72739573aa51d6227ad`。新[Full38335510831](https://github.com/ccisnoxx/sub2api/actions/runs/38335510831)只dispatch一次，attempt1全部15个必要job success；旧失败Full38333250481保持。部署工具[CI38335440711](https://github.com/ccisnoxx/sub2api/actions/runs/38335440711)成功。本轮应用测试门禁修复涉及两处checked类型断言和repository16分片，真实45秒deadline、41秒慢轮次/40秒WARN及每进程60秒限制保持；未变定向证据复用。
+
+| 发布绑定 | 实际值 |
+|---|---|
+| 个人tag / source | [v0.2.15-klno.2-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.2) / `c08fba12eb4cd30e65c4177f3acbe20567ecd252` |
+| 手动allocator / Release run | [38337189359](https://github.com/ccisnoxx/sub2api/actions/runs/38337189359) / [38337243568](https://github.com/ccisnoxx/sub2api/actions/runs/38337243568)，均attempt1 success |
+| Release状态 | ID411195117，published_at `2026-10-13T02:37:06Z`，draft=false、prerelease=true；14个asset的size/digest与下载证明逐项一致 |
+| OCI index | `sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25` |
+| linux/amd64 leaf | `sha256:7e2d731fb3fd0421cc6c51e8f522f40e70306492f0a604a248483538f5e741e8` |
+| KIN / Plus | KIN `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`；Plus固定阅读90da415c62b94c9417d9ce2b72b1507ed22f0303、原四模块范围保持 |
+| 供应链边界 | 许可/NOTICE/SBOM/build来源及OCI核对通过；证明未签名，依赖可信Actions运输与digest绑定。运输的29个维护源码逐字匹配main工具；runner生成的两项pyc保留但未作为Git维护源码比较或执行 |
+
+没有覆盖旧tag/Release/assets/正式镜像。`PERSONAL_RELEASE_ENABLED`已恢复false。测试为既有 `/root/sub2api-kin-s44-validation`，生产为既有 `/root/sub2api-kin` / `https://api.962850.xyz`，没有以生产充当测试。测试只替换应用，PG/Redis/fixture及生产现场保持；308条migration身份/applied_at相同。管理员/普通用户登录、JWT 401/403、目录、实际合成转发/用量/余额差值5通过，临时目录渠道和设置恢复；6 HTTP/6 WS fixture成功。恢复后的完整测试观察 `03:12:17–03:18:24 UTC` 367.153秒，固定app/source/digest/IP/健康逐轮核对、水位推进、五分钟完整窗口和无缺口通过，6个成功事实可见；awaiting_data、NULL比例及unknown仍按真实证据保持，不伪造健康或SLA。
+
+实际producer首检因私密检查器错误要求aggregate outcome=committed失败；权威owner只在完整扫描/写入/tx.Commit成功后记录success。仅将验收谓词改为success且stage=commit，旧RED及新真实GREEN保留，cleanup提交确认/capacity成功/白名单/ops_system_log_skip保持。fresh独立复核与封存审计 `20261013T025052Z-obs-producer-live-outcome-review-9e536311`通过，没有改源码/Full/Release/digest。测试真实source_error信号未删字段，按十分钟重扫自然闭合。
+
+隔离测试故障首次因服务器journalctl不接受ISO --since而exit1，finally恢复原app；旧日志保留。私密脚本改为明确UTC格式后，第一fresh复核发现整秒截断可混入同秒历史事件（P2）；增加六位微秒，真实查询与精确下界核对通过，第二fresh复核无确认新增阻断。审计 `20261013T030124Z-obs-journal-time-final-review-84416cb3`封存/校验通过；第二stage规划遗漏仍在收尾的第一只读复核，实际两复核短暂并发、未超过系统容量4且无写入/所有权冲突，缺口留在sealed说明，不伪造open_workers=0的运行事实。仅重跑失败故障项：`03:07:21–03:13:53 UTC` 停应用240秒，真实timer捕获watermark_stale，原app恢复健康后145秒观察到两次current；invalid PG目标为固定watch_unavailable/exit2。生产及测试依赖保持。测试专用timer和4282本地转发在验收后按安装hash/精确所有权清理，测试栈/镜像与日志证据保留。
+
+生产首个备份在tar应用数据归档返回1，具体stderr原脚本未保存，未开始隔离恢复、冻结或部署；后续相同只读tar返回0且生产逐字段保持，不能据此断言具体文件原因。诊断保存补充的本地编辑未写入，实际重试使用原已复核脚本，仅重跑失败直接备份范围；归档非零从未接受。失败备份 `20261013T031903Z-7464fcf8e04343af84200bbcf410c3e6`及失败日志保留为失败证据，不是恢复验收点。
+
+新有效恢复点 **`/root/sub2api-kin/.personal-deploy/rollout-backups/20261013T032240Z-03dbb6f85a0e44c28d54779d7106a139`**；同MVCC快照 **`2026-10-13T03:22:40.806383+00:00`**。数据库dump 63858760 bytes / `464711dab3d3c070f57ac9a1e0e4c8eb92a838263df31b11d1af2e1e122ecc25`，应用数据 10375842 bytes / `aad603c503982dd1a39f605214cafc31d17f80eaf23ba094bae9b1cb0d3b89e8`。全量pg_restore退出0，同一快照users/usage/ledger计数与完整filename/checksum/applied_at一致，临时表读写探针ROLLBACK成功；无网络、512MiB/1CPU隔离恢复的容器/卷/私密env及exporter全部按唯一所有权清理。该快照之后的真实生产写入仍可能在维护恢复时丢失，在线覆盖须另行明确确认。
+
+迁移目录旧429→C08全部333项路径/mode/type/object相同，无新SQL；不重做输入未变的DDL锁演练。新部署 ID **`20261013T032447Z-22e878072cb7`**，应用CID `877d70f308f0d3f4d2018258ca015630db56bac7ee3df20178dac059af4b6331`，PG/Redis身份及完整308账本保持。filename/checksum摘要 `a31c942e9e772bef1af9c68f930ee35afaa8c3591b5d1c22609f9bf7d30da882`、完整身份/applied_at摘要 `e0a8c522cd7adccce954cf3e01b506f3319d9f8f35089ca9ef19f120f572686d`；242及251—254身份未改变。按旧站点freeze→单应用部署→回环→绑定C08与新ID显式resume→公开检查完成；原83c250控制器/站点记录保留，accepted_source/deployment追加为新值，公开当前open/无关闭flag。
+
+回环与公开健康/models200、非法key401、真实SSE唯一completed、各10 input/5 output token、timing_version1、非零用量和标准组余额扣费各0.000008通过；两次验收请求实际总扣费0.000016。生产完整观察 **03:30:33–03:40:39 UTC**，12次样本/606.895秒，水位推进及最终完整五分钟窗口通过；已知公开401来源信号 `03:29:17.099133 UTC` 保留并自然闭合，未出现新source信号/聚合错误、配置version2保持。同期真实业务32条非零计费用量、计时version1/观测32条，111749 input/45202 output token、实际总计费15.610592；这些是同期业务，不能算作验收探针费用。错误记录/5xx均0，五项后台心跳无last_error；仅为有界发布观察，不代表长期性能、容量或提供方SLA。
+
+生产实际6次aggregate成功、6次cleanup提交确认、1次capacity成功的固定字段日志通过，原始请求日志未导出。本机独立 `sub2api-kin-service-status-watch.timer` 已enabled/active，安装目录 `/root/sub2api-kin/.personal-deploy/monitor/obs-tps2`，watch SHA256 `1a9d34ea8a6f07952ffc293ef5e26ea8b25ffb6e457bf7f4db750969c7153ace`；PG凭据只在服务器进程内读取。每分钟、Persistent、只读RR/statement2s/lock1s/子进程5s/oneshot10s保持。安装完成后实际自动调度 `03:42:01.091120` 与 `03:43:00.961851 UTC` 均current/空告警码，间隔59.870731秒；没有把安装时手动start算成持续监控。文件hash、原PG/Redis、运行source/digest/健康、308完整账本和maintenance open最终复核通过。真实same-OBS dry-run也通过，will_apply=false，无pull/备份/apply/记录/选择/迁移。
+
+主源门禁最终审计 `20261013T015402Z-obs-gates-fixed-release-final-review-9e23cc38` 与上述两个补充审计均已关闭并校验；模型/档位仅是dispatch时Agent TOML配置证据。历史配置漂移open Bundle不重写、不加入通过统计。本次同步实际支持政策、三语安装版本、I/C/T/旧429来源归档及第8节 **13/14**；只有跨KIN全业务无损回退仍未满足，禁令保持。原工作区暂存/未暂存计划内容保持。完整私密回执/日志、sealed审计及服务器acceptance.json保留，未上传配置快照、凭据或原始业务请求。
+
 ## 本轮验收状态
 
-- [ ] 固定最终源码/控制revision并完成一次成功发布Full；
-- [ ] 不可覆盖的新tag/镜像/Release，源码/Full/工具/digest绑定；
-- [ ] 既有独立测试环境的健康、登录/权限、隐私、转发/计费/用量及完整聚合周期；
-- [ ] 生产新备份、迁移影响核对、维护冻结、单向部署及回环/公开验收；
-- [ ] 新producer实际结构化日志、本机水位定时检查和容量探测；
-- [ ] 更新支持版本/来源/Release说明和第8节状态，同步两分支；
+- [x] 固定最终源码/控制revision并完成一次成功发布Full；
+- [x] 不可覆盖的新tag/镜像/Release，源码/Full/工具/digest绑定；
+- [x] 既有独立测试环境的健康、登录/权限、隐私、转发/计费/用量及完整聚合周期；
+- [x] 生产新备份、迁移影响核对、维护冻结、单向部署及回环/公开验收；
+- [x] 新producer实际结构化日志、本机水位定时检查和容量探测；
+- [x] 更新支持版本/来源/Release说明和第8节状态，同步两分支；
 - [x] 外部通知按维护者明确需求不适用；没有配置路由或发送通知，不宣称送达。
 
 ## 回退边界
