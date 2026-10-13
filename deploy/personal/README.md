@@ -2,7 +2,7 @@
 
 本目录是本机部署控制工具。入口从当前仓库读取个人发布标签与来源记录，通过既有 `ssh hostdzire`、`scp` 将已验证的完整 Python 模块及无凭据配置 bundle 上传到私密临时目录，在服务器执行一次完整操作。工具不依赖本机 Docker daemon，不修改 SSH 配置或 host key 检查。
 
-最后离线验证日期：**2026-10-12**。固定 Linux x86_64 现场的恢复验证见 [BASELINE.md](../../BASELINE.md)；REL-001 交付历史候选部署前合同；REL-002 当前源码绑定及实际发布/部署状态以验收记录为准。
+最后离线验证日期：**2026-10-13**。固定 Linux x86_64 现场的恢复验证见 [BASELINE.md](../../BASELINE.md)；REL-001 交付历史候选部署前合同；REL-002 当前源码绑定及实际发布/部署状态以验收记录为准。
 
 ## 使用前提与固定现场
 
@@ -17,7 +17,7 @@
 在仓库根目录指定个人版本；可带 `v` 或完整 fork 镜像版本地址。版本先拉取并解析唯一 RepoDigest，再拉取该 digest；启动、验收和记录均使用相同的不可变引用。
 
 ```sh
-deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.2 \
+deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.3 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
@@ -25,12 +25,12 @@ deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.2 \
 
 ```sh
 deploy/personal/deploy-hostdzire.sh \
-  ghcr.io/ccisnoxx/sub2api@sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25 \
-  --version 0.2.15-klno.2-tps.2 \
+  ghcr.io/ccisnoxx/sub2api@sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627 \
+  --version 0.2.15-klno.2-tps.3 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
-成功输出包含服务器记录 `id`、目标与实际运行 digest、Image ID、OCI version/revision/source、健康状态。仅声明 `image_rollback_compatible=true` 且与当前成功选择相同的**部署记录**可显式回滚。当前tps.2记录为false，旧429及跨KIN恢复禁令保持；下面只展示既有兼容记录的参数格式，不能用于当前tps.2恢复：
+成功输出包含服务器记录 `id`、目标与实际运行 digest、Image ID、OCI version/revision/source、健康状态。仅声明 `image_rollback_compatible=true` 且与当前成功选择相同的**部署记录**可显式回滚。当前tps.3记录为false，旧429及跨KIN恢复禁令保持；下面只展示既有兼容记录的参数格式，不能用于当前tps.3恢复：
 
 ```sh
 deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc \
@@ -68,8 +68,8 @@ SSH 一次 scp 运送完整清单。远端 isolated Python bootstrap 在导入�
 
 ```sh
 deploy/personal/deploy-hostdzire.sh \
-  ghcr.io/ccisnoxx/sub2api@sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25 \
-  --version 0.2.15-klno.2-tps.2 \
+  ghcr.io/ccisnoxx/sub2api@sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627 \
+  --version 0.2.15-klno.2-tps.3 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA> \
   --dry-run
 ```
@@ -208,7 +208,7 @@ OBS 专属证明还固定 `docs/legal/admin-compliance.en.md` 和 `docs/legal/ad
 
 ## 当前运行与本机监控（2026-10-13 UTC）
 
-当前发布源码为 `c08fba12eb4cd30e65c4177f3acbe20567ecd252` / tps.2，实际部署工具90aea7ec626aeab41434d72739573aa51d6227ad，生产部署记录 `20261013T032447Z-22e878072cb7`；新Full、Release、备份/迁移/业务及完整聚合见[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。后继文档main HEAD不冒充当次工具revision；未来操作仍获取并显式提供当前可信origin/main。308完整账本保持，原83c250站点控制器及记录source429为历史安装身份，新accepted_source/部署ID已经明确绑定C08。
+当前发布源码为 `8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90` / tps.3，实际发布控制和部署工具为 `5e24b02d7aeb32f440af7a3aafbb21394fa14dd8`，生产部署记录 `20261013T075506Z-bf72a8e35e62`；Full、Release、固定digest、备份、SSE/计费及完整聚合见[Responses验收](../../docs/upstream/records/2026-10-13-responses-release.md)。后继文档main HEAD不冒充当次工具revision；未来操作仍获取并显式提供当前可信origin/main。308完整账本保持，原83c250站点控制器及记录source429为历史安装身份，accepted_source/部署ID已绑定本次发布。原C08/tps.2记录保留于[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。
 
 生产 `sub2api-kin-service-status-watch.timer` 每分钟、Persistent执行独立只读检查；源码位于personal的 `tools/service-status-watch.py`，安装目录 `/root/sub2api-kin/.personal-deploy/monitor/obs-tps2`，PG凭据只在服务器内存读取。安装完成后的两次自动current、固定文件hash/运行digest/依赖/完整账本及隔离测试的水位停滞/恢复/unavailable均已验收。查看本机固定事件可使用 `journalctl -u sub2api-kin-service-status-watch.service --output cat`；没有外部通知渠道或送达功能。测试专用unit与4282转发已按唯一所有权清理，原测试栈、正式证据及生产timer保留。
 

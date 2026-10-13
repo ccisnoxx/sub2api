@@ -29,9 +29,9 @@ This repository, **[ccisnoxx/sub2api](https://github.com/ccisnoxx/sub2api)**, is
 | Recommended installation | Docker Compose with this fork's GHCR image on Linux x86_64 (`linux/amd64`); see [Deployment](#deployment) below |
 | Image repository | `ghcr.io/ccisnoxx/sub2api` |
 
-Verified published example on **2026-10-13 UTC**: [v0.2.15-klno.2-tps.2](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.2), image `ghcr.io/ccisnoxx/sub2api:0.2.15-klno.2-tps.2`, source commit `c08fba12eb4cd30e65c4177f3acbe20567ecd252`. This release is marked **pre-release** on GitHub; it is not advertised as a stable release. The current personal release path publishes the Linux amd64 container image, with no downloadable binary archive or ARM64 image. Install the fixed image below; select future versions from [this fork's releases](https://github.com/ccisnoxx/sub2api/releases).
+Verified published example on **2026-10-13 UTC**: [v0.2.15-klno.2-tps.3](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.3), image `ghcr.io/ccisnoxx/sub2api:0.2.15-klno.2-tps.3`, source commit `8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90`. This release is marked **pre-release** on GitHub; it is not advertised as a stable release. The current personal release path publishes the Linux amd64 container image, with no downloadable binary archive or ARM64 image. Install the fixed image below; select future versions from [this fork's releases](https://github.com/ccisnoxx/sub2api/releases).
 
-Production now runs this fixed prerelease. [Release and deployment evidence](docs/upstream/records/2026-10-12-obs-release.md) binds source, Full, OCI digest and the 308-row migration ledger. The previous `v0.2.15-klno.2-tps.1` and `v0.2.14-klno.5-tps.2` tags and their immutable images remain archived; cross-KIN image-only rollback is blocked and maintenance restoration can lose writes after the backup snapshot.
+Production now runs this fixed prerelease. [Release and deployment evidence](docs/upstream/records/2026-10-13-responses-release.md) binds source, Full, OCI digest and the 308-row migration ledger. The previous `v0.2.15-klno.2-tps.2`, `v0.2.15-klno.2-tps.1` and `v0.2.14-klno.5-tps.2` tags and their immutable images remain archived; cross-KIN image-only rollback is blocked and maintenance restoration can lose writes after the backup snapshot.
 
 ### Differences from Upstream
 
@@ -41,7 +41,7 @@ Production now runs this fixed prerelease. [Release and deployment evidence](doc
 - Request-based service status for administrators, disabled by default. It describes requests observed by this deployment; missing or insufficient samples remain unknown.
 - Fork-owned synchronization, manual publication, and deployment controls that bind source SHA, successful manual Personal CI Full, and image digest. Automatic full PR CI and strict branch protection are optional; see the [personal maintenance release workflow](docs/ci/CI-000.md).
 
-The current KIN application baseline is `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`; its record is on [personal](https://github.com/ccisnoxx/sub2api/blob/c08fba12eb4cd30e65c4177f3acbe20567ecd252/deploy/personal-source.json). The Plus release context is `v0.2.14+custom.002`, whose tag points to `a7749f5826ec0a5c6493c47fde9474dc31525f14`; adaptation uses the fixed reading commit `90da415c62b94c9417d9ce2b72b1507ed22f0303`. These commits differ only in provenance documentation. See the [source matrix](UPSTREAM.md), [NOTICE](NOTICE), [archived adaptation plan](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md) and [archived delivery record](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md). This is selective adaptation, not a promise to synchronize every upstream feature.
+The current KIN application baseline is `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71`; its record is on [personal](https://github.com/ccisnoxx/sub2api/blob/8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90/deploy/personal-source.json). The Plus release context is `v0.2.14+custom.002`, whose tag points to `a7749f5826ec0a5c6493c47fde9474dc31525f14`; adaptation uses the fixed reading commit `90da415c62b94c9417d9ce2b72b1507ed22f0303`. These commits differ only in provenance documentation. See the [source matrix](UPSTREAM.md), [NOTICE](NOTICE), [archived adaptation plan](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md) and [archived delivery record](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics/delivery.md). This is selective adaptation, not a promise to synchronize every upstream feature.
 
 ### Documentation and Support
 
@@ -260,7 +260,7 @@ Nginx drops headers containing underscores by default (e.g. `session_id`), which
 Use Docker Engine with the `docker compose` plugin on Linux x86_64. The following example pairs the published application source tag with its fixed image digest. It prepares a new installation; review backups, migration compatibility, and the target release notes separately for an existing deployment.
 
 ```bash
-git clone --branch v0.2.15-klno.2-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.3 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api/deploy
 cp .env.example .env
 chmod 600 .env
@@ -275,7 +275,7 @@ The inherited Compose template still names an upstream image. The following over
 cat > compose.personal.yml <<'YAML'
 services:
   sub2api:
-    image: ghcr.io/ccisnoxx/sub2api@sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25
+    image: ghcr.io/ccisnoxx/sub2api@sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627
     platform: linux/amd64
 YAML
 mkdir -p data postgres_data redis_data
@@ -305,7 +305,7 @@ Build and run from source code for development or customization.
 
 ```bash
 # 1. Clone the repository
-git clone --branch v0.2.15-klno.2-tps.2 --single-branch https://github.com/ccisnoxx/sub2api.git
+git clone --branch v0.2.15-klno.2-tps.3 --single-branch https://github.com/ccisnoxx/sub2api.git
 cd sub2api
 
 # 2. Install pnpm (if not already installed)
