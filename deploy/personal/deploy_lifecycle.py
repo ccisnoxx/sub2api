@@ -121,6 +121,7 @@ class Deployment:
         if proof.get("kin_upgrade", {}).get("direction") == "upgrade":
             require(old["image"] == KIN_OLD_IMAGE, "E_COMPATIBILITY", "新 KIN 必须绑定固定旧发布 digest")
         require_obs_old_image(proof, old)
+        require_resp_old_image(proof, old)
         if request["action"] == "rollback":
             require_image_rollback(proof)
         require(request["action"] != "deploy" or proof.get("security_patch", {}).get("direction") != "rollback",
@@ -218,7 +219,7 @@ class Deployment:
             self.guard_configuration()
             # 先取得旧镜像固定引用；旧标签没有不可变本地映射时禁止重建。
             self.metadata(self.inspect(old["image"], image=True), expected=old)
-            if cumulative or kin or "obs_upgrade" in request["compatibility"]:
+            if cumulative or kin or any(name in request["compatibility"] for name in ("obs_upgrade", "resp_upgrade")):
                 require(self.migration_listing(dependencies["postgres"]) == self.migration_before,
                         "E_MIGRATION", "新应用启动前迁移账本已经变化")
             atomic_private(self.compose_file, self.config_after)
@@ -294,7 +295,7 @@ class Deployment:
                         self.record["recovery_migration_state"] = recovery_migrations
                 except Exception as rollback_error:
                     blocked = ("forward_upgrade" in request["compatibility"] or "kin_upgrade" in request["compatibility"] or
-                               "obs_upgrade" in request["compatibility"] or
+                               "obs_upgrade" in request["compatibility"] or "resp_upgrade" in request["compatibility"] or
                                ("cumulative_upgrade" in request["compatibility"] and not restoring))
                     self.record["rollback_status"] = "blocked" if blocked else "failed"
                     self.record["rollback_error"] = rollback_error.code if isinstance(rollback_error, DeployError) else "E_INTERNAL"
@@ -409,7 +410,7 @@ class Deployment:
         expected_migrations = migrations
         cumulative = request["compatibility"].get("cumulative_upgrade")
         kin = request["compatibility"].get("kin_upgrade")
-        if "obs_upgrade" in request["compatibility"]:
+        if any(name in request["compatibility"] for name in ("obs_upgrade", "resp_upgrade")):
             kin_ledger_baseline(self.migration_before, True)
         if kin:
             kin_baseline = kin_ledger_baseline(self.migration_before, kin["direction"] == "redeploy")

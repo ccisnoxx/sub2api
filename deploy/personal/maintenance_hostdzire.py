@@ -2,7 +2,8 @@
 import argparse, fcntl, hashlib, json, os, pathlib, re, stat, subprocess, sys
 from deploy_config import load_config
 from deploy_common import RECORD_RE, SHA_RE, validate_metadata
-from deploy_compatibility import OBS_NEW_VERSION, validate_compatibility_proof, require_obs_old_image
+from deploy_compatibility import (OBS_NEW_VERSION, RESP_NEW_VERSION, validate_compatibility_proof,
+                                require_obs_old_image, require_resp_old_image)
 from deploy_database import kin_ledger_baseline
 CONFIG = load_config()
 BASE = pathlib.Path(CONFIG.base)
@@ -64,19 +65,22 @@ def closed_flag(explicit):
   info=FLAG.stat()
   require(stat.S_IMODE(info.st_mode)==0o644 and info.st_uid==os.geteuid() and info.st_gid==os.getegid(),'维护标记权限或所有权漂移')
 
-def obs_record(deployed, deployment_id, target_revision):
+def maintenance_record(deployed, deployment_id, target_revision):
  require(deployed.get('schema')==1 and deployed.get('id')==deployment_id and deployed.get('action')=='deploy' and
          deployed.get('status')=='success' and deployed.get('exit_code')==0 and deployed.get('health_verified') is True,
-         'OBS 恢复必须绑定本次健康验收并提交成功的部署记录')
+         'OBS/RESP 恢复必须绑定本次健康验收并提交成功的部署记录')
  target=deployed['target'];old=deployed['old'];proof=deployed['compatibility']
  validate_metadata(target)
- require(target['revision']==target_revision and target['version']==OBS_NEW_VERSION and 'obs_upgrade' in proof,
-         'OBS 恢复目标不属于审定发布')
+ require(target['revision']==target_revision and
+         ((target['version']==OBS_NEW_VERSION and 'obs_upgrade' in proof) or
+          (target['version']==RESP_NEW_VERSION and 'resp_upgrade' in proof)),
+         'OBS/RESP 恢复目标不属于审定发布')
  validate_compatibility_proof(proof,old['revision'],target_revision,old['version'],target['version'])
  require_obs_old_image(proof,old)
+ require_resp_old_image(proof,old)
  observed=deployed['observed_running']
  require(all(observed.get(key)==target[key] for key in ('image','image_id','revision','version','source')) and
-         observed.get('running') is True and observed.get('health')=='healthy','OBS 成功记录的观察终态不匹配')
+         observed.get('running') is True and observed.get('health')=='healthy','OBS/RESP 成功记录的观察终态不匹配')
  return target
 
 def execute(action, target_revision=None, deployment_id=None):
@@ -129,7 +133,7 @@ def execute(action, target_revision=None, deployment_id=None):
    deployment_id=selected[2];expected_revision=target_revision if explicit else SOURCE_SHA
    deployed_path=BASE/CONFIG.state_directory/'records'/deployment_id/'record.json'
    deployed_before=read_binding(deployed_path);deployed=json.loads(deployed_before)
-   target=obs_record(deployed,deployment_id,target_revision) if explicit else deployed['target']
+   target=maintenance_record(deployed,deployment_id,target_revision) if explicit else deployed['target']
    app=json.loads(run(['docker','inspect',CONFIG.app_container]))[0]
    require(deployed['status']=='success' and target['revision']==expected_revision and selected[1]==target['image']==app['Config']['Image'],'成功记录或运行镜像不匹配')
    require(app['State']['Running'] is True and app['State']['Health']['Status']=='healthy' and app['Config']['Labels']['org.opencontainers.image.revision']==expected_revision,'新应用健康或 revision 不匹配')
@@ -138,7 +142,7 @@ def execute(action, target_revision=None, deployment_id=None):
     require(app['Image']==target['image_id'] and labels['org.opencontainers.image.version']==target['version'] and
             labels['org.opencontainers.image.source']==target['source'] and
             labels['com.docker.compose.project']==CONFIG.project and labels['com.docker.compose.service']==CONFIG.app_service,
-            'OBS 运行容器身份或 OCI 标签不匹配')
+            'OBS/RESP 运行容器身份或 OCI 标签不匹配')
    health=json.loads(run(['curl','--fail','--silent','--max-time','10',CONFIG.health_url]))
    require(health['status']=='ok','回环健康检查未通过')
    ledger=run(['docker','exec',CONFIG.postgres_container,'sh','-ec','psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atqc "SELECT filename,checksum FROM schema_migrations ORDER BY filename,checksum"'])
@@ -175,12 +179,12 @@ def main(action, target_revision=None, deployment_id=None):
   execute(action,target_revision,deployment_id)
 if __name__=='__main__':
  try:
-  parser=argparse.ArgumentParser(description='固定 REL-002 站点维护；OBS 恢复显式绑定成功记录与目标 SHA')
+  parser=argparse.ArgumentParser(description='固定 REL-002 站点维护；OBS/RESP 恢复显式绑定成功记录与目标 SHA')
   parser.add_argument('action',choices=('setup','freeze','resume','remove'))
   parser.add_argument('--target-revision');parser.add_argument('--deployment-record')
   args=parser.parse_args()
   require(args.target_revision is None and args.deployment_record is None or globals().get('__tool_attestation__') is not None,
-          'OBS 恢复必须通过可信 main 完整工具 bundle 执行')
+          'OBS/RESP 恢复必须通过可信 main 完整工具 bundle 执行')
   main(args.action,args.target_revision,args.deployment_record)
  except Exception as e:
   print(json.dumps({'status':'failed','type':type(e).__name__}));sys.exit(1)

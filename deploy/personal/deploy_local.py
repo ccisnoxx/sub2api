@@ -11,10 +11,17 @@ def local_maintenance(args, bundle, config):
             "E_INPUT", "维护操作不能与部署、回滚或 dry-run 参数混用")
     if args.maintenance == "resume":
         require(SHA_RE.fullmatch(args.target_revision or "") and RECORD_RE.fullmatch(args.deployment_record or ""),
-                "E_INPUT", "OBS 恢复必须显式指定完整 --target-revision 与 --deployment-record")
+                "E_INPUT", "OBS/RESP 恢复必须显式指定完整 --target-revision 与 --deployment-record")
         git = GitEvidence(bundle.directory.parents[1])
-        git.personal(OBS_NEW_VERSION, args.target_revision)
-        git.obs_runtime(args.target_revision)
+        runtime = git.runtime_fingerprint(args.target_revision)
+        if runtime == OBS_NEW_RUNTIME:
+            git.personal(OBS_NEW_VERSION, args.target_revision)
+            git.obs_runtime(args.target_revision)
+        elif runtime == RESP_NEW_RUNTIME:
+            git.personal(RESP_NEW_VERSION, args.target_revision)
+            git.resp_runtime(args.target_revision)
+        else:
+            raise DeployError("E_COMPATIBILITY", "维护恢复只接受审定的 OBS 或 RESP 完整运行树")
     else:
         require(args.target_revision is None and args.deployment_record is None,
                 "E_INPUT", "freeze 不接受恢复目标参数")

@@ -104,19 +104,41 @@ class GitEvidence:
         return approved
 
     def obs_runtime(self, revision):
+        self._fixed_application_runtime(revision, OBS_NEW_REVISION, OBS_NEW_RUNTIME, OBS_NEW_FRONTEND,
+                                        OBS_RAW_PATHS, OBS_RAW_SHA256, "OBS")
+
+    def resp_runtime(self, revision):
+        self._fixed_application_runtime(revision, RESP_NEW_REVISION, RESP_NEW_RUNTIME, RESP_FRONTEND,
+                                        RESP_RAW_PATHS, RESP_RAW_SHA256, "RESP")
+
+    def _fixed_application_runtime(self, revision, anchor, runtime, frontend, raw_paths, raw_sha256, name):
+        # 来源、全部构建输入和固定迁移在同一 Git owner 核对，后继只允许非应用提交。
         require(self.source_at(revision) == KIN_NEW_SOURCE and
-                self.runtime_fingerprint(revision) == OBS_NEW_RUNTIME and
-                self.tree_fingerprint(revision, ["frontend"]) == OBS_NEW_FRONTEND and
-                self.tree_fingerprint(revision, OBS_RAW_PATHS) == OBS_RAW_SHA256,
-                "E_COMPATIBILITY", "OBS 必须保留固定来源三字段和完整运行树")
+                self.runtime_fingerprint(revision) == runtime and
+                self.tree_fingerprint(revision, ["frontend"]) == frontend and
+                self.tree_fingerprint(revision, raw_paths) == raw_sha256,
+                "E_COMPATIBILITY", name + " 必须保留固定来源三字段和完整运行树")
         ancestry = subprocess.run(["git", "-C", str(self.root), "merge-base", "--is-ancestor",
-                                   OBS_NEW_REVISION, revision], capture_output=True)
-        require(ancestry.returncode == 0, "E_COMPATIBILITY", "OBS revision 不包含审定应用锚点")
+                                   anchor, revision], capture_output=True)
+        require(ancestry.returncode == 0, "E_COMPATIBILITY", name + " revision 不包含审定应用锚点")
         for filename, checksum in {**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS}.items():
             path = "backend/migrations/" + filename
             require(self.git("ls-tree", revision, "--", path).startswith(b"100644 blob ") and
                     sha(self.git("show", revision + ":" + path).strip()) == checksum,
-                    "E_COMPATIBILITY", "OBS 必须保留固定迁移内容、checksum 与普通文件模式")
+                    "E_COMPATIBILITY", name + " 必须保留固定迁移内容、checksum 与普通文件模式")
+
+    def resp_upgrade(self, old, target, changed):
+        self.resp_runtime(target["revision"])
+        direction = "upgrade" if old["revision"] == RESP_OLD_REVISION else "redeploy"
+        approved = approved_resp_upgrade(direction)
+        if direction == "upgrade":
+            self.obs_runtime(old["revision"])
+            require_resp_old_image({"resp_upgrade": approved}, old)
+            require(changed == list(RESP_CHANGED_PATHS), "E_COMPATIBILITY", "RESP 升级运行差异不是固定精确路径")
+        else:
+            self.resp_runtime(old["revision"])
+            require(changed == [], "E_COMPATIBILITY", "RESP 重新部署必须保留相同完整运行树")
+        return approved
 
     def obs_upgrade(self, old, target, changed):
         self.obs_runtime(target["revision"])
@@ -155,7 +177,10 @@ class GitEvidence:
                  "changed_paths": changed, "compatible": True}
         if target_source.get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]:
             require(target_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "新 KIN 来源必须与固定三字段完全一致")
-            if self.runtime_fingerprint(target["revision"]) == OBS_NEW_RUNTIME:
+            if self.runtime_fingerprint(target["revision"]) == RESP_NEW_RUNTIME:
+                require(old_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "RESP 只接受固定新 KIN 来源")
+                proof["resp_upgrade"] = self.resp_upgrade(old, target, changed)
+            elif self.runtime_fingerprint(target["revision"]) == OBS_NEW_RUNTIME:
                 require(old_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "OBS 只接受固定新 KIN 来源")
                 proof["obs_upgrade"] = self.obs_upgrade(old, target, changed)
             else:
@@ -177,6 +202,6 @@ class GitEvidence:
             else:
                 proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
-        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade")):
+        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade")):
             validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
         return proof

@@ -114,6 +114,10 @@ OBS 的 `429-tps.1-to-obs-tps.2` 专属单向证明从已发布的 `42907bcab278
 
 OBS 没有新增 SQL 或 schema 迁移；证明保留 242、251—254 的固定内容和普通文件模式，生命周期要求正确完整 308 行账本与当前成功记录相同，启动前及健康终态均不得变化。仍记录 `image_rollback_compatible=false`、`schema_rollback=retain`；启动或健康失败保留失败记录、现场新镜像和原选择，禁止自动、显式或普通部署切回 429/旧 KIN。需要人工前向修复或另行授权的数据恢复。
 
+RESP 的 `obs-tps.2-to-resp-tps.3` 专属证明只接受实际已发布的 `c08fba12eb4cd30e65c4177f3acbe20567ecd252 / 0.2.15-klno.2-tps.2 / sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25`，正向升级至包含 PR50 与门禁修复合并锚点 `8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90` 的 `0.2.15-klno.2-tps.3`。双方来源逐字段等于 `KIN_NEW_SOURCE`；旧运行树为 OBS 固定树，新完整运行指纹为 `9f0490b6a346e885dc1e9ff4d9296b15e4f71161a4d9458072cf4ba18f170a48`，23 条精确运行差异见 `RESP_CHANGED_PATHS`。本机同时核对完整 `frontend/` 指纹 `47b21affa698058f84a71bcce078c4e105965017a9f34c5707886d25a3e0a367`、外部两份 raw legal 文档指纹 `70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942`，两端全部前端输入相同。后继文档或部署工具提交只有保留锚点及这些完整输入才能重新部署；未知树即使零差异也拒绝。tps.3 仅属于这份 RESP 证明，不能用旧 KIN 或 OBS 证明伪装放行。
+
+RESP 没有 schema 或 SQL 迁移，242、251—254 内容和文件模式继续固定。远端预检要求当前成功记录与正确完整 308 行账本一致，启动前再次核对，健康终态仍须保持同一账本；成功记录保存本次 canonical RESP 证明、健康观察、目标 digest/Image ID 和实际旧身份。证明保持 `image_rollback_compatible=false`、`schema_rollback=retain`。启动、健康、取消或选择提交前失败保留现场和原选择，阻止自动旧镜像恢复；选择已替换而落盘失败时保留失败记录与已提交选择，后续操作拒绝自动接管。反向 C08、429 或跨 KIN 部署/显式回滚均拒绝，本证明不授权数据库、账本或业务数据恢复。离线合同不要求尚未发布的 tps.3 标签；实际部署必须从真实正式标签读取完整源码 SHA，并核对目标 OCI 元数据。
+
 当前 `VERSION=0.2.15-klno.2-tps.1-rc.1` 仍被版本、镜像元数据及个人发布标签合同拒绝；没有预发布部署、force/ignore 或生产允许开关。未来正式发布必须具有真实个人 tag、对应完整 revision、`0.2.15-klno.2-tps.N` 前缀、正确 OCI 元数据和审定完整运行树；更改运行范围内的 VERSION 或其他字节必须重新固定并审查锚点，不能沿用本指纹。正式发布和 REL-002 获得相应授权、完成发布身份与现场前置验收后才执行部署；离线替身和真实Git证据本身不表示真实部署；当前正式tps.2/C08及immutable C4镜像已完成测试→生产，见[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。
 
 首次适配只修改普通 `services/sub2api` 中唯一的直接 `image` 行为 `"${SUB2API_IMAGE:?必须指定应用镜像}"`；不重新序列化 YAML，原注释、CRLF、其他服务和设置逐字保留。特殊缩进、锚点或无法唯一定位的结构会失败，不能用仓库 Compose 模板替换生产文件。适配前后在内存中核对完整 Compose JSON，仅应用 `image` 可变化，完整配置和环境值不会进入日志或输出。
@@ -170,6 +174,8 @@ git diff --check
 
 新 KIN 合同使用真实固定 307 份旧 SQL 构造离线账本，验证仅追加 242 和正确完整账本重新部署；保护错误/缺失 242、旧行变化、251 缺失、重复/未知行、canonical 证明篡改与伪装、固定旧 digest/版本、新来源正式版本前缀、预发布拒绝、未知树零差异、锚点祖先及运行内容/权限/类型/来源漂移。启动、健康、取消与 selection 提交前失败验证均明确阻止旧镜像；这些替身不执行真实业务数据回退。
 
+`test_resp_deployment.py` 用真实 Git 对象核对 C08 → RESP 精确运行差异、全树/来源/锚点、前端与 raw 输入不变；隔离临时 Git 标签验证维护恢复的正式发布绑定。生命周期替身直接覆盖成功/同树重部署、只读预检、重算 hash 后篡改或伪装证明拒绝、旧 digest 绑定、失败不恢复 C08、选择部分提交和完整 308 行账本。维护替身覆盖 canonical RESP 成功记录、当前选择、OCI/Image ID、原站点/标记、伪造成功账本及无显式目标拒绝，真实主机验收仍由发布维护者执行。
+
 ## REL-002 单站点流量维护
 
 `maintenance_hostdzire.py` 是服务器端的单次发布维护入口，与部署执行器共用同一把锁。只接受 `setup`、`freeze`、`resume`、`remove`；固定 `api.962850.xyz` 两个 server 的已核实原始配置摘要，备份原字节和权限，拒绝未知配置、标记或记录漂移。新版本维护文件依赖 `deploy_config.py`、`deploy_common.py` 和 `hostdzire.json`，须按 `deploy_trust.py` 的 `BUNDLE_FILES` 清单，以同一可信 main revision 运输完整模块/config bundle，不能单文件上传。现有已验收的 `83c250` 控制器继续有效；更新仓库文件不会自动替换它或迁移现有维护记录。只有正式发布与测试环境验收完成后才在生产使用。
@@ -178,19 +184,19 @@ git diff --check
 
 本地及内部回环验收完成后，`resume` 重新验证固定应用源码、当前成功部署记录、持久选择、运行镜像、健康及完整 308 行账本，才删除关闭标记。公开观察期间仍可再次 `freeze`；`opening` 中断也可重新冻结。完成核心业务与聚合周期验收后，`remove` 恢复同一站点的原始字节和权限。未知状态失败关闭，不把 `/health` 单独当作完成依据；该入口不恢复数据库或旧镜像。
 
-OBS 发布继续使用既有 REL-002 站点、持久标记内容和维护记录目录，不重做 `setup`，不迁移或替换已安装的 `83c250` 控制器。新可信 main 完整 bundle 可执行本次冻结和恢复：
+OBS 和 RESP 发布继续使用既有 REL-002 站点、持久标记内容和维护记录目录，不重做 `setup`，不迁移或替换已安装的 `83c250` 控制器。新可信 main 完整 bundle 可执行本次冻结和恢复：
 
 ```sh
 deploy/personal/deploy-hostdzire.sh --maintenance freeze \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 
 deploy/personal/deploy-hostdzire.sh --maintenance resume \
-  --target-revision <tps.2-正式个人标签与OCI所绑定的完整发布SHA> \
+  --target-revision <tps.2或tps.3-正式个人标签与OCI所绑定的完整发布SHA> \
   --deployment-record <本次成功部署实际返回的记录ID> \
   --tool-revision <同一可信main完整SHA>
 ```
 
-恢复前，本机验证正式 tps.2 标签、OBS 祖先与完整后端/运行资源和前端树。远端导入前验证完整工具 bundle，再在同一部署锁内检查：显式记录 ID 等于当前持久选择、成功记录的 id/action/schema/exit/健康终态、专属 canonical OBS 证明、目标完整 SHA、不可变 digest/Image ID、OCI revision/version/source、Compose 项目和服务、容器与回环健康、正确完整 308 行账本。选择和记录必须保持普通 `0600` 文件，维护标记的内容、`0644` 模式、所有权与目录合同须保持。全部通过才删除标记并 fsync 标记目录，在原维护记录追加 `accepted_source_sha` 与 `accepted_deployment_id`；历史 `source_sha=42907…` 继续表示同一站点安装身份。任一目标、记录、选择、站点、标记或健康/账本漂移保持关闭。没有默认 OBS 目标、任意 running digest 放行或失败后的静默旧版本恢复。旧服务器入口的无参数 `resume` 仍只接受固定 429；OBS 必须用上述显式可信入口。
+恢复前，本机按精确运行树识别 OBS 或 RESP，验证对应的正式 tps.2 或 tps.3 标签、审定祖先、完整后端/运行资源、前端和外部 raw 输入。远端导入前验证完整工具 bundle，再在同一部署锁内检查：显式记录 ID 等于当前持久选择、成功记录的 id/action/schema/exit/健康终态、对应专属 canonical 证明、目标完整 SHA、不可变 digest/Image ID、OCI revision/version/source、Compose 项目和服务、容器与回环健康、正确完整 308 行账本。RESP 升级成功记录还必须绑定固定 C08 旧 revision/版本/来源/digest。选择和记录必须保持普通 `0600` 文件，维护标记的内容、`0644` 模式、所有权与目录合同须保持。全部通过才删除标记并 fsync 标记目录，在原维护记录追加 `accepted_source_sha` 与 `accepted_deployment_id`；历史 `source_sha=42907…` 继续表示同一站点安装身份。任一目标、记录、选择、站点、标记或健康/账本漂移保持关闭。没有默认 OBS/RESP 目标、任意 running digest 放行或失败后的静默旧版本恢复。旧服务器入口的无参数 `resume` 仍只接受固定 429；OBS 和 RESP 必须用上述显式可信入口。
 
 六项隔离文件系统合同检查通过，旧 `/run` 实现在重启回归中因标记丢失失败。既有主机的隔离 Nginx 实例验证了 ext4 标记在易失目录清空及 Nginx 新进程启动后仍返回 503，并验证开放与再次关闭；没有重启共享生产主机。实际生产站点的完整操作与验收以 REL-002 发布记录为准。
 

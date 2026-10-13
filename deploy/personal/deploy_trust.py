@@ -102,7 +102,7 @@ class ToolBundle:
         if action == "resume":
             check(type(target_revision) is str and re.fullmatch(r"[0-9a-f]{40}", target_revision) and
                   type(deployment_id) is str and re.fullmatch(r"[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}", deployment_id),
-                  "OBS 恢复必须显式绑定完整目标 SHA 和成功部署记录 ID")
+                  "OBS/RESP 恢复必须显式绑定完整目标 SHA 和成功部署记录 ID")
             arguments = [action, "--target-revision", target_revision, "--deployment-record", deployment_id]
         else:
             check(target_revision is None and deployment_id is None, "freeze 不接受恢复目标参数")
