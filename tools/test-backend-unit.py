@@ -10,7 +10,8 @@ import subprocess
 import tempfile
 
 BACKEND = pathlib.Path(__file__).resolve().parents[1] / "backend"
-SHARDED_PACKAGES = {"service": 64, "handler": 16}
+# repository 的真实 45 秒 deadline 与 41 秒慢轮次用例必须分到不同进程。
+SHARDED_PACKAGES = {"service": 64, "handler": 16, "repository": 16}
 TEST_TIMEOUT = "60s"
 TEST_NAME = re.compile(r"^(?:Test|Example|Fuzz)\w*$")
 

@@ -40,6 +40,21 @@ binding、sync-contracts、changes、docs、shell、frontend、backend-security�
 
 原工作区暂存/未暂存binary diff摘要保持原值；原tps.1 Release410901327正文及12个asset的id/name/size/digest逐项保持，tps.2 tag未创建，发布变量仍false。测试/生产仍为429镜像，未pull新镜像、部署、安装timer、生产新备份或注入故障；没有通知配置。旧恢复点、维护open状态及跨KIN回退禁令保持。原始日志/定向结果/配置漂移记录保留在本机私密证据目录 `20261012-obs-release`；不导出凭据或原始生产请求日志。
 
+## 剩余门禁修复及新授权续作（2026-10-13 UTC）
+
+维护者明确授权修复剩余OBS类型断言lint和repository分片，在定向验证、最终fresh独立复核与有效审计后，对重新固定的personal SHA执行一次必要Full并继续测试→生产和本机监控。失败Full38333250481保留，不重试旧SHA、不冒充成功，也不重复未变应用定向证据。
+
+应用测试修正提交 `b663258dd6c93a794f2dcfe716979e4dd37eaccd` 仅检查两处comma-ok类型断言，并将repository加入既有16批次确定性执行器；同步runner入口测试覆盖repository、子包不漏、每项唯一、示例/fuzz及包目录执行。真实45秒deadline、41秒慢轮次及40秒WARN线均未修改，单进程timeout仍60s。原Full失败日志为RED依据；runner6项GREEN，实际repository618项清单分到16批且全部通过，两个长合同分别在第12/15批，整次定向执行107.128s。固定golangci-lint2.14.0的repository errcheck（保留check-type-assertions配置）GREEN；只重跑直接失败范围。
+
+测试源码也在完整运行树中，因此OBS未发布证明更新锚点为b663258、runtime指纹为 `3d3a9765382ecc98a2a9ad95d6940377b618d1f3e1e5675a16b734b6cfccb9c0`。相对OBS423，backend仅该测试文件变化；相对旧429仍精确32条运行差异。前端/raw摘要、13条前端差异、KIN来源、全部SQL/迁移身份、实际生产旧digest、单向和失败关闭合同均保持。直接OBS14项（含Git/真实mode/type/raw、远端和维护）在新锚点重绑定后GREEN；旧未变定向、维护与历史证明证据复用。
+
+最终fresh复核已接受，审计已关闭并校验通过。本次新Bundle `20261013T015402Z-obs-gates-fixed-release-final-review-9e23cc38` 使用派发时实际配置/角色的私密完整快照作为固定校验输入，原始hash被记录，不更改现场Codex配置，也不重写上次配置漂移的历史Bundle。最终SHA和新Full/发布身份在相应操作确认后记录。
+
+本轮第一fresh复核发现私密测试观察脚本仅记录传入SHA，未实测运行身份；交付接受但候选P2未通过。旧脚本的“旧429冒充新SHA”和“观察期间替换”两个反例在模拟合法窗口时均错误生成success，RED2/3。修正后绑定实际test-deploy回执的SHA/app_id/digest/IP/healthy、固定127.0.0.1:4282测试隧道，初次/每次采样/结束用固定hostdzire隔离容器只读inspect核对七字段；漂移不写成功，365秒/完整5分钟/unknown合同不变。GREEN3/3，未调用真实凭据或VPS。第二fresh最小独立复核确认P2解除，核对仓库/index与原其余13项操作输入保持；最终操作脚本hash `46766b96339684c2b8d455355de465e5cbe31b7229907f98c7cb48501a438ec5`。两次复核交付均接受不表示第一候选批准，实际运行/隧道映射仍待测试部署验收。
+
+有效审计17项artifact均有封存hash，errors为空；三个configuration快照文件仅有未分类warning，内容保留在私密本机Bundle，不上传Git或外部。历史配置漂移Bundle不重写、不混入本轮统计。复核后仓库仅追加本段实际结果，已审定控制/应用/操作字节保持。
+
+
 ## 本轮验收状态
 
 - [ ] 固定最终源码/控制revision并完成一次成功发布Full；
