@@ -2016,7 +2016,7 @@ python tools/check_pnpm_audit_exceptions.py \
 
 只有满足以下全部条件，整个修复计划才可视为完成：
 
-2026-10-12 第8节续作当前核对：12项完成、2项待办。REL-002/003与ARCH-002验收保留；OBS-002已完成当前personal源码整合验收。PR #31/#34已完成源码整合，但服务状态完整运行监控/通知接入仍缺目标和新producer交付；跨KIN回退评估及定向负向验证已完成，确认旧写入丢失新字段，无法满足全业务无损验收，禁令保留。不能据源码合并或可读备份宣称整计划完成。正式发布源码、Full与镜像保持不变，源码验收不代表新版已运行于生产。
+2026-10-12 第8节续作当前核对：12项完成、2项待办。REL-002/003与ARCH-002验收保留；OBS-002已完成当前personal源码整合验收。PR #31/#34已完成源码整合，维护者已明确不需要外部通知并授权新OBS版本发布；本机完整运行监控等待新producer部署，候选e37a4e6的Full38333250481实际失败，发布与部署停止；跨KIN回退评估及定向负向验证已完成，确认旧写入丢失新字段，无法满足全业务无损验收，禁令保留。不能据源码合并或可读备份宣称整计划完成。正式发布源码、Full与镜像保持不变，源码验收不代表新版已运行于生产。
 
 - [x] README 明确说明 fork 身份、分支职责和正确安装入口；DOC-001、DOC-002 及当前两分支 README 已提供 personal、GHCR 和固定版本安装入口。
 - [x] 根目录存在完整 NOTICE 或第三方来源说明；LEGAL-001/002、ARCH-005 与当前两分支 NOTICE 保留 KIN/原始上游/Plus 来源和归属边界。
@@ -2029,7 +2029,7 @@ python tools/check_pnpm_audit_exceptions.py \
 - [x] 正式产物包含许可证、NOTICE、SBOM 和源码 revision；REL-002 恢复验证、已发布 OCI/Release assets 与实际测试镜像核对完成，绑定固定应用 42907bc、唯一 Full 及 immutable digest，原失败记录保留。
 - [x] 模型目录不会因多渠道遍历顺序产生不确定结果；UPSTREAM-003/ARCH-003 已整合“一组最多一个渠道”约束及冲突显式拒绝，正逆顺序回归已有通过证据。
 - [x] 路由诊断和服务状态具有低样本与隐私保护；OBS-002的展示裁剪、跨实例共享限流与安全审计已在最新personal整合，PR #32普通合并为fe27c725，34唯一顶层定向Race成功证据与fresh独立复核通过；本项为当前源码整合验收，正式429镜像仍保持原发布边界，未部署这些新增保护。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
-- [ ] 服务状态容量、清理、聚合失败和水位停滞均可监控；PR #31/#34已普通整合至personal `423f690bec2ee9d0ebccd1672906d6b688c220c3`并定向验证/独立复核通过；生产只读watch和容量SQL探测通过，但固定429镜像没有新聚合日志producer、通知收件人为0且SMTP未配置，无外部timer或真实送达。通知目标/认证配置路径与新producer发布授权待明确，不将只读探测或源码合并记为运行接入验收。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
+- [ ] 服务状态容量、清理、聚合失败和水位停滞均可监控；PR #31/#34已普通整合至personal `423f690bec2ee9d0ebccd1672906d6b688c220c3`并定向验证/独立复核通过；生产只读watch和容量SQL探测通过，但固定429镜像没有新聚合日志producer和本机timer。维护者明确外部通知不需要，真实通知送达不适用；新OBS发布已获授权，但固定源码e37a4e6的Full38333250481实际失败（过时工具测试数量、OBS测试类型断言lint、长测试累计超时），不启动发布或部署，保持运行监控待办。详见[新OBS发布记录](docs/upstream/records/2026-10-12-obs-release.md)；不将只读探测、源码合并或失败Full记为运行接入验收。详见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
 - [x] 正式发布通过分阶段部署并保留旧稳定 tag；REL-002 独立测试、生产备份/迁移/流量/业务和完整聚合验收实际通过，旧 v0.2.14-klno.5-tps.2 tag/digest 与恢复材料保留。
 - [x] `UPSTREAM.md`、NOTICE、`personal-source.json` 和 Release notes 相互一致；REL-003 对固定发布源码、KIN/Plus 字段、Full/Release/digest/部署及旧基线逐项核对；NOTICE 字段相同而导航说明字节不同已分别记录，后续文档 HEAD 不冒充发布 SHA。
 

@@ -52,7 +52,8 @@ class ToolchainPolicyTests(unittest.TestCase):
                         installs.append(command)
                         self.assertIn("--require-hashes", command)
                         self.assertIn("--only-binary=:all:", command)
-        self.assertEqual(len(installs), 4)
+        # 原四处安装与 release-recovery 的一处安装均须通过上述逐项限制。
+        self.assertEqual(len(installs), 5)
         requirements = toolchain.POLICY.with_name("requirements-release.txt").read_text()
         self.assertIn("PyYAML==" + PINS["pyyaml"], requirements)
         self.assertEqual(len(re.findall(r"--hash=sha256:[0-9a-f]{64}", requirements)), 3)
