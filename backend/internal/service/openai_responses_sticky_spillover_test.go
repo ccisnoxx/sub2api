@@ -194,7 +194,9 @@ func TestResponsesStickySpillover_WeightedFallbackTriesOtherStickyBeforeWait(t *
 					require.NotContains(t, acquired, int64(2))
 				}
 			}
-			require.Equal(t, int64(1), svc.cache.(*schedulerTestGatewayCache).sessionBindings["openai:spillover"])
+			cache, ok := svc.cache.(*schedulerTestGatewayCache)
+			require.True(t, ok)
+			require.Equal(t, int64(1), cache.sessionBindings["openai:spillover"])
 		})
 	}
 }
@@ -226,7 +228,9 @@ func TestResponsesStickySpillover_AdvancedPropagatesBindingPreservation(t *testi
 			if selection.ReleaseFunc != nil {
 				selection.ReleaseFunc()
 			}
-			require.Equal(t, int64(1), svc.cache.(*schedulerTestGatewayCache).sessionBindings["openai:spillover"])
+			cache, ok := svc.cache.(*schedulerTestGatewayCache)
+			require.True(t, ok)
+			require.Equal(t, int64(1), cache.sessionBindings["openai:spillover"])
 		})
 	}
 }
