@@ -32,7 +32,7 @@ Application code and personal features live on `personal`; `main` contains synch
 
 | Version or branch | Security fix policy |
 | ----------------- | ------------------- |
-| `v0.2.15-klno.2-tps.1` (current deployed prerelease, source `42907bcab278f93db48d7e1b39b28e28f664569e`) | Current supported application; fixes ship in a new fork release |
+| `v0.2.15-klno.2-tps.2` (current deployed prerelease, source `c08fba12eb4cd30e65c4177f3acbe20567ecd252`) | Current supported application; fixes ship in a new fork release |
 | Latest stable application release published by [this fork](https://github.com/ccisnoxx/sub2api/releases) | Supported; fixes ship in a new fork release based on `personal` |
 | Latest `personal` commit | Application fix baseline; also the temporary support baseline if this fork has no stable release yet |
 | Latest `main` commit | Supported for synchronization, release, and deployment control tools |
@@ -93,7 +93,7 @@ Please coordinate disclosure through the private advisory and keep details priva
 
 | 版本或分支 | 安全修复策略 |
 | ---------- | ------------ |
-| `v0.2.15-klno.2-tps.1`（当前生产预发行版，源码 `42907bcab278f93db48d7e1b39b28e28f664569e`） | 当前受支持应用；修复随新 fork 版本发布 |
+| `v0.2.15-klno.2-tps.2`（当前生产预发行版，源码 `c08fba12eb4cd30e65c4177f3acbe20567ecd252`） | 当前受支持应用；修复随新 fork 版本发布 |
 | [本 fork 发布](https://github.com/ccisnoxx/sub2api/releases)的最新稳定应用版本 | 支持；修复随基于 `personal` 的新版本发布 |
 | `personal` 最新提交 | 应用修复基线；本 fork 尚无稳定 Release 时，也是临时支持基线 |
 | `main` 最新提交 | 支持同步、发布和部署控制工具的安全修复 |

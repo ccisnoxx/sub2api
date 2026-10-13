@@ -17,7 +17,7 @@
 在仓库根目录指定个人版本；可带 `v` 或完整 fork 镜像版本地址。版本先拉取并解析唯一 RepoDigest，再拉取该 digest；启动、验收和记录均使用相同的不可变引用。
 
 ```sh
-deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.1 \
+deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.2 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
@@ -25,12 +25,12 @@ deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.1 \
 
 ```sh
 deploy/personal/deploy-hostdzire.sh \
-  ghcr.io/ccisnoxx/sub2api@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3 \
-  --version 0.2.15-klno.2-tps.1 \
+  ghcr.io/ccisnoxx/sub2api@sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25 \
+  --version 0.2.15-klno.2-tps.2 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
-成功输出包含服务器记录 `id`、目标与实际运行 digest、Image ID、OCI version/revision/source、健康状态。仅当前成功的**部署记录**可显式回滚：
+成功输出包含服务器记录 `id`、目标与实际运行 digest、Image ID、OCI version/revision/source、健康状态。仅声明 `image_rollback_compatible=true` 且与当前成功选择相同的**部署记录**可显式回滚。当前tps.2记录为false，旧429及跨KIN恢复禁令保持；下面只展示既有兼容记录的参数格式，不能用于当前tps.2恢复：
 
 ```sh
 deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc \
@@ -68,8 +68,8 @@ SSH 一次 scp 运送完整清单。远端 isolated Python bootstrap 在导入�
 
 ```sh
 deploy/personal/deploy-hostdzire.sh \
-  ghcr.io/ccisnoxx/sub2api@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3 \
-  --version 0.2.15-klno.2-tps.1 \
+  ghcr.io/ccisnoxx/sub2api@sha256:c4ffab7a920f05564eafe055bdb3171772b145ca5e2ccda690fe8b554bf6fa25 \
+  --version 0.2.15-klno.2-tps.2 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA> \
   --dry-run
 ```
@@ -114,7 +114,7 @@ OBS 的 `429-tps.1-to-obs-tps.2` 专属单向证明从已发布的 `42907bcab278
 
 OBS 没有新增 SQL 或 schema 迁移；证明保留 242、251—254 的固定内容和普通文件模式，生命周期要求正确完整 308 行账本与当前成功记录相同，启动前及健康终态均不得变化。仍记录 `image_rollback_compatible=false`、`schema_rollback=retain`；启动或健康失败保留失败记录、现场新镜像和原选择，禁止自动、显式或普通部署切回 429/旧 KIN。需要人工前向修复或另行授权的数据恢复。
 
-当前 `VERSION=0.2.15-klno.2-tps.1-rc.1` 仍被版本、镜像元数据及个人发布标签合同拒绝；没有预发布部署、force/ignore 或生产允许开关。未来正式发布必须具有真实个人 tag、对应完整 revision、`0.2.15-klno.2-tps.N` 前缀、正确 OCI 元数据和审定完整运行树；更改运行范围内的 VERSION 或其他字节必须重新固定并审查锚点，不能沿用本指纹。正式发布和 REL-002 获得相应授权、完成发布身份与现场前置验收后才执行部署；本目录的离线替身和真实 Git 证据不表示已发布、已拉取真实候选镜像或已部署生产。
+当前 `VERSION=0.2.15-klno.2-tps.1-rc.1` 仍被版本、镜像元数据及个人发布标签合同拒绝；没有预发布部署、force/ignore 或生产允许开关。未来正式发布必须具有真实个人 tag、对应完整 revision、`0.2.15-klno.2-tps.N` 前缀、正确 OCI 元数据和审定完整运行树；更改运行范围内的 VERSION 或其他字节必须重新固定并审查锚点，不能沿用本指纹。正式发布和 REL-002 获得相应授权、完成发布身份与现场前置验收后才执行部署；离线替身和真实Git证据本身不表示真实部署；当前正式tps.2/C08及immutable C4镜像已完成测试→生产，见[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。
 
 首次适配只修改普通 `services/sub2api` 中唯一的直接 `image` 行为 `"${SUB2API_IMAGE:?必须指定应用镜像}"`；不重新序列化 YAML，原注释、CRLF、其他服务和设置逐字保留。特殊缩进、锚点或无法唯一定位的结构会失败，不能用仓库 Compose 模板替换生产文件。适配前后在内存中核对完整 Compose JSON，仅应用 `image` 可变化，完整配置和环境值不会进入日志或输出。
 
@@ -199,3 +199,11 @@ deploy/personal/deploy-hostdzire.sh --maintenance resume \
 ### OBS 的外部前端构建输入
 
 OBS 专属证明还固定 `docs/legal/admin-compliance.en.md` 和 `docs/legal/admin-compliance.zh.md`：两份文档通过前端 `?raw` 导入并嵌入发布产物，不能按普通文档后继放行。路径、Git mode/type/object 与精确摘要一并绑定；改变任一文件的内容、权限或类型，升级和重部署均拒绝。历史运行树/证明常量及跨KIN回退禁令保持。
+
+## 当前运行与本机监控（2026-10-13 UTC）
+
+当前发布源码为 `c08fba12eb4cd30e65c4177f3acbe20567ecd252` / tps.2，实际部署工具90aea7ec626aeab41434d72739573aa51d6227ad，生产部署记录 `20261013T032447Z-22e878072cb7`；新Full、Release、备份/迁移/业务及完整聚合见[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。后继文档main HEAD不冒充当次工具revision；未来操作仍获取并显式提供当前可信origin/main。308完整账本保持，原83c250站点控制器及记录source429为历史安装身份，新accepted_source/部署ID已经明确绑定C08。
+
+生产 `sub2api-kin-service-status-watch.timer` 每分钟、Persistent执行独立只读检查；源码位于personal的 `tools/service-status-watch.py`，安装目录 `/root/sub2api-kin/.personal-deploy/monitor/obs-tps2`，PG凭据只在服务器内存读取。安装完成后的两次自动current、固定文件hash/运行digest/依赖/完整账本及隔离测试的水位停滞/恢复/unavailable均已验收。查看本机固定事件可使用 `journalctl -u sub2api-kin-service-status-watch.service --output cat`；没有外部通知渠道或送达功能。测试专用unit与4282转发已按唯一所有权清理，原测试栈、正式证据及生产timer保留。
+
+当前证明仍是单向并记录image_rollback_compatible=false/schema_rollback=retain；禁止旧429及跨KIN旧镜像恢复。故障先用可信main完整bundle freeze保留现场，再前向修复；数据库恢复必须先明确该快照后的写入损失、隔离恢复与切换目标，未经另行确认不能覆盖在线数据。

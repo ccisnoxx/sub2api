@@ -1,32 +1,33 @@
 # 功能来源与长期维护归属
 
-核对日期：2026-10-12。当前维护任务：REL-002/003/ARCH-002 已验收；PREP-003 的旧稳定基线证据保留在本文末尾。main 管理控制工具和维护记录，personal 保存实际应用。应用 owner、测试和来源一律从固定 I 读取，不用 main 的同名应用文件代替。协调 owner 均为 `ccisnoxx`，不代表原作者、版权归属或上游背书。
+核对日期：2026-10-13 UTC。当前维护任务：REL-002/003/ARCH-002 已验收；PREP-003 的旧稳定基线证据保留在本文末尾。main 管理控制工具和维护记录，personal 保存实际应用。应用 owner、测试和来源一律从固定 I 读取，不用 main 的同名应用文件代替。协调 owner 均为 `ccisnoxx`，不代表原作者、版权归属或上游背书。
 
 ## 当前固定来源
 
 | 代号 | 来源 / 用途 | tag / 完整 SHA |
 |---|---|---|
 | N | [KIN](https://github.com/KlN-4096/sub2api)，当前应用基线 | `v0.2.15-klno.2` / `ca686de5e5ac14834e12701c156831abd5ec6b71` |
-| I | [personal 应用快照](https://github.com/ccisnoxx/sub2api/tree/42907bcab278f93db48d7e1b39b28e28f664569e)，UPSTREAM-008 整合后的正式发布源码 | `42907bcab278f93db48d7e1b39b28e28f664569e`；正式标签 `v0.2.15-klno.2-tps.1`；生产已部署，GitHub 为 prerelease |
+| I | [personal 应用快照](https://github.com/ccisnoxx/sub2api/tree/c08fba12eb4cd30e65c4177f3acbe20567ecd252)，OBS #32/#31/#34 与门禁修复后的正式发布源码 | `c08fba12eb4cd30e65c4177f3acbe20567ecd252`；正式标签 `v0.2.15-klno.2-tps.2`；生产已部署，GitHub 为 prerelease |
+| O | 归档的前一 KIN .2 个人发布，保留源码/Full/Release/digest | `v0.2.15-klno.2-tps.1` / `42907bcab278f93db48d7e1b39b28e28f664569e`；原 Full38274106520、Release410901327不作为新版本资格 |
 | A | 归档 personal 基线 / 维护恢复来源 | `v0.2.14-klno.5-tps.2` / `3d5e1fde82707900a21f2b5538b112c7bab3c04a` |
 | K | A 的旧 KIN 来源，与 N 分叉 | `v0.2.14-klno.5` / `c7aacf5d3ae383d0d5c75f471f66e61690a5701d` |
 | P | [Plus](https://github.com/LuckyKuang/sub2api-plus)，固定借鉴参考 | 版本背景 `v0.2.14+custom.002`；标签 commit `a7749f5826ec0a5c6493c47fde9474dc31525f14`；阅读 SHA `90da415c62b94c9417d9ce2b72b1507ed22f0303` |
-| C | 本次实际发布/部署控制 revision，线上安装维护控制器保持 | `83c250dbbbe748ca9a1e96ebc28c7d16727f025b` |
-| T | ARCH-002 后已验收部署工具代码/真实生产只读预检 revision，无独立工具发行 tag | `b1f9fb1332db8b705716ebaf0bcb134f5cbb74f5` |
+| C | 本次实际发布/部署控制 revision；原83c250站点控制器保留 | `90aea7ec626aeab41434d72739573aa51d6227ad` |
+| T | ARCH-002结构及OBS部署输入/维护绑定修复后的实际工具 revision，无独立工具发行 tag | `90aea7ec626aeab41434d72739573aa51d6227ad` |
 
 N 的 annotated tag object 是 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d`，peeled commit 为 N。P 的 annotated tag object 是 `4d8a25878fa7d4f99ec5bf2f8576dccb023409eb`；标签 commit 与阅读 P 的完整 tree diff 仅 `UPSTREAM.md`，引用的四份功能文档/代码相同，不把阅读 SHA 冒充标签解析结果。
 
-[I 的三字段来源文件](https://github.com/ccisnoxx/sub2api/blob/42907bcab278f93db48d7e1b39b28e28f664569e/deploy/personal-source.json)指定仓库 `KlN-4096/sub2api`、N tag 与 N SHA，与 [I 的 NOTICE](https://github.com/ccisnoxx/sub2api/blob/42907bcab278f93db48d7e1b39b28e28f664569e/NOTICE)及当前 [NOTICE](NOTICE)一致。A、N、累计重放 R 均为 I 的真实祖先；K 不是 N 的祖先。原始上游仍是 [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api)。固定源码、正式 Release、OCI digest 与生产 308 行账本已绑定，见 [REL-002](docs/upstream/records/2026-10-12-rel-002.md) 和 [REL-003](docs/upstream/records/2026-10-12-rel-003.md)。旧 A 保留用于维护恢复，不能仅切回镜像。
+[I 的三字段来源文件](https://github.com/ccisnoxx/sub2api/blob/c08fba12eb4cd30e65c4177f3acbe20567ecd252/deploy/personal-source.json)指定仓库 `KlN-4096/sub2api`、N tag 与 N SHA，与 [I 的 NOTICE](https://github.com/ccisnoxx/sub2api/blob/c08fba12eb4cd30e65c4177f3acbe20567ecd252/NOTICE)及当前 [NOTICE](NOTICE)一致。A、N、累计重放 R 均为 I 的真实祖先；K 不是 N 的祖先。原始上游仍是 [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api)。固定源码、正式 Release、OCI digest 与生产 308 行账本已绑定，见 [当前OBS发布验收](docs/upstream/records/2026-10-12-obs-release.md)；原 [REL-002](docs/upstream/records/2026-10-12-rel-002.md) 和 [REL-003](docs/upstream/records/2026-10-12-rel-003.md)保持归档。旧 A 保留用于维护恢复，不能仅切回镜像。
 
-发布与迁移事实见 [记录目录](docs/upstream/records/README.md)、[三次历史发布](docs/upstream/records/published-personal.md)、[本次 KIN 迁移](docs/upstream/records/2026-10-11-kin-v0.2.15-klno.2.md)。下一次操作按 [维护合同](docs/conventions/personal-maintenance.md)和 [CI-000](docs/ci/CI-000.md)进行；历史自动 CI/发布规则不作为当前流程。
+发布与迁移事实见 [记录目录](docs/upstream/records/README.md)、[个人发布归档](docs/upstream/records/published-personal.md)、[本次 KIN 迁移](https://github.com/ccisnoxx/sub2api/blob/c54b9497d4bee04215384deb494c5467b917a7db/docs/upstream/records/2026-10-11-kin-v0.2.15-klno.2.md)。下一次操作按 [维护合同](docs/conventions/personal-maintenance.md)和 [CI-000](docs/ci/CI-000.md)进行；历史自动 CI/发布规则不作为当前流程。
 
 ## 第8节OBS整合续作的来源边界
 
-当前personal已依次普通合入PR #32 `fe27c725c42de005358b23c964faad81bf3ae4b3`、PR #31 `04937e64879f19a07a2edf0e1c931a8008c0b7c9`、PR #34 `423f690bec2ee9d0ebccd1672906d6b688c220c3`（携带PR #33语义依赖），完成当前组合的定向验证和独立复核。正式I/tag/Full/Release/digest保持不变，新增OBS代码尚未进入生产429镜像，通知路由/真实送达未验收。固定旧/新KIN持久化合同评估已发现实际不兼容，旧休整状态写回会丢失 `quality_gateways`，隔离定向验证确认信息丢失，旧镜像恢复禁令保持。源码、运行接入与回退证据边界见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)；下方固定I矩阵只代表已发布源码，不作为新增OBS完整实现或部署证明。
+PR #32/#31/#34（含#33语义依赖）已普通整合，最终发布I为 `c08fba12eb4cd30e65c4177f3acbe20567ecd252`。成功[Full38335510831](https://github.com/ccisnoxx/sub2api/actions/runs/38335510831)、[Release38337243568](https://github.com/ccisnoxx/sub2api/actions/runs/38337243568)、新tps.2及immutable digest经独立测试→生产实际验收；旧429产物保留。容量、cleanup和aggregate结构化producer已运行，生产独立本机timer每分钟只读检查、真实相邻调度和测试故障/恢复均已验收；维护者不需要外部通知，没有配置或宣称送达。跨KIN旧JSONB写回已证明丢失 `quality_gateways`，联系人/多协议凭据还有反例，全业务无损条件不成立，旧镜像禁令保持。详情见[OBS验收](docs/upstream/records/2026-10-12-obs-release.md)和[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
 
 ## 当前个人模块 owner 与测试矩阵
 
-以下所有应用文件/测试属于固定 I。测试列确认源码入口存在，不能解释为 ARCH-005 重跑或全部通过。S1/S2/S3/S4 分别为计时、目录、诊断、服务状态；S5 为展示/导出。Plus 改动方式沿用结构/概念参考，不能把本地适配写成整模块直接复制或完全自主原创。
+以下所有应用文件/测试属于固定 I。测试列确认源码入口存在；本次发布Full对I全部必要job成功，具体定向复用和实际运行证据见OBS记录，不能把文件清单当作逐项本地重跑。S1/S2/S3/S4 分别为计时、目录、诊断、服务状态；S5 为展示/导出。Plus 改动方式沿用结构/概念参考，不能把本地适配写成整模块直接复制或完全自主原创。
 
 | 模块 / 来源方式 | 状态和合同 owner 文件 | 关键接线 / 持久化 | 直接测试入口 |
 |---|---|---|---|
@@ -35,7 +36,8 @@ N 的 annotated tag object 是 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d`，peel
 | S3：N 实际调度 + P 诊断结构参考 | `backend/internal/service/routing_diagnostics.go` / `routing_diagnostics_validation.go`；真实选择 `openai_account_scheduler.go`（同 service） | WS turn `backend/internal/handler/openai_ws_routing_diagnostics.go`；采集入口 `ops_error_logger.go`（同 handler）；写入终检/详情 `backend/internal/service/ops_service.go`；SQL `backend/internal/repository/ops_repo.go` | `backend/internal/service/routing_diagnostics_test.go` / `openai_routing_diagnostics_test.go`；`backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go`；`backend/internal/repository/ops_repo_routing_diagnostics_integration_test.go` |
 | S4：P 终态/水位/事件概念参考，KIN 下独立管理员实现 | `backend/internal/service/service_status_observation.go` 拥有请求最终冻结与 Commit；`service_status.go` / `service_status_aggregator.go`（同 service）；归一化 `backend/internal/repository/service_status_normalize.go` | 事务/config/epoch/watermark：`backend/internal/repository/service_status_repo.go`；事件 `service_status_incidents.go`（同 repository）；JWT `backend/internal/handler/service_status_handler.go`；路由 `backend/internal/server/routes/admin.go` | `backend/internal/service/service_status_observation_test.go` / `service_status_aggregator_test.go`；`backend/internal/repository/service_status_repo_integration_test.go`；`backend/internal/server/routes/service_status_routes_jwt_test.go` |
 | S5：个人展示/导出，P helper 结构参考并按 KIN 值合同适配 | `frontend/src/utils/usageTiming.ts`；`frontend/src/components/admin/usage/UsageTable.vue`；导出 `frontend/src/views/admin/UsageView.vue` / `frontend/src/views/user/UsageView.vue` | 目录 `frontend/src/api/channels.ts` / `frontend/src/views/user/AvailableChannelsView.vue`；诊断 `frontend/src/views/admin/ops/components/OpsRoutingDiagnosticsPanel.vue`；状态 `frontend/src/api/admin/serviceStatus.ts` / `frontend/src/views/admin/ServiceStatusView.vue` / `frontend/src/router/index.ts` | `frontend/src/utils/__tests__/usageTiming.spec.ts`；`frontend/src/views/admin/__tests__/UsageView.spec.ts` / `ServiceStatusView.spec.ts`；`frontend/src/views/user/__tests__/AvailableChannelsView.spec.ts`；`frontend/src/views/admin/ops/components/__tests__/OpsErrorDetailModal.spec.ts` |
-| 个人更新识别：UPSTREAM-008 已迁回 | `backend/internal/service/update_service.go` / `frontend/src/components/common/VersionBadge.vue` | 个人 Release 查询指向本 fork；container/manual 拒绝原地更新及回退，个人五段版本数值比较；公开管理员页面已显示本次固定 Release 链接 | `backend/internal/service/update_service_test.go` / `frontend/src/components/common/__tests__/VersionBadge.spec.ts`；真实 handler 409 拒绝合同见 [UPSTREAM-008](docs/upstream/UPSTREAM-008.md) |
+| 个人更新识别：UPSTREAM-008 已迁回 | `backend/internal/service/update_service.go` / `frontend/src/components/common/VersionBadge.vue` | 个人 Release 查询指向本 fork；container/manual 拒绝原地更新及回退，个人五段版本数值比较；原REL-002管理员页面验证过tps.1 Release链接，本轮复用未变UI证据 | `backend/internal/service/update_service_test.go` / `frontend/src/components/common/__tests__/VersionBadge.spec.ts`；真实 handler 409 拒绝合同见 [UPSTREAM-008](docs/upstream/UPSTREAM-008.md) |
+| OBS运行监控：本地适配，结构化事件不进入Ops系统日志 | `backend/internal/repository/service_status_monitor.go`；前置失败/整轮起点为 `backend/internal/service/service_status_aggregator.go` | `tools/service-status-watch.py` 独立只读水位/来源/配置检查；`tools/service-status-capacity.sql`；部署的本机timer不含通知路由 | `backend/internal/repository/service_status_aggregator_monitor_test.go` / `service_status_monitor_integration_test.go`；`tools/test_service_status_watch.py`；真实timer、故障与恢复见OBS记录 |
 
 ### ARCH-001 后 S1 的五个责任 owner
 
@@ -81,7 +83,7 @@ N 的 annotated tag object 是 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d`，peel
 | 路由诊断 | [ERROR_REQUEST_DIAGNOSTICS.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/ERROR_REQUEST_DIAGNOSTICS.md) | 保留当前 turn/attempt、nil/0/coverage、错误链与管理员白名单；不扩展身份、历史纠正或额外 telemetry |
 | 服务状态 | [CHANNEL_MONITOR.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/CHANNEL_MONITOR.md) | 独立管理员 JWT/表/配置，健康由终态/缺口/样本/错误率决定；不采用全登录用户可见或 TTFT/TPS 健康阈值，不替代 V1/V2 |
 
-当前采集合同/覆盖见 [I spec](https://github.com/ccisnoxx/sub2api/blob/42907bcab278f93db48d7e1b39b28e28f664569e/openspec/changes/adopt-plus-usage-and-diagnostics/spec.md)、[I coverage](https://github.com/ccisnoxx/sub2api/blob/42907bcab278f93db48d7e1b39b28e28f664569e/openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md)。目录/价格/诊断/状态冻结合同仍在固定 [A 合同目录](https://github.com/ccisnoxx/sub2api/tree/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics)，不制造 I 中不存在的本地链接。
+当前采集合同/覆盖见 [I spec](https://github.com/ccisnoxx/sub2api/blob/c08fba12eb4cd30e65c4177f3acbe20567ecd252/openspec/changes/adopt-plus-usage-and-diagnostics/spec.md)、[I coverage](https://github.com/ccisnoxx/sub2api/blob/c08fba12eb4cd30e65c4177f3acbe20567ecd252/openspec/changes/adopt-plus-usage-and-diagnostics/coverage.md)。目录/价格/诊断/状态冻结合同仍在固定 [A 合同目录](https://github.com/ccisnoxx/sub2api/tree/3d5e1fde82707900a21f2b5538b112c7bab3c04a/openspec/changes/adopt-plus-usage-and-diagnostics)，不制造 I 中不存在的本地链接。
 
 | N 已具备能力 | 实际 owner / 收敛方向 | 仍需保留的个人增量 |
 |---|---|---|
@@ -95,7 +97,7 @@ N 无当前 timing_version/strict/media/终态来源字段、routing_diagnostics
 
 ### 个人更新行为已迁回
 
-UPSTREAM-008 已普通快进整合到固定 I。个人更新服务、版本徽章、来源缓存及 HTTP 409 能力拒绝沿用其定向验证和独立复核；REL-002 生产页面进一步确认 `v0.2.15-klno.2-tps.1`、本 fork Release 链接和固定 digest 部署提示。没有启用容器内二进制替换。原 ARCH-005 登记的待迁回状态属于历史，不代表当前 I。
+UPSTREAM-008 已普通快进整合到固定 I。个人更新服务、版本徽章、来源缓存及 HTTP 409 能力拒绝沿用其定向验证和独立复核；原 REL-002 生产页面确认过 `v0.2.15-klno.2-tps.1`、本 fork Release 链接和固定 digest 提示；本轮tps.2由固定源码、OCI与公开API验收绑定，没有重跑浏览器版本页。没有启用容器内二进制替换。原 ARCH-005 登记的待迁回状态属于历史，不代表当前 I。
 
 下一次 KIN 来源检查日期：**2026-10-26**。届时按 CI-000 人工确认候选；本次没有升级新 KIN，也没有创建自动同步或发布任务。
 
