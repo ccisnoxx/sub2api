@@ -86,7 +86,8 @@ func TestServiceStatusAggregatorPreflightFailuresShareCounterWithAggregateAndRec
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = db.Close() })
-	r := NewServiceStatusRepository(db).(*serviceStatusRepository)
+	r, ok := NewServiceStatusRepository(db).(*serviceStatusRepository)
+	require.True(t, ok, "监控测试需要实际服务状态仓储")
 	// 容量采样的小时门控已独立验证；本用例只观察聚合失败与确认提交的共同计数。
 	r.monitor.lastProbe = time.Now()
 	for i := 1; i <= 3; i++ {
@@ -203,7 +204,8 @@ func TestServiceStatusAggregatorRoundDurationIncludesConfigPreflight(t *testing.
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = db.Close() })
-	r := NewServiceStatusRepository(db).(*serviceStatusRepository)
+	r, ok := NewServiceStatusRepository(db).(*serviceStatusRepository)
+	require.True(t, ok, "监控测试需要实际服务状态仓储")
 	r.monitor.lastProbe = time.Now()
 	epochs := fmt.Sprintf(`{"openai":%q}`, time.Now().UTC().Truncate(time.Minute).Add(time.Minute).Format(time.RFC3339))
 	// 前置读取成功但耗时 41 秒；后续使用真实仓储的快速确认提交路径。

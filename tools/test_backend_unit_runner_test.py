@@ -71,10 +71,10 @@ class UnitBatchesTest(unittest.TestCase):
             commands.append(args)
             working_directories.append(cwd)
             if args[:2] == ["go", "list"]:
-                if args[-1] in ("./internal/service", "./internal/handler"):
+                if args[-1] in ("./internal/service", "./internal/handler", "./internal/repository"):
                     return "example/" + args[-1].removeprefix("./") + "\n"
                 return (
-                    "example/internal/service\nexample/internal/handler\n"
+                    "example/internal/service\nexample/internal/handler\nexample/internal/repository\n"
                     "example/internal/service/child\nexample/internal/handler/admin\nexample/other\n"
                 )
             if args[-1] == "-test.list=.":
@@ -89,12 +89,12 @@ class UnitBatchesTest(unittest.TestCase):
             commands,
         )
         batches = [args for args in commands if "-test.timeout=60s" in args]
-        self.assertEqual(6, len(batches))
+        self.assertEqual(9, len(batches))
         for args, cwd in zip(commands, working_directories):
             package_name = pathlib.Path(args[0]).name.split(".")[0]
             expected = runner.BACKEND if args[0] == "go" else runner.BACKEND / "internal" / package_name
             self.assertEqual(expected, cwd, "compiled tests must use the package directory, like go test")
-        for package_name in ("service", "handler"):
+        for package_name in ("service", "handler", "repository"):
             package_batches = [
                 args for args in batches if pathlib.Path(args[0]).name.startswith(package_name + ".test")
             ]
