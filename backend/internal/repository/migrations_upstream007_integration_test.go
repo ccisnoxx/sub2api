@@ -44,6 +44,7 @@ func TestUPSTREAM007UpgradePaths(t *testing.T) {
 		{"empty", nil, 0, false},
 		{"old-kin", mig001Files(t, false, false), 303, false},
 		{"already-personal", mig001Files(t, false, true), 307, true},
+		{"current-tps3", mig001Files(t, true, true), 308, true},
 	} {
 		t.Run(initial.name, func(t *testing.T) {
 			// 每条路径独立数据库和 Redis；复用 MIG-001 的数据库名称及恢复合同。
@@ -127,7 +128,8 @@ func TestUPSTREAM007UpgradePaths(t *testing.T) {
 				require.Equal(t, *state, upstream007ServiceSnapshot(t, db), "五张状态表、版本及水位必须保留")
 			}
 			verify()
-			upstream007ApplicationCycle(t, "fixed-old-rollback", upstream007OldApplicationImage, nw, verify)
+			// 仅用无池账本的合成数据检查启动兼容；禁止据此宣称生产数据可回退。
+			upstream007ApplicationCycle(t, "fixed-old-startup-check", upstream007OldApplicationImage, nw, verify)
 			upstream007ApplicationCycle(t, "candidate-return", candidate, nw, verify)
 
 			// 此时三个应用容器均已停止。仅为既有 MIG-001 恢复 helper 的启用态合同
@@ -214,13 +216,13 @@ func upstream007ApplicationCycle(t *testing.T, phase, image string, nw *tc.Docke
 func upstream007VerifyLedger(t *testing.T, db *sql.DB, before map[string]string) map[string]string {
 	t.Helper()
 	ledger := mig001Ledger(t, db)
-	require.Len(t, ledger, 308)
+	require.Len(t, ledger, mig001TargetMigrationCount)
 	for name, row := range before {
 		require.Equal(t, row, ledger[name], "旧 checksum 和 applied_at 必须保留：%s", name)
 	}
 	names, err := fs.Glob(migrations.FS, "*.sql")
 	require.NoError(t, err)
-	require.Len(t, names, 308, "UPSTREAM-007 固定迁移集不能静默漂移")
+	require.Len(t, names, mig001TargetMigrationCount, "UPSTREAM-007 固定迁移集不能静默漂移")
 	for _, name := range names {
 		data, err := migrations.FS.ReadFile(name)
 		require.NoError(t, err)

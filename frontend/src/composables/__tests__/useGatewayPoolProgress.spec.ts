@@ -81,6 +81,23 @@ describe('gateway progress polling', () => {
     expect(getGatewayPoolProgress).toHaveBeenCalledTimes(2)
   })
 
+  it('never asks the backend for the cooldown estimate', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+    vi.mocked(getGatewayPoolProgress).mockResolvedValue({ 1: snapshot() })
+    const wrapper = mount(defineComponent({
+      setup() { useGatewayPoolProgress(computed(() => [1])); return () => null }
+    }))
+    try {
+      await flushPromises()
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(vi.mocked(getGatewayPoolProgress).mock.calls.length).toBeGreaterThanOrEqual(2)
+      for (const call of vi.mocked(getGatewayPoolProgress).mock.calls) expect(call[2]).toBe(false)
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
   it('does not poll a hidden page or an empty target set', async () => {
     vi.useFakeTimers()
     vi.mocked(getGatewayPoolProgress).mockClear()
@@ -186,6 +203,20 @@ describe('gateway progress polling', () => {
     } finally {
       wrapper.unmount()
     }
+  })
+
+  it('accepts a batch whose explicitly inactive rows carry no runtime instead of freezing the page', async () => {
+    vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+    vi.mocked(getGatewayPoolProgress).mockResolvedValue({ 1: snapshot({ attempt: 1 }), 2: { inactive: true } as any })
+    let state!: ReturnType<typeof useGatewayPoolProgress>
+    const wrapper = mount(defineComponent({
+      setup() { state = useGatewayPoolProgress(computed(() => [1, 2])); return () => null }
+    }))
+    try {
+      await flushPromises()
+      expect(state.paused.value).toBe(false)
+      expect(Object.keys(state.progress.value)).toEqual(['1'])
+    } finally { wrapper.unmount() }
   })
 
   it('keeps all rows paused through empty or incomplete successful replies, then swaps a complete batch', async () => {

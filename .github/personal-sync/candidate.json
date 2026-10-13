@@ -1,0 +1,6 @@
+{
+  "mode": "upgrade",
+  "base_sha": "8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90",
+  "upstream_tag": "v0.2.15-klno.4",
+  "upstream_sha": "c555ad918b08cb24ccb2eb45f4ae44a843e24baf"
+}

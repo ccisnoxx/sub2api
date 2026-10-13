@@ -58,7 +58,7 @@
     <!-- 本轮 / 累计满血用时：只计已验满票承载业务的活跃时长，不是墙钟。 -->
     <div v-if="usesPool && runtime" class="grid grid-cols-2 gap-1.5">
       <div class="rounded-md bg-gray-50 px-2 py-1 dark:bg-dark-800/70" data-testid="account-gateway-usage-round"
-        :title="cycleTile.incomplete ? t('admin.accounts.openai.gatewayRuntime.incompleteHint') : t('admin.accounts.openai.gatewayRuntime.activeHint')">
+        :title="t('admin.accounts.openai.gatewayRuntime.activeHint')">
         <div class="flex items-center justify-between gap-1 text-[10px] text-gray-400 dark:text-gray-500">
           <span>{{ t('admin.accounts.openai.gatewayRuntime.cycleFull') }}</span>
           <span class="font-medium text-gray-600 dark:text-gray-300" data-testid="gateway-cycle-tickets">{{ t('admin.accounts.openai.gatewayRuntime.cycleTickets', { full: cycleTile.full, attempted: cycleTile.attempted }) }}</span>
@@ -66,13 +66,13 @@
         <div class="text-[12px] font-semibold text-gray-800 dark:text-gray-100" data-testid="gateway-cycle-duration">{{ cycleTile.duration }}</div>
       </div>
       <div class="rounded-md bg-gray-50 px-2 py-1 dark:bg-dark-800/70" data-testid="account-gateway-usage-history"
-        :title="historyUsage.incomplete ? t('admin.accounts.openai.gatewayRuntime.incompleteHint') : t('admin.accounts.openai.gatewayRuntime.activeHint')">
+        :title="t('admin.accounts.openai.gatewayRuntime.activeHint')">
         <div class="flex items-center justify-between gap-1 text-[10px] text-gray-400 dark:text-gray-500">
           <span>{{ t('admin.accounts.openai.gatewayRuntime.totalFull') }}</span>
           <span class="font-medium text-gray-600 dark:text-gray-300" data-testid="gateway-total-rounds">{{ t('admin.accounts.openai.gatewayRuntime.totalRounds', { count: historyUsage.rounds }) }}</span>
         </div>
         <div class="text-[12px] font-semibold text-gray-800 dark:text-gray-100" data-testid="gateway-total-duration">
-          {{ historyUsage.hasDuration ? `${historyUsage.incomplete ? '≥' : ''}${formatUseTime(historyUsage.durationMS)}` : '—' }}
+          {{ historyUsage.hasDuration ? formatUseTime(historyUsage.durationMS) : '—' }}
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@
           <span>·</span>
           <span data-testid="gateway-window-cooled">{{ t('admin.accounts.openai.gatewayUsed.cooledCount', { count: windowUsage.cooled }) }}</span>
         </span>
-        <GatewayUsedHistory v-if="usedItems.length" :key="display.account.id" :items="usedHistoryDetails" />
+        <GatewayUsedHistory v-if="usedItems.length" :key="display.account.id" :items="usedHistoryDetails" @toggle="historyOpen = $event" />
       </div>
       <div v-if="windowUsage.used + windowUsage.cooled" class="col-span-2 flex h-[3px] min-w-0 gap-px overflow-hidden rounded-full" aria-hidden="true">
         <span v-if="windowUsage.used" class="bg-amber-300 dark:bg-amber-500/60" :style="{ flexGrow: windowUsage.used }" />
@@ -132,7 +132,7 @@
  * 大区同样是**池子口径**（铸这张票的出口在哪儿），不是「这一发实际落在哪个大区」：
  * 注入时两件 cookie 齐送 ⇒ 上游不回新 __oailb ⇒ 真实落点读不出来（docs 的 S1/S2）。
  */
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Account } from '@/types'
 import type { GatewayPoolProgress, GatewayPoolUsageRound } from '@/api/admin/accounts'
@@ -155,8 +155,35 @@ const props = defineProps<{ account: Account; progress?: GatewayPoolProgress; pr
 const emit = defineEmits<{ retry: [id: number] }>()
 const { t } = useI18n()
 const wallTime = useSharedNowTicker(1000)
+// Only the fields rendered below: a paused pool row deep-copies all of it.
+// Built apart from the clock, so progress keeps its identity between ticks.
+const view = computed(() => {
+  const { id, platform, type, extra } = props.account
+  const progress = props.progress
+  const runtime = progress?.runtime
+  // A pool row with a snapshot reads these four from it, not the stored page copy.
+  // Display-only projection: never replace the account object used by editing.
+  const snapshot = extra?.openai_gwpool === true ? runtime : undefined
+  return {
+    account: { id, platform, type },
+    extra: {
+      openai_gwpool: extra?.openai_gwpool,
+      openai_gwpool_gateways: snapshot?.history ?? extra?.openai_gwpool_gateways,
+      openai_gwpool_contacts: snapshot?.contacts ?? extra?.openai_gwpool_contacts,
+      openai_gwpool_ledger_tag: snapshot?.ledger_tag ?? extra?.openai_gwpool_ledger_tag,
+      openai_gwpool_gateway_window_s: snapshot?.gateway_window_seconds ?? extra?.openai_gwpool_gateway_window_s
+    },
+    progress: progress && {
+      phase: progress.phase, sequence: progress.sequence, gateway: progress.gateway, attempt: progress.attempt,
+      rejected: progress.rejected, elapsed_ms: progress.elapsed_ms, active_requests: progress.active_requests,
+      updated_at: progress.updated_at,
+      runtime: runtime && { tickets: runtime.tickets, rounds: runtime.rounds, archived: runtime.archived, queues: runtime.queues }
+    },
+    retryPending: props.retryPending
+  }
+})
 const display = usePausedDisplay(
-  () => ({ ...props, now: wallTime.value }),
+  () => ({ ...view.value, now: wallTime.value }),
   () => props.progressPaused === true,
   () => props.account.id
 )
@@ -191,8 +218,7 @@ const historyUsage = computed(() => {
   const total = {
     rounds: snapshot?.archived?.all?.rounds || 0,
     durationMS: Math.max(0, snapshot?.archived?.all?.active_duration_ms || 0),
-    hasDuration: snapshot?.archived?.all?.active_duration_ms !== undefined,
-    incomplete: snapshot?.archived?.all?.active_duration_incomplete || false
+    hasDuration: snapshot?.archived?.all?.active_duration_ms !== undefined
   }
   // Retained closed rounds and compressed archives are disjoint. Use measured
   // full-use duration, never wall time; ongoing and legacy model rounds stay out.
@@ -202,7 +228,6 @@ const historyUsage = computed(() => {
     if (round.full_usage_mode === ACTIVE_USAGE_MODE) {
       total.durationMS += Math.max(0, round.full_duration_ms || 0)
       total.hasDuration = true
-      total.incomplete ||= round.duration_incomplete || false
     }
   }
   return total
@@ -231,8 +256,8 @@ interface GatewaySeen {
   region?: string
   verdict?: string
   full_at?: string
-  /** 后端在判降智那一刻量到的满血时长（毫秒）。缺省 / 0 = 没量到。 */
-  full_held_ms?: number
+  /** 后端在判降智那一刻量到的：那张票本周期满血承载业务的时长（毫秒）。缺省 / 0 = 没量到。 */
+  full_use_ms?: number
   cooldown?: { until?: string; window_seconds?: number; fixed_seconds?: number; recommended_seconds?: number; cleared?: boolean }
 }
 
@@ -253,8 +278,8 @@ interface GatewayItem {
   region: string
   verdict: string
   fullAt: string
-  /** 后端量到的满血时长（毫秒）。0 = 没量到，见 fullHeldOf。 */
-  fullHeldMs: number
+  /** 后端量到的那张票本周期满血使用时长（毫秒）。0 = 没量到，见 fullUseOf。 */
+  fullUseMs: number
   cooldownUntil: string
   cooldownCleared: boolean
   cooldownWindowMs: number
@@ -268,19 +293,7 @@ type GatewayTone = 'full' | 'degraded' | 'idle'
 
 const isCodexAccount = computed(() => targetsCodexUpstream(display.value.account))
 
-const extra = computed(() => {
-  const base = (display.value.account.extra as Record<string, unknown> | undefined) ?? {}
-  const snapshot = runtime.value
-  if (base.openai_gwpool !== true || !snapshot) return base
-  // Display-only projection: never replace the account object used by editing.
-  return {
-    ...base,
-    openai_gwpool_gateways: snapshot.history ?? base.openai_gwpool_gateways,
-    openai_gwpool_contacts: snapshot.contacts ?? base.openai_gwpool_contacts,
-    openai_gwpool_ledger_tag: snapshot.ledger_tag ?? base.openai_gwpool_ledger_tag,
-    openai_gwpool_gateway_window_s: snapshot.gateway_window_seconds ?? base.openai_gwpool_gateway_window_s
-  }
-})
+const extra = computed(() => display.value.extra)
 
 /**
  * 这个号的路由 cookie 是不是由网关池下发（账号上的 `openai_gwpool` 开关）。
@@ -318,7 +331,7 @@ const items = computed<GatewayItem[]>(() => {
       region: typeof row.region === 'string' ? row.region : '',
       verdict: row.verdict === 'full' || row.verdict === 'degraded' ? row.verdict : '',
       fullAt: typeof row.full_at === 'string' ? row.full_at : '',
-      fullHeldMs: typeof row.full_held_ms === 'number' ? row.full_held_ms : 0,
+      fullUseMs: typeof row.full_use_ms === 'number' ? row.full_use_ms : 0,
       cooldownUntil: typeof row.cooldown?.until === 'string' ? row.cooldown.until : '',
       cooldownCleared: row.cooldown?.cleared === true,
       cooldownWindowMs: typeof row.cooldown?.window_seconds === 'number'
@@ -353,13 +366,28 @@ function usedStatus(item: GatewayItem): string {
     : t('admin.accounts.openai.gatewayUsed.cooled')
 }
 
-const usedHistoryDetails = computed(() => [...usedItems.value]
-  .sort((a, b) => Number(toneOf(b) === 'full') - Number(toneOf(a) === 'full'))
-  .map(item => ({
-    name: item.name, region: gatewayRegionDisplayKey(item.region),
-    title: usedTitleOf(item), duration: toneOf(item) === 'full' ? '—' : fullHeldOf(item),
-    status: usedStatus(item), tone: toneOf(item)
-  })))
+const historyOpen = ref(false)
+type HistoryEntry = { name: string; region: string; title: string; duration: string; status: string; tone: GatewayTone }
+// A closed panel still receives every name and region: they keep its region filter and
+// page valid exactly as when the full entries were rebuilt every second. While they hold,
+// it keeps the same list, so a poll does not re-render it either.
+const closedHistoryDetails = computed<HistoryEntry[]>(previous => {
+  const next = usedItems.value.map(item => ({
+    name: item.name, region: gatewayRegionDisplayKey(item.region), title: '', duration: '', status: '', tone: 'idle' as const
+  }))
+  return previous?.length === next.length &&
+    previous.every((entry, index) => entry.name === next[index].name && entry.region === next[index].region) ? previous : next
+})
+// Statuses, colours and titles follow the clock, so only an open panel gets them.
+const usedHistoryDetails = computed(() => historyOpen.value
+  ? [...usedItems.value]
+    .sort((a, b) => Number(toneOf(b) === 'full') - Number(toneOf(a) === 'full'))
+    .map(item => ({
+      name: item.name, region: gatewayRegionDisplayKey(item.region),
+      title: usedTitleOf(item), duration: toneOf(item) === 'full' ? '—' : fullUseOf(item),
+      status: usedStatus(item), tone: toneOf(item)
+    }))
+  : closedHistoryDetails.value)
 
 const preparing = computed(() => usesPool.value && !!displayProgress.value &&
   ['pending', 'fetching', 'verifying', 'waiting'].includes(displayProgress.value.phase))
@@ -382,7 +410,7 @@ const current = computed<GatewayItem | null>(() => {
       region: live?.region || (preparing.value ? '' : history.value.current_region) || '',
       verdict: '',
       fullAt: '',
-      fullHeldMs: 0,
+      fullUseMs: 0,
       cooldownUntil: '',
       cooldownCleared: false,
       cooldownWindowMs: windowMs.value,
@@ -451,26 +479,26 @@ function regionLabel(key: string): string {
  * 看的，段数会变的话每一行都得重新找「满血时间」在哪儿。同理每段只放值、不带标签——
  * 一列里每行都重复一遍「满血于」「上次判定：」，真正要比的那几个值反而被推到行尾对不齐。
  *
- * 满血时间是**这一格的满血窗口持续了多久**，不是它发生在什么时候：窗口的长度才是运营方
- * 要横着比的那个量（「这个落点只给了我 40 秒」对「给了 180 秒」）。
+ * 满血时间是**最近被判死的那张票本周期满血用了多久**，不是它发生在什么时候：用了多久才是
+ * 运营方要横着比的那个量（「这个落点只给了我 40 秒」对「给了 180 秒」）。
  */
 const TITLE_SEP = '-'
 
 /**
- * 满血时长：这一格的满血窗口持续了多久，直接读后端量好的 full_held_ms。
+ * 满血时长：最近被判死的那张票本周期满血承载业务用了多久，直接读后端量好的 full_use_ms。
  *
  * **不要在这里用 `at - fullAt` 算。** 第一版就是那么写的，现网渲染出 22655s / 21738s ——
- * fullAt 是粘滞的，而 degraded 判定要等**下一次真的打到这个网关**才会写，中间空了几小时
- * 就白算几小时。真正的窗口长度由后端在判降智那一刻量（从这张票验出满血算起，两头都在
- * 同一张票的生命里，有界），见 openAIGatewaySeen.FullHeldMs。
+ * fullAt 是粘滞的，中间空了几小时就白算几小时。后端只累计这张票本周期真有业务在跑的
+ * 区间，空闲和别的票都不算，见 openAIGatewaySeen.FullUseMs。
  *
- * 没有读数就写「未计时」：窗口还在跑、从没验出过满血、或者这一格的降智不是从本进程这条
- * 路判出来的 —— 对读者都是同一件事，这一格没有时长可报。
+ * 没有读数就写「未计时」：票还没被判死、从没验出过满血、验满后本周期没有业务、或者这一格的
+ * 降智不是从本进程这条路判出来的 —— 对读者都是同一件事，这一格没有时长可报。不足 1 秒写 <1s，
+ * 不写成像「没用过」的 0s。
  */
-function fullHeldOf(item: GatewayItem): string {
+function fullUseOf(item: GatewayItem): string {
   const base = 'admin.accounts.openai.gatewayHistory'
-  if (!(item.fullHeldMs > 0)) return t(`${base}.fullUntimed`)
-  return `${Math.round(item.fullHeldMs / 1000)}s`
+  if (!(item.fullUseMs > 0)) return t(`${base}.fullUntimed`)
+  return item.fullUseMs < 1000 ? '<1s' : `${Math.round(item.fullUseMs / 1000)}s`
 }
 
 /**
@@ -513,7 +541,7 @@ function historyTitleOf(item: GatewayItem): string {
     : item.verdict
     ? t(`${base}.verdicts.${item.verdict}`)
     : t(`${base}.verdicts.none`)
-  const summary = [regionLabel(item.region), shortName(item.name), fullHeldOf(item), state, verdict].join(
+  const summary = [regionLabel(item.region), shortName(item.name), fullUseOf(item), state, verdict].join(
     TITLE_SEP
   )
   return gatewayRegionDisplayKey(item.region) === item.region ? summary : `${summary} · ${item.region || '—'}`
@@ -550,18 +578,23 @@ const heroTone = computed<HeroTone>(() => {
   return phase.value === 'exhausted' ? 'warn' : 'idle'
 })
 
-// Between cycles the tile shows zeros instead of disappearing; legacy rounds keep counts only.
+// Between cycles the tile keeps the round that just ended until the next one
+// starts, so the last full-use time stays readable; legacy rounds keep counts only.
+const lastEndedRound = computed(() => (runtime.value?.rounds || [])
+  .filter((round) => round.model === 'all' && validTimestamp(round.ended_at))
+  .reduce<GatewayPoolUsageRound | undefined>((last, round) =>
+    !last || Date.parse(round.ended_at!) > Date.parse(last.ended_at!) ? round : last, undefined))
 const cycleTile = computed(() => {
-  const round = activeRounds.value[0]
-  if (!round) return { full: 0, attempted: 0, duration: formatUseTime(0), incomplete: false }
+  const round = activeRounds.value[0] ?? lastEndedRound.value
+  if (!round) return { full: 0, attempted: 0, duration: formatUseTime(0) }
   return {
-    full: round.full, attempted: round.attempted, incomplete: !!round.duration_incomplete,
-    duration: round.full_usage_mode === ACTIVE_USAGE_MODE ? `${round.duration_incomplete ? '≥' : ''}${fullUseTime(round)}` : '—'
+    full: round.full, attempted: round.attempted,
+    duration: round.full_usage_mode === ACTIVE_USAGE_MODE ? fullUseTime(round) : '—'
   }
 })
 
 function usedDuration(item: GatewayItem): string {
-  return item.fullHeldMs > 0 ? t('admin.accounts.openai.gatewayUsed.heldFull', { duration: fullHeldOf(item) }) : fullHeldOf(item)
+  return item.fullUseMs > 0 ? t('admin.accounts.openai.gatewayUsed.heldFull', { duration: fullUseOf(item) }) : fullUseOf(item)
 }
 
 // Remaining cooldown shares the caption's amber; cooled is neutral; only a live ticket is green.

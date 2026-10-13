@@ -41,18 +41,15 @@ type OpenAIRecordUsageInput struct {
 	PricingAt time.Time
 	// CyberBlocked 为 true 时把该用量行标记为 cyber（request_type=cyber），计费逻辑不变。
 	CyberBlocked bool
-	// RequestType 非零时直接写入该请求类型（猎手探测用 RequestTypeTurnStateProbe）；
+	// RequestType 非零时直接写入该请求类型（网关池丢弃的降智尝试用 RequestTypeGatewayPoolDegraded）；
 	// CyberBlocked 优先。零值保持既有行为：由 stream/ws 字段回推。
 	RequestType RequestType
 	// NativeCompactionV2 is an orthogonal semantic flag captured by the
 	// Responses handler from stream=true + compaction_trigger. It never stores
 	// the request payload and does not replace the transport request type.
 	NativeCompactionV2 bool
-	// TurnStateSource 是本次请求实际注入的 turn-state 覆写来源（manual/auto/auto_stale），
-	// 空串表示没注入。handler 侧从 gin.Context 取出（OpenAITurnStateUsageSource）：
-	// RecordUsage 是异步的，到这里已经没有 gin.Context 了。
-	TurnStateSource string
-	// TurnStateSent 是本次出站实际带的 turn-state，同样由 handler 从 gin.Context 取。
+	// TurnStateSent 是本次出站实际带的 turn-state。handler 侧从 gin.Context 取出
+	// （OpenAITurnStateUsageSent）：RecordUsage 是异步的，到这里已经没有 gin.Context 了。
 	TurnStateSent string
 	ChannelUsageFields
 }
@@ -242,8 +239,7 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 			MarkServiceStatusSourceError(time.Now())
 		}
 	}()
-	// 探测走 hunt 代理、刻意不看账号是否停调度，它的 200 不能证明真实流量的 403 已经过去。
-	if !result.ForwardFailed && s.rateLimitService != nil && input.Account != nil && input.Account.Platform == PlatformOpenAI && input.RequestType != RequestTypeTurnStateProbe {
+	if !result.ForwardFailed && s.rateLimitService != nil && input.Account != nil && input.Account.Platform == PlatformOpenAI {
 		s.rateLimitService.ResetOpenAI403Counter(ctx, input.Account.ID)
 	}
 
@@ -469,8 +465,6 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		RequestID:                requestID,
 		UpstreamRequestID:        usageUpstreamRequestIDPtr(account, result.UpstreamHeaders, result.OpenAIWSMode),
 		TurnState:                usageCodexTurnStatePtr(result.UpstreamHeaders),
-		TurnStateOverridden:      usageCodexTurnStateOverriddenPtr(account, input.TurnStateSource),
-		TurnStateSource:          usageCodexTurnStateSourcePtr(account, input.TurnStateSource),
 		TurnStateSent:            usageCodexTurnStateSentPtr(account, input.TurnStateSent),
 		Model:                    result.Model,
 		RequestedModel:           requestedModel,
@@ -529,7 +523,7 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		// PoolLive 不受 landed 影响：它是整个池子的读数，和这一发落到哪儿无关。
 		s.noteOpenAIGatewayUse(context.WithValue(ctx, gatewayPoolObservationEpochKey{}, result.GatewayPoolApplied.cooldownResetAt), account, *usageLog.RouteGateway, region, verdict, true,
 			result.GatewayPoolApplied.PoolLive, result.GatewayPoolApplied.PoolFree,
-			result.GatewayPoolApplied.FullHeldMs, result.GatewayPoolApplied.LedgerTag)
+			result.GatewayPoolApplied.FullUseMs, result.GatewayPoolApplied.LedgerTag)
 	}
 	isVideoUsage := isGrokVideoUsageResult(result, billingModels)
 	if isVideoUsage {
