@@ -1001,6 +1001,9 @@ type GatewayConfig struct {
 	// OpenAIHighEffortFirstOutputTimeoutSeconds: high/xhigh/max 推理的首个语义输出超时（秒）。
 	// 0 表示回退到 OpenAIFirstOutputTimeoutSeconds。
 	OpenAIHighEffortFirstOutputTimeoutSeconds int `mapstructure:"openai_high_effort_first_output_timeout_seconds"`
+	// OpenAIStreamEarlyPreamble: HTTP Responses 提前发送完整开场事件，默认开启。
+	// 开场事件提交后不再透明换号；关闭可恢复首个语义输出前暂存及换号。
+	OpenAIStreamEarlyPreamble bool `mapstructure:"openai_stream_early_preamble"`
 	// 请求体最大字节数，用于网关请求体大小限制
 	MaxBodySize int64 `mapstructure:"max_body_size"`
 	// TextMaxBodySize limits endpoints that cannot carry inline image/video payloads.
@@ -1049,7 +1052,7 @@ type GatewayConfig struct {
 	OpenAIWS GatewayOpenAIWSConfig `mapstructure:"openai_ws"`
 	// Live: ChatGPT Frameless Live 会话配置。
 	Live GatewayLiveConfig `mapstructure:"live"`
-	// OpenAIScheduler: OpenAI 高级调度器粘性逃逸配置
+	// OpenAIScheduler: OpenAI 调度器粘性逃逸配置
 	OpenAIScheduler GatewayOpenAISchedulerConfig `mapstructure:"openai_scheduler"`
 	// OpenAIHTTP2: OpenAI HTTP 上游协议策略（默认启用 HTTP/2，可按代理能力回退 HTTP/1.1）
 	OpenAIHTTP2 GatewayOpenAIHTTP2Config `mapstructure:"openai_http2"`
@@ -1410,7 +1413,7 @@ func (w GatewayOpenAIWSSchedulerScoreWeights) IsValid() bool {
 
 // GatewayOpenAISchedulerConfig OpenAI 高级调度器配置。
 type GatewayOpenAISchedulerConfig struct {
-	// StickyEscapeEnabled: 是否允许 session_hash sticky 在账号健康度劣化时临时逃逸
+	// StickyEscapeEnabled: 是否允许 session_hash sticky 在账号满载或健康度劣化时临时分流
 	StickyEscapeEnabled bool `mapstructure:"sticky_escape_enabled"`
 	// StickyEscapeTTFTMs: TTFT EWMA 超过该阈值时跳过 sticky
 	StickyEscapeTTFTMs int `mapstructure:"sticky_escape_ttft_ms"`
@@ -2429,6 +2432,7 @@ func setDefaults() {
 	viper.SetDefault("gateway.grok_response_header_timeout", 120)
 	viper.SetDefault("gateway.openai_first_output_timeout_seconds", 0)
 	viper.SetDefault("gateway.openai_high_effort_first_output_timeout_seconds", 0)
+	viper.SetDefault("gateway.openai_stream_early_preamble", true)
 	viper.SetDefault("gateway.log_upstream_error_body", true)
 	viper.SetDefault("gateway.log_upstream_error_body_max_bytes", 2048)
 	viper.SetDefault("gateway.inject_beta_for_apikey", false)

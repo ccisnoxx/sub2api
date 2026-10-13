@@ -93,9 +93,10 @@ func (s *OpenAIGatewayService) RecordCyberPolicyUsageLog(ctx context.Context, in
 		return
 	}
 	result := &OpenAIForwardResult{
-		RequestID: in.RequestID,
-		Model:     in.Model,
-		Stream:    in.Stream,
+		RequestID:     in.RequestID,
+		Model:         in.Model,
+		Stream:        in.Stream,
+		ForwardFailed: true,
 		Usage: OpenAIUsage{
 			InputTokens:  in.InputTokens,
 			OutputTokens: in.OutputTokens,
@@ -242,7 +243,7 @@ func (s *OpenAIGatewayService) RecordUsage(ctx context.Context, input *OpenAIRec
 		}
 	}()
 	// 探测走 hunt 代理、刻意不看账号是否停调度，它的 200 不能证明真实流量的 403 已经过去。
-	if s.rateLimitService != nil && input.Account != nil && input.Account.Platform == PlatformOpenAI && input.RequestType != RequestTypeTurnStateProbe {
+	if !result.ForwardFailed && s.rateLimitService != nil && input.Account != nil && input.Account.Platform == PlatformOpenAI && input.RequestType != RequestTypeTurnStateProbe {
 		s.rateLimitService.ResetOpenAI403Counter(ctx, input.Account.ID)
 	}
 

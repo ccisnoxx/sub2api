@@ -288,7 +288,9 @@ type OpenAIForwardResult struct {
 	// Empty/nil means it should fall back to ReasoningEffort at persistence.
 	RequestedReasoningEffort *string
 	Stream                   bool
-	OpenAIWSMode             bool
+	// ForwardFailed 保留失败流的结算状态，入账不能触发成功后的账号恢复。
+	ForwardFailed bool
+	OpenAIWSMode  bool
 	// UpstreamTerminalEvent is the normalized terminal event observed on an
 	// upstream Responses WebSocket turn. Empty preserves legacy/non-WS success.
 	UpstreamTerminalEvent string
@@ -324,6 +326,9 @@ type OpenAIForwardResult struct {
 // that may clear model-scoped transient state. The zero value remains a success
 // for existing non-WS callers.
 func (r *OpenAIForwardResult) SucceededForScheduling() bool {
+	if r != nil && r.ForwardFailed {
+		return false
+	}
 	if r == nil || !r.OpenAIWSMode || r.UpstreamTerminalEvent == "" {
 		return true
 	}

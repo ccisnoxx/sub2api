@@ -226,12 +226,16 @@ gateway:
   # Grok text Responses first-byte timeout (seconds, 0=disabled; default 120)
   # Grok 文本 Responses 首字节超时时间（秒，0=禁用；默认 120）
   grok_response_header_timeout: 120
+  # HTTP /v1/responses 默认尽早发送完整 response.created / response.in_progress 事件。
+  # 发出带响应身份的事件后，失败留在当前流中，不再透明换号；首 token 指标不计开场事件。
+  # 设为 false 恢复首个语义输出前暂存及失败换号。适用于普通和自动透传路径，WebSocket 不受影响。
+  openai_stream_early_preamble: true
   # Native OpenAI HTTP Responses first semantic output timeout (seconds, 0=disabled)
   # Includes response-header wait; does not apply to passthrough or WebSocket transports.
-  # A timed-out request may already have incurred upstream usage; account failover can therefore duplicate upstream billing.
+  # A timed-out request may already have incurred upstream usage; failover before the response starts can duplicate upstream billing.
   # 超时请求可能已产生上游用量；切换账号重试可能导致上游重复计费。
-  # Pre-output attempt staging is capped at 8 MiB; overflow fails over without exposing partial SSE data.
-  # 首次输出前的单次尝试暂存上限为 8 MiB；溢出时切号且不暴露不完整 SSE 数据。
+  # 首次事件提交前的单次尝试暂存上限为 8 MiB；溢出时切号且不暴露不完整 SSE 数据。
+  # 开场事件提前发送后仍检查首个语义输出超时，但超时只终止当前流，不再换号重放。
   openai_first_output_timeout_seconds: 0
   # Optional high/xhigh/max override (seconds, 0=use the standard timeout)
   openai_high_effort_first_output_timeout_seconds: 0
@@ -421,9 +425,10 @@ gateway:
       quota_headroom: 0.0
       # 倾向上游声明倍率更低的账号；0 表示关闭（默认），建议启用时从 1.5 开始。
       upstream_cost: 0.0
-  # OpenAI 高级调度器补充配置
+  # OpenAI 调度器粘性分流配置
   openai_scheduler:
-    # 是否允许 session_hash sticky 在账号健康度恶化时临时逃逸；false 可一键回退旧行为
+    # 软粘性账号满载时先尝试其他兼容账号，无空闲槽位时仍有界等待；临时分流保留原绑定。
+    # 同时控制高级调度器的健康度逃逸；false 禁用软粘性逃逸，强制续链/任务归属仍按原规则处理。
     sticky_escape_enabled: true
     # TTFT EWMA 超过该阈值（毫秒）时跳过 sticky，默认 15s，避免轻微抖动就逃逸
     sticky_escape_ttft_ms: 15000
