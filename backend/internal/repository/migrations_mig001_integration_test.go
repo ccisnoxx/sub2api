@@ -21,7 +21,9 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-// 旧 KIN 的 303 份 SQL 与目标的同名 SQL 逐字一致，差集经固定 SHA 清单核对。
+const mig001TargetMigrationCount = 311
+
+// 旧 KIN 的303份、旧personal的307份和tps.3的308份SQL保留完整文件身份。
 // 使用真实 runner 和完整 SQL 集合，避免用手填账本或简化 schema 冒充升级。
 func TestMIG001UpgradePaths(t *testing.T) {
 	ctx := context.Background()
@@ -52,6 +54,7 @@ func TestMIG001UpgradePaths(t *testing.T) {
 		{"empty", nil, 0},
 		{"old-kin", oldKIN, 303},
 		{"already-personal", oldPersonal, 307},
+		{"current-tps3", mig001Files(t, true, true), 308},
 	} {
 		t.Run(initial.name, func(t *testing.T) {
 			_, err := db.ExecContext(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public")
@@ -60,7 +63,7 @@ func TestMIG001UpgradePaths(t *testing.T) {
 				require.NoError(t, applyMigrationsFS(ctx, db, initial.files))
 				mig001SeedUsage(t, db)
 			}
-			if initial.name == "already-personal" {
+			if initial.name == "already-personal" || initial.name == "current-tps3" {
 				_, err := db.ExecContext(ctx, `UPDATE service_status_config SET enabled=TRUE,version=7 WHERE id=1;
 INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_model,success) VALUES('2026-10-10T00:00:00Z','openai',1,'mig001-fixture',5)`)
 				require.NoError(t, err)
@@ -75,7 +78,7 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 			require.NoError(t, ApplyMigrations(ctx, db))
 			t.Logf("升级耗时：%s；起始迁移数：%d", time.Since(started), initial.count)
 			after := mig001Ledger(t, db)
-			require.Len(t, after, 308)
+			require.Len(t, after, mig001TargetMigrationCount)
 			for name, row := range before {
 				require.Equal(t, row, after[name], "旧 checksum / applied_at 必须保留：%s", name)
 			}
@@ -96,7 +99,7 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 			require.Equal(t, 12, columnCount)
 			require.NoError(t, db.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('service_status_config','service_status_facts_1m','service_status_scope_states','service_status_incidents','service_status_watermark')`).Scan(&tableCount))
 			require.Equal(t, 5, tableCount)
-			if initial.name == "already-personal" {
+			if initial.name == "already-personal" || initial.name == "current-tps3" {
 				var enabled bool
 				var version, successes int
 				require.NoError(t, db.QueryRowContext(ctx, "SELECT enabled,version FROM service_status_config WHERE id=1").Scan(&enabled, &version))
@@ -104,10 +107,12 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 				require.Equal(t, 7, version)
 				require.NoError(t, db.QueryRowContext(ctx, "SELECT SUM(success) FROM service_status_facts_1m").Scan(&successes))
 				require.Equal(t, 5, successes)
-				mig001Restore(t, pg, db)
-				mig001OldApplicationStarts(t, db, nw)
+				if initial.name == "already-personal" {
+					mig001Restore(t, pg, db)
+					mig001OldApplicationStarts(t, db, nw)
+				}
 			}
-			// 旧应用的 runner 字节与本 runner 相同；旧文件集不认识 242，也不得删其账本。
+			// 旧文件集不能改写新增账本；这只核验runner身份兼容，不证明旧extra字段可恢复。
 			require.NoError(t, applyMigrationsFS(ctx, db, oldPersonal))
 			require.Equal(t, after, mig001Ledger(t, db))
 			mig001SeedUsage(t, db)
@@ -139,7 +144,7 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 		require.False(t, exists, "失败事务不得留下部分列")
 		require.NoError(t, blocker.Rollback())
 		require.NoError(t, ApplyMigrations(ctx, db))
-		require.Len(t, mig001Ledger(t, db), 308)
+		require.Len(t, mig001Ledger(t, db), mig001TargetMigrationCount)
 	})
 
 	t.Run("checksum-mismatch-fails-closed", func(t *testing.T) {
@@ -158,6 +163,11 @@ func mig001Files(t *testing.T, target242, personal bool) fstest.MapFS {
 	require.NoError(t, err)
 	files := fstest.MapFS{}
 	for _, name := range names {
+		// 这些迁移属于.3/.4，不能因读取当前FS而混入旧版本夹具。
+		switch name {
+		case "251_drop_gwpool_previous_ledgers.sql", "252_drop_retired_turn_state_and_gwpool_keys.sql", "253_move_gwpool_ledgers_to_table.sql":
+			continue
+		}
 		if (!target242 && name == "242_drop_platform_check_constraints.sql") || (!personal && (strings.HasPrefix(name, "251_") || strings.HasPrefix(name, "252_") || strings.HasPrefix(name, "253_") || strings.HasPrefix(name, "254_"))) {
 			continue
 		}
@@ -241,7 +251,8 @@ pg_restore -U postgres -d mig001_restored --exit-on-error /tmp/mig001.dump`})
 	require.NoError(t, ApplyMigrations(context.Background(), restored))
 }
 
-// 固定当前生产镜像真实启动，验证扩展 schema / 额外账本不会阻止应用回退。
+// 固定历史镜像真实启动，只验证扩展schema和额外账本不阻止启动。
+// 新迁移已删除旧extra字段并移动池账本；启动健康不构成旧镜像数据回退证明。
 // 独立网络只配置合成数据库和 Redis，不接触生产服务或真实请求。
 func mig001OldApplicationStarts(t *testing.T, db *sql.DB, nw *tc.DockerNetwork) {
 	t.Helper()
