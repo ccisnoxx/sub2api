@@ -19,7 +19,7 @@ import test_maintenance_hostdzire as maintenance
 from deploy_trust import ToolBundle
 
 ROOT = Path(__file__).resolve().parents[2]
-OBS = dict(fixture.NEW, revision="423f690bec2ee9d0ebccd1672906d6b688c220c3",
+OBS = dict(fixture.NEW, revision=deploy.OBS_NEW_REVISION,
            version="0.2.15-klno.2-tps.2")
 OLD = dict(fixture.NEW, revision="42907bcab278f93db48d7e1b39b28e28f664569e",
            version="0.2.15-klno.2-tps.1", image=deploy.OBS_OLD_IMAGE)
@@ -35,7 +35,7 @@ class ObsGitTests(unittest.TestCase):
         self.assertEqual(proof["changed_paths"], list(deploy.OBS_CHANGED_PATHS))
         self.assertEqual(len(proof["changed_paths"]), 32)
         self.assertEqual(proof["obs_upgrade"]["new_runtime_sha256"],
-                         "0c7ab5c16eae0d1944e185d519476da80098e0429d2d6829e8c0a1a4b646c106")
+                         "3d3a9765382ecc98a2a9ad95d6940377b618d1f3e1e5675a16b734b6cfccb9c0")
         self.assertEqual(proof["obs_upgrade"]["new_frontend_sha256"],
                          "47b21affa698058f84a71bcce078c4e105965017a9f34c5707886d25a3e0a367")
         self.assertEqual(len(proof["obs_upgrade"]["frontend_changed_paths"]), 13)
