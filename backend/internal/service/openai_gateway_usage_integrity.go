@@ -2,11 +2,22 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+// shouldPreserveOpenAIStreamUsage 只为不再重试的失败尝试保留真实用量。
+// failover 继续遵循 result=nil 的调用合同，由最终尝试结算，避免重复计费。
+func shouldPreserveOpenAIStreamUsage(err error, usage *OpenAIUsage, imageCount, searchCount int) bool {
+	var failover *UpstreamFailoverError
+	if errors.As(err, &failover) {
+		return false
+	}
+	return openAIUsageHasTokens(usage) || (usage != nil && usage.ImageCacheReadTokens > 0) || imageCount > 0 || searchCount > 0
+}
 
 const (
 	grokMissingUsageErrorCode = "grok_missing_usage"

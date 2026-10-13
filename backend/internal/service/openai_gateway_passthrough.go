@@ -374,6 +374,7 @@ func (s *OpenAIGatewayService) forwardOpenAIPassthrough(
 	rejectedFieldRetryState := openAIResponsesRejectedFieldRetryStateForRequest(c, body)
 	var resp *http.Response
 	var usage *OpenAIUsage
+	var streamErr error
 	var firstTokenMs *int
 	var usageTiming UsageTiming
 	responseID := ""
@@ -483,8 +484,11 @@ func (s *OpenAIGatewayService) forwardOpenAIPassthrough(
 					}
 					return nil, s.handleErrorResponsePassthrough(ctx, compactResp, c, account, body, compactBody)
 				}
-				_ = resp.Body.Close()
-				return nil, handleErr
+				if result == nil || !shouldPreserveOpenAIStreamUsage(handleErr, result.usage, result.imageCount, 0) {
+					_ = resp.Body.Close()
+					return nil, handleErr
+				}
+				streamErr = handleErr
 			}
 			usage = result.usage
 			usageTiming = result.usageTiming
@@ -524,7 +528,9 @@ func (s *OpenAIGatewayService) forwardOpenAIPassthrough(
 	}
 	defer func() { _ = resp.Body.Close() }()
 	serviceTier := extractOpenAIServiceTierFromBody(body)
-	s.bindHTTPResponseAccount(ctx, c, account, responseID)
+	if streamErr == nil {
+		s.bindHTTPResponseAccount(ctx, c, account, responseID)
+	}
 
 	// 排除 spark 影子:其 codex_* 仅由 QueryUsage(/wham/usage bengalfox)更新(外审第7轮 P1)。
 	if !account.IsShadow() {
@@ -553,6 +559,7 @@ func (s *OpenAIGatewayService) forwardOpenAIPassthrough(
 		ServiceTier:                   resolvedOpenAIUpstreamServiceTier(c, serviceTier),
 		ReasoningEffort:               reasoningEffort,
 		Stream:                        reqStream,
+		ForwardFailed:                 streamErr != nil,
 		OpenAIWSMode:                  false,
 		Duration:                      time.Since(startTime),
 		FirstTokenMs:                  firstTokenMs,
@@ -564,7 +571,7 @@ func (s *OpenAIGatewayService) forwardOpenAIPassthrough(
 		forwardResult.ImageOutputSizes = imageOutputSizes
 		forwardResult.BillingModel = imageBillingModel
 	}
-	return forwardResult, nil
+	return forwardResult, streamErr
 }
 
 func logOpenAIPassthroughInstructionsRejected(

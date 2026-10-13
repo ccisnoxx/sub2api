@@ -19,6 +19,8 @@ import (
 )
 
 // Forward forwards request to OpenAI API
+// 流式非重试错误可同时返回已观测用量与错误；调用方应保留失败状态并独立结算 result。
+// 准备换号重试或未观测到计费用量时仍返回 nil result。
 func (s *OpenAIGatewayService) Forward(
 	ctx context.Context,
 	c *gin.Context,
@@ -1268,6 +1270,7 @@ func (s *OpenAIGatewayService) Forward(
 
 		// Handle normal response
 		var usage *OpenAIUsage
+		var streamErr error
 		var firstTokenMs *int
 		var usageTiming UsageTiming
 		responseID := ""
@@ -1316,7 +1319,10 @@ func (s *OpenAIGatewayService) Forward(
 					}
 					return s.handleErrorResponse(ctx, compactResp, c, account, body, resolveOpenAIErrorSchedulingModel(billingModel, upstreamModel))
 				}
-				return nil, err
+				if streamResult == nil || !shouldPreserveOpenAIStreamUsage(err, streamResult.usage, streamResult.imageCount, streamResult.searchCount) {
+					return nil, err
+				}
+				streamErr = err
 			}
 			usage = streamResult.usage
 			usageTiming = streamResult.usageTiming
@@ -1353,7 +1359,9 @@ func (s *OpenAIGatewayService) Forward(
 			imageOutputSizes = nonStreamResult.imageOutputSizes
 			searchCount = nonStreamResult.searchCount
 		}
-		s.bindHTTPResponseAccount(ctx, c, account, responseID)
+		if streamErr == nil {
+			s.bindHTTPResponseAccount(ctx, c, account, responseID)
+		}
 
 		// Extract and save Codex usage snapshot from response headers (for OAuth accounts).
 		// 排除 spark 影子:其 codex_* 仅由 QueryUsage(/wham/usage bengalfox)更新(外审第7轮 P1)。
@@ -1384,6 +1392,7 @@ func (s *OpenAIGatewayService) Forward(
 			ServiceTier:                   resolvedOpenAIUpstreamServiceTier(c, serviceTier),
 			ReasoningEffort:               reasoningEffort,
 			Stream:                        reqStream,
+			ForwardFailed:                 streamErr != nil,
 			OpenAIWSMode:                  false,
 			Duration:                      time.Since(startTime),
 			FirstTokenMs:                  firstTokenMs,
@@ -1402,7 +1411,7 @@ func (s *OpenAIGatewayService) Forward(
 			forwardResult.SearchCount = searchCount
 		}
 		stampOpenAIResponsesUpstreamEndpoint(c, forwardResult)
-		return forwardResult, nil
+		return forwardResult, streamErr
 	}
 }
 
