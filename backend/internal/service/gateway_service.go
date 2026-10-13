@@ -581,6 +581,8 @@ type AccountSelectionResult struct {
 	Acquired           bool
 	ReleaseFunc        func()
 	WaitPlan           *AccountWaitPlan // nil means no wait allowed
+	// PreserveStickyBinding 标记临时分流，准入后也保留原会话绑定。
+	PreserveStickyBinding bool
 	// stickySessionHit 标记账号来自会话粘性绑定命中，供非高级调度路径回填决策标签。
 	stickySessionHit bool
 	// profitGate 携带本次选号真实生效的利润门（无门为 nil）。门安装在调度栈的
