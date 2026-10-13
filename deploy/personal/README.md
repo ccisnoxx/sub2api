@@ -108,6 +108,12 @@ REL-002 的 `klno.5-tps.2-to-0.2.15-klno.2` 专属证明只接受固定旧发布
 
 REL-001 证明明确保持 `image_rollback_compatible=false` 和 `schema_rollback=retain`。本轮没有证明跨多版本 `account.extra` 等持久业务数据无损回退。[UPSTREAM-007](../../docs/upstream/UPSTREAM-007.md) 与 MIG-001 的合成库旧应用 `/health`、扩展 schema 与备份恢复结果，仅支撑其已记录的具体边界，不能代替全业务数据兼容证据。新应用启动、取消、健康或 selection 提交前失败后，工具保存失败现场、原始错误、实际镜像、原选择与扩展账本，明确阻止自动旧镜像恢复；成功跨基线记录的显式回滚和普通反向部署同样拒绝。新基线重新部署也不获得镜像恢复豁免。需要人工核对失败记录，选择经过验收的前向修复；覆盖数据库或应用数据的维护恢复必须另行授权，说明备份后写入损失并保存现场，不自动删除 242 或恢复被移除的约束。
 
+OBS 的 `429-tps.1-to-obs-tps.2` 专属单向证明从已发布的 `42907bcab278f93db48d7e1b39b28e28f664569e / 0.2.15-klno.2-tps.1 / sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3` 升级至包含已验收应用锚点 `423f690bec2ee9d0ebccd1672906d6b688c220c3` 的 `0.2.15-klno.2-tps.2`。双方来源仍须逐字段等于 `KIN_NEW_SOURCE`。新完整运行树指纹固定为 `0c7ab5c16eae0d1944e185d519476da80098e0429d2d6829e8c0a1a4b646c106`，精确 32 条运行差异固定在 `OBS_CHANGED_PATHS`。Release 会单独构建并嵌入前端，因此本证明另绑定整个 `frontend/` 的路径、mode、type、object：旧指纹 `ef9884449ee278c275c02b7fd06c34978116b8c3d7c8052694d46d118aa52f4c`，新指纹 `47b21affa698058f84a71bcce078c4e105965017a9f34c5707886d25a3e0a367`，精确 13 条前端差异固定在 `OBS_FRONTEND_CHANGED_PATHS`。历史运行路径与证明常量保持原合同。
+
+同一 OBS tps.2 完整运行树及前端可重新部署，实际旧、新完整 SHA 都必须包含 OBS 锚点。文档及 `deploy/personal` 控制后继允许改变最终 SHA；任何新增应用内容、模式、类型、来源字段或同字节缺失锚点的树均拒绝。生成和验证兼容证明只依赖固定应用锚点与真实 Git 对象，Full 中的合同检查不依赖尚未创建的 tps.2 标签或最终文档 SHA；实际部署及维护恢复仍核对正式个人标签、OCI 标签与完整发布 SHA。tps.2 专属 OBS，不能改用旧 `kin_upgrade` 零差异证明来降级放行。
+
+OBS 没有新增 SQL 或 schema 迁移；证明保留 242、251—254 的固定内容和普通文件模式，生命周期要求正确完整 308 行账本与当前成功记录相同，启动前及健康终态均不得变化。仍记录 `image_rollback_compatible=false`、`schema_rollback=retain`；启动或健康失败保留失败记录、现场新镜像和原选择，禁止自动、显式或普通部署切回 429/旧 KIN。需要人工前向修复或另行授权的数据恢复。
+
 当前 `VERSION=0.2.15-klno.2-tps.1-rc.1` 仍被版本、镜像元数据及个人发布标签合同拒绝；没有预发布部署、force/ignore 或生产允许开关。未来正式发布必须具有真实个人 tag、对应完整 revision、`0.2.15-klno.2-tps.N` 前缀、正确 OCI 元数据和审定完整运行树；更改运行范围内的 VERSION 或其他字节必须重新固定并审查锚点，不能沿用本指纹。正式发布和 REL-002 获得相应授权、完成发布身份与现场前置验收后才执行部署；本目录的离线替身和真实 Git 证据不表示已发布、已拉取真实候选镜像或已部署生产。
 
 首次适配只修改普通 `services/sub2api` 中唯一的直接 `image` 行为 `"${SUB2API_IMAGE:?必须指定应用镜像}"`；不重新序列化 YAML，原注释、CRLF、其他服务和设置逐字保留。特殊缩进、锚点或无法唯一定位的结构会失败，不能用仓库 Compose 模板替换生产文件。适配前后在内存中核对完整 Compose JSON，仅应用 `image` 可变化，完整配置和环境值不会进入日志或输出。
@@ -172,6 +178,24 @@ git diff --check
 
 本地及内部回环验收完成后，`resume` 重新验证固定应用源码、当前成功部署记录、持久选择、运行镜像、健康及完整 308 行账本，才删除关闭标记。公开观察期间仍可再次 `freeze`；`opening` 中断也可重新冻结。完成核心业务与聚合周期验收后，`remove` 恢复同一站点的原始字节和权限。未知状态失败关闭，不把 `/health` 单独当作完成依据；该入口不恢复数据库或旧镜像。
 
+OBS 发布继续使用既有 REL-002 站点、持久标记内容和维护记录目录，不重做 `setup`，不迁移或替换已安装的 `83c250` 控制器。新可信 main 完整 bundle 可执行本次冻结和恢复：
+
+```sh
+deploy/personal/deploy-hostdzire.sh --maintenance freeze \
+  --tool-revision <已经获取的本-fork-origin/main-完整SHA>
+
+deploy/personal/deploy-hostdzire.sh --maintenance resume \
+  --target-revision <tps.2-正式个人标签与OCI所绑定的完整发布SHA> \
+  --deployment-record <本次成功部署实际返回的记录ID> \
+  --tool-revision <同一可信main完整SHA>
+```
+
+恢复前，本机验证正式 tps.2 标签、OBS 祖先与完整后端/运行资源和前端树。远端导入前验证完整工具 bundle，再在同一部署锁内检查：显式记录 ID 等于当前持久选择、成功记录的 id/action/schema/exit/健康终态、专属 canonical OBS 证明、目标完整 SHA、不可变 digest/Image ID、OCI revision/version/source、Compose 项目和服务、容器与回环健康、正确完整 308 行账本。选择和记录必须保持普通 `0600` 文件，维护标记的内容、`0644` 模式、所有权与目录合同须保持。全部通过才删除标记并 fsync 标记目录，在原维护记录追加 `accepted_source_sha` 与 `accepted_deployment_id`；历史 `source_sha=42907…` 继续表示同一站点安装身份。任一目标、记录、选择、站点、标记或健康/账本漂移保持关闭。没有默认 OBS 目标、任意 running digest 放行或失败后的静默旧版本恢复。旧服务器入口的无参数 `resume` 仍只接受固定 429；OBS 必须用上述显式可信入口。
+
 六项隔离文件系统合同检查通过，旧 `/run` 实现在重启回归中因标记丢失失败。既有主机的隔离 Nginx 实例验证了 ext4 标记在易失目录清空及 Nginx 新进程启动后仍返回 503，并验证开放与再次关闭；没有重启共享生产主机。实际生产站点的完整操作与验收以 REL-002 发布记录为准。
 
 稳定测试边界为 `Deployment(base=临时目录, runner=Docker替身)`；生产项目、容器名、持久卷和健康 URL 明确固定在受信任的 hostdzire.json，没有临时栈或更换生产目标的 CLI 开关。隔离真实镜像恢复演练由维护者在完全独立的容器/卷/端口中组织，不能据替身结果宣称生产已更新或数据库已恢复验证。
+
+### OBS 的外部前端构建输入
+
+OBS 专属证明还固定 `docs/legal/admin-compliance.en.md` 和 `docs/legal/admin-compliance.zh.md`：两份文档通过前端 `?raw` 导入并嵌入发布产物，不能按普通文档后继放行。路径、Git mode/type/object 与精确摘要一并绑定；改变任一文件的内容、权限或类型，升级和重部署均拒绝。历史运行树/证明常量及跨KIN回退禁令保持。

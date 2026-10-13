@@ -48,13 +48,16 @@ class GitEvidence:
         raise DeployError("E_COMPATIBILITY", "安全补丁文件与已审定的完整字节不一致，禁止部署或镜像回滚")
 
     def runtime_fingerprint(self, revision):
+        return self.tree_fingerprint(revision, RUNTIME_PATHS, RUNTIME_EXCLUDES)
+
+    def tree_fingerprint(self, revision, paths, excludes=()):
         entries = []
-        for raw in self.git("ls-tree", "-r", "-z", revision, "--", *RUNTIME_PATHS).split(b"\0"):
+        for raw in self.git("ls-tree", "-r", "-z", revision, "--", *paths).split(b"\0"):
             if not raw:
                 continue
             info, path = raw.split(b"\t", 1)
             path = path.decode()
-            if any(path == excluded or path.startswith(excluded + "/") for excluded in RUNTIME_EXCLUDES):
+            if any(path == excluded or path.startswith(excluded + "/") for excluded in excludes):
                 continue
             mode, kind, object_id = info.decode().split()
             entries.append({"path": path, "mode": mode, "type": kind, "object": object_id})
@@ -100,6 +103,39 @@ class GitEvidence:
                     "E_COMPATIBILITY", "新 KIN 迁移不是固定普通文件与 checksum")
         return approved
 
+    def obs_runtime(self, revision):
+        require(self.source_at(revision) == KIN_NEW_SOURCE and
+                self.runtime_fingerprint(revision) == OBS_NEW_RUNTIME and
+                self.tree_fingerprint(revision, ["frontend"]) == OBS_NEW_FRONTEND and
+                self.tree_fingerprint(revision, OBS_RAW_PATHS) == OBS_RAW_SHA256,
+                "E_COMPATIBILITY", "OBS 必须保留固定来源三字段和完整运行树")
+        ancestry = subprocess.run(["git", "-C", str(self.root), "merge-base", "--is-ancestor",
+                                   OBS_NEW_REVISION, revision], capture_output=True)
+        require(ancestry.returncode == 0, "E_COMPATIBILITY", "OBS revision 不包含审定应用锚点")
+        for filename, checksum in {**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS}.items():
+            path = "backend/migrations/" + filename
+            require(self.git("ls-tree", revision, "--", path).startswith(b"100644 blob ") and
+                    sha(self.git("show", revision + ":" + path).strip()) == checksum,
+                    "E_COMPATIBILITY", "OBS 必须保留固定迁移内容、checksum 与普通文件模式")
+
+    def obs_upgrade(self, old, target, changed):
+        self.obs_runtime(target["revision"])
+        direction = "upgrade" if self.runtime_fingerprint(old["revision"]) == KIN_NEW_RUNTIME else "redeploy"
+        if direction == "upgrade":
+            require(old["revision"] == OBS_OLD_REVISION and old["version"] == OBS_OLD_VERSION and
+                    old["image"] == OBS_OLD_IMAGE and changed == list(OBS_CHANGED_PATHS) and
+                    self.tree_fingerprint(old["revision"], ["frontend"]) == OBS_OLD_FRONTEND and
+                    self.tree_fingerprint(old["revision"], OBS_RAW_PATHS) == OBS_RAW_SHA256,
+                    "E_COMPATIBILITY", "OBS 升级只接受固定已发布 429 镜像及精确运行差异")
+        else:
+            self.obs_runtime(old["revision"])
+            require(changed == [], "E_COMPATIBILITY", "OBS 重新部署必须保留相同完整运行树")
+        frontend_changed = sorted(path for path in self.git("diff", "--no-renames", "--name-only", "-z",
+                                  old["revision"], target["revision"], "--", "frontend").decode().split("\0") if path)
+        require(frontend_changed == ([] if direction == "redeploy" else list(OBS_FRONTEND_CHANGED_PATHS)),
+                "E_COMPATIBILITY", "OBS 前端构建输入差异不是审定的精确路径")
+        return approved_obs_upgrade(direction)
+
     def compatibility(self, old, target):
         validate_metadata(old, allow_legacy=True)
         if "image" in target:
@@ -119,10 +155,14 @@ class GitEvidence:
                  "changed_paths": changed, "compatible": True}
         if target_source.get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]:
             require(target_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "新 KIN 来源必须与固定三字段完全一致")
-            direction = "upgrade" if old_source == FORWARD_NEW_SOURCE else "redeploy"
-            require(old_source == (FORWARD_NEW_SOURCE if direction == "upgrade" else KIN_NEW_SOURCE),
-                    "E_COMPATIBILITY", "新 KIN 只允许固定旧来源升级或同一审定新运行树重新部署")
-            proof["kin_upgrade"] = self.kin_upgrade(old, target, changed, direction)
+            if self.runtime_fingerprint(target["revision"]) == OBS_NEW_RUNTIME:
+                require(old_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "OBS 只接受固定新 KIN 来源")
+                proof["obs_upgrade"] = self.obs_upgrade(old, target, changed)
+            else:
+                direction = "upgrade" if old_source == FORWARD_NEW_SOURCE else "redeploy"
+                require(old_source == (FORWARD_NEW_SOURCE if direction == "upgrade" else KIN_NEW_SOURCE),
+                        "E_COMPATIBILITY", "新 KIN 只允许固定旧来源升级或同一审定新运行树重新部署")
+                proof["kin_upgrade"] = self.kin_upgrade(old, target, changed, direction)
         elif old_source != target_source:
             require(old_source == FORWARD_OLD_SOURCE and target_source == FORWARD_NEW_SOURCE and
                     changed == list(FORWARD_CHANGED_PATHS) and
@@ -137,6 +177,6 @@ class GitEvidence:
             else:
                 proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
-        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade")):
+        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade")):
             validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
         return proof

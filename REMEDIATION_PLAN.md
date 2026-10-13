@@ -9,7 +9,7 @@
 
 > **当前执行策略（2026-10-12，覆盖后文历史流程）：** 普通 push/PR 不运行应用 CI 或安全扫描，不强制每个任务创建 PR。日常按任务批次选择本地定向检查，Quick 仅按需手动执行；准备发布时固定当前 personal 完整 SHA，手动执行一次 Full，再手动发布镜像与候选部署验证。安全扫描改为每月一次；main/personal 只禁止强推和删除。迁移、计费、权限、并发等变化仍做直接覆盖合同的定向检查。旧 Quick/Full 自动触发、required personal-ready 和十任务观察记录仅保留为历史，不再作为当前开发前置。
 
-> **本次授权补充（2026-10-12）：** 维护者撤销此前“暂不发布或部署”限制，按 REL-002 → REL-003 → ARCH-002 顺序执行固定源码 Full、手动镜像发布及已核实测试/生产目标的分阶段部署。历史记录中的限制保留其当时边界；当前进度和验收见 [REL-002 续作](docs/upstream/records/2026-10-12-rel-002-recovery.md)、[REL-003](docs/upstream/records/2026-10-12-rel-003.md) 及 [ARCH-002](docs/upstream/records/2026-10-12-arch-002.md)；三项均已实际验收。随后维护者授权继续第8节：依次整合OBS-002、OBS-001/004与实际监控，最后验证跨KIN回退；保持当前基线和正式产物，未证明无损时保留禁令。当前结果见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。
+> **本次授权补充（2026-10-12）：** 维护者撤销此前“暂不发布或部署”限制，按 REL-002 → REL-003 → ARCH-002 顺序执行固定源码 Full、手动镜像发布及已核实测试/生产目标的分阶段部署。历史记录中的限制保留其当时边界；当前进度和验收见 [REL-002 续作](docs/upstream/records/2026-10-12-rel-002-recovery.md)、[REL-003](docs/upstream/records/2026-10-12-rel-003.md) 及 [ARCH-002](docs/upstream/records/2026-10-12-arch-002.md)；三项均已实际验收。随后维护者授权继续第8节：依次整合OBS-002、OBS-001/004与实际监控，最后验证跨KIN回退；保持当前基线和正式产物，未证明无损时保留禁令。当前结果见[第8节续作](docs/upstream/records/2026-10-12-dod-observability-rollback.md)。 维护者随后明确不需要外部通知渠道，真实通知送达按本次部署需求记为不适用；已授权另建新OBS版本并分阶段部署，保留旧正式产物。发布与本机监控验收见[OBS新版本续作](docs/upstream/records/2026-10-12-obs-release.md)。
 
 ---
 
