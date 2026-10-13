@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
 	"sort"
 	"strings"
@@ -64,7 +63,6 @@ const (
 // 碰过的网关数。顺序在读的时候按时间排（readOpenAIGatewayHistoryRows）。
 type openAIGatewayHistory struct {
 	LedgerTag     string                        `json:"ledger_tag,omitempty"`
-	Previous      *openAIGatewayHistory         `json:"previous,omitempty"`
 	CooldownReset gatewayPoolCooldownResetState `json:"cooldown_reset,omitzero"`
 	// Current 是最近一发请求实际落在的网关。空 = 这个号还没拿到过能读出落点的路由。
 	Current string `json:"current"`
@@ -116,40 +114,20 @@ type openAIGatewaySeen struct {
 	// 4 小时的命中率是常数，零相关），所以「等 N 小时就算恢复」没有实测依据。判「这个网关
 	// 还能不能用」必须结合本地 CD 和当前 exact-version 验满 proof。
 	// omitzero 而不是 omitempty：omitempty 对 struct 不生效，零值会落库成
-	// "0001-01-01T00:00:00Z"（同 openai_turn_state_recovery.go 的两个时间字段）。
+	// "0001-01-01T00:00:00Z"。
 	FullAt time.Time `json:"full_at,omitzero"`
-	// FullHeldMs 是这个 (账号 × 网关) 上量到的**满血持续了多久**（毫秒），由判降智那一刻
-	// 从「这张票验出满血」算到「判成降智」—— 两头都在同一张票的生命里，有界。
-	// 0 = 没量到（没验过满血、或者这一格的降智不是从本进程这条路判出来的）。
+	// FullUseMs 是这个 (账号 × 网关) 最近一次判降智时量到的：那张票**本周期**满血承载业务的
+	// 时长（毫秒，见 OpenAIGatewayPoolApplied.FullUseMs）。0 = 没量到。
 	//
-	// **不能用 At − FullAt 代替**：FullAt 是粘滞的，而降智判定要等下一次真的打到这个网关
-	// 才会写，中间的空闲全算进去。2026-10-03 现网照这个减法渲染出 22655 秒。
-	FullHeldMs int64                `json:"full_held_ms,omitempty"`
-	Cooldown   *gatewayPoolCooldown `json:"cooldown,omitempty"`
+	// **不能用 At − FullAt 代替**：FullAt 是粘滞的，中间的空闲全算进去（2026-10-03 渲染出 22655 秒）。
+	// 旧键 full_held_ms 是「验满 → 判降智」的墙钟窗口、同样含空闲，换键后不再读，不折算回填。
+	FullUseMs int64                `json:"full_use_ms,omitempty"`
+	Cooldown  *gatewayPoolCooldown `json:"cooldown,omitempty"`
 }
 
-// readOpenAIGatewayHistory 读这条记录。解析失败按「没有」处理。
-//
-// 走 marshal/unmarshal 而不是裸类型断言：extra 是 JSONB，同一个键在「刚写进去」和
-// 「从 DB / Redis 读回来」两条路径上的具体 Go 类型不保证相同，裸断言失败是静默的
-// （照 readOpenAITurnStateObservation）。
+// readOpenAIGatewayHistory 读这条记录。解析失败按「没有」处理（decodeExtraJSON）。
 func readOpenAIGatewayHistory(a *Account) (openAIGatewayHistory, bool) {
-	if a == nil {
-		return openAIGatewayHistory{}, false
-	}
-	raw, ok := a.Extra[openAIGatewayHistoryExtraKey]
-	if !ok || raw == nil {
-		return openAIGatewayHistory{}, false
-	}
-	encoded, err := json.Marshal(raw)
-	if err != nil {
-		return openAIGatewayHistory{}, false
-	}
-	var rec openAIGatewayHistory
-	if err := json.Unmarshal(encoded, &rec); err != nil {
-		return openAIGatewayHistory{}, false
-	}
-	return rec, true
+	return decodeExtraJSON[openAIGatewayHistory](a, openAIGatewayHistoryExtraKey)
 }
 
 // noteOpenAIGatewayUse 记一发请求落在了哪个网关，以及这一发的 state-echo 读数
@@ -166,7 +144,7 @@ func readOpenAIGatewayHistory(a *Account) (openAIGatewayHistory, bool) {
 // 抢同一个键。
 func (s *OpenAIGatewayService) noteOpenAIGatewayUse(
 	ctx context.Context, account *Account, gateway, region, verdict string, advanceCurrent bool,
-	poolLive, poolFree int, fullHeldMs int64,
+	poolLive, poolFree int, fullUseMs int64,
 	expectedTags ...string,
 ) {
 	if s == nil || s.accountRepo == nil || account == nil {
@@ -192,7 +170,7 @@ func (s *OpenAIGatewayService) noteOpenAIGatewayUse(
 
 	unlock := s.codexCookies.gatewayPoolHistoryLock(account.ID)
 	defer unlock()
-	fresh, err := s.codexCookies.freshGatewayPoolAccount(ctx, account)
+	fresh, err := s.codexCookies.freshGatewayPoolAccount(ctx, account, openAIGatewayHistoryExtraKey)
 	if err != nil || fresh == nil {
 		slog.Warn("gwpool_gateway_history_read_failed", "account_id", account.ID)
 		return
@@ -223,7 +201,7 @@ func (s *OpenAIGatewayService) noteOpenAIGatewayUse(
 	}
 	prev := rec.Seen[gateway]
 	cooldownChanged := newerGatewayPoolCooldown(cooldown, prev.Cooldown)
-	newTiming := fullHeldMs > 0 && fullHeldMs != prev.FullHeldMs
+	newTiming := fullUseMs > 0 && fullUseMs != prev.FullUseMs
 	// 没换网关、这个网关刚写过、大区没新消息、**判定也没变** ⇒ 不写。换了就立刻写。
 	// 判定变了必须穿过节流：「这个落点刚被判降智」正是这张卡要看的事，压住它等于不记。
 	//
@@ -252,14 +230,14 @@ func (s *OpenAIGatewayService) noteOpenAIGatewayUse(
 		rec.CurrentRegion = region
 	}
 	next := openAIGatewaySeen{At: now, Region: region, Verdict: prev.Verdict, FullAt: prev.FullAt,
-		FullHeldMs: prev.FullHeldMs, Cooldown: prev.Cooldown}
+		FullUseMs: prev.FullUseMs, Cooldown: prev.Cooldown}
 	if cooldownChanged {
 		next.Cooldown = cooldown
 	}
-	// 这一发量到了就刷新，没量到留着上一次的：满血时长是「上一个窗口有多长」，没新读数时
-	// 旧读数仍然是关于这一格最新的事实。
-	if fullHeldMs > 0 {
-		next.FullHeldMs = fullHeldMs
+	// 这一发量到了就刷新，没量到留着上一次的：满血时长是「上一张被判死的票本周期用了多久」，
+	// 没新读数时旧读数仍然是关于这一格最新的事实。
+	if fullUseMs > 0 {
+		next.FullUseMs = fullUseMs
 	}
 	// 这一发没判据时**留着上一次的判定**，和大区同一个道理：没判 ≠ 判不出来。
 	if verdict != "" {
@@ -279,12 +257,8 @@ func (s *OpenAIGatewayService) noteOpenAIGatewayUse(
 	rec.UpdatedAt = now
 	pruneOpenAIGatewayHistory(&rec)
 
-	encoded, err := json.Marshal(rec)
-	if err != nil {
-		return
-	}
-	var generic map[string]any
-	if err := json.Unmarshal(encoded, &generic); err != nil {
+	generic, ok := extraJSONMap(rec)
+	if !ok {
 		return
 	}
 	if account.Extra == nil {
@@ -292,15 +266,10 @@ func (s *OpenAIGatewayService) noteOpenAIGatewayUse(
 	}
 	account.Extra[openAIGatewayHistoryExtraKey] = generic
 	account.Extra[openAIGatewayLedgerTagExtraKey] = rec.LedgerTag
-	previousTag := ""
-	if rec.Previous != nil {
-		previousTag = rec.Previous.LedgerTag
-	}
 	// 不随请求取消：用量是在响应收尾之后记的，跟着请求 ctx 一起死就等于这条读数永远写不进去。
-	if err := s.accountRepo.UpdateExtra(ctx, account.ID, map[string]any{
-		openAIGatewayHistoryExtraKey:           generic,
-		openAIGatewayLedgerTagExtraKey:         rec.LedgerTag,
-		openAIGatewayPreviousLedgerTagExtraKey: previousTag,
+	if err := s.updateGatewayPoolRuntimeExtra(ctx, account.ID, map[string]any{
+		openAIGatewayHistoryExtraKey:   generic,
+		openAIGatewayLedgerTagExtraKey: rec.LedgerTag,
 	}); err != nil {
 		slog.Debug("gwpool_gateway_history_persist_failed", "account_id", account.ID, "error", err)
 	}
@@ -311,24 +280,13 @@ func (s *OpenAIGatewayService) noteOpenAIGatewayUse(
 // Current 不许被裁掉：它是这张卡最要紧的那一格，而「当前网关」恰好可能是刚加进来的那条
 // （加进来时它是最新的，裁的是最旧的，所以这里实际裁不到它——留着这个判断是为了让
 // 以后改排序规则的人撞上它）。
-// Retain an old identity's history without adopting its observations. Untagged
-// workspace-era records cannot establish ownership by the current member.
+// Another identity's (or an untagged workspace-era) history is never adopted:
+// a member switch starts an empty ledger and drops the old one.
 func gatewayPoolHistoryForTag(rec openAIGatewayHistory, tag string) openAIGatewayHistory {
 	if rec.LedgerTag == tag {
 		return rec
 	}
-	previous := rec
-	previous.Previous = nil
-	next := openAIGatewayHistory{LedgerTag: tag}
-	if rec.Previous != nil && rec.Previous.LedgerTag == tag {
-		next = *rec.Previous
-	}
-	if rec.LedgerTag != "" || rec.Seen != nil || rec.Current != "" || rec.CurrentRegion != "" ||
-		!rec.UpdatedAt.IsZero() || rec.PoolLive != 0 || rec.PoolFree != 0 ||
-		rec.CooldownReset != (gatewayPoolCooldownResetState{}) {
-		next.Previous = &previous
-	}
-	return next
+	return openAIGatewayHistory{LedgerTag: tag}
 }
 
 func pruneOpenAIGatewayHistory(rec *openAIGatewayHistory) {

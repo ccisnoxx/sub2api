@@ -357,7 +357,7 @@ func TestOpenAIRoutingDiagnosticsGatewayPoolReevaluationAndDeduplication(t *test
 	svc := routingTestService("legacy_plain", nil, schedulerTestConcurrencyCache{})
 	svc.accountRepo = gatewayRotationRepo{schedulerTestOpenAIAccountRepo{accounts: []Account{*first, second}}}
 	identity := openAIGatewayPoolAccountKey(first)
-	svc.codexCookies.poolPairs.Store(identity, openAIGatewayPoolPair{cookie: "offline", gateway: "unified-200", version: "full", until: time.Now().Add(time.Minute)})
+	svc.codexCookies.poolPairs.Store(identity, openAIGatewayPoolPair{cookie: "offline", gateway: "unified-200", version: "full", routeExpiresAt: time.Now().Add(time.Minute)})
 	svc.codexCookies.gatewayPoolMarkVerifiedFull(identity, "full")
 	svc.concurrencyService = NewConcurrencyService(routingCallbackSlots{schedulerTestConcurrencyCache: schedulerTestConcurrencyCache{releasedIDs: &released}, onAcquire: func(id int64) {
 		if id == first.ID {

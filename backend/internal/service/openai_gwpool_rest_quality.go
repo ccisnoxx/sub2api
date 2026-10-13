@@ -16,8 +16,9 @@ type gatewayPoolRestPlan struct {
 }
 
 // Capture quality from the same fresh directory that proved exhaustion, before
-// cooldown filtering. Display queues are empty at this boundary and stale
-// catalog snapshots must never decide a durable recovery policy.
+// cooldown filtering; its list is fresh, its member part up to two hours old.
+// Display queues are empty at this boundary and stale catalog snapshots must
+// never decide a durable recovery policy.
 func (s *OpenAIGatewayService) gatewayPoolExhaustedRestQuality(ctx context.Context, account *Account) *gatewayPoolRestPlan {
 	exhausted := s.gatewayPoolExhaustedCatalog(ctx, account)
 	if exhausted == nil {
@@ -26,7 +27,7 @@ func (s *OpenAIGatewayService) gatewayPoolExhaustedRestQuality(ctx context.Conte
 	fresh := account
 	if s.accountRepo != nil {
 		var err error
-		fresh, err = s.accountRepo.GetByID(ctx, account.ID)
+		fresh, err = s.gatewayPoolLedgerRow(ctx, account.ID, openAIGatewayPoolContactsExtraKey)
 		if err != nil || fresh == nil {
 			return nil
 		}
@@ -38,7 +39,7 @@ func (s *OpenAIGatewayService) gatewayPoolExhaustedRestQuality(ctx context.Conte
 	tag := gatewayPoolLedgerTag(identity)
 	contacts := readGatewayPoolContacts(fresh, tag)
 	if s.accountRepo != nil {
-		peers, err := s.gatewayPoolHistoryPeers(ctx, tag)
+		peers, err := s.gatewayPoolHistoryPeers(ctx, tag, openAIGatewayPoolContactsExtraKey)
 		if err != nil {
 			return nil // unavailable evidence is not an empty quality set
 		}
@@ -51,12 +52,7 @@ func (s *OpenAIGatewayService) gatewayPoolExhaustedRestQuality(ctx context.Conte
 	projection := gatewayPoolRankProjection{
 		state: contacts, model: gatewayPoolProbeModelLuna, source: "foreground",
 		now: now, complete: s.accountRepo != nil,
-		retryAfter: func(gateway string) time.Duration {
-			if cooldown, found := s.codexCookies.cooldownEntry(identity, gateway); found {
-				return time.Duration(cooldown.WindowSeconds) * time.Second
-			}
-			return time.Duration(gatewayPoolCooldownBase(fresh.gatewayPoolGatewayWindow())) * time.Second
-		},
+		retryAfter: s.codexCookies.gatewayPoolReuseDelay(identity, fresh),
 	}
 	ranking := projection.rank(exhausted.gateways)
 	quality := make([]string, 0, len(ranking.preferred))

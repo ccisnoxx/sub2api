@@ -85,7 +85,7 @@ func (r *gatewayPoolRounds) exhaust(group int64, identity string, generation uin
 	}
 }
 
-func (r *gatewayPoolRounds) claim(group int64, identity string, limits ...int) bool {
+func (r *gatewayPoolRounds) claim(group int64, identity string, limit int) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	state := r.groupLocked(group)
@@ -93,10 +93,7 @@ func (r *gatewayPoolRounds) claim(group int64, identity string, limits ...int) b
 	if _, exhausted := state.exhausted[domain]; exhausted && !state.continuousDomain(domain) {
 		return false
 	}
-	limit := gatewayPoolActiveAccountsDefault
-	if len(limits) > 0 {
-		limit = normalizeGatewayPoolActiveAccounts(limits[0])
-	}
+	limit = normalizeGatewayPoolActiveAccounts(limit)
 	if len(state.active) == 0 && state.current != "" {
 		state.active = []string{state.current}
 	}
@@ -262,7 +259,7 @@ func (s *OpenAIGatewayService) gatewayPoolRoundSelectionAllowed(ctx context.Cont
 	}
 	if !account.GatewayPoolContinuousWaitEnabled() {
 		plan := s.gatewayPoolExhaustedRestQuality(ctx, account)
-		if plan != nil && s.codexCookies.gatewayPoolLocalResumeAt(identity, account, plan.qualityGateways...).After(time.Now()) {
+		if now := time.Now(); plan != nil && s.codexCookies.gatewayPoolLocalResumeAt(identity, account, now, plan.qualityGateways...).After(now) {
 			plan.roundGeneration = s.codexCookies.poolRounds.generation(*group)
 			_ = s.restGatewayPoolAccount(ctx, account, identity, *group, *plan)
 			return false

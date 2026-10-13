@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -14,29 +13,13 @@ const (
 
 // No pool I/O. With fewer than N known gateways, wait for all known cooldowns.
 // No history means no local cooldown rest, not an invented retry interval.
-func (s *openAICodexCookieStore) gatewayPoolLocalResumeAt(identity string, account *Account, qualityGateways ...string) time.Time {
-	prefix := identity + "\x00"
+// since is when the rest began (now when entering one).
+func (s *openAICodexCookieStore) gatewayPoolLocalResumeAt(identity string, account *Account, since time.Time, qualityGateways ...string) time.Time {
 	deadlines := map[string]time.Time{}
 	known := map[string]time.Time{}
-	s.poolKnown.Range(func(key, _ any) bool {
-		if name, ok := key.(string); ok && strings.HasPrefix(name, prefix) {
-			known[name] = time.Time{}
-		}
-		return true
-	})
-	s.poolUsed.Range(func(key, value any) bool {
-		name, ok := key.(string)
-		at, timeOK := value.(time.Time)
-		if ok && timeOK && strings.HasPrefix(name, prefix) && !at.IsZero() {
-			known[name] = at
-		}
-		return true
-	})
-	for name, at := range known {
-		gateway, matches := strings.CutPrefix(name, prefix)
-		if !matches || gateway == "" {
-			continue
-		}
+	s.rangeGatewayPoolKnown(identity, func(gateway string) { known[gateway] = time.Time{} })
+	s.rangeGatewayPoolUsed(identity, func(gateway string, at time.Time) { known[gateway] = at })
+	for gateway, at := range known {
 		clearAt := s.gatewayPoolCooldownClearAt(identity)
 		if !at.After(clearAt) && !clearAt.IsZero() {
 			deadlines[gateway] = clearAt
@@ -45,29 +28,23 @@ func (s *openAICodexCookieStore) gatewayPoolLocalResumeAt(identity string, accou
 		if at.IsZero() {
 			continue
 		}
-		_, _ = s.gatewayPoolUsedAt(identity, gateway, account.gatewayPoolGatewayWindow())
-		base := gatewayPoolCooldownBase(account.gatewayPoolGatewayWindow())
-		until := at.Add(time.Duration(base) * time.Second)
-		if cooldown, found := s.cooldownEntry(identity, gateway); found {
-			until = cooldown.Until
-			if touched := at.Add(time.Duration(cooldown.WindowSeconds) * time.Second); !cooldown.Cleared && touched.After(until) {
-				until = touched
-			}
-		}
-		deadlines[gateway] = until
+		_, deadlines[gateway] = s.gatewayPoolCooldownUntil(identity, gateway, account.gatewayPoolGatewayWindow())
 	}
-	return gatewayPoolRecoveryDeadline(deadlines, account.gatewayPoolResumeGateways(), qualityGateways)
+	return gatewayPoolRecoveryDeadline(deadlines, account.gatewayPoolResumeGateways(), qualityGateways, since)
 }
 
 // Both admission and its read-only estimate use the same OR rule. A missing
 // quality deadline is unknown, not proof that the frozen cohort has cooled.
-func gatewayPoolRecoveryDeadline(deadlines map[string]time.Time, threshold int, qualityGateways []string) time.Time {
+// Neither list waits for its long-wait outliers, so one slow gateway cannot
+// hold the whole rest.
+func gatewayPoolRecoveryDeadline(deadlines map[string]time.Time, threshold int, qualityGateways []string, since time.Time) time.Time {
 	var eligibleAt []time.Time
 	for _, until := range deadlines {
 		if !until.IsZero() {
 			eligibleAt = append(eligibleAt, until)
 		}
 	}
+	eligibleAt = gatewayPoolWithoutLongWaits(eligibleAt, since)
 	sort.Slice(eligibleAt, func(i, j int) bool { return eligibleAt[i].Before(eligibleAt[j]) })
 	if len(eligibleAt) == 0 {
 		return time.Time{}
@@ -76,12 +53,16 @@ func gatewayPoolRecoveryDeadline(deadlines map[string]time.Time, threshold int, 
 	if len(qualityGateways) == 0 {
 		return countAt
 	}
-	var qualityAt time.Time
+	cohort := make([]time.Time, 0, len(qualityGateways))
 	for _, name := range qualityGateways {
-		until, known := deadlines[name]
-		if !known || until.IsZero() {
+		until := deadlines[name]
+		if until.IsZero() {
 			return countAt
 		}
+		cohort = append(cohort, until)
+	}
+	var qualityAt time.Time
+	for _, until := range gatewayPoolWithoutLongWaits(cohort, since) {
 		if until.After(qualityAt) {
 			qualityAt = until
 		}
@@ -92,11 +73,34 @@ func gatewayPoolRecoveryDeadline(deadlines map[string]time.Time, threshold int, 
 	return countAt
 }
 
-func (s *openAICodexCookieStore) gatewayPoolRestDuration(identity string, account *Account, now time.Time) time.Duration {
-	if until := s.gatewayPoolLocalResumeAt(identity, account); until.After(now) {
-		return until.Sub(now)
+// gatewayPoolWithoutLongWaits drops the deadlines whose remaining wait at since
+// is over 1.5x the median remaining wait of the gateways still cooling then.
+// Those are always the latest deadlines, so skipping them can only bring
+// recovery earlier. An even count takes the upper middle wait, so the skipped
+// are always a strict minority and two gateways are never split. since stays fixed for a whole rest: measured from now, the
+// slow gateways would become the median once the others had cooled. The
+// cooldown grace keeps a verdict's lag behind its touch from deciding the side
+// for ladder steps exactly 1.5x apart (4h/6h, 8h/12h, 16h/24h touched together).
+func gatewayPoolWithoutLongWaits(deadlines []time.Time, since time.Time) []time.Time {
+	var waits []time.Duration
+	for _, until := range deadlines {
+		if until.After(since) {
+			waits = append(waits, until.Sub(since))
+		}
 	}
-	return 0
+	if len(waits) == 0 {
+		return deadlines
+	}
+	sort.Slice(waits, func(i, j int) bool { return waits[i] < waits[j] })
+	median := waits[len(waits)/2]
+	cut := since.Add(median + median/2 + gatewayPoolCooldownGrace)
+	kept := make([]time.Time, 0, len(deadlines))
+	for _, until := range deadlines {
+		if !until.After(cut) {
+			kept = append(kept, until)
+		}
+	}
+	return kept
 }
 
 func (s *OpenAIGatewayService) restGatewayPoolAccount(ctx context.Context, account *Account, identity string, group int64, plans ...gatewayPoolRestPlan) error {
@@ -109,7 +113,7 @@ func (s *OpenAIGatewayService) restGatewayPoolAccount(ctx context.Context, accou
 	}
 	plan.group = group
 	now := time.Now()
-	until := s.codexCookies.gatewayPoolLocalResumeAt(identity, account, plan.qualityGateways...)
+	until := s.codexCookies.gatewayPoolLocalResumeAt(identity, account, now, plan.qualityGateways...)
 	if !until.After(now) {
 		// Supply-only exhaustion can finish this rotation round, but must not
 		// invent a cooldown rest or use a proof invalidated by new work.

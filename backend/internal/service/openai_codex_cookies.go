@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/pkg/chatgptcookies"
-	"golang.org/x/sync/singleflight"
 )
 
 // openAICodexCookieStore：推理面的 ChatGPT cookie 回放，按账号各一只罐。
@@ -56,8 +55,6 @@ type openAICodexCookieStore struct {
 	poolUsageLocks          sync.Map // ledger tag -> *sync.Mutex, durable usage rounds
 	poolUsageCache          sync.Map // ledger tag -> *gatewayPoolUsageLedger, immutable committed snapshot
 	poolActiveUsage         sync.Map // ledger tag -> *gatewayPoolActiveUsageTracker, business intervals only
-	poolUsageSessionOnce    sync.Once
-	poolUsageSession        string
 	poolUsageAttempt        func(context.Context, *Account, string, string, OpenAIGatewayPoolApplied, time.Time, bool)
 	poolUsageFinished       func(context.Context, *Account)
 	poolProgress            gatewayPoolProgressTracker
@@ -85,9 +82,9 @@ type openAICodexCookieStore struct {
 	poolCooldownResetLocks sync.Map // ledger identity -> *sync.Mutex; timer writes only
 	poolCooldownPersist    func(context.Context, *Account, string)
 	poolHistoryLocks       sync.Map // 本地行 ID → *sync.Mutex，串行合并已有 history。
-	accountByID            func(context.Context, int64) (*Account, error)
-	historyByTag           func(context.Context, string) ([]Account, error)
-	poolHistoryLoad        singleflight.Group
+	accountByID            func(context.Context, int64, ...string) (*Account, error)
+	historyByTag           func(context.Context, string, ...string) ([]Account, error)
+	poolHistoryLoad        gatewayPoolSharedWork[struct{}]
 	// poolBackoff 是「池子让这个身份先别取票」的到点（见 gatewayPoolBackoff）。
 	// 按**上游账号**记而不是按请求：退避只对本次请求生效的话，重试环照旧每轮都去敲池子。
 	poolBackoff   sync.Map // 账本身份（上游账号粒度）→ time.Time

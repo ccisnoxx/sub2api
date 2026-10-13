@@ -71,10 +71,6 @@ func gatewayPoolRotationFrom(ctx context.Context) *gatewayPoolRotation {
 	return state
 }
 
-func GatewayPoolAccountRotationActive(ctx context.Context) bool {
-	return gatewayPoolRotationFrom(ctx) != nil
-}
-
 func gatewayPoolRotationAccount(account *Account, groupID int64) bool {
 	return account != nil && groupID > 0 && account.IsOpenAIOAuthLike() &&
 		account.UsesGatewayPool() &&
@@ -96,17 +92,15 @@ func gatewayPoolRotationFailure(err error) bool {
 
 // PrepareGatewayPoolAccountRotation must be called only AFTER the handler's
 // no-semantic-output/replay guard. It never widens an unrelated stop decision.
-func (s *OpenAIGatewayService) PrepareGatewayPoolAccountRotation(ctx context.Context, groupID *int64, source *Account, failure *UpstreamFailoverError, clients ...*gin.Context) context.Context {
+func (s *OpenAIGatewayService) PrepareGatewayPoolAccountRotation(ctx context.Context, groupID *int64, source *Account, failure *UpstreamFailoverError, client *gin.Context) context.Context {
 	if failure == nil {
 		return ctx
 	}
 	previousRetry := gatewayPoolRetryOnlyFrom(ctx)
 	var holder *gatewayPoolWaitHolder
-	for _, client := range clients {
-		if client != nil {
-			if value, exists := client.Get(gatewayPoolWaitGinKey); exists {
-				holder, _ = value.(*gatewayPoolWaitHolder)
-			}
+	if client != nil {
+		if value, exists := client.Get(gatewayPoolWaitGinKey); exists {
+			holder, _ = value.(*gatewayPoolWaitHolder)
 		}
 	}
 	if holder != nil && previousRetry.holder != nil && holder != previousRetry.holder {
@@ -171,30 +165,26 @@ func (s *OpenAIGatewayService) PrepareGatewayPoolAccountRotation(ctx context.Con
 	if recoverBeforeOutput && gatewayPoolWaitHealth(fresh) {
 		// Reuse the captured credential policy within the logical request.
 		// New WS turns have a new holder; real 429 deadlines remain separate.
-		for _, client := range clients {
-			if client != nil {
-				if value, exists := client.Get(gatewayPoolWaitGinKey); exists {
-					if holder, ok := value.(*gatewayPoolWaitHolder); ok {
-						holder.mu.Lock()
-						budget := holder.state
-						holder.mu.Unlock()
-						if budget != nil && budget.accountID == fresh.ID &&
-							budget.continuous == fresh.GatewayPoolContinuousWaitEnabled() {
-							ctx = context.WithValue(ctx, gatewayPoolWaitKey{}, budget)
-						}
+		if client != nil {
+			if value, exists := client.Get(gatewayPoolWaitGinKey); exists {
+				if holder, ok := value.(*gatewayPoolWaitHolder); ok {
+					holder.mu.Lock()
+					budget := holder.state
+					holder.mu.Unlock()
+					if budget != nil && budget.accountID == fresh.ID &&
+						budget.continuous == fresh.GatewayPoolContinuousWaitEnabled() {
+						ctx = context.WithValue(ctx, gatewayPoolWaitKey{}, budget)
 					}
 				}
 			}
 		}
 		ctx = s.gatewayPoolWaitContext(ctx, fresh)
 		if gatewayPoolWaitFrom(ctx) != nil && ctx.Err() == nil {
-			for _, client := range clients {
-				if client != nil && client.Request != nil {
-					if value, ok := client.Get(openAIGatewayPoolSinkGinKey); ok {
-						if sink, valid := value.(*openAIGatewayPoolSink); valid {
-							attemptCtx := context.WithValue(ctx, openAIGatewayPoolSinkCtxKey{}, sink)
-							s.retireGatewayPoolBusinessAttempt(client.Request.WithContext(attemptCtx), fresh)
-						}
+			if client != nil && client.Request != nil {
+				if value, ok := client.Get(openAIGatewayPoolSinkGinKey); ok {
+					if sink, valid := value.(*openAIGatewayPoolSink); valid {
+						attemptCtx := context.WithValue(ctx, openAIGatewayPoolSinkCtxKey{}, sink)
+						s.retireGatewayPoolBusinessAttempt(client.Request.WithContext(attemptCtx), fresh)
 					}
 				}
 			}
@@ -238,15 +228,13 @@ func (s *OpenAIGatewayService) PrepareGatewayPoolAccountRotation(ctx context.Con
 			next.domains[domain] = struct{}{}
 		}
 	}
-	if failure.GatewayPoolRotation {
-		failure.NextAccountAction = NextAccountRetry // the existing bounded failover loop owns switching
-		// Rest only the credential's ticket acquisition, not account health or
-		// global schedulability. Never shorten an existing longer pool backoff.
-		if remaining, _ := s.codexCookies.gatewayPoolBackoffFor(identity); remaining < openAIGatewayPoolDefaultBackoff {
-			s.codexCookies.poolBackoff.Store(identity, gatewayPoolBackoffEntry{
-				Until: time.Now().Add(openAIGatewayPoolDefaultBackoff), Code: gwpool.CodeAllCooling,
-			})
-		}
+	failure.NextAccountAction = NextAccountRetry // the existing bounded failover loop owns switching
+	// Rest only the credential's ticket acquisition, not account health or
+	// global schedulability. Never shorten an existing longer pool backoff.
+	if remaining, _ := s.codexCookies.gatewayPoolBackoffFor(identity); remaining < openAIGatewayPoolDefaultBackoff {
+		s.codexCookies.poolBackoff.Store(identity, gatewayPoolBackoffEntry{
+			Until: time.Now().Add(openAIGatewayPoolDefaultBackoff), Code: gwpool.CodeAllCooling,
+		})
 	}
 	return context.WithValue(ctx, gatewayPoolRotationKey{}, next)
 }
@@ -273,73 +261,68 @@ func (s *OpenAIGatewayService) gatewayPoolExhaustedCatalog(ctx context.Context, 
 		return nil
 	}
 	generation, active, available := s.codexCookies.gatewayPoolInventoryCandidates(identity)
-	if active {
+	if active || len(available) != 0 {
 		return nil
 	}
 	pool, err := s.codexCookies.poolClient(account)
 	if err != nil {
 		return nil
 	}
+	member, tag := gatewayPoolUpstreamAccountID(identity), gatewayPoolAccountTag(account, identity)
+	// A fresh cached list with a usable route already answers "not exhausted";
+	// only a zero needs a fresh directory to confirm it.
+	if cached, ok := pool.CachedCatalog(member, tag, gatewayPoolProbeModelLuna); ok &&
+		s.codexCookies.gatewayPoolCatalogHasRoute(account, identity, cached.Gateways) {
+		return nil
+	}
 	listCtx, cancel := context.WithTimeout(ctx, account.gatewayPoolListTimeout())
 	defer cancel()
-	catalog, err := pool.FreshCatalog(listCtx, gatewayPoolUpstreamAccountID(identity), gatewayPoolAccountTag(account, identity), gatewayPoolProbeModelLuna)
-	if err != nil {
+	catalog, err := pool.FreshCatalog(listCtx, member, tag, gatewayPoolProbeModelLuna)
+	if err != nil || s.codexCookies.gatewayPoolCatalogHasRoute(account, identity, catalog.Gateways) {
 		return nil // unreadable state is not a zero inventory
 	}
-	for _, gateway := range catalog.Gateways {
-		if !gateway.ReadyAt(time.Now()) {
-			continue
-		}
-		_, cooling := s.codexCookies.gatewayPoolUsedAt(identity, gateway.Name, account.gatewayPoolGatewayWindow())
-		if !cooling {
-			available[gateway.Name] = struct{}{}
-		}
-	}
 	after, pending, _ := s.codexCookies.gatewayPoolInventoryCandidates(identity)
-	if len(available) != 0 || pending || after != generation || ctx.Err() != nil {
+	if pending || after != generation || ctx.Err() != nil {
 		return nil
 	}
 	return &gatewayPoolExhaustion{identity: identity, generation: generation, gateways: catalog.Gateways}
 }
 
+// gatewayPoolCatalogHasRoute reports whether the list still has a ready gateway
+// this credential is not locally cooling on.
+func (s *openAICodexCookieStore) gatewayPoolCatalogHasRoute(account *Account, identity string, gateways []gwpool.Gateway) bool {
+	now, window := time.Now(), account.gatewayPoolGatewayWindow()
+	for _, gateway := range gateways {
+		if !gateway.ReadyAt(now) {
+			continue
+		}
+		if _, cooling := s.gatewayPoolUsedAt(identity, gateway.Name, window); !cooling {
+			return true
+		}
+	}
+	return false
+}
+
 // Read gateway-pool eligibility from the repository, not scheduler snapshots. An explicit
 // allow-list also blocks simple-mode/fallback-group selection from widening scope.
 func gatewayPoolRotationExclusions(ctx context.Context, repo AccountRepository, groupID *int64, excluded map[int64]struct{}) (map[int64]struct{}, map[int64]struct{}, error) {
+	// Retry-only admits just the original credential; rotation admits any
+	// credential not attempted yet. Both share the same eligibility scan.
+	var scope int64
+	var attempted map[int64]struct{}
+	var candidate func(int64) bool
 	if retry := gatewayPoolRetryOnlyFrom(ctx); retry.accountID != 0 {
 		if failure := GatewayPoolRetryFailure(ctx); failure != nil {
 			return nil, nil, failure
 		}
-		if repo == nil || groupID == nil || *groupID != retry.groupID {
-			return nil, nil, ErrNoAvailableAccounts
-		}
-		accounts, err := repo.ListByPlatform(ctx, PlatformOpenAI)
-		if err != nil {
-			return nil, nil, err
-		}
-		omit := cloneExcludedAccountIDs(excluded)
-		if omit == nil {
-			omit = map[int64]struct{}{}
-		}
-		allowed := map[int64]struct{}{}
-		for i := range accounts {
-			account := &accounts[i]
-			if account.ID != retry.accountID {
-				omit[account.ID] = struct{}{}
-			} else if _, skipped := omit[account.ID]; !skipped &&
-				gatewayPoolRotationAccount(account, retry.groupID) && account.IsSchedulable() {
-				allowed[account.ID] = struct{}{}
-			}
-		}
-		if len(allowed) == 0 {
-			return nil, nil, ErrNoAvailableAccounts
-		}
-		return omit, allowed, nil
-	}
-	state := gatewayPoolRotationFrom(ctx)
-	if state == nil {
+		scope, candidate = retry.groupID, func(id int64) bool { return id == retry.accountID }
+	} else if state := gatewayPoolRotationFrom(ctx); state != nil {
+		scope, attempted = state.groupID, state.attempted
+		candidate = func(id int64) bool { _, tried := attempted[id]; return !tried }
+	} else {
 		return excluded, nil, nil
 	}
-	if repo == nil || groupID == nil || *groupID != state.groupID {
+	if repo == nil || groupID == nil || *groupID != scope {
 		return nil, nil, ErrNoAvailableAccounts
 	}
 	// Include other OpenAI groups in the exclusion set too: simple mode can
@@ -352,17 +335,15 @@ func gatewayPoolRotationExclusions(ctx context.Context, repo AccountRepository, 
 	if omit == nil {
 		omit = map[int64]struct{}{}
 	}
-	for id := range state.attempted {
+	for id := range attempted { // also when the attempted row is no longer listed
 		omit[id] = struct{}{}
 	}
 	allowed := map[int64]struct{}{}
 	for i := range accounts {
 		account := &accounts[i]
-		if !gatewayPoolRotationAccount(account, state.groupID) || !account.IsSchedulable() {
+		if !candidate(account.ID) || !gatewayPoolRotationAccount(account, scope) || !account.IsSchedulable() {
 			omit[account.ID] = struct{}{}
-			continue
-		}
-		if _, skip := omit[account.ID]; !skip {
+		} else if _, skip := omit[account.ID]; !skip {
 			allowed[account.ID] = struct{}{}
 		}
 	}

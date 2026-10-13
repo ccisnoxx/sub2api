@@ -113,16 +113,22 @@ func (r *gatewayPoolUsageLedger) idleCutoff(now time.Time) time.Time {
 	if r.LastRequestStartedAt.After(last) {
 		last = r.LastRequestStartedAt
 	}
+	for _, round := range r.Rounds {
+		if round.Model != gatewayPoolUsageSharedModel || !round.EndedAt.IsZero() || round.ActiveUsage == nil {
+			continue
+		}
+		if n := len(round.ActiveUsage.Intervals); n > 0 && round.ActiveUsage.Intervals[n-1].End.After(last) {
+			last = round.ActiveUsage.Intervals[n-1].End // merged intervals: the last one ends latest
+		}
+	}
 	if last.IsZero() {
 		for _, round := range r.Rounds {
 			if round.Model != gatewayPoolUsageSharedModel || !round.EndedAt.IsZero() {
 				continue
 			}
 			for _, ticket := range round.Tickets {
-				for _, at := range []time.Time{ticket.At, ticket.UseObservedAt} {
-					if at.After(last) {
-						last = at
-					}
+				if ticket.At.After(last) {
+					last = ticket.At
 				}
 			}
 		}
