@@ -82,7 +82,7 @@ deploy/personal/deploy-hostdzire.sh \
 
 `Deployment` 是唯一远端生命周期 owner，使用非阻塞 `flock` 持有 `/root/sub2api-kin/.personal-deploy/deployment.lock`，锁覆盖预检、备份、拉取、启动、健康、持久提交及失败恢复。并发部署在执行 Docker 命令前退出。其他生产配置维护也应尊重这把锁；工具的 hash 检查会拒绝已观察到的外部漂移。
 
-本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。旧基线继续只允许零运行差异、下述精确工具链补丁及固定 S0–S4 累计应用；跨基线只允许下述固定 `.3 → .5` 和 REL-001 固定 `.5-tps.2 → .15-klno.2` 正向证明。新 `.15-klno.2` 重新部署也必须保留审定锚点与完整运行树。其他后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止操作，没有 force 或 ignore 兼容开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足零差异合同。
+本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。旧基线继续只允许零运行差异、下述精确工具链补丁及固定 S0–S4 累计应用；跨基线只允许下述固定 `.3 → .5`、REL-001 固定 `.5-tps.2 → .15-klno.2` 和生产 RESP `.15-klno.2-tps.3 → .15-klno.4-tps.1` 正向证明。新 `.15-klno.2` 重新部署也必须保留审定锚点与完整运行树。其他后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止操作，没有 force 或 ignore 兼容开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足零差异合同。
 
 本轮经用户三次明确授权，升级 Go 1.27.0 → 1.27.2，x/net v0.58.0 → v0.60.0，并按模块最小版本选择同步 crypto0.57、sys0.48、term0.46、text0.42、tools0.50、mod0.41、sync0.23。精确 lint 兼容规则仅匹配五个固定文件中的既有 HTTP/2 弃用接口，其他检查继续启用。例外绑定已审定的 `backend/.golangci.yml`、`backend/go.mod`、`backend/go.sum`、`Dockerfile`、`deploy/Dockerfile` 前后完整文件 SHA-256；应用候选为 `ce682c4901033d09c7e12614b7b73e11bdd17ef4`，旧输入为 tps.1 revision `896de21b4be7f4ec4b4236f4df663b47371665b0`。五个路径必须全部变化、方向一致，双方均为普通 `100644` 文件。任意其他版本、校验行、字节、权限、业务源码、迁移或运行配置变化均拒绝；未来安全补丁需要另行审定，不能按文件路径泛化放行。CI/Release 精确核对所选源码 go.mod 的 Go 声明并继续全部门禁，personal 的声明固定为1.27.2；main 不维护应用树。
 
@@ -118,7 +118,27 @@ RESP 的 `obs-tps.2-to-resp-tps.3` 专属证明只接受实际已发布的 `c08f
 
 RESP 没有 schema 或 SQL 迁移，242、251—254 内容和文件模式继续固定。远端预检要求当前成功记录与正确完整 308 行账本一致，启动前再次核对，健康终态仍须保持同一账本；成功记录保存本次 canonical RESP 证明、健康观察、目标 digest/Image ID 和实际旧身份。证明保持 `image_rollback_compatible=false`、`schema_rollback=retain`。启动、健康、取消或选择提交前失败保留现场和原选择，阻止自动旧镜像恢复；选择已替换而落盘失败时保留失败记录与已提交选择，后续操作拒绝自动接管。反向 C08、429 或跨 KIN 部署/显式回滚均拒绝，本证明不授权数据库、账本或业务数据恢复。离线合同不要求尚未发布的 tps.3 标签；实际部署必须从真实正式标签读取完整源码 SHA，并核对目标 OCI 元数据。
 
-当前 `VERSION=0.2.15-klno.2-tps.1-rc.1` 仍被版本、镜像元数据及个人发布标签合同拒绝；没有预发布部署、force/ignore 或生产允许开关。未来正式发布必须具有真实个人 tag、对应完整 revision、`0.2.15-klno.2-tps.N` 前缀、正确 OCI 元数据和审定完整运行树；更改运行范围内的 VERSION 或其他字节必须重新固定并审查锚点，不能沿用本指纹。正式发布和 REL-002 获得相应授权、完成发布身份与现场前置验收后才执行部署；离线替身和真实Git证据本身不表示真实部署；当前正式tps.2/C08及immutable C4镜像已完成测试→生产，见[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。
+`.15-klno.2 → .4` 的 `klno.2-tps.3-to-klno.4-tps.1` 专属单向证明，只接受当前生产发布 `8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90 / 0.2.15-klno.2-tps.3 / sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627`，旧来源逐字段固定为 `v0.2.15-klno.2 / ca686de5e5ac14834e12701c156831abd5ec6b71`。新来源固定为 `v0.2.15-klno.4 / c555ad918b08cb24ccb2eb45f4ae44a843e24baf`，已提交应用锚点为 `045cd71115d48111258bb051d275ca385d4078ed`，正式版本只接受 `0.2.15-klno.4-tps.1`。真实正式个人标签必须指向实际 OCI 完整 revision；来源标签必须精确等于记录的上游 SHA，且上游和应用锚点都是发布 revision 的祖先。正式合并以及文档/部署工具后继可以改变最终 SHA，但不能改变应用构建输入。发布版本由发布工具实际分配；若不是上述版本，必须重新审定合同，不猜测最终 merge SHA 或镜像 digest。
+
+本机精确核对新完整运行树 `102aac962476b496dc29ef33610e31adefb9fb6e60e7065c77e803c6849e71a2`、完整前端树 `71c1f6c1b119fa6b4b4f241a7ca8e92be59cf9fbd1c6c38d7d8f121115df27b6` 和外部 raw legal 输入 `70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942`。220 个完整排序运行差异路径的 canonical JSON SHA-256 为 `7129c5c47d76706d4881ca4a214c4164294f554d6161917e91c93595f47d0c15`，36 个前端差异路径的摘要为 `e65693f08330499c200af40cbf84dadc46792c2fce8fe65ff48f65c109a9909d`；证明保存全部实际运行差异以及 `KLNO4_FRONTEND_CHANGED_PATHS` 的完整精确前端清单。改变未变化文件、Git mode/type、来源三字段、前端或外部 raw 输入均拒绝；未知树零差异、缺失候选祖先、旧 KIN/OBS/RESP 证明伪装、反向旧来源部署及回滚也拒绝。同一正式版本的固定新完整树可以重新部署。
+
+此合同保留全部既有 SQL 字节及文件名，特别是个人 `251_add_usage_log_timing.sql`、`252_add_ops_routing_diagnostics.sql`、`253_service_status_observation.sql` 和 `254_service_status.sql`；同数字前缀不代表同一 filename。只允许追加三项普通 `100644` SQL，runner checksum（`SHA256(strings.TrimSpace(SQL))`）分别为：
+
+| 新迁移 | 固定 checksum |
+|---|---|
+| `251_drop_gwpool_previous_ledgers.sql` | `7d0bbc6f82ce83b9a873a884908cd6a250f4f0a9b6ec991a41201956fbc9d1d1` |
+| `252_drop_retired_turn_state_and_gwpool_keys.sql` | `687f8f1978bd92b75291a56aa2c13c0b2e01b1ad1f4436106211446d65c1512b` |
+| `253_move_gwpool_ledgers_to_table.sql` | `0e84fa98c52d09464d644980ba6f514195c319d4554e5244c11885067d7ffb06` |
+
+旧生产账本必须是固定 308 行，filename/checksum 摘要 `a31c942e9e772bef1af9c68f930ee35afaa8c3591b5d1c22609f9bf7d30da882`，同时等于当前成功记录。备份和原账本保存完成后、新应用启动前再次逐字核对。runner 按文件名排序，已存在个人迁移直接校验后跳过，新三项分别由单文件 SQL 与账本插入同一事务提交；生命周期健康终态必须保留旧行及其数据库实际顺序，只追加全部三项正确 checksum，形成 311 行账本。同树重部署必须从完整正确 311 行及对应成功记录开始，部分或伪造终态不接管。
+
+251 删除池账本的 previous 标签及嵌套归档；252 删除旧 turn-state 猎手、自动接管、恢复、手动覆写等配置/运行态、池 metrics/prepare_retries，并移除 `model_rate_limits` 中 `turn_state_hold` 条目；253 将 gateways/contacts/usage_rounds/feedback_outbox 对象账本搬入 `gateway_pool_ledgers`，随后从 `accounts.extra` 删除这些键。无效的非对象值不搬入新表，但原 extra 键仍会被删除。旧 .2 应用读写 extra，不能通过镜像切回恢复已删除字段或保证新表写入无损。生产已核对 gwpool 缺省关闭且未配置池地址或消费凭据，本合同不要求外部池升级；这些事实不取消 SQL 对存量字段的破坏性边界。
+
+`.4` 证明始终为 `image_rollback_compatible=false / schema_rollback=retain`。启动等待、健康、取消、账本检查或选择提交前失败后，保存实际镜像、诊断、原选择与数据现场；尽力只读记录 0—3 项固定事务前缀及观察账本指纹，未知差异记录 `migration_observation_error`，不把前缀视为恢复许可。即使观察到零项提交，也不自动或显式启动旧镜像。选择已替换后的失败保留已提交选择并拒绝自动接管。失败记录与旧成功选择不一致时，需要人工核对并经授权前向修复；恢复数据库必须另行说明备份后的写入损失、隔离恢复验证和切换目标，本工具不删账本、不恢复 previous/turn-state 字段、不从新表反搬数据、不提供 force/ignore。
+
+`.4` 继续使用既有 REL-002 站点、持久标记与历史安装 `source_sha=42907…`，不重新 setup。可信 main 完整 bundle 的显式 resume 按正式 `.4-tps.1` 标签和精确构建输入校验本机目标；远端要求专属 canonical `.4` 成功记录、当前 selection、实际 OCI/digest/Image ID、健康和正确完整 311 行账本一致，才删除关闭标记并追加 accepted 身份。旧无参数入口仍只接受历史 429，不能以任意 running digest 或旧 RESP 证明开放 `.4` 流量。
+
+当前 `VERSION=0.2.15-klno.2-tps.1-rc.1` 仍被版本、镜像元数据及个人发布标签合同拒绝；没有预发布部署、force/ignore 或生产允许开关。旧 .2 合同内的正式发布必须具有真实个人 tag、对应完整 revision、`0.2.15-klno.2-tps.N` 前缀、正确 OCI 元数据和审定完整运行树；更改运行范围内的 VERSION 或其他字节必须重新固定并审查锚点，不能沿用本指纹。正式发布和 REL-002 获得相应授权、完成发布身份与现场前置验收后才执行部署；离线替身和真实Git证据本身不表示真实部署；当前正式tps.2/C08及immutable C4镜像已完成测试→生产，见[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。
 
 首次适配只修改普通 `services/sub2api` 中唯一的直接 `image` 行为 `"${SUB2API_IMAGE:?必须指定应用镜像}"`；不重新序列化 YAML，原注释、CRLF、其他服务和设置逐字保留。特殊缩进、锚点或无法唯一定位的结构会失败，不能用仓库 Compose 模板替换生产文件。适配前后在内存中核对完整 Compose JSON，仅应用 `image` 可变化，完整配置和环境值不会进入日志或输出。
 
@@ -148,6 +168,7 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 | S0–S4 累计升级启动、取消、健康或 selection 写入前失败 | 仅在固定追加兼容证明、原行不变和固定事务前缀、旧新运行镜像、配置与依赖合同均成立时恢复旧 `.5`，保留新 schema/ledger 和原 selection；检查失败记录 `rollback_status=blocked`，实际恢复启动/健康失败记录 `failed` |
 | `.3 → .5` 新应用启动或健康失败，持久选择尚未提交 | 保留 `status=failed`、原始错误、诊断与 `observed_running`，记录 `rollback_status=blocked`、`rollback_error=E_COMPATIBILITY`；不启动旧镜像、不替换原 selection，保留当前 Compose 供人工核对 |
 | REL-002 新 KIN 启动、健康、取消或 selection 提交前失败 | 保留失败记录、实际新镜像、扩展 schema/ledger 和原 selection；记录 `rollback_status=blocked`、`rollback_error=E_COMPATIBILITY`，禁止旧镜像恢复；人工前向修复或另行授权恢复 |
+| `.15-klno.2 → .4` 启动、健康、取消或选择提交前失败 | 保留新应用与数据现场、原选择和失败记录，只读记录可证明的固定事务前缀；`rollback_status=blocked / E_COMPATIBILITY`，禁止旧镜像及数据库自动恢复 |
 | 数据库/Redis 容器、迁移或配置发生漂移 | 阻止自动镜像切回，保存失败与当前可观察状态，需人工评估 |
 | 同基线显式回滚 | 绑定当前成功部署 ID、旧/目标完整元数据、配置 hash、双方 Git 兼容证据与迁移指纹；通过健康后提交新的回滚记录与旧 digest 选择，保留已完成的 Compose 参数化 |
 | `.3 → .5` 成功记录的显式回滚 | 本机证明与远端成功记录绑定都拒绝旧镜像恢复，返回 `E_COMPATIBILITY`；运行与原 selection 保留 |
@@ -175,6 +196,8 @@ git diff --check
 新 KIN 合同使用真实固定 307 份旧 SQL 构造离线账本，验证仅追加 242 和正确完整账本重新部署；保护错误/缺失 242、旧行变化、251 缺失、重复/未知行、canonical 证明篡改与伪装、固定旧 digest/版本、新来源正式版本前缀、预发布拒绝、未知树零差异、锚点祖先及运行内容/权限/类型/来源漂移。启动、健康、取消与 selection 提交前失败验证均明确阻止旧镜像；这些替身不执行真实业务数据回退。
 
 `test_resp_deployment.py` 用真实 Git 对象核对 C08 → RESP 精确运行差异、全树/来源/锚点、前端与 raw 输入不变；隔离临时 Git 标签验证维护恢复的正式发布绑定。生命周期替身直接覆盖成功/同树重部署、只读预检、重算 hash 后篡改或伪装证明拒绝、旧 digest 绑定、失败不恢复 C08、选择部分提交和完整 308 行账本。维护替身覆盖 canonical RESP 成功记录、当前选择、OCI/Image ID、原站点/标记、伪造成功账本及无显式目标拒绝，真实主机验收仍由发布维护者执行。
+
+`test_klno4_deployment.py` 使用真实固定 Git 对象验证220条运行差异、36条前端差异、来源/tag/锚点和仅追加三项 SQL；隔离临时标签保护正式维护恢复绑定。账本与生命周期替身覆盖固定原308行、三项0—3提交前缀与311完整终态、原行/顺序/checksum/缺口/重复/未知行拒绝、重算hash伪装、只读升级预检、备份先于启动、取消/等待/健康失败禁止旧镜像、部分提交后拒绝接管、选择部分提交及维护失败关闭。离线合同不执行真实SQL或业务数据恢复，真实新SQL迁移效果、生产启动及核心业务验收由发布维护者在隔离测试和现场验证。
 
 ## REL-002 单站点流量维护
 

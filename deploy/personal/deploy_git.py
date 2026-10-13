@@ -111,9 +111,16 @@ class GitEvidence:
         self._fixed_application_runtime(revision, RESP_NEW_REVISION, RESP_NEW_RUNTIME, RESP_FRONTEND,
                                         RESP_RAW_PATHS, RESP_RAW_SHA256, "RESP")
 
-    def _fixed_application_runtime(self, revision, anchor, runtime, frontend, raw_paths, raw_sha256, name):
+    def klno4_runtime(self, revision):
+        approved_klno4_upgrade("redeploy")
+        self._fixed_application_runtime(revision, KLNO4_NEW_REVISION, KLNO4_NEW_RUNTIME, KLNO4_NEW_FRONTEND,
+                                        KLNO4_RAW_PATHS, KLNO4_RAW_SHA256, ".4", source=KLNO4_NEW_SOURCE,
+                                        migrations={**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS, **KLNO4_MIGRATIONS})
+
+    def _fixed_application_runtime(self, revision, anchor, runtime, frontend, raw_paths, raw_sha256, name,
+                                   *, source=None, migrations=None):
         # 来源、全部构建输入和固定迁移在同一 Git owner 核对，后继只允许非应用提交。
-        require(self.source_at(revision) == KIN_NEW_SOURCE and
+        require(self.source_at(revision) == (KIN_NEW_SOURCE if source is None else source) and
                 self.runtime_fingerprint(revision) == runtime and
                 self.tree_fingerprint(revision, ["frontend"]) == frontend and
                 self.tree_fingerprint(revision, raw_paths) == raw_sha256,
@@ -121,11 +128,32 @@ class GitEvidence:
         ancestry = subprocess.run(["git", "-C", str(self.root), "merge-base", "--is-ancestor",
                                    anchor, revision], capture_output=True)
         require(ancestry.returncode == 0, "E_COMPATIBILITY", name + " revision 不包含审定应用锚点")
-        for filename, checksum in {**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS}.items():
+        for filename, checksum in ({**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS} if migrations is None else migrations).items():
             path = "backend/migrations/" + filename
             require(self.git("ls-tree", revision, "--", path).startswith(b"100644 blob ") and
                     sha(self.git("show", revision + ":" + path).strip()) == checksum,
                     "E_COMPATIBILITY", name + " 必须保留固定迁移内容、checksum 与普通文件模式")
+
+    def klno4_upgrade(self, old, target, changed):
+        self.klno4_runtime(target["revision"])
+        direction = "upgrade" if old["revision"] == KLNO4_OLD_REVISION else "redeploy"
+        approved = approved_klno4_upgrade(direction)
+        if direction == "upgrade":
+            self.resp_runtime(old["revision"])
+            require_klno4_old_image({"klno4_upgrade": approved}, old)
+            migration_changed = sorted(path for path in self.git("diff", "--no-renames", "--name-only", "-z",
+                                       old["revision"], target["revision"], "--", "backend/migrations/*.sql").decode().split("\0") if path)
+            require(migration_changed == sorted("backend/migrations/" + name for name in KLNO4_MIGRATIONS),
+                    "E_COMPATIBILITY", ".4 只允许追加三项固定 SQL，禁止改名或改变任何旧 SQL 字节")
+        else:
+            self.klno4_runtime(old["revision"])
+        require(sha(canonical(changed)) == approved["changed_paths_sha256"],
+                "E_COMPATIBILITY", ".4 运行差异必须是审定的全部精确路径")
+        frontend_changed = sorted(path for path in self.git("diff", "--no-renames", "--name-only", "-z",
+                                  old["revision"], target["revision"], "--", "frontend").decode().split("\0") if path)
+        require(frontend_changed == approved["frontend_changed_paths"],
+                "E_COMPATIBILITY", ".4 前端构建输入差异不是审定的全部精确路径")
+        return approved
 
     def resp_upgrade(self, old, target, changed):
         self.resp_runtime(target["revision"])
@@ -175,7 +203,11 @@ class GitEvidence:
         proof = {"old_revision": old["revision"], "new_revision": target["revision"],
                  "upstream": target_source, "paths": RUNTIME_PATHS, "excludes": RUNTIME_EXCLUDES,
                  "changed_paths": changed, "compatible": True}
-        if target_source.get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]:
+        if target_source.get("upstream_tag") == KLNO4_NEW_SOURCE["upstream_tag"]:
+            require(target_source == KLNO4_NEW_SOURCE and old_source in (KIN_NEW_SOURCE, KLNO4_NEW_SOURCE),
+                    "E_COMPATIBILITY", ".4 只接受生产 RESP 旧来源升级或审定的新完整运行树重部署")
+            proof["klno4_upgrade"] = self.klno4_upgrade(old, target, changed)
+        elif target_source.get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]:
             require(target_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "新 KIN 来源必须与固定三字段完全一致")
             if self.runtime_fingerprint(target["revision"]) == RESP_NEW_RUNTIME:
                 require(old_source == KIN_NEW_SOURCE, "E_COMPATIBILITY", "RESP 只接受固定新 KIN 来源")
@@ -202,6 +234,6 @@ class GitEvidence:
             else:
                 proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
-        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade")):
+        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade")):
             validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
         return proof

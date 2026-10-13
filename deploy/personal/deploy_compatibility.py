@@ -466,6 +466,100 @@ RESP_CHANGED_PATHS = (
     "deploy/docker-compose.yml",
 )
 
+# .15-klno.2 → .4 仅从生产 RESP 固定发布升级；三项破坏性数据迁移不允许镜像回退。
+KLNO4_UPGRADE_ID = "klno.2-tps.3-to-klno.4-tps.1"
+KLNO4_OLD_REVISION = RESP_NEW_REVISION
+KLNO4_OLD_VERSION = RESP_NEW_VERSION
+KLNO4_OLD_IMAGE = REPOSITORY + "@sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627"
+KLNO4_NEW_SOURCE = {
+    "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.15-klno.4",
+    "upstream_sha": "c555ad918b08cb24ccb2eb45f4ae44a843e24baf",
+}
+# 正式 merge 必须包含此已提交候选；文档/控制后继不得改变任何应用构建输入。
+KLNO4_NEW_REVISION = "045cd71115d48111258bb051d275ca385d4078ed"
+KLNO4_NEW_VERSION = "0.2.15-klno.4-tps.1"
+KLNO4_NEW_RUNTIME = "102aac962476b496dc29ef33610e31adefb9fb6e60e7065c77e803c6849e71a2"
+KLNO4_NEW_FRONTEND = "71c1f6c1b119fa6b4b4f241a7ca8e92be59cf9fbd1c6c38d7d8f121115df27b6"
+KLNO4_RAW_PATHS = RESP_RAW_PATHS
+KLNO4_RAW_SHA256 = "70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942"
+KLNO4_CHANGED_PATHS_SHA256 = "7129c5c47d76706d4881ca4a214c4164294f554d6161917e91c93595f47d0c15"
+KLNO4_FRONTEND_CHANGED_PATHS = (
+    "frontend/src/api/__tests__/admin.accounts.gatewayPoolProgress.spec.ts",
+    "frontend/src/api/admin/accounts.ts",
+    "frontend/src/components/account/AccountCapacityCell.vue",
+    "frontend/src/components/account/AccountGatewayCell.vue",
+    "frontend/src/components/account/AccountStatusIndicator.vue",
+    "frontend/src/components/account/AccountTurnStateCell.vue",
+    "frontend/src/components/account/EditAccountModal.vue",
+    "frontend/src/components/account/GatewayPoolBulkSettings.vue",
+    "frontend/src/components/account/GatewayUsedHistory.vue",
+    "frontend/src/components/account/__tests__/AccountCapacityCell.spec.ts",
+    "frontend/src/components/account/__tests__/AccountGatewayCell.runtimeDisplay.spec.ts",
+    "frontend/src/components/account/__tests__/AccountGatewayCell.spec.ts",
+    "frontend/src/components/account/__tests__/AccountGatewayQueueCards.spec.ts",
+    "frontend/src/components/account/__tests__/AccountStatusIndicator.spec.ts",
+    "frontend/src/components/account/__tests__/AccountTurnStateCell.spec.ts",
+    "frontend/src/components/account/__tests__/BulkEditAccountModal.spec.ts",
+    "frontend/src/components/account/__tests__/EditAccountModal.spec.ts",
+    "frontend/src/components/account/__tests__/GatewayUsedHistory.spec.ts",
+    "frontend/src/components/account/__tests__/gatewayRuntimeDisplay.fixture.json",
+    "frontend/src/components/admin/account/AccountActionMenu.vue",
+    "frontend/src/components/admin/account/__tests__/AccountActionMenu.spark_shadow.spec.ts",
+    "frontend/src/composables/__tests__/useGatewayPoolProgress.spec.ts",
+    "frontend/src/composables/__tests__/useNowTicker.spec.ts",
+    "frontend/src/composables/useGatewayPoolProgress.ts",
+    "frontend/src/composables/useNowTicker.ts",
+    "frontend/src/composables/usePausedDisplay.ts",
+    "frontend/src/i18n/__tests__/gwpoolLocales.spec.ts",
+    "frontend/src/i18n/locales/en/admin/accounts.ts",
+    "frontend/src/i18n/locales/zh/admin/accounts.ts",
+    "frontend/src/utils/__tests__/gatewayContactLatest.spec.ts",
+    "frontend/src/utils/__tests__/gatewayContactStats.spec.ts",
+    "frontend/src/utils/__tests__/gatewayUsedSummary.spec.ts",
+    "frontend/src/utils/gatewayContactStats.ts",
+    "frontend/src/utils/gatewayUsedSummary.ts",
+    "frontend/src/utils/turnState.ts",
+    "frontend/src/views/admin/AccountsView.vue",
+)
+KLNO4_MIGRATIONS = {
+    "251_drop_gwpool_previous_ledgers.sql": "7d0bbc6f82ce83b9a873a884908cd6a250f4f0a9b6ec991a41201956fbc9d1d1",
+    "252_drop_retired_turn_state_and_gwpool_keys.sql": "687f8f1978bd92b75291a56aa2c13c0b2e01b1ad1f4436106211446d65c1512b",
+    "253_move_gwpool_ledgers_to_table.sql": "0e84fa98c52d09464d644980ba6f514195c319d4554e5244c11885067d7ffb06",
+}
+KLNO4_OLD_MIGRATION_STATE = {
+    "rows": 308, "filename_checksum_sha256": "a31c942e9e772bef1af9c68f930ee35afaa8c3591b5d1c22609f9bf7d30da882",
+}
+
+
+def approved_klno4_upgrade(direction):
+    require(direction in ("upgrade", "redeploy") and SHA_RE.fullmatch(KLNO4_NEW_REVISION) and
+            all(re.fullmatch(r"[0-9a-f]{64}", value) for value in
+                (KLNO4_NEW_RUNTIME, KLNO4_NEW_FRONTEND, KLNO4_RAW_SHA256, KLNO4_CHANGED_PATHS_SHA256)),
+            "E_COMPATIBILITY", ".4 必须绑定最终审定候选；不允许旧镜像回退")
+    redeploy = direction == "redeploy"
+    return {"id": KLNO4_UPGRADE_ID, "direction": direction,
+            "old_source": dict(KLNO4_NEW_SOURCE if redeploy else KIN_NEW_SOURCE),
+            "new_source": dict(KLNO4_NEW_SOURCE),
+            "old_runtime_revision": KLNO4_NEW_REVISION if redeploy else KLNO4_OLD_REVISION,
+            "new_runtime_revision": KLNO4_NEW_REVISION,
+            "old_runtime_sha256": KLNO4_NEW_RUNTIME if redeploy else RESP_NEW_RUNTIME,
+            "new_runtime_sha256": KLNO4_NEW_RUNTIME,
+            "changed_paths_sha256": sha(canonical([])) if redeploy else KLNO4_CHANGED_PATHS_SHA256,
+            "frontend_paths": ["frontend"],
+            "old_frontend_sha256": KLNO4_NEW_FRONTEND if redeploy else RESP_FRONTEND,
+            "new_frontend_sha256": KLNO4_NEW_FRONTEND,
+            "frontend_changed_paths": [] if redeploy else list(KLNO4_FRONTEND_CHANGED_PATHS),
+            "raw_paths": list(KLNO4_RAW_PATHS), "raw_sha256": KLNO4_RAW_SHA256,
+            "image_rollback_compatible": False, "schema_rollback": "retain",
+            "migrations": dict(KLNO4_MIGRATIONS)}
+
+
+def require_klno4_old_image(proof, old):
+    if proof.get("klno4_upgrade", {}).get("direction") == "upgrade":
+        require(old["revision"] == KLNO4_OLD_REVISION and old["version"] == KLNO4_OLD_VERSION and
+                old["image"] == KLNO4_OLD_IMAGE and old["source"] == SOURCE,
+                "E_COMPATIBILITY", ".4 必须绑定固定生产 RESP 旧 revision、版本、来源与 digest")
+
 
 def approved_resp_upgrade(direction):
     require(direction in ("upgrade", "redeploy"), "E_COMPATIBILITY", "RESP 证明不允许旧镜像回退")
@@ -567,6 +661,20 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
     kin = proof.get("kin_upgrade")
     obs = proof.get("obs_upgrade")
     resp = proof.get("resp_upgrade")
+    klno4 = proof.get("klno4_upgrade")
+    klno4_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KLNO4_NEW_SOURCE["upstream_tag"]
+    if klno4_source:
+        require("klno4_upgrade" in proof, "E_COMPATIBILITY", ".4 必须使用专属完整运行树与破坏性迁移证明")
+    if "klno4_upgrade" in proof:
+        direction = "upgrade" if old_revision == KLNO4_OLD_REVISION else "redeploy"
+        approved = approved_klno4_upgrade(direction)
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "klno4_upgrade"} and
+                isinstance(klno4, dict) and canonical(klno4) == canonical(approved) and
+                SHA_RE.fullmatch(old_revision) and SHA_RE.fullmatch(new_revision) and
+                proof["upstream"] == KLNO4_NEW_SOURCE and
+                sha(canonical(proof["changed_paths"])) == approved["changed_paths_sha256"],
+                "E_COMPATIBILITY", ".4 证明不属于固定来源、完整运行树与精确差异")
     kin_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]
     if kin_source:
         require("kin_upgrade" in proof or "obs_upgrade" in proof or "resp_upgrade" in proof,
@@ -619,7 +727,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
                 proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(FORWARD_CHANGED_PATHS),
                 "E_COMPATIBILITY", "正向升级证据不属于已审定的来源、完整运行树与差异")
     if old_version is not None and new_version is not None:
-        upgrade = forward or cumulative or kin or obs or resp
+        upgrade = forward or cumulative or kin or obs or resp or klno4
         old_source = upgrade["old_source"] if upgrade else proof.get("upstream", {})
         new_source = upgrade["new_source"] if upgrade else proof.get("upstream", {})
         require(isinstance(old_source, dict) and isinstance(new_source, dict) and
@@ -646,7 +754,11 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
             require(new_version == RESP_NEW_VERSION and
                     old_version == (RESP_OLD_VERSION if resp["direction"] == "upgrade" else RESP_NEW_VERSION),
                     "E_COMPATIBILITY", "RESP 只绑定固定 C08 旧发布与审定的 tps.3 版本")
-    if forward or cumulative or kin or obs or resp:
+        if klno4:
+            require(new_version == KLNO4_NEW_VERSION and
+                    old_version == (KLNO4_OLD_VERSION if klno4["direction"] == "upgrade" else KLNO4_NEW_VERSION),
+                    "E_COMPATIBILITY", ".4 只绑定生产 RESP 旧发布与审定的正式个人版本")
+    if forward or cumulative or kin or obs or resp or klno4:
         return
     if proof["changed_paths"] == []:
         require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
@@ -658,7 +770,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
 
 def require_image_rollback(proof):
     require(not any(proof.get(name, {}).get("image_rollback_compatible") is False
-                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade")),
+                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade")),
             "E_COMPATIBILITY", "持久化数据回退未获证明；禁止旧镜像恢复，需人工评估失败记录与备份")
 
 
