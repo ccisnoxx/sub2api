@@ -76,7 +76,12 @@ func TestOpenAIResponsesEarlyPreambleReachesHTTPClientBeforeGeneration(t *testin
 				w.Header().Set("Content-Type", "text/event-stream")
 				w.Header().Set("X-Request-Id", "request-early")
 				_, _ = io.WriteString(w, earlyPreambleCreated+inProgress+emptyReasoning)
-				w.(http.Flusher).Flush()
+				flusher, ok := w.(http.Flusher)
+				if !ok {
+					t.Error("测试上游不支持流刷新")
+					return
+				}
+				flusher.Flush()
 				select {
 				case <-allowGeneration:
 					_, _ = io.WriteString(w, tail)
@@ -97,7 +102,7 @@ func TestOpenAIResponsesEarlyPreambleReachesHTTPClientBeforeGeneration(t *testin
 					forwardErr <- err
 					return
 				}
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 				_, _, err = forwardEarlyPreambleTest(c, resp, passthrough, config.GatewayConfig{
 					OpenAIStreamEarlyPreamble: true, StreamKeepaliveInterval: 1,
 				}, time.Now())
@@ -110,7 +115,7 @@ func TestOpenAIResponsesEarlyPreambleReachesHTTPClientBeforeGeneration(t *testin
 			client.Timeout = 5 * time.Second
 			resp, err := client.Post(gateway.URL+"/v1/responses", "application/json", strings.NewReader(`{"stream":true}`))
 			require.NoError(t, err)
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 			require.Equal(t, "text/event-stream", resp.Header.Get("Content-Type"))
 			require.Equal(t, "request-early", resp.Header.Get("X-Request-Id"))
 			reader := bufio.NewReader(resp.Body)
@@ -123,7 +128,7 @@ func TestOpenAIResponsesEarlyPreambleReachesHTTPClientBeforeGeneration(t *testin
 				for {
 					line, err := reader.ReadString('\n')
 					require.NoError(t, err)
-					event.WriteString(line)
+					_, _ = event.WriteString(line)
 					if line == "\n" {
 						break
 					}

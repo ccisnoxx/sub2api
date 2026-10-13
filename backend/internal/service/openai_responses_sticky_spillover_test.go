@@ -83,7 +83,9 @@ func TestResponsesStickySpillover_LegacyTriesCapacityBeforeWait(t *testing.T) {
 					selection.ReleaseFunc()
 					require.Equal(t, []int64{2}, released)
 				}
-				require.Equal(t, int64(1), svc.cache.(*schedulerTestGatewayCache).sessionBindings["openai:spillover"], "临时满载分流不能改写原绑定")
+				cache, ok := svc.cache.(*schedulerTestGatewayCache)
+				require.True(t, ok)
+				require.Equal(t, int64(1), cache.sessionBindings["openai:spillover"], "临时满载分流不能改写原绑定")
 			})
 		}
 	}
@@ -141,7 +143,9 @@ func TestResponsesStickySpillover_LegacyPreservesAdmissionGates(t *testing.T) {
 					require.NotContains(t, acquired, int64(2))
 					require.Empty(t, released)
 				}
-				require.Equal(t, int64(1), svc.cache.(*schedulerTestGatewayCache).sessionBindings["openai:spillover"])
+				cache, ok := svc.cache.(*schedulerTestGatewayCache)
+				require.True(t, ok)
+				require.Equal(t, int64(1), cache.sessionBindings["openai:spillover"])
 			})
 		}
 	}
