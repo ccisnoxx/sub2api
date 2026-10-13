@@ -51,9 +51,9 @@ def main():
     parser.add_argument("--rollback", metavar="记录ID", help="只回滚当前成功部署记录")
     parser.add_argument("--tool-revision", help="已经获取的本 fork origin/main 完整可信工具 SHA")
     parser.add_argument("--dry-run", action="store_true", help="只读核验现场、目标和兼容；不会应用部署")
-    parser.add_argument("--maintenance", choices=("freeze", "resume"), help="通过可信完整 bundle 冻结流量或恢复已成功部署的 OBS/RESP")
-    parser.add_argument("--target-revision", help="OBS/RESP 恢复所绑定的完整发布源码 SHA")
-    parser.add_argument("--deployment-record", help="OBS/RESP 恢复所绑定的当前成功部署记录 ID")
+    parser.add_argument("--maintenance", choices=("freeze", "resume"), help="通过可信完整 bundle 冻结流量或恢复已成功部署的审定应用")
+    parser.add_argument("--target-revision", help="维护恢复所绑定的完整发布源码 SHA")
+    parser.add_argument("--deployment-record", help="维护恢复所绑定的当前成功部署记录 ID")
     remote = parser.add_mutually_exclusive_group()
     for name in ("--remote-probe", "--remote-apply", "--remote-dry-run"):
         remote.add_argument(name, action="store_true", help=argparse.SUPPRESS)
