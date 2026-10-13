@@ -92,6 +92,24 @@ class ToolBundle:
         """SSH 命令本身携带已验证清单；远端先查字节，再添加唯一导入目录。"""
         check(mode in ("--remote-probe", "--remote-apply", "--remote-dry-run"), "远端操作无效")
         check(record_id is None or re.fullmatch(r"[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}", record_id), "部署记录 ID 无效")
+        arguments = [mode]
+        if record_id:
+            arguments.extend(("--record", record_id))
+        return self._bootstrap("deploy_hostdzire.py", arguments)
+
+    def maintenance_bootstrap(self, action, target_revision=None, deployment_id=None):
+        check(action in ("freeze", "resume"), "可信维护入口只接受 freeze 或 resume")
+        if action == "resume":
+            check(type(target_revision) is str and re.fullmatch(r"[0-9a-f]{40}", target_revision) and
+                  type(deployment_id) is str and re.fullmatch(r"[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}", deployment_id),
+                  "OBS 恢复必须显式绑定完整目标 SHA 和成功部署记录 ID")
+            arguments = [action, "--target-revision", target_revision, "--deployment-record", deployment_id]
+        else:
+            check(target_revision is None and deployment_id is None, "freeze 不接受恢复目标参数")
+            arguments = [action]
+        return self._bootstrap("maintenance_hostdzire.py", arguments)
+
+    def _bootstrap(self, entry, arguments):
         program = '''import hashlib,json,pathlib,runpy,sys
 p=pathlib.Path(sys.argv[1]); a=json.loads(sys.argv[2])
 try:
@@ -101,12 +119,10 @@ try:
   if not f.is_file() or f.is_symlink() or hashlib.sha256(f.read_bytes()).hexdigest()!=digest: raise ValueError()
 except Exception:
  print(json.dumps({'status':'failed','error_code':'E_TOOL_TRUST','message':'远端工具 bundle 校验失败，未导入业务模块'}));sys.exit(2)
-sys.path.insert(0,str(p));sys.argv=[str(p/'deploy_hostdzire.py')]+sys.argv[3:]
-runpy.run_path(str(p/'deploy_hostdzire.py'),run_name='__main__',init_globals={'__tool_attestation__':a})'''
+sys.path.insert(0,str(p)); entry=sys.argv[3];sys.argv=[str(p/entry)]+sys.argv[4:]
+runpy.run_path(str(p/entry),run_name='__main__',init_globals={'__tool_attestation__':a})'''
         args = ["python3", "-I", "-S", "-B", "-c", program, str(self.directory),
-                json.dumps({"revision": self.revision, "files": self.files}, sort_keys=True), mode]
-        if record_id:
-            args.extend(("--record", record_id))
+                json.dumps({"revision": self.revision, "files": self.files}, sort_keys=True), entry, *arguments]
         return shlex.join(args)
 
 

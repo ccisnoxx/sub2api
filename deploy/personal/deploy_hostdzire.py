@@ -51,6 +51,9 @@ def main():
     parser.add_argument("--rollback", metavar="记录ID", help="只回滚当前成功部署记录")
     parser.add_argument("--tool-revision", help="已经获取的本 fork origin/main 完整可信工具 SHA")
     parser.add_argument("--dry-run", action="store_true", help="只读核验现场、目标和兼容；不会应用部署")
+    parser.add_argument("--maintenance", choices=("freeze", "resume"), help="通过可信完整 bundle 冻结流量或恢复已成功部署的 OBS")
+    parser.add_argument("--target-revision", help="OBS 恢复所绑定的完整发布源码 SHA")
+    parser.add_argument("--deployment-record", help="OBS 恢复所绑定的当前成功部署记录 ID")
     remote = parser.add_mutually_exclusive_group()
     for name in ("--remote-probe", "--remote-apply", "--remote-dry-run"):
         remote.add_argument(name, action="store_true", help=argparse.SUPPRESS)
@@ -65,8 +68,11 @@ def main():
         from deploy_config import load_config
         from deploy_common import DeployError, require
         from deploy_lifecycle import Deployment
-        from deploy_local import local_main
+        from deploy_local import local_main, local_maintenance
         config = load_config()
+        require(not (args.remote_probe or args.remote_apply or args.remote_dry_run) or
+                (args.maintenance is None and args.target_revision is None and args.deployment_record is None),
+                "E_INPUT", "远端部署入口不能混用维护参数")
         if args.remote_probe:
             print(json.dumps(Deployment(config=config, trusted_revision=bundle.revision).probe(args.record), ensure_ascii=False))
             return 0
@@ -80,6 +86,9 @@ def main():
             response, code = deployment.dry_run(request) if args.remote_dry_run else deployment.execute(request)
             print(json.dumps(response, ensure_ascii=False))
             return code
+        if args.maintenance is not None:
+            return local_maintenance(args, bundle, config)
+        require(args.target_revision is None and args.deployment_record is None, "E_INPUT", "恢复目标参数只能用于维护操作")
         require(args.target is not None or args.rollback is not None, "E_INPUT", "必须指定个人版本、digest 或 --rollback 记录ID")
         return local_main(args, bundle, config)
     except Exception as error:

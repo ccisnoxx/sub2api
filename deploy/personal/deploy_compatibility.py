@@ -365,6 +365,92 @@ KIN_OLD_MIGRATION_STATE = {
     "rows": 307, "filename_checksum_sha256": "d96e2af9dccac1570317feebfe5fd0c0443340a8e07a722c4a6b9ff22277ef4a",
 }
 
+# OBS 已验收应用；后继文档/控制提交须保留此锚点和完整运行树。
+OBS_UPGRADE_ID = "429-tps.1-to-obs-tps.2"
+OBS_OLD_REVISION = KIN_NEW_REVISION
+OBS_OLD_VERSION = "0.2.15-klno.2-tps.1"
+OBS_OLD_IMAGE = REPOSITORY + "@sha256:fa433c2b36935717ecd7a84641998c88c02fc0d4a14b06f31009a0d525c995d3"
+OBS_NEW_REVISION = "423f690bec2ee9d0ebccd1672906d6b688c220c3"
+OBS_NEW_VERSION = "0.2.15-klno.2-tps.2"
+OBS_NEW_RUNTIME = "0c7ab5c16eae0d1944e185d519476da80098e0429d2d6829e8c0a1a4b646c106"
+OBS_OLD_FRONTEND = "ef9884449ee278c275c02b7fd06c34978116b8c3d7c8052694d46d118aa52f4c"
+OBS_NEW_FRONTEND = "47b21affa698058f84a71bcce078c4e105965017a9f34c5707886d25a3e0a367"
+# 这两份 ?raw 文档从 frontend 外部嵌入；旧429与OBS423字节相同。
+OBS_RAW_PATHS = ("docs/legal/admin-compliance.en.md", "docs/legal/admin-compliance.zh.md")
+OBS_RAW_SHA256 = "70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942"
+OBS_FRONTEND_CHANGED_PATHS = (
+    "frontend/src/api/__tests__/admin.serviceStatus.spec.ts",
+    "frontend/src/api/admin/ops.ts",
+    "frontend/src/api/admin/serviceStatus.ts",
+    "frontend/src/api/client.ts",
+    "frontend/src/components/service-status/ServiceStatusMetrics.vue",
+    "frontend/src/i18n/locales/en/admin/ops.ts",
+    "frontend/src/i18n/locales/en/admin/serviceStatus.ts",
+    "frontend/src/i18n/locales/zh/admin/ops.ts",
+    "frontend/src/i18n/locales/zh/admin/serviceStatus.ts",
+    "frontend/src/views/admin/ServiceStatusView.vue",
+    "frontend/src/views/admin/__tests__/ServiceStatusView.spec.ts",
+    "frontend/src/views/admin/ops/components/OpsErrorDetailModal.vue",
+    "frontend/src/views/admin/ops/components/__tests__/OpsErrorDetailModal.spec.ts",
+)
+OBS_CHANGED_PATHS = (
+    "backend/internal/handler/admin/ops_handler.go",
+    "backend/internal/handler/admin/ops_routing_diagnostics_handler_test.go",
+    "backend/internal/handler/service_status_handler.go",
+    "backend/internal/repository/service_status_aggregator_monitor_test.go",
+    "backend/internal/repository/service_status_contract_integration_test.go",
+    "backend/internal/repository/service_status_incidents.go",
+    "backend/internal/repository/service_status_monitor.go",
+    "backend/internal/repository/service_status_monitor_integration_test.go",
+    "backend/internal/repository/service_status_monitor_test.go",
+    "backend/internal/repository/service_status_normalize_test.go",
+    "backend/internal/repository/service_status_privacy_integration_test.go",
+    "backend/internal/repository/service_status_repo.go",
+    "backend/internal/repository/service_status_repo_integration_test.go",
+    "backend/internal/repository/service_status_watch_integration_test.go",
+    "backend/internal/server/middleware/audit_log.go",
+    "backend/internal/server/middleware/diagnostics_privacy_test.go",
+    "backend/internal/server/middleware/panel_rate_limit.go",
+    "backend/internal/server/routes/admin.go",
+    "backend/internal/server/routes/diagnostics_privacy_routes_test.go",
+    "backend/internal/server/routes/ops_routing_diagnostics_routes_test.go",
+    "backend/internal/server/routes/service_status_routes_jwt_test.go",
+    "backend/internal/server/routes/service_status_routes_test.go",
+    "backend/internal/service/service_status.go",
+    "backend/internal/service/service_status_aggregator.go",
+    "backend/internal/service/service_status_aggregator_test.go",
+    "backend/internal/service/service_status_privacy.go",
+    "backend/internal/service/service_status_privacy_test.go",
+    "backend/internal/service/service_status_source_integrity.go",
+    "backend/internal/service/service_status_source_integrity_test.go",
+    "backend/internal/service/service_status_source_reporter.go",
+    "backend/internal/service/service_status_test.go",
+    "backend/internal/service/service_status_types.go",
+)
+
+
+def approved_obs_upgrade(direction):
+    require(direction in ("upgrade", "redeploy"), "E_COMPATIBILITY", "OBS 证明不允许旧镜像回退")
+    redeploy = direction == "redeploy"
+    return {"id": OBS_UPGRADE_ID, "direction": direction,
+            "old_source": dict(KIN_NEW_SOURCE), "new_source": dict(KIN_NEW_SOURCE),
+            "old_runtime_revision": OBS_NEW_REVISION if redeploy else OBS_OLD_REVISION,
+            "new_runtime_revision": OBS_NEW_REVISION,
+            "old_runtime_sha256": OBS_NEW_RUNTIME if redeploy else KIN_NEW_RUNTIME,
+            "new_runtime_sha256": OBS_NEW_RUNTIME,
+            "frontend_paths": ["frontend"],
+            "old_frontend_sha256": OBS_NEW_FRONTEND if redeploy else OBS_OLD_FRONTEND,
+            "new_frontend_sha256": OBS_NEW_FRONTEND,
+            "frontend_changed_paths": [] if redeploy else list(OBS_FRONTEND_CHANGED_PATHS),
+            "raw_paths": list(OBS_RAW_PATHS), "raw_sha256": OBS_RAW_SHA256,
+            "image_rollback_compatible": False, "schema_rollback": "retain",
+            "migrations": {**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS}}
+
+
+def require_obs_old_image(proof, old):
+    if proof.get("obs_upgrade", {}).get("direction") == "upgrade":
+        require(old["image"] == OBS_OLD_IMAGE, "E_COMPATIBILITY", "OBS 必须绑定固定 429 旧发布 digest")
+
 
 def approved_forward_upgrade():
     return {"id": FORWARD_UPGRADE_ID, "direction": "upgrade",
@@ -418,9 +504,19 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
     forward = proof.get("forward_upgrade")
     cumulative = proof.get("cumulative_upgrade")
     kin = proof.get("kin_upgrade")
+    obs = proof.get("obs_upgrade")
     kin_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KIN_NEW_SOURCE["upstream_tag"]
     if kin_source:
-        require("kin_upgrade" in proof, "E_COMPATIBILITY", "新 KIN 必须使用专属完整运行树与迁移证明")
+        require("kin_upgrade" in proof or "obs_upgrade" in proof, "E_COMPATIBILITY", "新 KIN 必须使用专属完整运行树与迁移证明")
+    if "obs_upgrade" in proof:
+        direction = "upgrade" if old_revision == OBS_OLD_REVISION else "redeploy"
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "obs_upgrade"} and
+                isinstance(obs, dict) and canonical(obs) == canonical(approved_obs_upgrade(direction)) and
+                SHA_RE.fullmatch(old_revision) and SHA_RE.fullmatch(new_revision) and
+                proof["upstream"] == KIN_NEW_SOURCE and
+                proof["changed_paths"] == ([] if direction == "redeploy" else list(OBS_CHANGED_PATHS)),
+                "E_COMPATIBILITY", "OBS 证明不属于固定来源、完整运行树与精确差异")
     if "kin_upgrade" in proof:
         direction = "upgrade" if old_revision == KIN_OLD_REVISION else "redeploy"
         approved = approved_kin_upgrade(direction)
@@ -451,7 +547,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
                 proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(FORWARD_CHANGED_PATHS),
                 "E_COMPATIBILITY", "正向升级证据不属于已审定的来源、完整运行树与差异")
     if old_version is not None and new_version is not None:
-        upgrade = forward or cumulative or kin
+        upgrade = forward or cumulative or kin or obs
         old_source = upgrade["old_source"] if upgrade else proof.get("upstream", {})
         new_source = upgrade["new_source"] if upgrade else proof.get("upstream", {})
         require(isinstance(old_source, dict) and isinstance(new_source, dict) and
@@ -466,10 +562,15 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
                     "E_COMPATIBILITY", "累计升级只绑定固定 .5-tps.1 旧发布与后续同基线个人版本")
         if kin:
             require(VERSION_RE.fullmatch(new_version) and
+                    OBS_NEW_VERSION not in (old_version, new_version) and
                     ((kin["direction"] == "upgrade" and old_version == KIN_OLD_VERSION) or
                      (kin["direction"] == "redeploy" and VERSION_RE.fullmatch(old_version))),
                     "E_COMPATIBILITY", "新 KIN 只绑定固定旧发布与新来源正式个人版本")
-    if forward or cumulative or kin:
+        if obs:
+            require(new_version == OBS_NEW_VERSION and
+                    old_version == (OBS_OLD_VERSION if obs["direction"] == "upgrade" else OBS_NEW_VERSION),
+                    "E_COMPATIBILITY", "OBS 只绑定固定 429 旧发布与审定的 tps.2 版本")
+    if forward or cumulative or kin or obs:
         return
     if proof["changed_paths"] == []:
         require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
@@ -481,7 +582,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
 
 def require_image_rollback(proof):
     require(not any(proof.get(name, {}).get("image_rollback_compatible") is False
-                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade")),
+                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade")),
             "E_COMPATIBILITY", "持久化数据回退未获证明；禁止旧镜像恢复，需人工评估失败记录与备份")
 
 

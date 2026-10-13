@@ -786,7 +786,7 @@ class KinDeploymentTests(unittest.TestCase):
         deployed, code = self.execute(value)
         self.assertEqual(code, 0)
         old = deploy.Deployment(self.base, self.docker).running()
-        target = dict(value["target"], version="0.2.15-klno.2-tps.2")
+        target = dict(value["target"], version="0.2.15-klno.2-tps.3")
         # 同一不可变镜像不能换标签；此处用独立 digest 模拟同运行树正式发布。
         target["input"] = target["image"] = deploy.REPOSITORY + "@sha256:" + "2" * 64
         target_id = "sha256:" + "3" * 64

@@ -51,6 +51,23 @@ class SSHTransport:
     def probe(self, record_id=None):
         return json.loads(self.command(self.remote_command("--remote-probe", record_id)))
 
+    def maintenance(self, action, target_revision=None, deployment_id=None):
+        self.bundle.verify()
+        remote = ToolBundle(Path(self.directory), self.bundle.revision, self.bundle.files)
+        result = subprocess.run(["ssh", self.config.ssh_alias,
+                                remote.maintenance_bootstrap(action, target_revision, deployment_id)], capture_output=True)
+        try:
+            response = json.loads(result.stdout)
+        except (ValueError, UnicodeDecodeError) as error:
+            raise DeployError("E_SSH", "未收到有效维护结果；请核对持久标记与维护记录，不自动重试") from error
+        require(result.returncode == 0 and response.get("action") == action and
+                response.get("phase") == ("closed" if action == "freeze" else "open") and
+                response.get("maintenance_flag_present") is (action == "freeze") and
+                (action != "resume" or (response.get("accepted_source_sha") == target_revision and
+                                        response.get("accepted_deployment_id") == deployment_id)),
+                "E_MAINTENANCE", "维护未确认完成；请核对持久标记与私密记录")
+        return response
+
     def execute(self, request, *, dry_run=False):
         mode = "--remote-dry-run" if dry_run else "--remote-apply"
         result = subprocess.run(self.remote_command(mode), input=canonical(request), capture_output=True)
