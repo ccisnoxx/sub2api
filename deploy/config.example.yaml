@@ -226,12 +226,16 @@ gateway:
   # Grok text Responses first-byte timeout (seconds, 0=disabled; default 120)
   # Grok 文本 Responses 首字节超时时间（秒，0=禁用；默认 120）
   grok_response_header_timeout: 120
+  # HTTP /v1/responses 默认尽早发送完整 response.created / response.in_progress 事件。
+  # 发出带响应身份的事件后，失败留在当前流中，不再透明换号；首 token 指标不计开场事件。
+  # 设为 false 恢复首个语义输出前暂存及失败换号。适用于普通和自动透传路径，WebSocket 不受影响。
+  openai_stream_early_preamble: true
   # Native OpenAI HTTP Responses first semantic output timeout (seconds, 0=disabled)
   # Includes response-header wait; does not apply to passthrough or WebSocket transports.
-  # A timed-out request may already have incurred upstream usage; account failover can therefore duplicate upstream billing.
+  # A timed-out request may already have incurred upstream usage; failover before the response starts can duplicate upstream billing.
   # 超时请求可能已产生上游用量；切换账号重试可能导致上游重复计费。
-  # Pre-output attempt staging is capped at 8 MiB; overflow fails over without exposing partial SSE data.
-  # 首次输出前的单次尝试暂存上限为 8 MiB；溢出时切号且不暴露不完整 SSE 数据。
+  # 首次事件提交前的单次尝试暂存上限为 8 MiB；溢出时切号且不暴露不完整 SSE 数据。
+  # 开场事件提前发送后仍检查首个语义输出超时，但超时只终止当前流，不再换号重放。
   openai_first_output_timeout_seconds: 0
   # Optional high/xhigh/max override (seconds, 0=use the standard timeout)
   openai_high_effort_first_output_timeout_seconds: 0

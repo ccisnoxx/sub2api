@@ -433,6 +433,22 @@ func TestLoadOpenAIFirstOutputTimeoutsFromEnv(t *testing.T) {
 	require.Equal(t, 240, cfg.Gateway.OpenAIHighEffortFirstOutputTimeoutSeconds)
 }
 
+func TestLoadOpenAIStreamEarlyPreamble(t *testing.T) {
+	t.Run("default", func(t *testing.T) {
+		resetViperWithJWTSecret(t)
+		cfg, err := Load()
+		require.NoError(t, err)
+		require.True(t, cfg.Gateway.OpenAIStreamEarlyPreamble)
+	})
+	t.Run("disabled", func(t *testing.T) {
+		resetViperWithJWTSecret(t)
+		t.Setenv("GATEWAY_OPENAI_STREAM_EARLY_PREAMBLE", "false")
+		cfg, err := Load()
+		require.NoError(t, err)
+		require.False(t, cfg.Gateway.OpenAIStreamEarlyPreamble)
+	})
+}
+
 func TestValidateOpenAIFirstOutputTimeoutMinimum(t *testing.T) {
 	resetViperWithJWTSecret(t)
 	cfg, err := Load()

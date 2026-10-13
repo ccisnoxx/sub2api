@@ -1159,14 +1159,19 @@ func openAIStreamClientOutputStarted(c *gin.Context, localStarted bool) bool {
 	return OpenAICompactKeepaliveAdjustedWrittenSize(c) >= 0
 }
 
-// Lifecycle metadata and transport heartbeats are not model output.
-func openAIStreamEventIsMetadata(eventType string) bool {
+// 开场事件携带响应身份；提前发送后不能再透明切换到另一个响应。
+func openAIStreamEventIsPreamble(eventType string) bool {
 	switch strings.TrimSpace(eventType) {
-	case "response.created", "response.in_progress", "keepalive":
+	case "response.created", "response.in_progress":
 		return true
 	default:
 		return false
 	}
+}
+
+// Lifecycle metadata and transport heartbeats are not model output.
+func openAIStreamEventIsMetadata(eventType string) bool {
+	return openAIStreamEventIsPreamble(eventType) || strings.TrimSpace(eventType) == "keepalive"
 }
 
 func openAIStreamAddedEventStartsClientOutput(payload []byte, eventType string) bool {
@@ -1973,13 +1978,14 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 	failedMessage := ""
 	clientOutputStarted := false
 	codexFailureTerminal := account != nil && account.Platform == PlatformOpenAI
+	earlyPreamble := codexFailureTerminal && s.cfg != nil && s.cfg.Gateway.OpenAIStreamEarlyPreamble
 	failureDelivered := false
 	suppressCurrentEvent := false
 	responseFailedPending := false
 	var bareErrorPayload []byte
 	bareErrorAccountSideEffectsPending := false
 	upstreamRequestID := strings.TrimSpace(resp.Header.Get("x-request-id"))
-	// pendingLines 在首个可见输出前保留前导事件，确保无输出失败仍可安全 failover。
+	// pendingLines 在首次提交前保留前导事件；开启提前开场时在完整开场边界提交。
 	pendingLines := make([]string, 0, 8)
 
 	// ── 首个可见输出之前的下游 keepalive ──────────────────────────────────
@@ -2018,10 +2024,12 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 	}
 	// 任何返回路径都要停拍。Stop 与心跳 goroutine 之间有互斥锁，
 	// 返回后不会再有字节写出。
-	defer stopKeepalive()
+	defer func() { stopKeepalive() }()
+	preambleKeepaliveActive := false
 	// flushPending 表示已写入但未到 SSE 空行边界的脏状态；defer 兜底函数退出前的残留，断连后不再 Flush。
 	flushPending := false
 	pendingSSEEventType := ""
+	eventStartsPreamble := false
 	flushPendingOutput := func() {
 		if clientDisconnected || !flushPending {
 			return
@@ -2030,6 +2038,23 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 		flushPending = false
 	}
 	defer flushPendingOutput()
+	sendInterruptedTerminal := func(code, message string) {
+		if !earlyPreamble || !clientOutputStarted || clientDisconnected || failureDelivered || ctx.Err() != nil {
+			return
+		}
+		// 先收回心跳 writer；补齐尚未闭合的事件，再沿用已提交的响应身份结束。
+		stopKeepalive()
+		source := []byte(`{"code":` + strconv.Quote(code) + `}`)
+		if _, err := fmt.Fprint(w, "\n"+buildOpenAIResponseFailedSSE(responseID, originalModel, source, message)); err != nil {
+			clientDisconnected = true
+			timing.clientDisconnected()
+			return
+		}
+		failureDelivered = true
+		flushPending = true
+		flushPendingOutput()
+		MarkResponseCommitted(c)
+	}
 	writePendingLines := func() bool {
 		for _, pending := range pendingLines {
 			if _, err := fmt.Fprintln(w, pending); err != nil {
@@ -2087,6 +2112,11 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 	}
 
 	for documentScanner.Scan() {
+		if preambleKeepaliveActive {
+			// 新事件开始前交回 writer，避免心跳插入尚未完成的 SSE 事件。
+			stopKeepalive()
+			preambleKeepaliveActive = false
+		}
 		line := documentScanner.Text()
 		if eventType, ok := extractOpenAISSEEventLine(line); ok {
 			pendingSSEEventType = eventType
@@ -2260,8 +2290,23 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 			// to the client) are silent upstream refusals: fail over instead of
 			// recording a successful 0/0 usage turn (issue #5009).
 			if (eventType == "response.completed" || eventType == "response.done") &&
-				!sawFailedEvent && !semanticOutputSeen && !clientOutputStarted &&
+				!sawFailedEvent && !semanticOutputSeen &&
 				openAIResponsesCompletedEventIsEmpty(dataBytes, usage) {
+				if clientOutputStarted {
+					// 开场已发送也不能把空完成记作成功；沿用该响应身份发出失败终止帧。
+					s.recordOpenAIStreamUpstreamError(c, account, true, upstreamRequestID, "stream_failed", dataBytes, openAIResponsesEmptyCompletedMessage)
+					if !clientDisconnected {
+						// event: response.completed 可能已经写出，但尚未发送其 data；先闭合空帧。
+						if _, err := fmt.Fprint(w, "\n"+buildOpenAIResponseFailedSSE(responseID, originalModel, nil, openAIResponsesEmptyCompletedMessage)); err != nil {
+							clientDisconnected = true
+						} else {
+							flushPending = true
+							flushPendingOutput()
+							MarkResponseCommitted(c)
+						}
+					}
+					return resultWithUsage(), fmt.Errorf("stream usage incomplete: %s", openAIResponsesEmptyCompletedMessage)
+				}
 				return resultWithUsage(), newOpenAIResponsesEmptyCompletedFailoverError(c, account, upstreamRequestID)
 			}
 			if firstTokenMs == nil && openAIStreamDataStartsTTFT(trimmedData, eventType, forceFlushFailedEvent, ttftMode) {
@@ -2269,10 +2314,14 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 				firstTokenMs = &ms
 			}
 			timing.observeUsage(dataBytes, eventType, *usage)
+			// 开场事件只提交响应身份，不计入语义输出或 TTFT，等空行后再放行。
+			eventStartsPreamble = eventStartsPreamble || (earlyPreamble && openAIStreamEventIsPreamble(eventType))
 			s.parseSSEUsageBytesWithType(dataBytes, eventType, usage)
 		}
 		if line == "" {
 			pendingSSEEventType = ""
+			lineStartsClientOutput = lineStartsClientOutput || eventStartsPreamble
+			eventStartsPreamble = false
 			if suppressCurrentEvent {
 				suppressCurrentEvent = false
 				responseFailedPending = false
@@ -2311,6 +2360,14 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 			responseFailedPending = false
 			failureDelivered = true
 		}
+		if earlyPreamble && line == "" && clientOutputStarted && !semanticOutputSeen &&
+			!sawTerminalEvent && !sawDone && !sawFailedEvent && !clientDisconnected && !failureDelivered &&
+			s.cfg.Gateway.StreamKeepaliveInterval > 0 {
+			// 开场或空 reasoning 等非语义事件发送完后继续保活；下一事件先停拍再写。
+			stopKeepalive = startOpenAISSEKeepalive(c,
+				time.Duration(s.cfg.Gateway.StreamKeepaliveInterval)*time.Second)
+			preambleKeepaliveActive = true
+		}
 		// Terminal 事件（response.completed / [DONE] 等）随空行完整刷出后不再等上游
 		// EOF：上游在 keep-alive/HTTP2 复用连接上可能拖延关闭连接（观测到 8~46s 不等），
 		// 空等期间只能靠 keepalive 维持，白白拉长尾延迟。usage 已在 terminal 事件中解析。
@@ -2330,10 +2387,13 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 			return resultWithUsage(), fmt.Errorf("upstream response failed: %s", failedMessage)
 		}
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			code, message := classifyOpenAIUpstreamStreamReadError(err)
+			sendInterruptedTerminal(code, message)
 			return resultWithUsage(), fmt.Errorf("stream usage incomplete: %w", err)
 		}
 		if errors.Is(err, bufio.ErrTooLong) {
 			logger.LegacyPrintf("service.openai_gateway", "[OpenAI passthrough] SSE line too long: account=%d max_size=%d error=%v", account.ID, maxLineSize, err)
+			sendInterruptedTerminal("response_too_large", "Upstream response exceeded the size limit")
 			return resultWithUsage(), err
 		}
 		if !openAIStreamClientOutputStarted(c, clientOutputStarted) {
@@ -2348,6 +2408,8 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 			return resultWithUsage(), fmt.Errorf("stream usage incomplete after disconnect: %w", err)
 		}
 		s.recordOpenAIProxyStreamDisconnect(account, err, upstreamRequestID)
+		code, message := classifyOpenAIUpstreamStreamReadError(err)
+		sendInterruptedTerminal(code, message)
 		logger.LegacyPrintf("service.openai_gateway",
 			"[OpenAI passthrough] 流读取异常中断: account=%d request_id=%s err=%v",
 			account.ID,
@@ -2370,6 +2432,7 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 				s.newOpenAIStreamFailoverError(c, account, true, upstreamRequestID, nil, "OpenAI stream ended before a terminal event")
 		}
 		s.recordOpenAIProxyStreamDisconnect(account, errors.New("stream ended before terminal event"), upstreamRequestID)
+		sendInterruptedTerminal(OpenAIUpstreamStreamTruncatedCode, "Upstream response stream ended before completion")
 		return resultWithUsage(), errors.New("stream usage incomplete: missing terminal event")
 	}
 	if (sawDone || sawTerminalEvent) && !sawFailedEvent {
