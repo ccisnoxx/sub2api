@@ -344,7 +344,7 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 		// 静默退化成 no-op。这是 ctx_pool 帧与 WS→HTTP 桥的唯一一遍，发送边界不再重复；
 		// 帧收口 applyCodexWSFrameWireProfile 只负责 user_location 那一半。
 		normalized = rewriteCodexEnvironmentTimezone(c, account, normalized)
-		if compatibilityBody, compatibilityChanged, compatibilityErr := normalizeOpenAIResponsesWebSocketCompatibilityBody(normalized, account, responsesLite); compatibilityErr != nil {
+		if compatibilityBody, compatibilityChanged, compatibilityErr := normalizeOpenAIResponsesWebSocketCompatibilityBodyWithConfig(s.cfg, normalized, account, responsesLite); compatibilityErr != nil {
 			return openAIWSClientPayload{}, NewOpenAIWSClientCloseError(coderws.StatusPolicyViolation, "invalid websocket request payload", compatibilityErr)
 		} else if compatibilityChanged {
 			normalized = compatibilityBody
@@ -680,7 +680,8 @@ func (s *OpenAIGatewayService) ProxyResponsesWebSocketFromClient(
 			}
 			if hooks != nil && hooks.BeforeTurn != nil {
 				if err := hooks.BeforeTurn(turn); err != nil {
-					return err
+					return gatewayPoolWSTurnRestFailure(err, turn, currentBridgePayload.payloadRaw, currentBridgePayload.previousResponseID,
+						currentBridgePayload.accountIdentitySourceRaw, currentBridgePayload.originalModel, bridgeAccountFailoverInput, bridgeAccountFailoverInputExists)
 				}
 			}
 			if turnState != "" && c != nil && c.Request != nil {

@@ -92,6 +92,9 @@ func TestResponsesStickySpillover_LegacyTriesCapacityBeforeWait(t *testing.T) {
 }
 
 func TestResponsesStickySpillover_LegacyPreservesAdmissionGates(t *testing.T) {
+	// 同进程的其他调度测试会缓存高级开关；本用例必须固定走 legacy 路径。
+	resetOpenAIAdvancedSchedulerSettingCacheForTest()
+	t.Cleanup(resetOpenAIAdvancedSchedulerSettingCacheForTest)
 	groupID := int64(48202)
 	for _, loadBatch := range []bool{false, true} {
 		for _, gate := range []string{"model", "group", "capability", "profit", "excluded", "transport"} {

@@ -1,5 +1,16 @@
 # 功能来源与长期维护归属
 
+## 2026-10-19：v0.2.17-klno.1 升级候选
+
+当前工作树来源固定为 `KlN-4096/sub2api` 的 `v0.2.17-klno.1`，annotated tag object 为 `f9c7303984ab3d9adfc985c2c99e59cc9df09cab`，peeled commit 为 `cf0bf0526704bb615745fda76009cb20d85df613`。个人候选从 `2d532db30a94e5d3bff3ef928323186c1d4d93c5`（`v0.2.15-klno.4-tps.1`）准备；该来源与 NOTICE、`deploy/personal-source.json` 一致。下文 I/N/C/T 与发布状态均是带日期的历史记录，不能用作本候选已发布或已上线的证明。
+
+上游重写历史，旧来源 `c555ad918b08cb24ccb2eb45f4ae44a843e24baf` 不是新来源的祖先。此次人工三方投影显式使用该旧来源作为逻辑基线，真实 merge 保留旧 personal 和新 KIN 为两个父系；不修改自动同步的祖先门禁。个人计时、目录、诊断、服务状态、部分用量结算及版本更新 owner 保留；Wire/Ent 从维护源生成。源码 VERSION 仅标识 RC，不分配正式发布标签。
+
+旧 SQL 文件保持原名、原字节；新增 `242_group_i18n.sql`、`243_gemini_cached_contents.sql`、`244_gemini_cached_contents_channel_usage.sql`、`245_gemini_cached_contents_mutation_lease.sql`。新增 SQL 是加法 schema；正式部署前仍须绑定实际 311 行旧账本、315 行候选账本、镜像与可信工具证明。保留当前旧镜像和恢复材料，不根据加法 DDL 推断全业务镜像回退安全。
+
+## 历史固定来源与模块证据
+
+
 核对日期：2026-10-13 UTC。当前维护任务：REL-002/003/ARCH-002 已验收；PREP-003 的旧稳定基线证据保留在本文末尾。main 管理控制工具和维护记录，personal 保存实际应用。应用 owner、测试和来源一律从固定 I 读取，不用 main 的同名应用文件代替。协调 owner 均为 `ccisnoxx`，不代表原作者、版权归属或上游背书。
 
 ## 当前固定来源
@@ -19,7 +30,7 @@ N 的 annotated tag object 是 `0c1ede31ec63f9cfc2b72f07db66fb41f540208d`，peel
 
 [I 的三字段来源文件](https://github.com/ccisnoxx/sub2api/blob/c08fba12eb4cd30e65c4177f3acbe20567ecd252/deploy/personal-source.json)指定仓库 `KlN-4096/sub2api`、N tag 与 N SHA，与 [I 的 NOTICE](https://github.com/ccisnoxx/sub2api/blob/c08fba12eb4cd30e65c4177f3acbe20567ecd252/NOTICE)及当前 [NOTICE](NOTICE)一致。A、N、累计重放 R 均为 I 的真实祖先；K 不是 N 的祖先。原始上游仍是 [Wei-Shaw/sub2api](https://github.com/Wei-Shaw/sub2api)。固定源码、正式 Release、OCI digest 与生产 308 行账本已绑定，见 [当前OBS发布验收](docs/upstream/records/2026-10-12-obs-release.md)；原 [REL-002](docs/upstream/records/2026-10-12-rel-002.md) 和 [REL-003](docs/upstream/records/2026-10-12-rel-003.md)保持归档。旧 A 保留用于维护恢复，不能仅切回镜像。
 
-发布与迁移事实见 [记录目录](docs/upstream/records/README.md)、[个人发布归档](docs/upstream/records/published-personal.md)、[本次 KIN 迁移](https://github.com/ccisnoxx/sub2api/blob/c54b9497d4bee04215384deb494c5467b917a7db/docs/upstream/records/2026-10-11-kin-v0.2.15-klno.2.md)。下一次操作按 [维护合同](docs/conventions/personal-maintenance.md)和 [CI-000](docs/ci/CI-000.md)进行；历史自动 CI/发布规则不作为当前流程。
+发布与迁移事实见 [记录目录](docs/upstream/records/README.md)、[个人发布归档](docs/upstream/records/published-personal.md)、[本次 KIN 迁移](https://github.com/ccisnoxx/sub2api/blob/c54b9497d4bee04215384deb494c5467b917a7db/docs/upstream/records/2026-10-11-kin-v0.2.15-klno.2.md)。下一次操作按 [维护合同](https://github.com/ccisnoxx/sub2api/blob/ded64ff9ac48a1817a8f26af57f69eb382fb4fb0/docs/conventions/personal-maintenance.md)和 [CI-000](docs/ci/CI-000.md)进行；历史自动 CI/发布规则不作为当前流程。
 
 ## 第8节OBS整合续作的来源边界
 
@@ -120,7 +131,7 @@ K 与 [A 的来源记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707
 
 远端 `v0.2.14+custom.002` 是 annotated tag，tag object 为 `4d8a25878fa7d4f99ec5bf2f8576dccb023409eb`，实际指向 `a7749f5826ec0a5c6493c47fde9474dc31525f14`。P 是随后合入的发布来源文档提交，其第一父提交就是该标签提交。二者的完整 tree diff 只有 `UPSTREAM.md`，下面引用的应用源码与功能文档相同。
 
-因此保留已有适配记录的固定阅读提交 P，但不再声称 P 就是标签解析结果。发行标签提交与阅读提交同时登记于 [NOTICE](NOTICE)；未来复核使用完整 SHA，不追随移动的 `main`，也不据此推断标签曾被改写。历史 [适配计划](openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)中旧的“标签 / 提交”简写须按本节理解。
+因此保留已有适配记录的固定阅读提交 P，但不再声称 P 就是标签解析结果。发行标签提交与阅读提交同时登记于 [NOTICE](NOTICE)；未来复核使用完整 SHA，不追随移动的 `main`，也不据此推断标签曾被改写。历史 [适配计划](https://github.com/ccisnoxx/sub2api/blob/f5c4c3304106040a01a32c5e6d4ff18f3ec49930/openspec/changes/adopt-plus-usage-and-diagnostics/plan.md)中旧的“标签 / 提交”简写须按本节理解。
 
 ### 来源矩阵
 
@@ -141,7 +152,7 @@ K 与 [A 的来源记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707
 
 ### 模块证据与重放入口
 
-以下代码路径是对应固定树中的真实文件。应用链接可从 [A 源码树](https://github.com/ccisnoxx/sub2api/tree/3d5e1fde82707900a21f2b5538b112c7bab3c04a)进入，控制工具从 [F 源码树](https://github.com/ccisnoxx/sub2api/tree/f5c4c3304106040a01a32c5e6d4ff18f3ec49930)进入。实施和验证历史见 [执行证据](openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md)；本文不将历史测试通过当作新 KIN 已验证。
+以下代码路径是对应固定树中的真实文件。应用链接可从 [A 源码树](https://github.com/ccisnoxx/sub2api/tree/3d5e1fde82707900a21f2b5538b112c7bab3c04a)进入，控制工具从 [F 源码树](https://github.com/ccisnoxx/sub2api/tree/f5c4c3304106040a01a32c5e6d4ff18f3ec49930)进入。实施和验证历史见 [执行证据](https://github.com/ccisnoxx/sub2api/blob/f5c4c3304106040a01a32c5e6d4ff18f3ec49930/openspec/changes/adopt-plus-usage-and-diagnostics/implementation-evidence.md)；本文不将历史测试通过当作新 KIN 已验证。
 
 #### 用量计时与展示
 
@@ -153,14 +164,14 @@ K 与 [A 的来源记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707
 
 #### 模型与价格目录
 
-- Plus 参考：[AVAILABLE_CHANNELS.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/AVAILABLE_CHANNELS.md)。本地[目录合同](openspec/changes/adopt-plus-usage-and-diagnostics/catalog-contract.md)与[价格合同](openspec/changes/adopt-plus-usage-and-diagnostics/pricing-contract.md)指定 KIN 权限和计费 owner。
+- Plus 参考：[AVAILABLE_CHANNELS.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/AVAILABLE_CHANNELS.md)。本地[目录合同](https://github.com/ccisnoxx/sub2api/blob/f5c4c3304106040a01a32c5e6d4ff18f3ec49930/openspec/changes/adopt-plus-usage-and-diagnostics/catalog-contract.md)与[价格合同](https://github.com/ccisnoxx/sub2api/blob/f5c4c3304106040a01a32c5e6d4ff18f3ec49930/openspec/changes/adopt-plus-usage-and-diagnostics/pricing-contract.md)指定 KIN 权限和计费 owner。
 - 本地引入：价格 `e82287300d1b7cc625295c5307ebaa83c707c019`、DTO `49c209a77059d2927f78bbd31c1dd479b509dc6f`、页面 `b8cf49ca25007cbc23338a9443b71df4c0411155`。
 - 重放文件：`backend/internal/service/catalog_pricing.go`、`backend/internal/service/channel_catalog.go`、`backend/internal/service/model_pricing_resolver.go`、`backend/internal/service/billing_context_schedule.go`、`backend/internal/handler/available_model_catalog.go`、`backend/internal/handler/available_channel_handler.go`、`frontend/src/api/channels.ts`、`frontend/src/utils/modelCatalog.ts`、`frontend/src/components/channels/ModelCatalogCard.vue`、`frontend/src/views/user/AvailableChannelsView.vue`。
 - 测试入口：`backend/internal/service/catalog_pricing_test.go`、`backend/internal/handler/available_model_catalog_test.go`、`frontend/src/api/__tests__/channels.catalog.spec.ts`、`frontend/src/utils/__tests__/modelCatalog.spec.ts`、`frontend/src/views/user/__tests__/AvailableChannelsView.spec.ts`。
 
 #### 路由诊断
 
-- Plus 参考：[ERROR_REQUEST_DIAGNOSTICS.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/ERROR_REQUEST_DIAGNOSTICS.md)。本地[诊断合同](openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md)保留未知与实测空池的区别。
+- Plus 参考：[ERROR_REQUEST_DIAGNOSTICS.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/ERROR_REQUEST_DIAGNOSTICS.md)。本地[诊断合同](https://github.com/ccisnoxx/sub2api/blob/f5c4c3304106040a01a32c5e6d4ff18f3ec49930/openspec/changes/adopt-plus-usage-and-diagnostics/routing-diagnostics-contract.md)保留未知与实测空池的区别。
 - 本地引入：producer `cee1e908261c68880040b740aae8054410e03070`、存储/DTO `ab4a3f5ce058b28cc3139e5e60297ab4c264ffb1`、详情 `d23474171035320eda06a35d76d455d7f8d7aae4`；后续重放须保留 `da581c6846d1bf89926ca9730abf2290ea8b65ea` 的 native WS 安全重放修复。
 - 重放文件：`backend/internal/service/routing_diagnostics.go`、`backend/internal/service/routing_diagnostics_validation.go`、`backend/internal/service/openai_account_scheduler.go`、`backend/internal/handler/openai_ws_routing_diagnostics.go`、`backend/internal/handler/ops_error_logger.go`、`backend/internal/repository/ops_repo.go`、`frontend/src/views/admin/ops/components/OpsErrorDetailModal.vue`。
 - 迁移：`backend/migrations/252_add_ops_routing_diagnostics.sql`。
@@ -168,7 +179,7 @@ K 与 [A 的来源记录](https://github.com/ccisnoxx/sub2api/blob/3d5e1fde82707
 
 #### 服务状态
 
-- Plus 参考：[CHANNEL_MONITOR.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/CHANNEL_MONITOR.md)。本地[独立合同](openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md)要求管理员可见、独立监控键、未知与样本不足，不替换原 V1/V2。
+- Plus 参考：[CHANNEL_MONITOR.md](https://github.com/LuckyKuang/sub2api-plus/blob/90da415c62b94c9417d9ce2b72b1507ed22f0303/docs/CHANNEL_MONITOR.md)。本地[独立合同](https://github.com/ccisnoxx/sub2api/blob/f5c4c3304106040a01a32c5e6d4ff18f3ec49930/openspec/changes/adopt-plus-usage-and-diagnostics/service-status-contract.md)要求管理员可见、独立监控键、未知与样本不足，不替换原 V1/V2。
 - 本地引入：`35962a802fdc499639c9c861072f25774ccba50b`；当前实现以 A 为准，包含后续完整分钟和源日志缺口修复。
 - 重放文件：`backend/internal/service/service_status.go`、`backend/internal/service/service_status_aggregator.go`、`backend/internal/service/service_status_observation.go`、`backend/internal/service/service_status_source_reporter.go`、`backend/internal/repository/service_status_repo.go`、`backend/internal/repository/service_status_normalize.go`、`backend/internal/repository/service_status_incidents.go`、`backend/internal/handler/service_status_handler.go`、`backend/internal/server/routes/admin.go`、`frontend/src/api/admin/serviceStatus.ts`、`frontend/src/views/admin/ServiceStatusView.vue`、`frontend/src/router/index.ts`。
 - 迁移：`backend/migrations/253_service_status_observation.sql`、`backend/migrations/254_service_status.sql`。

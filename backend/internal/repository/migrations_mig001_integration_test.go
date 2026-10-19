@@ -21,7 +21,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-const mig001TargetMigrationCount = 311
+const mig001TargetMigrationCount = 315
 
 // 旧 KIN 的303份、旧personal的307份和tps.3的308份SQL保留完整文件身份。
 // 使用真实 runner 和完整 SQL 集合，避免用手填账本或简化 schema 冒充升级。
@@ -55,6 +55,7 @@ func TestMIG001UpgradePaths(t *testing.T) {
 		{"old-kin", oldKIN, 303},
 		{"already-personal", oldPersonal, 307},
 		{"current-tps3", mig001Files(t, true, true), 308},
+		{"current-klno4", mig001Klno4Files(t), 311},
 	} {
 		t.Run(initial.name, func(t *testing.T) {
 			_, err := db.ExecContext(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public")
@@ -63,7 +64,7 @@ func TestMIG001UpgradePaths(t *testing.T) {
 				require.NoError(t, applyMigrationsFS(ctx, db, initial.files))
 				mig001SeedUsage(t, db)
 			}
-			if initial.name == "already-personal" || initial.name == "current-tps3" {
+			if initial.name == "already-personal" || initial.name == "current-tps3" || initial.name == "current-klno4" {
 				_, err := db.ExecContext(ctx, `UPDATE service_status_config SET enabled=TRUE,version=7 WHERE id=1;
 INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_model,success) VALUES('2026-10-10T00:00:00Z','openai',1,'mig001-fixture',5)`)
 				require.NoError(t, err)
@@ -99,7 +100,7 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 			require.Equal(t, 12, columnCount)
 			require.NoError(t, db.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('service_status_config','service_status_facts_1m','service_status_scope_states','service_status_incidents','service_status_watermark')`).Scan(&tableCount))
 			require.Equal(t, 5, tableCount)
-			if initial.name == "already-personal" || initial.name == "current-tps3" {
+			if initial.name == "already-personal" || initial.name == "current-tps3" || initial.name == "current-klno4" {
 				var enabled bool
 				var version, successes int
 				require.NoError(t, db.QueryRowContext(ctx, "SELECT enabled,version FROM service_status_config WHERE id=1").Scan(&enabled, &version))
@@ -159,16 +160,31 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 
 func mig001Files(t *testing.T, target242, personal bool) fstest.MapFS {
 	t.Helper()
+	files := mig001Klno4Files(t)
+	for name := range files {
+		// 这些迁移属于.3/.4，不能因读取当前FS而混入旧版本夹具。
+		switch name {
+		case "251_drop_gwpool_previous_ledgers.sql", "252_drop_retired_turn_state_and_gwpool_keys.sql", "253_move_gwpool_ledgers_to_table.sql":
+			delete(files, name)
+			continue
+		}
+		if (!target242 && name == "242_drop_platform_check_constraints.sql") || (!personal && (strings.HasPrefix(name, "251_") || strings.HasPrefix(name, "252_") || strings.HasPrefix(name, "253_") || strings.HasPrefix(name, "254_"))) {
+			delete(files, name)
+			continue
+		}
+	}
+	return files
+}
+
+// 固定线上 .15-klno.4 的迁移身份，不能将 .17 的新增 SQL 提前混入旧库。
+func mig001Klno4Files(t *testing.T) fstest.MapFS {
+	t.Helper()
 	names, err := fs.Glob(migrations.FS, "*.sql")
 	require.NoError(t, err)
 	files := fstest.MapFS{}
 	for _, name := range names {
-		// 这些迁移属于.3/.4，不能因读取当前FS而混入旧版本夹具。
 		switch name {
-		case "251_drop_gwpool_previous_ledgers.sql", "252_drop_retired_turn_state_and_gwpool_keys.sql", "253_move_gwpool_ledgers_to_table.sql":
-			continue
-		}
-		if (!target242 && name == "242_drop_platform_check_constraints.sql") || (!personal && (strings.HasPrefix(name, "251_") || strings.HasPrefix(name, "252_") || strings.HasPrefix(name, "253_") || strings.HasPrefix(name, "254_"))) {
+		case "242_group_i18n.sql", "243_gemini_cached_contents.sql", "244_gemini_cached_contents_channel_usage.sql", "245_gemini_cached_contents_mutation_lease.sql":
 			continue
 		}
 		data, err := migrations.FS.ReadFile(name)

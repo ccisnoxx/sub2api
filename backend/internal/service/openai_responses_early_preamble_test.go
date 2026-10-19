@@ -19,7 +19,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const earlyPreambleCreated = "event: response.created\ndata: {\"type\":\"response.created\",\"response\":{\"id\":\"resp_early\"}}\n\n"
+const earlyPreambleCreated = "event: response.created\ndata: {\"type\":\"response.created\",\"response\":{\"id\":\"resp_early\",\"created_at\":1700000000}}\n\n"
 
 func requireEarlyPreambleFailedTerminal(t *testing.T, body, code string) {
 	t.Helper()
@@ -34,7 +34,7 @@ func requireEarlyPreambleFailedTerminal(t *testing.T, body, code string) {
 		require.Equal(t, "failed", gjson.GetBytes(payload, "response.status").String())
 		require.Equal(t, code, gjson.GetBytes(payload, "response.error.code").String())
 		require.True(t, gjson.GetBytes(payload, "sequence_number").Exists())
-		require.Positive(t, gjson.GetBytes(payload, "response.created_at").Int())
+		require.EqualValues(t, 1700000000, gjson.GetBytes(payload, "response.created_at").Int(), "合成失败帧沿用开场的 created_at")
 	})
 	require.Equal(t, 1, failures, "必须恰好发送一个当前响应的失败终止事件")
 }
@@ -68,7 +68,7 @@ func TestOpenAIResponsesEarlyPreambleReachesHTTPClientBeforeGeneration(t *testin
 			allowGeneration := make(chan struct{})
 			var releaseOnce sync.Once
 			release := func() { releaseOnce.Do(func() { close(allowGeneration) }) }
-			inProgress := "event: response.in_progress\ndata: {\"type\":\"response.in_progress\",\"response\":{\"id\":\"resp_early\"}}\n\n"
+			inProgress := "event: response.in_progress\ndata: {\"type\":\"response.in_progress\",\"response\":{\"id\":\"resp_early\",\"created_at\":1700000000}}\n\n"
 			emptyReasoning := "data: {\"type\":\"response.output_item.added\",\"item\":{\"type\":\"reasoning\",\"summary\":[]}}\n\n"
 			tail := "data: {\"type\":\"response.output_text.delta\",\"delta\":\"hello\"}\n\n" +
 				"data: {\"type\":\"response.completed\",\"response\":{\"id\":\"resp_early\",\"usage\":{\"input_tokens\":3,\"output_tokens\":1}}}\n\n"
