@@ -46,7 +46,7 @@ class Klno17GitTests(unittest.TestCase):
     def test_fixed_upgrade_and_control_successor_bind_all_inputs_and_only_four_new_sql(self):
         proof = self.evidence.compatibility(OLD, NEW)
         self.assertEqual((len(proof["changed_paths"]), deploy.sha(deploy.canonical(proof["changed_paths"]))),
-                         (303, "d1b0d8c193d84076fdff291f08e91a0edffd238dfe839c1e6b085cd935406cfd"))
+                         (304, "2ab0b9d6206f512bd09fbb06ebd722049328c67aa470af2dc9673e0147a019b9"))
         self.assertEqual(len(proof["klno17_upgrade"]["frontend_changed_paths"]), 65)
         self.assertEqual(self.evidence.source_at(NEW["revision"]), deploy.KLNO17_NEW_SOURCE)
         self.assertEqual(self.git("diff", "--name-status", OLD["revision"], NEW["revision"],

@@ -185,9 +185,9 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 
 本次仅增加离线合同，未发布镜像、升级生产或证明业务回退安全。已核实的旧生产身份为 `2d532db30a94e5d3bff3ef928323186c1d4d93c5 / 0.2.15-klno.4-tps.1`、镜像 `sha256:7e49c8d375ba9ae4ab9bdef4a03c52b634f234d0cebd9ddd5e77240278e94247`，成功选择记录 `20261013T101751Z-4b2b5c9d445b`。旧来源固定为 `v0.2.15-klno.4 / c555ad918b08cb24ccb2eb45f4ae44a843e24baf`，新来源固定为 `v0.2.17-klno.1 / cf0bf0526704bb615745fda76009cb20d85df613`；双方来源三字段各自精确匹配上述固定记录，两个上游标签及候选祖先都必须真实可核验。
 
-`klno17_upgrade` 绑定已提交候选 `4bd47e3d38c5c2804f32e917b65e05a98d0907de`，正式版本只接受 `0.2.17-klno.1-tps.1`。候选源码内 `VERSION` 仍为 RC，实际发布版本由发布工具分配并通过正式个人标签及 OCI 标签绑定，RC 不能作为部署输入。正式普通 merge 及文档/控制后继可以改变最终 revision，但必须包含该候选且所有构建输入相同；新镜像 digest 不作猜测。
+`klno17_upgrade` 绑定已提交候选 `d77a512175892111b94e659c3f3ffb1223d1bddc`，正式版本只接受 `0.2.17-klno.1-tps.1`。候选源码内 `VERSION` 仍为 RC，实际发布版本由发布工具分配并通过正式个人标签及 OCI 标签绑定，RC 不能作为部署输入。候选包含 legacy 调度测试的全局设置缓存隔离修复，生产逻辑不变。正式普通 merge 及文档/控制后继可以改变最终 revision，但必须包含该候选且所有构建输入相同；新镜像 digest 不作猜测。
 
-新完整运行树指纹为 `0e54520a556ee7592b0d7eab79a9092bb53cd3606f5d32cf8d677079ff79bb0f`，整个前端指纹为 `eca3f8a22cf25f2ddbd07498fb3ac70d121e998da926bdf085fbc26b70bb2704`，两份外部 raw legal 输入仍为 `70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942`。303 条排序运行差异的 canonical JSON SHA-256 为 `d1b0d8c193d84076fdff291f08e91a0edffd238dfe839c1e6b085cd935406cfd`，65 条前端差异的摘要为 `a21eaa87d4dfc4076208cf8bd1ac212db04ed0470307232be8a2e334b5dcb135`。证明保留全部运行差异路径和 `KLNO17_FRONTEND_CHANGED_PATHS` 完整列表；内容、mode、type、来源、祖先、未知零差异树和重新 hash 后伪装均不能放行。
+新完整运行树指纹为 `16b775db55e3855b86b310d16e17131100502147fe3833baa980fe7fababe33b`，整个前端指纹为 `eca3f8a22cf25f2ddbd07498fb3ac70d121e998da926bdf085fbc26b70bb2704`，两份外部 raw legal 输入仍为 `70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942`。304 条排序运行差异的 canonical JSON SHA-256 为 `2ab0b9d6206f512bd09fbb06ebd722049328c67aa470af2dc9673e0147a019b9`，65 条前端差异的摘要为 `a21eaa87d4dfc4076208cf8bd1ac212db04ed0470307232be8a2e334b5dcb135`。证明保留全部运行差异路径和 `KLNO17_FRONTEND_CHANGED_PATHS` 完整列表；内容、mode、type、来源、祖先、未知零差异树和重新 hash 后伪装均不能放行。
 
 全部旧 311 份 SQL 文件逐字保留，只追加以下普通 `100644` 文件；checksum 使用 runner 的 `SHA256(strings.TrimSpace(SQL))`：
 
