@@ -531,6 +531,131 @@ KLNO4_OLD_MIGRATION_STATE = {
 }
 
 
+# .15-klno.4 → .17-klno.1 固定生产升级；新增持久业务语义未证明可回退。
+KLNO17_UPGRADE_ID = "0.2.15-klno.4-tps.1-to-0.2.17-klno.1-tps.1"
+KLNO17_OLD_REVISION = "2d532db30a94e5d3bff3ef928323186c1d4d93c5"
+KLNO17_OLD_VERSION = KLNO4_NEW_VERSION
+KLNO17_OLD_IMAGE = REPOSITORY + "@sha256:7e49c8d375ba9ae4ab9bdef4a03c52b634f234d0cebd9ddd5e77240278e94247"
+KLNO17_NEW_SOURCE = {
+    "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.17-klno.1",
+    "upstream_sha": "cf0bf0526704bb615745fda76009cb20d85df613",
+}
+# 正式 merge 与同树后继必须包含此候选；不猜测最终发布 SHA 或新镜像 digest。
+KLNO17_NEW_REVISION = "d77a512175892111b94e659c3f3ffb1223d1bddc"
+KLNO17_NEW_VERSION = "0.2.17-klno.1-tps.1"
+KLNO17_NEW_RUNTIME = "16b775db55e3855b86b310d16e17131100502147fe3833baa980fe7fababe33b"
+KLNO17_NEW_FRONTEND = "eca3f8a22cf25f2ddbd07498fb3ac70d121e998da926bdf085fbc26b70bb2704"
+KLNO17_RAW_PATHS = KLNO4_RAW_PATHS
+KLNO17_RAW_SHA256 = KLNO4_RAW_SHA256
+KLNO17_CHANGED_PATHS_SHA256 = "2ab0b9d6206f512bd09fbb06ebd722049328c67aa470af2dc9673e0147a019b9"
+KLNO17_FRONTEND_CHANGED_PATHS = (
+    "frontend/src/components/account/AccountGroupsCell.vue",
+    "frontend/src/components/account/AccountTestModal.vue",
+    "frontend/src/components/account/AccountUsageCell.vue",
+    "frontend/src/components/account/CreateAccountModal.vue",
+    "frontend/src/components/account/EditAccountModal.vue",
+    "frontend/src/components/account/GatewayPoolBulkSettings.vue",
+    "frontend/src/components/account/ModelWhitelistSelector.vue",
+    "frontend/src/components/account/UsageProgressBar.vue",
+    "frontend/src/components/account/__tests__/AccountUsageCell.spec.ts",
+    "frontend/src/components/account/__tests__/BulkEditAccountModal.spec.ts",
+    "frontend/src/components/account/__tests__/CreateAccountModal.spec.ts",
+    "frontend/src/components/account/__tests__/EditAccountModal.spec.ts",
+    "frontend/src/components/account/__tests__/ModelWhitelistSelector.spec.ts",
+    "frontend/src/components/account/__tests__/UsageProgressBar.spec.ts",
+    "frontend/src/components/admin/account/AccountTableFilters.vue",
+    "frontend/src/components/admin/account/AccountTestModal.vue",
+    "frontend/src/components/admin/account/__tests__/AccountTableFilters.spec.ts",
+    "frontend/src/components/admin/group/GroupI18nField.vue",
+    "frontend/src/components/admin/group/GroupRPMOverridesModal.vue",
+    "frontend/src/components/admin/group/GroupRateMultipliersModal.vue",
+    "frontend/src/components/admin/group/__tests__/GroupI18nField.spec.ts",
+    "frontend/src/components/admin/group/__tests__/GroupRPMOverridesModal.requests.spec.ts",
+    "frontend/src/components/admin/group/__tests__/GroupRateMultipliersModal.edit.spec.ts",
+    "frontend/src/components/common/GroupBadge.vue",
+    "frontend/src/components/common/LocaleSwitcher.vue",
+    "frontend/src/components/common/PlatformTypeBadge.vue",
+    "frontend/src/components/common/Select.vue",
+    "frontend/src/components/common/__tests__/LocaleSwitcher.spec.ts",
+    "frontend/src/components/common/__tests__/Select.ime.spec.ts",
+    "frontend/src/components/payment/PaymentQRDialog.vue",
+    "frontend/src/components/payment/PaymentStatusPanel.vue",
+    "frontend/src/components/payment/__tests__/paymentCountdown.spec.ts",
+    "frontend/src/composables/__tests__/useGeminiOAuth.errors.spec.ts",
+    "frontend/src/composables/__tests__/useModelWhitelist.spec.ts",
+    "frontend/src/composables/useGeminiOAuth.ts",
+    "frontend/src/composables/useModelWhitelist.ts",
+    "frontend/src/features/channel-monitor-v2/MonitorSettingsPanel.vue",
+    "frontend/src/features/channel-monitor-v2/__tests__/MonitorSettingsPanel.spec.ts",
+    "frontend/src/i18n/__tests__/gwpoolLocales.spec.ts",
+    "frontend/src/i18n/locales/en/admin/accounts.ts",
+    "frontend/src/i18n/locales/en/admin/ops.ts",
+    "frontend/src/i18n/locales/en/admin/overview.ts",
+    "frontend/src/i18n/locales/en/batchImage.ts",
+    "frontend/src/i18n/locales/en/channelMonitorV2.ts",
+    "frontend/src/i18n/locales/zh/admin/accounts.ts",
+    "frontend/src/i18n/locales/zh/admin/ops.ts",
+    "frontend/src/i18n/locales/zh/admin/overview.ts",
+    "frontend/src/i18n/locales/zh/batchImage.ts",
+    "frontend/src/i18n/locales/zh/channelMonitorV2.ts",
+    "frontend/src/types/index.ts",
+    "frontend/src/utils/__tests__/geminiExplicitCache.spec.ts",
+    "frontend/src/utils/geminiExplicitCache.ts",
+    "frontend/src/views/admin/AccountsView.vue",
+    "frontend/src/views/admin/GroupsView.vue",
+    "frontend/src/views/admin/ops/components/OpsDashboardHeader.vue",
+    "frontend/src/views/admin/ops/components/OpsRequestDetailsModal.vue",
+    "frontend/src/views/admin/ops/components/__tests__/OpsDashboardHeader.timezone.spec.ts",
+    "frontend/src/views/admin/ops/components/__tests__/OpsRequestDetailsModal.spec.ts",
+    "frontend/src/views/admin/ops/utils/accountNameMap.ts",
+    "frontend/src/views/user/ChannelStatusV1View.vue",
+    "frontend/src/views/user/PaymentQRCodeView.vue",
+    "frontend/src/views/user/PaymentView.vue",
+    "frontend/src/views/user/StripePaymentView.vue",
+    "frontend/src/views/user/__tests__/ChannelStatusV1View.details.spec.ts",
+    "frontend/src/views/user/__tests__/StripePaymentView.spec.ts",
+)
+KLNO17_MIGRATIONS = {
+    "242_group_i18n.sql": "e81c6818cc806bc54365c993f4cec1634f16a311451faf5cb1a875a1358774cd",
+    "243_gemini_cached_contents.sql": "2d345cff5c64b01e705f04ec972e5d5ec3d618fe71dc7d45bc80fdd38c6a89d5",
+    "244_gemini_cached_contents_channel_usage.sql": "9072cb37752a23c3a29cc0330a69837f09c5102375ee053d7bccf14634d3da29",
+    "245_gemini_cached_contents_mutation_lease.sql": "75434a7beeb8aad09b3339708ed520604d153e99c7fe680a376e8c958aadb1e8",
+}
+KLNO17_OLD_MIGRATION_STATE = {
+    "rows": 311, "filename_checksum_sha256": "d59f2470d37390ba808e4d16e7a74ee531b431f4b74f2eb82e9b3236402a3c31",
+}
+
+
+def approved_klno17_upgrade(direction):
+    require(direction in ("upgrade", "redeploy") and SHA_RE.fullmatch(KLNO17_NEW_REVISION) and
+            all(re.fullmatch(r"[0-9a-f]{64}", value) for value in
+                (KLNO17_NEW_RUNTIME, KLNO17_NEW_FRONTEND, KLNO17_RAW_SHA256, KLNO17_CHANGED_PATHS_SHA256)),
+            "E_COMPATIBILITY", ".17 必须绑定最终审定候选；不允许旧镜像回退")
+    redeploy = direction == "redeploy"
+    return {"id": KLNO17_UPGRADE_ID, "direction": direction,
+            "old_source": dict(KLNO17_NEW_SOURCE if redeploy else KLNO4_NEW_SOURCE),
+            "new_source": dict(KLNO17_NEW_SOURCE),
+            "old_runtime_revision": KLNO17_NEW_REVISION if redeploy else KLNO17_OLD_REVISION,
+            "new_runtime_revision": KLNO17_NEW_REVISION,
+            "old_runtime_sha256": KLNO17_NEW_RUNTIME if redeploy else KLNO4_NEW_RUNTIME,
+            "new_runtime_sha256": KLNO17_NEW_RUNTIME,
+            "changed_paths_sha256": sha(canonical([])) if redeploy else KLNO17_CHANGED_PATHS_SHA256,
+            "frontend_paths": ["frontend"],
+            "old_frontend_sha256": KLNO17_NEW_FRONTEND if redeploy else KLNO4_NEW_FRONTEND,
+            "new_frontend_sha256": KLNO17_NEW_FRONTEND,
+            "frontend_changed_paths": [] if redeploy else list(KLNO17_FRONTEND_CHANGED_PATHS),
+            "raw_paths": list(KLNO17_RAW_PATHS), "raw_sha256": KLNO17_RAW_SHA256,
+            "image_rollback_compatible": False, "schema_rollback": "retain",
+            "migrations": dict(KLNO17_MIGRATIONS)}
+
+
+def require_klno17_old_image(proof, old):
+    if proof.get("klno17_upgrade", {}).get("direction") == "upgrade":
+        require(old["revision"] == KLNO17_OLD_REVISION and old["version"] == KLNO17_OLD_VERSION and
+                old["image"] == KLNO17_OLD_IMAGE and old["source"] == SOURCE,
+                "E_COMPATIBILITY", ".17 必须绑定固定生产 .4 旧 revision、版本、来源与 digest")
+
+
 def approved_klno4_upgrade(direction):
     require(direction in ("upgrade", "redeploy") and SHA_RE.fullmatch(KLNO4_NEW_REVISION) and
             all(re.fullmatch(r"[0-9a-f]{64}", value) for value in
@@ -661,7 +786,21 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
     kin = proof.get("kin_upgrade")
     obs = proof.get("obs_upgrade")
     resp = proof.get("resp_upgrade")
+    klno17 = proof.get("klno17_upgrade")
     klno4 = proof.get("klno4_upgrade")
+    klno17_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KLNO17_NEW_SOURCE["upstream_tag"]
+    if klno17_source:
+        require("klno17_upgrade" in proof, "E_COMPATIBILITY", ".17 必须使用专属完整运行树与持久化迁移证明")
+    if "klno17_upgrade" in proof:
+        direction = "upgrade" if old_revision == KLNO17_OLD_REVISION else "redeploy"
+        approved = approved_klno17_upgrade(direction)
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "klno17_upgrade"} and
+                isinstance(klno17, dict) and canonical(klno17) == canonical(approved) and
+                SHA_RE.fullmatch(old_revision) and SHA_RE.fullmatch(new_revision) and
+                proof["upstream"] == KLNO17_NEW_SOURCE and
+                sha(canonical(proof["changed_paths"])) == approved["changed_paths_sha256"],
+                "E_COMPATIBILITY", ".17 证明不属于固定来源、完整运行树与精确差异")
     klno4_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KLNO4_NEW_SOURCE["upstream_tag"]
     if klno4_source:
         require("klno4_upgrade" in proof, "E_COMPATIBILITY", ".4 必须使用专属完整运行树与破坏性迁移证明")
@@ -727,7 +866,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
                 proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(FORWARD_CHANGED_PATHS),
                 "E_COMPATIBILITY", "正向升级证据不属于已审定的来源、完整运行树与差异")
     if old_version is not None and new_version is not None:
-        upgrade = forward or cumulative or kin or obs or resp or klno4
+        upgrade = forward or cumulative or kin or obs or resp or klno4 or klno17
         old_source = upgrade["old_source"] if upgrade else proof.get("upstream", {})
         new_source = upgrade["new_source"] if upgrade else proof.get("upstream", {})
         require(isinstance(old_source, dict) and isinstance(new_source, dict) and
@@ -758,7 +897,11 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
             require(new_version == KLNO4_NEW_VERSION and
                     old_version == (KLNO4_OLD_VERSION if klno4["direction"] == "upgrade" else KLNO4_NEW_VERSION),
                     "E_COMPATIBILITY", ".4 只绑定生产 RESP 旧发布与审定的正式个人版本")
-    if forward or cumulative or kin or obs or resp or klno4:
+        if klno17:
+            require(new_version == KLNO17_NEW_VERSION and
+                    old_version == (KLNO17_OLD_VERSION if klno17["direction"] == "upgrade" else KLNO17_NEW_VERSION),
+                    "E_COMPATIBILITY", ".17 只绑定生产 .4 旧发布与审定的正式个人版本")
+    if forward or cumulative or kin or obs or resp or klno4 or klno17:
         return
     if proof["changed_paths"] == []:
         require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
@@ -770,7 +913,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
 
 def require_image_rollback(proof):
     require(not any(proof.get(name, {}).get("image_rollback_compatible") is False
-                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade")),
+                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade")),
             "E_COMPATIBILITY", "持久化数据回退未获证明；禁止旧镜像恢复，需人工评估失败记录与备份")
 
 
