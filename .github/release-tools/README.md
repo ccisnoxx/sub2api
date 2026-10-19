@@ -46,11 +46,13 @@ building an unpinned source distribution.
 
 ## personal 发布
 
-本 fork 的正式入口只接受 `vX.Y.Z-klno.N-tps.N`，使用 simple/linux/amd64。`personal-release.yml` 从默认 main 的可信工具准备版本，仅由维护者在 main 手动触发；日常 push/PR 不运行应用 CI；只有当前 personal 完整 SHA 的成功手动 Full CI，且该次运行的全部必要 jobs（含 personal-ready/full-ci-certified）成功，才可创建标签及显式 dispatch Release。CI 完成和推送标签均不会自动发布；分支保护设置不参与发布授权。完整操作命令见 [CI-000](../../docs/ci/CI-000.md)。开关为仓库变量 `PERSONAL_RELEASE_ENABLED`，默认未设置时关闭。
+本 fork 的正式入口只接受 `vX.Y.Z-klno.N-tps.N`，使用 simple/linux/amd64。`personal-release.yml` 从默认 main 的可信工具准备版本，仅由维护者在 main 手动触发；日常 push/PR 不运行应用 CI。当前 personal 或其已合并同树候选必须有一次成功手动 Full CI，且该次运行的全部必要 jobs（含 personal-ready/full-ci-certified）成功，才可创建标签及显式 dispatch Release。CI 完成和推送标签均不会自动发布；分支保护设置不参与发布授权。完整操作命令见 [CI-000](../../docs/ci/CI-000.md)。开关为仓库变量 `PERSONAL_RELEASE_ENABLED`，默认未设置时关闭。
+
+`ci_bindings()` 是同树复用的唯一来源绑定入口：先使用最终 personal 的直接 Full；否则验证 GitHub 同仓库已合并 PR、当前 merge SHA、精确双亲（原 base / 已检查 head）、候选包含基础及完整 root tree 相等，再查找该分支的固定 head/base 手动 Full。分支删除不影响不可变提交和 PR 记录验证。PR 关联列表沿用 REST `2026-03-10`，仅 PR 详情固定 `2022-11-28`，因为[新版删除了 `merge_commit_sha`](https://docs.github.com/en/rest/about-the-rest-api/breaking-changes?apiVersion=2026-03-10#version-2026-03-10)；不能以省略 merge SHA 校验适配新版。任何文档、工作流、依赖、文件模式/类型变化也会改变树，不能复用；squash/rebase、非 PR 的无关同树提交或合并后后继同样拒绝。显式 `ci_run_id` 不会被替换，留空只在首次 prepare 自动选择；准备输出 `ci_source_sha/ci_reused`，实际 tag、构建和 OCI revision 仍绑定最终 personal SHA。
 
 来源与版本规则集中在 `personal_release.py`，复用 sibling `.github/personal-sync/sync.py` 的来源和祖先合同。Personal release 的准备脚本从 main 保存；正式 Release 的发布 guard 及构建/发布控制 helpers 全部从同一次 main checkout 保存，记录完整 control SHA 并作为同次运行 artifact 传到后续 runner。应用 checkout 与应用自带的 release_matrix、supply_chain、release-images、personal_release 或 sync 脚本均不参与正式控制执行。dry-run 的控制工具取候选工作流 revision，以验证未合并的修改。正式工作流 revision 必须与应用 personal SHA 对应；`source_sha` 输入在 dry run 中也必须等于实际 checkout。个人发布跳过 main VERSION 写回。
 
-个人运行镜像先本地导出带证明的 OCI，再完成 SHA/CI/占用核对后仅 push canonical 版本，独立把 latest 指向核验后的 digest。部分失败重跑保持 tag/SHA，已存在的正确镜像不重新构建或推送；已完成 Release 直接跳过。正式构建前、标签创建/dispatch 前、镜像推送前、latest 更新前和 Release 写入前均检查，远端查询后重新核对 CI 和 tag，拒绝错误标签、错误 SHA、其他仓库或旧 SHA 的 CI、PR/push/Quick CI、跳过或失败的必要检查和来源改变。发布证据直接来自固定 run 的最新 jobs，不跨运行复用。文档变化相对最近成功版本无构建/运行变化时不分配新版本。
+个人运行镜像先本地导出带证明的 OCI，再完成 SHA/CI/占用核对后仅 push canonical 版本，独立把 latest 指向核验后的 digest。部分失败重跑保持 tag/SHA，已存在的正确镜像不重新构建或推送；已完成 Release 直接跳过。正式构建前、标签创建/dispatch 前、镜像推送前、latest 更新前和 Release 写入前均检查，远端查询后重新核对 CI 和 tag（复用时也重新证明合并绑定与完整树），拒绝错误标签、错误 SHA、其他仓库或无关旧 SHA 的 CI、pull_request/push/Quick CI、跳过或失败的必要检查和来源改变。发布证据直接来自固定 run 的最新 jobs，不跨运行拼接结果。文档变化相对最近成功版本无构建/运行变化时不分配新版本。
 
 prepare 选定的 CI run ID 在发布全过程保持固定，原 run 失效时不能换用同 SHA 的另一成功 run。最终 Release 同时比较当前 guard、publication 记录和 published image 摘要的 digest，版本镜像已删除或替换时失败关闭。
 

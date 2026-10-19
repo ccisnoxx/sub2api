@@ -17,7 +17,7 @@ on:
         required: true
         type: string
       ci_run_id:
-        description: '原发布绑定的同 SHA 成功手动 Full CI run ID'
+        description: '原发布绑定的成功手动 Full CI run ID（保留同树复用绑定）'
         required: true
         type: string
       expected_digest:
@@ -47,6 +47,7 @@ jobs:
     permissions:
       contents: read
       packages: read
+      pull-requests: read
       actions: read
     steps:
       - name: Checkout fixed main control revision

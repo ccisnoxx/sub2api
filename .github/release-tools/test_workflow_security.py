@@ -12,10 +12,10 @@ WORKFLOWS = Path(__file__).resolve().parents[1] / "workflows"
 READ = {"contents": "read"}
 # 每项额外授权的实际 API/Git 用途见 docs/ci/CI-005.md。
 JOB_PERMISSIONS = {
-    ("release.yml", "prepare"): {**READ, "actions": "read", "packages": "read"},
-    ("release.yml", "release"): {"contents": "write", "packages": "write", "actions": "read"},
-    ("release-recovery.yml", "release"): {"contents": "read", "packages": "read", "actions": "read"},
-    ("personal-release.yml", "prepare"): {"contents": "write", "actions": "write", "packages": "read"},
+    ("release.yml", "prepare"): {**READ, "actions": "read", "packages": "read", "pull-requests": "read"},
+    ("release.yml", "release"): {"contents": "write", "packages": "write", "actions": "read", "pull-requests": "read"},
+    ("release-recovery.yml", "release"): {"contents": "read", "packages": "read", "actions": "read", "pull-requests": "read"},
+    ("personal-release.yml", "prepare"): {"contents": "write", "actions": "write", "packages": "read", "pull-requests": "read"},
     ("sync-upstream.yml", "sync"): {"contents": "write", "pull-requests": "write", "actions": "write"},
     ("personal-ci.yml", "binding"): {**READ, "pull-requests": "read"},
     ("personal-ci.yml", "personal-ready"): {**READ, "pull-requests": "read"},
