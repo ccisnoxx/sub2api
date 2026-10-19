@@ -69,9 +69,11 @@ class Klno17GitTests(unittest.TestCase):
         (self.root / "README.md").write_text("固定 .17 应用的文档后继。\n")
         (self.root / "deploy/personal/deploy_local.py").write_text("# 部署工具后继\n")
         successor = dict(NEW, revision=self.commit(".17 nonapplication successor"))
+        # detached CI 克隆不保证存在 origin/main；正式应用合并的首亲固定为旧 personal。
+        self.git("update-ref", "-d", "refs/remotes/origin/main")
         merged = subprocess.run(["git", "-C", str(self.root), "commit-tree",
                                  self.git("rev-parse", successor["revision"] + "^{tree}"),
-                                 "-p", self.git("rev-parse", "refs/remotes/origin/main"), "-p", successor["revision"]],
+                                 "-p", OLD["revision"], "-p", successor["revision"]],
                                 input=b"formal personal merge with unchanged build inputs\n",
                                 capture_output=True, check=True).stdout.decode().strip()
         self.assertEqual(len(self.git("rev-list", "--parents", "-n", "1", merged).split()), 3)
