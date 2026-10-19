@@ -1,5 +1,16 @@
 # 功能来源与长期维护归属
 
+## 2026-10-19：v0.2.17-klno.1 升级候选
+
+当前工作树来源固定为 `KlN-4096/sub2api` 的 `v0.2.17-klno.1`，annotated tag object 为 `f9c7303984ab3d9adfc985c2c99e59cc9df09cab`，peeled commit 为 `cf0bf0526704bb615745fda76009cb20d85df613`。个人候选从 `2d532db30a94e5d3bff3ef928323186c1d4d93c5`（`v0.2.15-klno.4-tps.1`）准备；该来源与 NOTICE、`deploy/personal-source.json` 一致。下文 I/N/C/T 与发布状态均是带日期的历史记录，不能用作本候选已发布或已上线的证明。
+
+上游重写历史，旧来源 `c555ad918b08cb24ccb2eb45f4ae44a843e24baf` 不是新来源的祖先。此次人工三方投影显式使用该旧来源作为逻辑基线，真实 merge 保留旧 personal 和新 KIN 为两个父系；不修改自动同步的祖先门禁。个人计时、目录、诊断、服务状态、部分用量结算及版本更新 owner 保留；Wire/Ent 从维护源生成。源码 VERSION 仅标识 RC，不分配正式发布标签。
+
+旧 SQL 文件保持原名、原字节；新增 `242_group_i18n.sql`、`243_gemini_cached_contents.sql`、`244_gemini_cached_contents_channel_usage.sql`、`245_gemini_cached_contents_mutation_lease.sql`。新增 SQL 是加法 schema；正式部署前仍须绑定实际 311 行旧账本、315 行候选账本、镜像与可信工具证明。保留当前旧镜像和恢复材料，不根据加法 DDL 推断全业务镜像回退安全。
+
+## 历史固定来源与模块证据
+
+
 核对日期：2026-10-13 UTC。当前维护任务：REL-002/003/ARCH-002 已验收；PREP-003 的旧稳定基线证据保留在本文末尾。main 管理控制工具和维护记录，personal 保存实际应用。应用 owner、测试和来源一律从固定 I 读取，不用 main 的同名应用文件代替。协调 owner 均为 `ccisnoxx`，不代表原作者、版权归属或上游背书。
 
 ## 当前固定来源

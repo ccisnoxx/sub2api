@@ -229,6 +229,7 @@ func (s *OpenAIGatewayService) forwardOpenAIPassthrough(
 	if account != nil && account.IsOpenAI() {
 		responsesLite := isOpenAIResponsesLiteHeader(c.GetHeader(responsesLiteHeader)) || isOpenAIResponsesLiteWebSocketPayload(body)
 		normalizedBody, normalized, normalizeErr := normalizeOpenAIResponsesCompatibilityBodyWithOptions(body, account, openAIResponsesCompatibilityOptions{
+			Config:        s.cfg,
 			ResponsesLite: responsesLite,
 			Compact:       isOpenAIResponsesCompactPath(c),
 		})
@@ -1963,6 +1964,9 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 	responseFailedPending := false
 	var bareErrorPayload []byte
 	bareErrorAccountSideEffectsPending := false
+	// Passthrough leaves upstream events untouched; the tracker only learns the
+	// upstream created_at so a synthesized response.failed matches the stream.
+	var createdAtTracker responsesCreatedAtStamper
 	upstreamRequestID := strings.TrimSpace(resp.Header.Get("x-request-id"))
 	// pendingLines 在首次提交前保留前导事件；开启提前开场时在完整开场边界提交。
 	pendingLines := make([]string, 0, 8)
@@ -2024,7 +2028,7 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 		// 先收回心跳 writer；补齐尚未闭合的事件，再沿用已提交的响应身份结束。
 		stopKeepalive()
 		source := []byte(`{"code":` + strconv.Quote(code) + `}`)
-		if _, err := fmt.Fprint(w, "\n"+buildOpenAIResponseFailedSSE(responseID, originalModel, source, message)); err != nil {
+		if _, err := fmt.Fprint(w, "\n"+buildOpenAIResponseFailedSSE(responseID, originalModel, createdAtTracker.Value(), source, message)); err != nil {
 			clientDisconnected = true
 			timing.clientDisconnected()
 			return
@@ -2057,7 +2061,7 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 		if clientDisconnected || !writePendingLines() {
 			return
 		}
-		if _, err := fmt.Fprint(w, buildOpenAIResponseFailedSSE(responseID, originalModel, bareErrorPayload, failedMessage)); err != nil {
+		if _, err := fmt.Fprint(w, buildOpenAIResponseFailedSSE(responseID, originalModel, createdAtTracker.Value(), bareErrorPayload, failedMessage)); err != nil {
 			clientDisconnected = true
 			timing.clientDisconnected()
 			return
@@ -2143,6 +2147,7 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 				}
 			}
 			eventType := effectiveOpenAISSEEventType(dataBytes, rawEventType)
+			createdAtTracker.Observe(dataBytes, eventType)
 			if codexFailureTerminal && sawBareError && !sawResponseFailed && eventType != "response.failed" {
 				suppressCurrentEvent = true
 			}
@@ -2276,7 +2281,7 @@ func (s *OpenAIGatewayService) handleStreamingResponsePassthrough(
 					s.recordOpenAIStreamUpstreamError(c, account, true, upstreamRequestID, "stream_failed", dataBytes, openAIResponsesEmptyCompletedMessage)
 					if !clientDisconnected {
 						// event: response.completed 可能已经写出，但尚未发送其 data；先闭合空帧。
-						if _, err := fmt.Fprint(w, "\n"+buildOpenAIResponseFailedSSE(responseID, originalModel, nil, openAIResponsesEmptyCompletedMessage)); err != nil {
+						if _, err := fmt.Fprint(w, "\n"+buildOpenAIResponseFailedSSE(responseID, originalModel, createdAtTracker.Value(), nil, openAIResponsesEmptyCompletedMessage)); err != nil {
 							clientDisconnected = true
 						} else {
 							flushPending = true

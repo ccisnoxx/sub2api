@@ -6,10 +6,10 @@ LuckyKuang/sub2api-plus，并按 KIN 的接口、权限和数据合同适配。
 
 原始上游： https://github.com/Wei-Shaw/sub2api
 直接上游： https://github.com/KlN-4096/sub2api
-应用基线标签： v0.2.15-klno.2
-应用基线提交： ca686de5e5ac14834e12701c156831abd5ec6b71
-旧稳定回退标签： v0.2.14-klno.5-tps.2
-旧稳定回退提交： 3d5e1fde82707900a21f2b5538b112c7bab3c04a
+应用基线标签： v0.2.17-klno.1
+应用基线提交： cf0bf0526704bb615745fda76009cb20d85df613
+历史恢复参考标签（当前升级未验证镜像回退）： v0.2.14-klno.5-tps.2
+历史恢复参考提交： 3d5e1fde82707900a21f2b5538b112c7bab3c04a
 
 Plus 参考仓库： https://github.com/LuckyKuang/sub2api-plus
 Plus 发行标签： v0.2.14+custom.002

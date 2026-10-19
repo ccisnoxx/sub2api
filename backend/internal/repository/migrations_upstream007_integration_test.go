@@ -45,6 +45,7 @@ func TestUPSTREAM007UpgradePaths(t *testing.T) {
 		{"old-kin", mig001Files(t, false, false), 303, false},
 		{"already-personal", mig001Files(t, false, true), 307, true},
 		{"current-tps3", mig001Files(t, true, true), 308, true},
+		{"current-klno4", mig001Klno4Files(t), 311, true},
 	} {
 		t.Run(initial.name, func(t *testing.T) {
 			// 每条路径独立数据库和 Redis；复用 MIG-001 的数据库名称及恢复合同。
