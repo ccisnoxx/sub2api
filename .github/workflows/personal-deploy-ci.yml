@@ -31,7 +31,8 @@ jobs:
             refs/tags/v0.2.14-klno.3:refs/tags/v0.2.14-klno.3 \
             refs/tags/v0.2.14-klno.5:refs/tags/v0.2.14-klno.5 \
             refs/tags/v0.2.15-klno.2:refs/tags/v0.2.15-klno.2 \
-            refs/tags/v0.2.15-klno.4:refs/tags/v0.2.15-klno.4
+            refs/tags/v0.2.15-klno.4:refs/tags/v0.2.15-klno.4 \
+            refs/tags/v0.2.17-klno.1:refs/tags/v0.2.17-klno.1
       - name: 验证部署入口与状态合同
         run: |
           bash -n deploy/personal/deploy-hostdzire.sh

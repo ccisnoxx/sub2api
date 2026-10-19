@@ -2,7 +2,7 @@
 
 本目录是本机部署控制工具。入口从当前仓库读取个人发布标签与来源记录，通过既有 `ssh hostdzire`、`scp` 将已验证的完整 Python 模块及无凭据配置 bundle 上传到私密临时目录，在服务器执行一次完整操作。工具不依赖本机 Docker daemon，不修改 SSH 配置或 host key 检查。
 
-最后离线验证日期：**2026-10-13**。固定 Linux x86_64 现场的恢复验证见 [BASELINE.md](../../BASELINE.md)；REL-001 交付历史候选部署前合同；REL-002 当前源码绑定及实际发布/部署状态以验收记录为准。
+最后离线验证日期：**2026-10-19**。固定 Linux x86_64 现场的恢复验证见 [BASELINE.md](../../BASELINE.md)；REL-001 交付历史候选部署前合同；REL-002 当前源码绑定及实际发布/部署状态以验收记录为准。
 
 ## 使用前提与固定现场
 
@@ -17,20 +17,21 @@
 在仓库根目录指定个人版本；可带 `v` 或完整 fork 镜像版本地址。版本先拉取并解析唯一 RepoDigest，再拉取该 digest；启动、验收和记录均使用相同的不可变引用。
 
 ```sh
-deploy/personal/deploy-hostdzire.sh 0.2.15-klno.2-tps.3 \
+deploy/personal/deploy-hostdzire.sh 0.2.17-klno.1-tps.1 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA>
 ```
 
-固定 digest 必须同时给出对应个人版本；revision 从本机个人 Git 标签读取，再核验实际镜像的 OCI 标签。当前已部署版本对应的固定镜像命令为：
+固定 digest 必须同时给出对应个人版本；revision 从本机个人 Git 标签读取，再核验实际镜像的 OCI 标签。已核实旧生产 `.4` 版本对应的固定镜像只读预检命令为：
 
 ```sh
 deploy/personal/deploy-hostdzire.sh \
-  ghcr.io/ccisnoxx/sub2api@sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627 \
-  --version 0.2.15-klno.2-tps.3 \
-  --tool-revision <已经获取的本-fork-origin/main-完整SHA>
+  ghcr.io/ccisnoxx/sub2api@sha256:7e49c8d375ba9ae4ab9bdef4a03c52b634f234d0cebd9ddd5e77240278e94247 \
+  --version 0.2.15-klno.4-tps.1 \
+  --tool-revision <已经获取的本-fork-origin/main-完整SHA> \
+  --dry-run
 ```
 
-成功输出包含服务器记录 `id`、目标与实际运行 digest、Image ID、OCI version/revision/source、健康状态。仅声明 `image_rollback_compatible=true` 且与当前成功选择相同的**部署记录**可显式回滚。当前tps.3记录为false，旧429及跨KIN恢复禁令保持；下面只展示既有兼容记录的参数格式，不能用于当前tps.3恢复：
+成功输出包含服务器记录 `id`、目标与实际运行 digest、Image ID、OCI version/revision/source、健康状态。仅声明 `image_rollback_compatible=true` 且与当前成功选择相同的**部署记录**可显式回滚。生产 `.4` 和本次 `.17` 合同均为 false，旧429及跨KIN恢复禁令保持；下面只展示既有兼容记录的参数格式，不能用于本次升级恢复：
 
 ```sh
 deploy/personal/deploy-hostdzire.sh --rollback 20261008T180000Z-123456789abc \
@@ -68,8 +69,8 @@ SSH 一次 scp 运送完整清单。远端 isolated Python bootstrap 在导入�
 
 ```sh
 deploy/personal/deploy-hostdzire.sh \
-  ghcr.io/ccisnoxx/sub2api@sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627 \
-  --version 0.2.15-klno.2-tps.3 \
+  ghcr.io/ccisnoxx/sub2api@sha256:7e49c8d375ba9ae4ab9bdef4a03c52b634f234d0cebd9ddd5e77240278e94247 \
+  --version 0.2.15-klno.4-tps.1 \
   --tool-revision <已经获取的本-fork-origin/main-完整SHA> \
   --dry-run
 ```
@@ -82,7 +83,7 @@ deploy/personal/deploy-hostdzire.sh \
 
 `Deployment` 是唯一远端生命周期 owner，使用非阻塞 `flock` 持有 `/root/sub2api-kin/.personal-deploy/deployment.lock`，锁覆盖预检、备份、拉取、启动、健康、持久提交及失败恢复。并发部署在执行 Docker 命令前退出。其他生产配置维护也应尊重这把锁；工具的 hash 检查会拒绝已观察到的外部漂移。
 
-本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。旧基线继续只允许零运行差异、下述精确工具链补丁及固定 S0–S4 累计应用；跨基线只允许下述固定 `.3 → .5`、REL-001 固定 `.5-tps.2 → .15-klno.2` 和生产 RESP `.15-klno.2-tps.3 → .15-klno.4-tps.1` 正向证明。新 `.15-klno.2` 重新部署也必须保留审定锚点与完整运行树。其他后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止操作，没有 force 或 ignore 兼容开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足零差异合同。
+本机比较实际旧、新完整 revision 的整个 `backend/`、`Dockerfile`、`Dockerfile.goreleaser`、`.dockerignore` 与 `deploy/`，仅排除本部署工具目录及 `deploy/personal-source.json`。旧基线继续只允许零运行差异、下述精确工具链补丁及固定 S0–S4 累计应用；跨基线只允许下述固定 `.3 → .5`、REL-001 固定 `.5-tps.2 → .15-klno.2`、生产 RESP `.15-klno.2-tps.3 → .15-klno.4-tps.1` 和固定生产 `.15-klno.4-tps.1 → .17-klno.1-tps.1` 正向证明。新 `.15-klno.2` 重新部署也必须保留审定锚点与完整运行树。其他后端、迁移、镜像运行资源、部署配置差异或未知对象都会阻止操作，没有 force 或 ignore 兼容开关。首发 `de08df02… → 896de21b…` 在这些路径仅新增来源记录，满足零差异合同。
 
 本轮经用户三次明确授权，升级 Go 1.27.0 → 1.27.2，x/net v0.58.0 → v0.60.0，并按模块最小版本选择同步 crypto0.57、sys0.48、term0.46、text0.42、tools0.50、mod0.41、sync0.23。精确 lint 兼容规则仅匹配五个固定文件中的既有 HTTP/2 弃用接口，其他检查继续启用。例外绑定已审定的 `backend/.golangci.yml`、`backend/go.mod`、`backend/go.sum`、`Dockerfile`、`deploy/Dockerfile` 前后完整文件 SHA-256；应用候选为 `ce682c4901033d09c7e12614b7b73e11bdd17ef4`，旧输入为 tps.1 revision `896de21b4be7f4ec4b4236f4df663b47371665b0`。五个路径必须全部变化、方向一致，双方均为普通 `100644` 文件。任意其他版本、校验行、字节、权限、业务源码、迁移或运行配置变化均拒绝；未来安全补丁需要另行审定，不能按文件路径泛化放行。CI/Release 精确核对所选源码 go.mod 的 Go 声明并继续全部门禁，personal 的声明固定为1.27.2；main 不维护应用树。
 
@@ -180,6 +181,31 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 
 工具只恢复应用镜像，不自动恢复数据库、Redis 或应用数据。迁移不兼容、备份恢复及可能丢失备份后写入的情形，需要另行制定经授权的维护与恢复操作。观察期内保留记录、备份、旧 digest 与本地旧镜像。
 
+## .15-klno.4 → .17-klno.1 离线升级合同
+
+本次仅增加离线合同，未发布镜像、升级生产或证明业务回退安全。已核实的旧生产身份为 `2d532db30a94e5d3bff3ef928323186c1d4d93c5 / 0.2.15-klno.4-tps.1`、镜像 `sha256:7e49c8d375ba9ae4ab9bdef4a03c52b634f234d0cebd9ddd5e77240278e94247`，成功选择记录 `20261013T101751Z-4b2b5c9d445b`。旧来源固定为 `v0.2.15-klno.4 / c555ad918b08cb24ccb2eb45f4ae44a843e24baf`，新来源固定为 `v0.2.17-klno.1 / cf0bf0526704bb615745fda76009cb20d85df613`；双方来源三字段各自精确匹配上述固定记录，两个上游标签及候选祖先都必须真实可核验。
+
+`klno17_upgrade` 绑定已提交候选 `4bd47e3d38c5c2804f32e917b65e05a98d0907de`，正式版本只接受 `0.2.17-klno.1-tps.1`。候选源码内 `VERSION` 仍为 RC，实际发布版本由发布工具分配并通过正式个人标签及 OCI 标签绑定，RC 不能作为部署输入。正式普通 merge 及文档/控制后继可以改变最终 revision，但必须包含该候选且所有构建输入相同；新镜像 digest 不作猜测。
+
+新完整运行树指纹为 `0e54520a556ee7592b0d7eab79a9092bb53cd3606f5d32cf8d677079ff79bb0f`，整个前端指纹为 `eca3f8a22cf25f2ddbd07498fb3ac70d121e998da926bdf085fbc26b70bb2704`，两份外部 raw legal 输入仍为 `70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942`。303 条排序运行差异的 canonical JSON SHA-256 为 `d1b0d8c193d84076fdff291f08e91a0edffd238dfe839c1e6b085cd935406cfd`，65 条前端差异的摘要为 `a21eaa87d4dfc4076208cf8bd1ac212db04ed0470307232be8a2e334b5dcb135`。证明保留全部运行差异路径和 `KLNO17_FRONTEND_CHANGED_PATHS` 完整列表；内容、mode、type、来源、祖先、未知零差异树和重新 hash 后伪装均不能放行。
+
+全部旧 311 份 SQL 文件逐字保留，只追加以下普通 `100644` 文件；checksum 使用 runner 的 `SHA256(strings.TrimSpace(SQL))`：
+
+| 新迁移 | 固定 checksum |
+|---|---|
+| `242_group_i18n.sql` | `e81c6818cc806bc54365c993f4cec1634f16a311451faf5cb1a875a1358774cd` |
+| `243_gemini_cached_contents.sql` | `2d345cff5c64b01e705f04ec972e5d5ec3d618fe71dc7d45bc80fdd38c6a89d5` |
+| `244_gemini_cached_contents_channel_usage.sql` | `9072cb37752a23c3a29cc0330a69837f09c5102375ee053d7bccf14634d3da29` |
+| `245_gemini_cached_contents_mutation_lease.sql` | `75434a7beeb8aad09b3339708ed520604d153e99c7fe680a376e8c958aadb1e8` |
+
+启动前账本必须等于当前成功记录及固定生产 311 行摘要 `d59f2470d37390ba808e4d16e7a74ee531b431f4b74f2eb82e9b3236402a3c31`。原行及数据库实际排序逐字保留，只允许四项固定迁移按 runner 顺序形成 0—4 提交前缀，健康终态必须完成 315 行；重部署只能从完整正确终态开始。未知/重复/缺失迁移、旧行或 checksum 改变、备份后账本漂移均拒绝。工具不执行 SQL、不改历史账本；备份仍须在新应用启动前完成，部署锁、依赖身份、app-only、配置漂移检测及 selection 原子提交保持既有合同。
+
+新 `cachedContents` mutation 租约/恢复和新增 `account.extra` 业务字段尚未证明对旧 `.4` 镜像全业务无损，故始终记录 `image_rollback_compatible=false / schema_rollback=retain`。新应用一旦尝试启动，等待、健康、取消、账本或 selection 提交前失败只尽力记录实际账本、0—4 前缀、运行镜像和原选择，不启动旧镜像；零项提交也不豁免。已替换 selection 后失败保留已提交选择并拒绝接管。成功记录的显式 rollback、普通反向 deploy 及同树 redeploy 的旧镜像自动恢复同样禁止。恢复路径为核对私密失败记录后经授权前向修复；恢复数据库、清理租约或外部缓存必须另行评估和授权，本工具没有 force、ignore 或数据回滚入口。
+
+`.17` 复用现有 REL-002 站点/标记/维护记录，不重新 setup。可信 main 完整 bundle 的 `--maintenance resume` 必须显式绑定真实正式个人标签与 OCI 的最终完整 revision、当前成功部署 ID、专属 canonical 证明、digest/Image ID、容器及回环健康，以及正确完整 315 行账本，才在同一锁内开放流量；历史安装身份 `source_sha=42907…` 保持不变，追加本次 accepted 身份。旧无参数入口和旧 `.4`/RESP 证明不能开放 `.17` 流量。上面的新版本命令须在独立复核、正式构建和发布门禁通过后使用；固定旧生产命令仅供升级前只读预检，不能用于 `.17 → .4` 反向部署。
+
+`test_klno17_deployment.py` 使用真实 Git 对象与隔离临时普通 merge 核验候选/来源/完整构建输入、四份新增 SQL 和全部旧 SQL 字节；账本及生命周期替身覆盖固定 311→315、全部前缀、篡改/伪装、启动前备份、账本漂移、失败不回退、选择提交两侧与维护失败关闭。测试不访问生产、不执行真实迁移或外部 Gemini mutation，也不替代发布镜像、数据库和现场业务验收。
+
 ## 定向验证与 CI
 
 以下命令不访问 hostdzire、不使用真实 Docker、不安装依赖；CI checkout 应使用 `fetch-depth: 0` 并保留个人及上游标签，发布绑定用例需要已发布固定对象。
@@ -229,9 +255,9 @@ deploy/personal/deploy-hostdzire.sh --maintenance resume \
 
 OBS 专属证明还固定 `docs/legal/admin-compliance.en.md` 和 `docs/legal/admin-compliance.zh.md`：两份文档通过前端 `?raw` 导入并嵌入发布产物，不能按普通文档后继放行。路径、Git mode/type/object 与精确摘要一并绑定；改变任一文件的内容、权限或类型，升级和重部署均拒绝。历史运行树/证明常量及跨KIN回退禁令保持。
 
-## 当前运行与本机监控（2026-10-13 UTC）
+## 历史运行与本机监控记录（2026-10-13 UTC）
 
-当前发布源码为 `8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90` / tps.3，实际发布控制和部署工具为 `5e24b02d7aeb32f440af7a3aafbb21394fa14dd8`，生产部署记录 `20261013T075506Z-bf72a8e35e62`；Full、Release、固定digest、备份、SSE/计费及完整聚合见[Responses验收](../../docs/upstream/records/2026-10-13-responses-release.md)。后继文档main HEAD不冒充当次工具revision；未来操作仍获取并显式提供当前可信origin/main。308完整账本保持，原83c250站点控制器及记录source429为历史安装身份，accepted_source/部署ID已绑定本次发布。原C08/tps.2记录保留于[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。
+该历史记录的发布源码为 `8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90` / tps.3，实际发布控制和部署工具为 `5e24b02d7aeb32f440af7a3aafbb21394fa14dd8`，生产部署记录 `20261013T075506Z-bf72a8e35e62`；Full、Release、固定digest、备份、SSE/计费及完整聚合见[Responses验收](../../docs/upstream/records/2026-10-13-responses-release.md)。后继文档main HEAD不冒充当次工具revision；未来操作仍获取并显式提供当前可信origin/main。308完整账本保持，原83c250站点控制器及记录source429为历史安装身份，accepted_source/部署ID已绑定本次发布。原C08/tps.2记录保留于[OBS验收](../../docs/upstream/records/2026-10-12-obs-release.md)。
 
 生产 `sub2api-kin-service-status-watch.timer` 每分钟、Persistent执行独立只读检查；源码位于personal的 `tools/service-status-watch.py`，安装目录 `/root/sub2api-kin/.personal-deploy/monitor/obs-tps2`，PG凭据只在服务器内存读取。安装完成后的两次自动current、固定文件hash/运行digest/依赖/完整账本及隔离测试的水位停滞/恢复/unavailable均已验收。查看本机固定事件可使用 `journalctl -u sub2api-kin-service-status-watch.service --output cat`；没有外部通知渠道或送达功能。测试专用unit与4282转发已按唯一所有权清理，原测试栈、正式证据及生产timer保留。
 
