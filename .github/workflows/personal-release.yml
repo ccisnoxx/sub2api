@@ -9,7 +9,7 @@ on:
         required: true
         type: string
       ci_run_id:
-        description: '同一 personal SHA 的成功手动 Full CI；留空自动查找'
+        description: '最终 personal 或其已合并同树候选的成功手动 Full CI；留空自动查找'
         required: false
         type: string
 
@@ -31,6 +31,7 @@ jobs:
       contents: write
       actions: write
       packages: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:

@@ -15,17 +15,17 @@
 
 - 普通 push、PR 更新、Ready 和 full-ci 标签均不触发应用 CI 或安全扫描。日常开发按任务批次完成本地定向检查；需要云端反馈时手动选择 Quick。上游同步只准备候选，手动 CI 演练才调度 Quick。
 - 按实际行为和边界选择本地检查。文档修改检查链接、路径和配置语义；业务、权限、并发或迁移修改执行直接覆盖合同的检查。高风险路径标记用于人工判断，不自动成为全量 CI 前置。
-- Full 由维护者按需手动执行，准备发布时在最终 personal 完整 SHA 执行一次。没有准备发布的普通任务，不要求合并前或合并后自动 Full。
+- Full 由维护者按需手动执行，准备发布时对稳定候选执行一次。推荐在升级 PR 的固定 head/base 上运行；普通 merge 后若完整 Git tree 相同，可由发布门禁复用，不重复运行。直接更新 personal 或不满足同树复用条件时，在最终 personal SHA 运行 Full。
 - 安全扫描保留手动、发布 Full 复用和每月定时入口，普通代码提交不自动扫描；路径过滤的轻量部署工具检查保留。
 - 先诊断失败，再修复并重跑失败及直接相关范围。复用输入未变的成功证据；不反复推送中间候选、重跑全部 job、删除失败测试或擅自扩大审计例外。取消、跳过、未执行或仍运行均不能写成通过。
 - 涉及发布授权、权限、迁移、并发或其他实质高风险合同的修改，应取得独立只读复核。仅因文件位于 main 或 CODEOWNERS 范围，不要求多人批准或运行全量发布检查。
 
 ## 手动镜像发布与部署
 
-正式流程为：固定 personal SHA → 手动 Personal CI Full → 手动 Personal release → Release 构建发布 → 维护者手动 Docker 部署。具体命令见 [CI-000](docs/ci/CI-000.md) 与[发布工具](.github/release-tools/README.md)。
+正式流程为：固定升级候选 → 一次手动 Personal CI Full → 普通同树 merge → 手动 Personal release 自动核验并复用 → Release 构建发布 → 维护者手动 Docker 部署。无 PR 时仍可在最终 personal 上检查一次。具体命令见 [CI-000](docs/ci/CI-000.md) 与[发布工具](.github/release-tools/README.md)。
 
 - Personal CI 成功、PR 合并或版本标签推送都不会自动发布。Personal release 保留 `PERSONAL_RELEASE_ENABLED` 开关，并从 main 手动触发。
-- 发布只接受当前 personal SHA 的成功手动 Full，检查同一次运行的实际必要 jobs，拒绝 Quick、PR/自动运行、旧 SHA、失败、取消、缺失和跳过的必要检查。
+- 发布接受当前 personal SHA 或其已合并同树候选的成功手动 Full，检查同一次运行的实际必要 jobs。同树复用必须绑定同仓库已合并 PR、精确双亲、原基础和完整 root tree；拒绝 Quick、pull_request/push 自动运行、无关旧 SHA、失败、取消、缺失和跳过的必要检查。
 - 发布不依赖 main/personal 的严格分支保护、required checks 或多人审批；main/personal 只保留禁止强推和删除，允许维护者直接提交，不要求 PR 或 required checks。远端设置需通过 GitHub API 单独核对，不能以仓库文件变化代替。
 - 准备版本后固定 source SHA、CI run ID、控制工具 revision、tag 与镜像 digest；后续步骤不得静默换用另一成功 run 或覆盖已有版本。
 - 发布工作流只构建发布产物，不自动部署生产。更新前备份，更新后验收健康、登录、用量记录及授权网关请求；既有部署兼容规则见[个人部署工具](deploy/personal/README.md)。

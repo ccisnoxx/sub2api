@@ -666,7 +666,7 @@ class RecoveryBoundaryTest(unittest.TestCase):
         self.assertEqual(set(flow['on']['workflow_dispatch']['inputs']),
                          {'original_run_id', 'source_sha', 'tag', 'ci_run_id', 'expected_digest'})
         steps = flow['jobs']['release']['steps']
-        self.assertEqual(flow['jobs']['release']['permissions'], {'contents': 'read', 'packages': 'read', 'actions': 'read'})
+        self.assertEqual(flow['jobs']['release']['permissions'], {'contents': 'read', 'packages': 'read', 'actions': 'read', 'pull-requests': 'read'})
         checkouts = [s['with'] for s in steps if s.get('uses', '').startswith('actions/checkout@')]
         self.assertEqual(checkouts[0]['ref'], '${{ github.sha }}')
         self.assertEqual(checkouts[0]['path'], 'control')

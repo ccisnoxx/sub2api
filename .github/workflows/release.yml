@@ -46,6 +46,7 @@ jobs:
       contents: read
       actions: read
       packages: read
+      pull-requests: read
     runs-on: ubuntu-latest
     outputs:
       skip: ${{ steps.guard.outputs.skip }}
@@ -427,6 +428,7 @@ jobs:
     permissions:
       contents: write
       packages: write
+      pull-requests: read
       actions: read
     env:
       SIMPLE_RELEASE: ${{ needs.prepare.outputs.simple }}

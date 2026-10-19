@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "personal-sync"))
-from sync import REPOSITORY, SHA, SyncError, UPSTREAM, assert_base, git, source_at
+from sync import REPOSITORY, SHA, SyncError, UPSTREAM, ancestor, assert_base, git, source_at
 from ci_policy import FULL_JOBS, ci_title, successful_jobs
 
 PERSONAL_TAG = re.compile(r"v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)-klno\.(0|[1-9][0-9]*)-tps\.([1-9][0-9]*)")
@@ -34,11 +34,11 @@ def request(url, headers=None, payload=None, missing=False, method=None):
         raise SyncError(f"远端请求失败：HTTP {error.code}，{url.split('?')[0]}") from error
 
 
-def api(path, payload=None, missing=False, method=None):
+def api(path, payload=None, missing=False, method=None, *, api_version="2026-03-10"):
     return request("https://api.github.com/" + path, {
         "Authorization": "Bearer " + os.environ["GH_TOKEN"],
         "Accept": "application/vnd.github+json", "Content-Type": "application/json",
-        "X-GitHub-Api-Version": "2026-03-10"}, payload, missing, method)[0]
+        "X-GitHub-Api-Version": api_version}, payload, missing, method)[0]
 
 
 def pages(path, key=None):
@@ -52,14 +52,39 @@ def pages(path, key=None):
     raise SyncError("分页超过上限，停止而不是使用不完整结果")
 
 
-def trusted_ci(run, sha, workflow_id):
+def trusted_ci(run, sha, workflow_id, *, base=None, branch="personal"):
     return (run["workflow_id"] == workflow_id and run["path"] == ".github/workflows/personal-ci.yml"
             and run["repository"]["full_name"] == REPOSITORY
             and run["head_repository"]["full_name"] == REPOSITORY
-            and run["head_branch"] == "personal" and run["head_sha"] == sha
+            and run["head_branch"] == branch and run["head_sha"] == sha
             and run["status"] == "completed" and run["conclusion"] == "success"
             and run["event"] == "workflow_dispatch"
-            and run["display_title"] == ci_title(sha, sha, "full"))
+            and run["display_title"] == ci_title(sha, base or sha, "full"))
+
+
+def ci_bindings(sha):
+    """先接受最终提交；仅普通同树 PR merge 可复用合并前的完整检查。"""
+    yield sha, sha, "personal"
+    parents = git("show", "-s", "--format=%P", sha).split()
+    if len(parents) != 2 or not all(SHA.fullmatch(p) for p in parents):
+        return
+    base, candidate = parents
+    # 完整 root tree 包括工作流、依赖、权限与文档；不以运行路径子集代替。
+    if (git("rev-parse", f"{sha}^{{tree}}") != git("rev-parse", f"{candidate}^{{tree}}")
+            or not ancestor(base, candidate)):
+        return
+    for row in pages(f"repos/{REPOSITORY}/commits/{sha}/pulls"):
+        if not row["merged_at"]:
+            continue
+        # 2026-03-10 删除了 merge_commit_sha；详情固定旧版，不能省略合并身份校验。
+        pr = api(f"repos/{REPOSITORY}/pulls/{row['number']}", api_version="2022-11-28")
+        if (pr["merged"] is True and pr["state"] == "closed" and pr["merge_commit_sha"] == sha
+                and pr["base"]["repo"]["full_name"] == REPOSITORY
+                and pr["base"]["ref"] == "personal" and pr["base"]["sha"] == base
+                and pr["head"]["repo"] is not None
+                and pr["head"]["repo"]["full_name"] == REPOSITORY
+                and pr["head"]["sha"] == candidate):
+            yield candidate, base, pr["head"]["ref"]
 
 
 def release_evidence(run):
@@ -83,20 +108,25 @@ def gate(sha, run_id=""):
     if actual != source["upstream_sha"]:
         raise SyncError("来源记录不等于 KlN 实际发布标签")
     workflow = api(f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml")
+    requested = None
     if run_id:
         if not str(run_id).isdigit():
             raise SyncError("CI run ID 无效")
-        run = api(f"repos/{REPOSITORY}/actions/runs/{run_id}")
-    else:
-        runs = pages(f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?head_sha={sha}&branch=personal", "workflow_runs")
-        run = next((r for r in runs if trusted_ci(r, sha, workflow["id"]) and release_evidence(r)), None)
-        if run is None:
-            raise SyncError("最终 personal SHA 没有可信的成功手动 Full CI")
-    if not trusted_ci(run, sha, workflow["id"]):
-        raise SyncError("CI 不是当前仓库、最终 personal SHA 的成功检查；PR 结果不可用于发布")
-    if run_id and not release_evidence(run):
-        raise SyncError("发布必须有同一次手动 Full CI 的全部成功检查；Quick、跳过或失败不能用于发布")
-    return source, run
+        requested = api(f"repos/{REPOSITORY}/actions/runs/{run_id}")
+    for candidate, base, branch in ci_bindings(sha):
+        query = urlencode({"head_sha": candidate, "branch": branch})
+        runs = [requested] if requested is not None else pages(
+            f"repos/{REPOSITORY}/actions/workflows/personal-ci.yml/runs?{query}", "workflow_runs")
+        for run in runs:
+            if not trusted_ci(run, candidate, workflow["id"], base=base, branch=branch):
+                continue
+            if release_evidence(run):
+                return source, run
+            if requested is not None:
+                raise SyncError("发布必须有同一次手动 Full CI 的全部成功检查；Quick、跳过或失败不能用于发布")
+    if requested is not None:
+        raise SyncError("CI 不是最终 personal 或其已合并同树候选的可信成功检查")
+    raise SyncError("最终 personal SHA 没有可信的成功手动 Full CI，也没有可复用的同树合并检查")
 
 
 def tags():
@@ -216,6 +246,7 @@ def prepare(args):
     api(f"repos/{REPOSITORY}/actions/workflows/release.yml/dispatches", {"ref": "personal", "inputs": {
         "tag": tag, "source_sha": args.sha, "ci_run_id": str(run["id"]), "simple_release": True, "dry_run": False}})
     output({"state": "dispatched", "tag": tag, "sha": args.sha, "ci_run_id": run["id"],
+        "ci_source_sha": run["head_sha"], "ci_reused": run["head_sha"] != args.sha,
         "upstream_tag": source["upstream_tag"], "upstream_sha": source["upstream_sha"], "digest": digest or ""})
 
 
