@@ -1,5 +1,12 @@
 # 功能来源与长期维护归属
 
+## 2026-10-25：v0.2.18-klno.3 升级候选
+
+固定 KIN 标签 `v0.2.18-klno.3`，tag object `9d4396d87459df5aec630b19a1a79879fffbb241`，peeled commit `35aae52f4218b6410f959ac46a13de1f05a1e272`。personal 基础 `8e064ba4436fab2dbccb1ee132dc0a69166152ae`；上游再次改写历史，以旧来源 `cf0bf0526704bb615745fda76009cb20d85df613` 为逻辑三方基线，保留 personal 和新 KIN 的真实双亲历史，不绕过自动同步祖先门禁。
+
+保留个人严格计时、计费去重、目录、诊断、服务状态和版本更新模块。控制冲突取可信 main；Wire 从维护源重新生成；中英文同时注册服务状态与新 Codex 身份设置。SSE preamble 新增 queued/metadata，keepalive 仍由 metadata 分类，防止心跳发送后误判可切换响应。新增 SQL246 会把 Gemini/Antigravity 存量分组生图开关置为 true，旧 315 份 SQL 身份/字节保持；本版本不宣称旧镜像回退安全。发布及线上状态另记验收记录，RC 不表示已发布。
+
+
 ## 2026-10-19：v0.2.17-klno.1 升级候选
 
 当前工作树来源固定为 `KlN-4096/sub2api` 的 `v0.2.17-klno.1`，annotated tag object 为 `f9c7303984ab3d9adfc985c2c99e59cc9df09cab`，peeled commit 为 `cf0bf0526704bb615745fda76009cb20d85df613`。个人候选从 `2d532db30a94e5d3bff3ef928323186c1d4d93c5`（`v0.2.15-klno.4-tps.1`）准备；该来源与 NOTICE、`deploy/personal-source.json` 一致。下文 I/N/C/T 与发布状态均是带日期的历史记录，不能用作本候选已发布或已上线的证明。

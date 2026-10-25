@@ -22,6 +22,9 @@ const (
 	OpenAIQualityGuardReason      GatewayFailureReason = "openai_quality_guard"
 )
 
+// openAITurnStateRelayEnabledKey 是 turn-state 接力的开关（openai_turn_state_relay.go），与降智防护同一配置区。
+const openAITurnStateRelayEnabledKey = "openai_turn_state_relay_enabled"
+
 type openAIQualityGuardConfig struct {
 	mode     string
 	attempts int
@@ -30,6 +33,11 @@ type openAIQualityGuardConfig struct {
 
 func (a *Account) qualityGuardEnabled() bool {
 	return a.IsOpenAIOAuthLike() && !a.UsesGatewayPool() && a.getExtraBool(openAIQualityGuardEnabledKey)
+}
+
+// turnStateRelayEnabled：降智防护的账号范围再加 CPR 原样中继，开关独立。
+func (a *Account) turnStateRelayEnabled() bool {
+	return (a.IsCPR() || a.IsOpenAIOAuthLike() && !a.UsesGatewayPool()) && a.getExtraBool(openAITurnStateRelayEnabledKey)
 }
 
 func (a *Account) qualityGuardConfig() openAIQualityGuardConfig {
@@ -46,7 +54,7 @@ func (a *Account) qualityGuardConfig() openAIQualityGuardConfig {
 }
 
 func touchesOpenAIQualityGuardConfig(extra map[string]any) bool {
-	for _, key := range []string{openAIQualityGuardEnabledKey, openAIQualityGuardModeKey, openAIQualityGuardAttemptsKey, openAIQualityGuardIntervalKey} {
+	for _, key := range []string{openAIQualityGuardEnabledKey, openAIQualityGuardModeKey, openAIQualityGuardAttemptsKey, openAIQualityGuardIntervalKey, openAITurnStateRelayEnabledKey, codexClientProfileExtraKey} {
 		if _, ok := extra[key]; ok {
 			return true
 		}
@@ -61,6 +69,15 @@ func validateOpenAIQualityGuardExtra(account *Account, extra map[string]any) err
 	if raw := extra[openAIQualityGuardEnabledKey]; raw != nil {
 		if _, ok := raw.(bool); !ok {
 			return invalid("Quality guard enabled must be boolean")
+		}
+	}
+	if raw := extra[openAITurnStateRelayEnabledKey]; raw != nil {
+		relay, ok := raw.(bool)
+		if !ok {
+			return invalid("Turn-state relay enabled must be boolean")
+		}
+		if relay && !account.IsOpenAIOAuthLike() && !account.IsCPR() {
+			return invalid("Turn-state relay requires a local OpenAI OAuth, setup-token or CPR account")
 		}
 	}
 	mode, _ := extra[openAIQualityGuardModeKey].(string)
@@ -82,7 +99,7 @@ func validateOpenAIQualityGuardExtra(account *Account, extra map[string]any) err
 			return invalid("Choose block or wait before enabling quality guard")
 		}
 	}
-	return nil
+	return validateCodexClientProfileExtra(account, extra)
 }
 
 func qualityGuardFailure(message string) *UpstreamFailoverError {
