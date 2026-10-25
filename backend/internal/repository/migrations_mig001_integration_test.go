@@ -21,7 +21,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-const mig001TargetMigrationCount = 315
+const mig001TargetMigrationCount = 316
 
 // 旧 KIN 的303份、旧personal的307份和tps.3的308份SQL保留完整文件身份。
 // 使用真实 runner 和完整 SQL 集合，避免用手填账本或简化 schema 冒充升级。
@@ -56,6 +56,7 @@ func TestMIG001UpgradePaths(t *testing.T) {
 		{"already-personal", oldPersonal, 307},
 		{"current-tps3", mig001Files(t, true, true), 308},
 		{"current-klno4", mig001Klno4Files(t), 311},
+		{"current-klno17", mig001Klno17Files(t), 315},
 	} {
 		t.Run(initial.name, func(t *testing.T) {
 			_, err := db.ExecContext(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public")
@@ -64,9 +65,14 @@ func TestMIG001UpgradePaths(t *testing.T) {
 				require.NoError(t, applyMigrationsFS(ctx, db, initial.files))
 				mig001SeedUsage(t, db)
 			}
-			if initial.name == "already-personal" || initial.name == "current-tps3" || initial.name == "current-klno4" {
+			if initial.name == "already-personal" || initial.name == "current-tps3" || initial.name == "current-klno4" || initial.name == "current-klno17" {
 				_, err := db.ExecContext(ctx, `UPDATE service_status_config SET enabled=TRUE,version=7 WHERE id=1;
 INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_model,success) VALUES('2026-10-10T00:00:00Z','openai',1,'mig001-fixture',5)`)
+				require.NoError(t, err)
+			}
+			if initial.name == "current-klno17" {
+				_, err := db.ExecContext(ctx, `INSERT INTO groups(name,platform,allow_image_generation) VALUES
+('mig001-gemini','gemini',false),('mig001-antigravity','antigravity',false),('mig001-composite','composite',false),('mig001-openai','openai',false)`)
 				require.NoError(t, err)
 			}
 			before := mig001Ledger(t, db)
@@ -83,7 +89,21 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 			for name, row := range before {
 				require.Equal(t, row, after[name], "旧 checksum / applied_at 必须保留：%s", name)
 			}
+			if initial.name == "current-klno17" {
+				var enabled, untouched int
+				require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM groups WHERE name IN ('mig001-gemini','mig001-antigravity') AND allow_image_generation").Scan(&enabled))
+				require.Equal(t, 2, enabled)
+				require.NoError(t, db.QueryRowContext(ctx, "SELECT COUNT(*) FROM groups WHERE name IN ('mig001-composite','mig001-openai') AND NOT allow_image_generation").Scan(&untouched))
+				require.Equal(t, 2, untouched)
+				_, err := db.ExecContext(ctx, "UPDATE groups SET allow_image_generation=false WHERE name='mig001-gemini'")
+				require.NoError(t, err)
+			}
 			require.NoError(t, ApplyMigrations(ctx, db))
+			if initial.name == "current-klno17" {
+				var enabled bool
+				require.NoError(t, db.QueryRowContext(ctx, "SELECT allow_image_generation FROM groups WHERE name='mig001-gemini'").Scan(&enabled))
+				require.False(t, enabled, "重复启动不得重新启用管理员已关闭的生图开关")
+			}
 			require.Equal(t, after, mig001Ledger(t, db), "重复启动不得改写账本")
 			if initial.files == nil {
 				mig001SeedUsage(t, db)
@@ -100,7 +120,7 @@ INSERT INTO service_status_facts_1m(bucket_start,platform,group_id,requested_mod
 			require.Equal(t, 12, columnCount)
 			require.NoError(t, db.QueryRowContext(ctx, `SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('service_status_config','service_status_facts_1m','service_status_scope_states','service_status_incidents','service_status_watermark')`).Scan(&tableCount))
 			require.Equal(t, 5, tableCount)
-			if initial.name == "already-personal" || initial.name == "current-tps3" || initial.name == "current-klno4" {
+			if initial.name == "already-personal" || initial.name == "current-tps3" || initial.name == "current-klno4" || initial.name == "current-klno17" {
 				var enabled bool
 				var version, successes int
 				require.NoError(t, db.QueryRowContext(ctx, "SELECT enabled,version FROM service_status_config WHERE id=1").Scan(&enabled, &version))
@@ -179,12 +199,24 @@ func mig001Files(t *testing.T, target242, personal bool) fstest.MapFS {
 // 固定线上 .15-klno.4 的迁移身份，不能将 .17 的新增 SQL 提前混入旧库。
 func mig001Klno4Files(t *testing.T) fstest.MapFS {
 	t.Helper()
+	files := mig001Klno17Files(t)
+	for name := range files {
+		switch name {
+		case "242_group_i18n.sql", "243_gemini_cached_contents.sql", "244_gemini_cached_contents_channel_usage.sql", "245_gemini_cached_contents_mutation_lease.sql":
+			delete(files, name)
+		}
+	}
+	return files
+}
+
+// .17 的315份SQL不含 .18 新增的数据迁移，历史夹具不得随当前FS漂移。
+func mig001Klno17Files(t *testing.T) fstest.MapFS {
+	t.Helper()
 	names, err := fs.Glob(migrations.FS, "*.sql")
 	require.NoError(t, err)
 	files := fstest.MapFS{}
 	for _, name := range names {
-		switch name {
-		case "242_group_i18n.sql", "243_gemini_cached_contents.sql", "244_gemini_cached_contents_channel_usage.sql", "245_gemini_cached_contents_mutation_lease.sql":
+		if name == "246_enable_gemini_image_generation_groups.sql" {
 			continue
 		}
 		data, err := migrations.FS.ReadFile(name)
