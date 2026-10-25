@@ -36,6 +36,8 @@ class Deployment:
         self.migration_before = None
         self.cumulative_baseline = None
         self.cumulative_prefix_high_water = 0
+        self.klno18_baseline = None
+        self.klno18_prefix_high_water = 0
         self.klno17_baseline = None
         self.klno17_prefix_high_water = 0
         self.klno4_baseline = None
@@ -128,6 +130,7 @@ class Deployment:
         require_resp_old_image(proof, old)
         require_klno4_old_image(proof, old)
         require_klno17_old_image(proof, old)
+        require_klno18_old_image(proof, old)
         if request["action"] == "rollback":
             require_image_rollback(proof)
         require(request["action"] != "deploy" or proof.get("security_patch", {}).get("direction") != "rollback",
@@ -159,6 +162,16 @@ class Deployment:
         prefix = klno17_ledger_prefix(self.klno17_baseline, listing)
         require(prefix >= self.klno17_prefix_high_water, "E_MIGRATION", ".17 已观察到的固定事务前缀不能倒退")
         self.klno17_prefix_high_water = prefix
+        if self.record is not None:
+            self.record["migration_committed_prefix"] = prefix
+        return prefix
+
+    def observe_klno18_prefix(self, listing):
+        if self.record is not None:
+            self.record["observed_migration_state"] = migration_fingerprint(listing)
+        prefix = klno18_ledger_prefix(self.klno18_baseline, listing)
+        require(prefix >= self.klno18_prefix_high_water, "E_MIGRATION", ".18 已观察到的固定事务前缀不能倒退")
+        self.klno18_prefix_high_water = prefix
         if self.record is not None:
             self.record["migration_committed_prefix"] = prefix
         return prefix
@@ -245,7 +258,7 @@ class Deployment:
             self.guard_configuration()
             # 先取得旧镜像固定引用；旧标签没有不可变本地映射时禁止重建。
             self.metadata(self.inspect(old["image"], image=True), expected=old)
-            if cumulative or kin or any(name in request["compatibility"] for name in ("obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade")):
+            if cumulative or kin or any(name in request["compatibility"] for name in ("obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade", "klno18_upgrade")):
                 require(self.migration_listing(dependencies["postgres"]) == self.migration_before,
                         "E_MIGRATION", "新应用启动前迁移账本已经变化")
             atomic_private(self.compose_file, self.config_after)
@@ -277,6 +290,11 @@ class Deployment:
                 migrated = self.migration_listing(dependencies["postgres"])
                 require(self.observe_klno17_prefix(migrated) == len(KLNO17_MIGRATIONS),
                         "E_MIGRATION", ".17 健康终态必须保留生产原账本并完成四项固定迁移")
+                expected_migrations = migration_fingerprint(migrated)
+            if "klno18_upgrade" in request["compatibility"]:
+                migrated = self.migration_listing(dependencies["postgres"])
+                require(self.observe_klno18_prefix(migrated) == len(KLNO18_MIGRATIONS),
+                        "E_MIGRATION", ".18 健康终态必须保留生产原账本并完成一项固定迁移")
                 expected_migrations = migration_fingerprint(migrated)
             actual = self.health(resolved, dependencies, expected_migrations)
             self.guard_configuration()
@@ -315,6 +333,12 @@ class Deployment:
                     self.observe_klno17_prefix(self.migration_listing(dependencies["postgres"]))
                 except Exception as observation_error:
                     self.record["migration_observation_error"] = getattr(observation_error, "code", "E_INTERNAL")
+            if self.started and proof_valid and "klno18_upgrade" in request["compatibility"]:
+                # 即使等待失败，runner 仍可能提交下一笔；只记录可证明的前缀，不启动旧镜像。
+                try:
+                    self.observe_klno18_prefix(self.migration_listing(dependencies["postgres"]))
+                except Exception as observation_error:
+                    self.record["migration_observation_error"] = getattr(observation_error, "code", "E_INTERNAL")
             if self.started and proof_valid and not committed:
                 restoring = False
                 try:
@@ -344,7 +368,7 @@ class Deployment:
                 except Exception as rollback_error:
                     blocked = ("forward_upgrade" in request["compatibility"] or "kin_upgrade" in request["compatibility"] or
                                "obs_upgrade" in request["compatibility"] or "resp_upgrade" in request["compatibility"] or
-                               "klno4_upgrade" in request["compatibility"] or "klno17_upgrade" in request["compatibility"] or
+                               "klno4_upgrade" in request["compatibility"] or "klno17_upgrade" in request["compatibility"] or "klno18_upgrade" in request["compatibility"] or
                                ("cumulative_upgrade" in request["compatibility"] and not restoring))
                     self.record["rollback_status"] = "blocked" if blocked else "failed"
                     self.record["rollback_error"] = rollback_error.code if isinstance(rollback_error, DeployError) else "E_INTERNAL"
@@ -460,6 +484,7 @@ class Deployment:
         cumulative = request["compatibility"].get("cumulative_upgrade")
         kin = request["compatibility"].get("kin_upgrade")
         klno4 = request["compatibility"].get("klno4_upgrade")
+        klno18 = request["compatibility"].get("klno18_upgrade")
         klno17 = request["compatibility"].get("klno17_upgrade")
         if any(name in request["compatibility"] for name in ("obs_upgrade", "resp_upgrade")):
             kin_ledger_baseline(self.migration_before, True)
@@ -480,6 +505,12 @@ class Deployment:
             if persist:
                 atomic_private(self.directory / "migration-ledger-before.txt", self.migration_before)
                 self.save("preflight", migration_state_before=migration_fingerprint(self.klno17_baseline))
+        if klno18:
+            self.klno18_baseline = klno18_ledger_baseline(self.migration_before, klno18["direction"] == "redeploy")
+            self.observe_klno18_prefix(self.migration_before)
+            if persist:
+                atomic_private(self.directory / "migration-ledger-before.txt", self.migration_before)
+                self.save("preflight", migration_state_before=migration_fingerprint(self.klno18_baseline))
         if cumulative:
             if cumulative["direction"] == "upgrade":
                 if any(line.split(b"|", 1)[0].decode() in CUMULATIVE_MIGRATIONS

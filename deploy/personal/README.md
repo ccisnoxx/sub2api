@@ -219,6 +219,14 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 
 `test_klno17_deployment.py` 使用真实 Git 对象与隔离临时普通 merge 核验候选/来源/完整构建输入、四份新增 SQL 和全部旧 SQL 字节；账本及生命周期替身覆盖固定 311→315、全部前缀、篡改/伪装、启动前备份、账本漂移、失败不回退、选择提交两侧与维护失败关闭。测试不访问生产、不执行真实迁移或外部 Gemini mutation，也不替代发布镜像、数据库和现场业务验收。
 
+## .18 的单向升级合同
+
+本轮从生产 `ceb2147b933035c5b50345c6e779b12112c097ac / 0.2.17-klno.1-tps.1 / sha256:e1d169160facdcf348a9341b6336730666f2f33dfdc71792a69ab7fb6150e3d5` 升级到包含审定应用锚点 `7a6fef9514a8cf68ba69950aa1e4a6f5a335c2d5` 的 `0.2.18-klno.3-tps.1`。来源必须等于 `KLNO18_NEW_SOURCE`；完整运行树、整个前端、外部 raw 输入与全部精确差异由 `deploy_compatibility.py` 固定。普通合并或文档/部署工具后继可以改变发布 SHA，不能改变这些构建输入或丢失应用锚点。未知同树来源、文件 mode/type 变化和反向部署均拒绝。
+
+仅允许追加 `246_enable_gemini_image_generation_groups.sql`，runner checksum `87267be7ab657173768989e2b0b105c5569c5930a7f1ed124f4cf81e5198297c`。该 SQL 将 Gemini/Antigravity 存量分组的生图开关由 false 置为 true，不影响 composite/openai；只执行一次，管理员以后关闭的值不因重启再次开启。迁移前必须是完整正确的315行生产账本（摘要 `cf49a7c25ef0c66f2b401de8b9115227940d53f4e511c2bb13004d2fc9463cc3`），健康后只允许原行不变加唯一246，共316行；重部署必须已有正确完整316行。保留 `image_rollback_compatible=false / schema_rollback=retain`，失败不自动恢复旧镜像；数据库恢复仍需另行授权。
+
+沿用同一 REL-002 站点与维护记录，可信 main 完整 bundle 冻结后执行固定 digest 的 app-only 部署，执行器在同一锁内制作并校验本次备份。恢复入口须绑定最终正式发布 SHA 和本次成功记录，核对316行完整账本、镜像/依赖/健康/selection身份后才开放流量。命令模式沿用本页日常上线顺序，仅版本改为 `0.2.18-klno.3-tps.1`。真实隔离验证、Full、Release 和现场验收以 [UPSTREAM-010](../../docs/upstream/UPSTREAM-010.md) 的实际记录为准；本合同不是完成证明。
+
 ## 定向验证与 CI
 
 以下命令不访问 hostdzire、不使用真实 Docker、不安装依赖；CI checkout 应使用 `fetch-depth: 0` 并保留个人及上游标签，发布绑定用例需要已发布固定对象。

@@ -656,6 +656,104 @@ def require_klno17_old_image(proof, old):
                 "E_COMPATIBILITY", ".17 必须绑定固定生产 .4 旧 revision、版本、来源与 digest")
 
 
+KLNO18_UPGRADE_ID = "0.2.17-klno.1-tps.1-to-0.2.18-klno.3-tps.1"
+KLNO18_OLD_REVISION = "ceb2147b933035c5b50345c6e779b12112c097ac"
+KLNO18_OLD_VERSION = KLNO17_NEW_VERSION
+KLNO18_OLD_IMAGE = REPOSITORY + "@sha256:e1d169160facdcf348a9341b6336730666f2f33dfdc71792a69ab7fb6150e3d5"
+KLNO18_NEW_SOURCE = {
+    "upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v0.2.18-klno.3",
+    "upstream_sha": "35aae52f4218b6410f959ac46a13de1f05a1e272",
+}
+# 正式 merge 与同树后继必须包含此候选；不猜测最终发布 SHA 或新镜像 digest。
+KLNO18_NEW_REVISION = '7a6fef9514a8cf68ba69950aa1e4a6f5a335c2d5'
+KLNO18_NEW_VERSION = "0.2.18-klno.3-tps.1"
+KLNO18_NEW_RUNTIME = 'ab3a1b2c3ec740897abd8b66fc50d559598fb06696b825d15e8587b83f4a880b'
+KLNO18_NEW_FRONTEND = 'b16242c1ced19fd15dec5c1970ea6fc5e05a49ba2f1178932f85222f7a85100d'
+KLNO18_RAW_PATHS = KLNO4_RAW_PATHS
+KLNO18_RAW_SHA256 = '70666fc568db23059802282f36ec4d3fa25a3a2cc0fdc3bbd56c8a24a5808942'
+KLNO18_CHANGED_PATHS_SHA256 = '3bb28aa2f138c1d4de8c92a16ed6843d28cae02fccc511a211a9b8ff901afe4f'
+KLNO18_FRONTEND_CHANGED_PATHS = (
+    'frontend/package.json',
+    'frontend/pnpm-lock.yaml',
+    'frontend/src/api/__tests__/admin.accounts.cprQuota.spec.ts',
+    'frontend/src/api/admin/accounts.ts',
+    'frontend/src/api/admin/codexClientProfile.ts',
+    'frontend/src/components/account/AccountCapacityCell.vue',
+    'frontend/src/components/account/AccountUsageCell.vue',
+    'frontend/src/components/account/CPRAccountInfo.vue',
+    'frontend/src/components/account/CPRConnectionForm.vue',
+    'frontend/src/components/account/CodexClientProfileFields.vue',
+    'frontend/src/components/account/CreateAccountModal.vue',
+    'frontend/src/components/account/EditAccountModal.vue',
+    'frontend/src/components/account/OpenAIQuotaResetCell.vue',
+    'frontend/src/components/account/__tests__/AccountUsageCell.spec.ts',
+    'frontend/src/components/account/__tests__/CPRAccountInfo.spec.ts',
+    'frontend/src/components/account/__tests__/CPRConnectionForm.spec.ts',
+    'frontend/src/components/account/__tests__/CodexClientProfileFields.spec.ts',
+    'frontend/src/components/account/__tests__/CreateAccountModal.spec.ts',
+    'frontend/src/components/account/__tests__/EditAccountModal.spec.ts',
+    'frontend/src/components/account/__tests__/OpenAIQuotaResetCell.cpr.spec.ts',
+    'frontend/src/components/account/__tests__/OpenAIQuotaResetCell.spark_shadow.spec.ts',
+    'frontend/src/components/admin/account/AccountActionMenu.vue',
+    'frontend/src/components/admin/settings/CodexClientProfileSettings.vue',
+    'frontend/src/components/admin/settings/__tests__/CodexClientProfileSettings.spec.ts',
+    'frontend/src/i18n/locales/en/admin/accounts.ts',
+    'frontend/src/i18n/locales/en/admin/codexClientProfile.ts',
+    'frontend/src/i18n/locales/en/admin/index.ts',
+    'frontend/src/i18n/locales/en/admin/settings.ts',
+    'frontend/src/i18n/locales/zh/admin/accounts.ts',
+    'frontend/src/i18n/locales/zh/admin/codexClientProfile.ts',
+    'frontend/src/i18n/locales/zh/admin/index.ts',
+    'frontend/src/i18n/locales/zh/admin/settings.ts',
+    'frontend/src/types/cpr.ts',
+    'frontend/src/types/index.ts',
+    'frontend/src/utils/accountQuota.ts',
+    'frontend/src/utils/cprResetRequest.ts',
+    'frontend/src/views/admin/AccountsView.vue',
+    'frontend/src/views/admin/GroupsView.vue',
+    'frontend/src/views/admin/SettingsView.vue',
+    'frontend/src/views/admin/__tests__/SettingsView.spec.ts',
+    'frontend/src/views/admin/__tests__/groupsImagePricing.spec.ts',
+    'frontend/src/views/admin/groupsImagePricing.ts',
+)
+KLNO18_MIGRATIONS = {
+    "246_enable_gemini_image_generation_groups.sql": "87267be7ab657173768989e2b0b105c5569c5930a7f1ed124f4cf81e5198297c",
+}
+KLNO18_OLD_MIGRATION_STATE = {
+    "rows": 315, "filename_checksum_sha256": "cf49a7c25ef0c66f2b401de8b9115227940d53f4e511c2bb13004d2fc9463cc3",
+}
+
+
+def approved_klno18_upgrade(direction):
+    require(direction in ("upgrade", "redeploy") and SHA_RE.fullmatch(KLNO18_NEW_REVISION) and
+            all(re.fullmatch(r"[0-9a-f]{64}", value) for value in
+                (KLNO18_NEW_RUNTIME, KLNO18_NEW_FRONTEND, KLNO18_RAW_SHA256, KLNO18_CHANGED_PATHS_SHA256)),
+            "E_COMPATIBILITY", ".18 必须绑定最终审定候选；不允许旧镜像回退")
+    redeploy = direction == "redeploy"
+    return {"id": KLNO18_UPGRADE_ID, "direction": direction,
+            "old_source": dict(KLNO18_NEW_SOURCE if redeploy else KLNO17_NEW_SOURCE),
+            "new_source": dict(KLNO18_NEW_SOURCE),
+            "old_runtime_revision": KLNO18_NEW_REVISION if redeploy else KLNO18_OLD_REVISION,
+            "new_runtime_revision": KLNO18_NEW_REVISION,
+            "old_runtime_sha256": KLNO18_NEW_RUNTIME if redeploy else KLNO17_NEW_RUNTIME,
+            "new_runtime_sha256": KLNO18_NEW_RUNTIME,
+            "changed_paths_sha256": sha(canonical([])) if redeploy else KLNO18_CHANGED_PATHS_SHA256,
+            "frontend_paths": ["frontend"],
+            "old_frontend_sha256": KLNO18_NEW_FRONTEND if redeploy else KLNO17_NEW_FRONTEND,
+            "new_frontend_sha256": KLNO18_NEW_FRONTEND,
+            "frontend_changed_paths": [] if redeploy else list(KLNO18_FRONTEND_CHANGED_PATHS),
+            "raw_paths": list(KLNO18_RAW_PATHS), "raw_sha256": KLNO18_RAW_SHA256,
+            "image_rollback_compatible": False, "schema_rollback": "retain",
+            "migrations": dict(KLNO18_MIGRATIONS)}
+
+
+def require_klno18_old_image(proof, old):
+    if proof.get("klno18_upgrade", {}).get("direction") == "upgrade":
+        require(old["revision"] == KLNO18_OLD_REVISION and old["version"] == KLNO18_OLD_VERSION and
+                old["image"] == KLNO18_OLD_IMAGE and old["source"] == SOURCE,
+                "E_COMPATIBILITY", ".18 必须绑定固定生产 .17 旧 revision、版本、来源与 digest")
+
+
 def approved_klno4_upgrade(direction):
     require(direction in ("upgrade", "redeploy") and SHA_RE.fullmatch(KLNO4_NEW_REVISION) and
             all(re.fullmatch(r"[0-9a-f]{64}", value) for value in
@@ -786,8 +884,22 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
     kin = proof.get("kin_upgrade")
     obs = proof.get("obs_upgrade")
     resp = proof.get("resp_upgrade")
+    klno18 = proof.get("klno18_upgrade")
     klno17 = proof.get("klno17_upgrade")
     klno4 = proof.get("klno4_upgrade")
+    klno18_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KLNO18_NEW_SOURCE["upstream_tag"]
+    if klno18_source:
+        require("klno18_upgrade" in proof, "E_COMPATIBILITY", ".18 必须使用专属完整运行树与持久化迁移证明")
+    if "klno18_upgrade" in proof:
+        direction = "upgrade" if old_revision == KLNO18_OLD_REVISION else "redeploy"
+        approved = approved_klno18_upgrade(direction)
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "klno18_upgrade"} and
+                isinstance(klno18, dict) and canonical(klno18) == canonical(approved) and
+                SHA_RE.fullmatch(old_revision) and SHA_RE.fullmatch(new_revision) and
+                proof["upstream"] == KLNO18_NEW_SOURCE and
+                sha(canonical(proof["changed_paths"])) == approved["changed_paths_sha256"],
+                "E_COMPATIBILITY", ".18 证明不属于固定来源、完整运行树与精确差异")
     klno17_source = isinstance(proof.get("upstream"), dict) and proof["upstream"].get("upstream_tag") == KLNO17_NEW_SOURCE["upstream_tag"]
     if klno17_source:
         require("klno17_upgrade" in proof, "E_COMPATIBILITY", ".17 必须使用专属完整运行树与持久化迁移证明")
@@ -866,7 +978,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
                 proof["upstream"] == FORWARD_NEW_SOURCE and proof["changed_paths"] == list(FORWARD_CHANGED_PATHS),
                 "E_COMPATIBILITY", "正向升级证据不属于已审定的来源、完整运行树与差异")
     if old_version is not None and new_version is not None:
-        upgrade = forward or cumulative or kin or obs or resp or klno4 or klno17
+        upgrade = forward or cumulative or kin or obs or resp or klno4 or klno17 or klno18
         old_source = upgrade["old_source"] if upgrade else proof.get("upstream", {})
         new_source = upgrade["new_source"] if upgrade else proof.get("upstream", {})
         require(isinstance(old_source, dict) and isinstance(new_source, dict) and
@@ -897,11 +1009,15 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
             require(new_version == KLNO4_NEW_VERSION and
                     old_version == (KLNO4_OLD_VERSION if klno4["direction"] == "upgrade" else KLNO4_NEW_VERSION),
                     "E_COMPATIBILITY", ".4 只绑定生产 RESP 旧发布与审定的正式个人版本")
+        if klno18:
+            require(new_version == KLNO18_NEW_VERSION and
+                    old_version == (KLNO18_OLD_VERSION if klno18["direction"] == "upgrade" else KLNO18_NEW_VERSION),
+                    "E_COMPATIBILITY", ".18 只绑定生产 .17 旧发布与审定的正式个人版本")
         if klno17:
             require(new_version == KLNO17_NEW_VERSION and
                     old_version == (KLNO17_OLD_VERSION if klno17["direction"] == "upgrade" else KLNO17_NEW_VERSION),
                     "E_COMPATIBILITY", ".17 只绑定生产 .4 旧发布与审定的正式个人版本")
-    if forward or cumulative or kin or obs or resp or klno4 or klno17:
+    if forward or cumulative or kin or obs or resp or klno4 or klno17 or klno18:
         return
     if proof["changed_paths"] == []:
         require("security_patch" not in proof, "E_COMPATIBILITY", "无运行差异的证据不能包含安全补丁例外")
@@ -913,7 +1029,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
 
 def require_image_rollback(proof):
     require(not any(proof.get(name, {}).get("image_rollback_compatible") is False
-                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade")),
+                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade", "klno18_upgrade")),
             "E_COMPATIBILITY", "持久化数据回退未获证明；禁止旧镜像恢复，需人工评估失败记录与备份")
 
 

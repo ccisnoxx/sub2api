@@ -26,8 +26,11 @@ def local_maintenance(args, bundle, config):
         elif runtime == KLNO17_NEW_RUNTIME:
             git.personal(KLNO17_NEW_VERSION, args.target_revision)
             git.klno17_runtime(args.target_revision)
+        elif runtime == KLNO18_NEW_RUNTIME:
+            git.personal(KLNO18_NEW_VERSION, args.target_revision)
+            git.klno18_runtime(args.target_revision)
         else:
-            raise DeployError("E_COMPATIBILITY", "维护恢复只接受审定的 OBS、RESP、.4 或 .17 完整运行树")
+            raise DeployError("E_COMPATIBILITY", "维护恢复只接受审定的 OBS、RESP、.4 、.17 或 .18 完整运行树")
     else:
         require(args.target_revision is None and args.deployment_record is None,
                 "E_INPUT", "freeze 不接受恢复目标参数")
