@@ -221,7 +221,7 @@ docker compose --env-file <现有.env> --env-file <私密操作镜像文件> \
 
 ## .18 的单向升级合同
 
-本轮从生产 `ceb2147b933035c5b50345c6e779b12112c097ac / 0.2.17-klno.1-tps.1 / sha256:e1d169160facdcf348a9341b6336730666f2f33dfdc71792a69ab7fb6150e3d5` 升级到包含审定应用锚点 `742952d420dd7d92ff13ff119a05658dd48f006a` 的 `0.2.18-klno.3-tps.1`。来源必须等于 `KLNO18_NEW_SOURCE`；完整运行树、整个前端、外部 raw 输入与全部精确差异由 `deploy_compatibility.py` 固定。普通合并或文档/部署工具后继可以改变发布 SHA，不能改变这些构建输入或丢失应用锚点。未知同树来源、文件 mode/type 变化和反向部署均拒绝。
+本轮从生产 `ceb2147b933035c5b50345c6e779b12112c097ac / 0.2.17-klno.1-tps.1 / sha256:e1d169160facdcf348a9341b6336730666f2f33dfdc71792a69ab7fb6150e3d5` 升级到包含审定应用锚点 `7a6fef9514a8cf68ba69950aa1e4a6f5a335c2d5` 的 `0.2.18-klno.3-tps.1`。来源必须等于 `KLNO18_NEW_SOURCE`；完整运行树、整个前端、外部 raw 输入与全部精确差异由 `deploy_compatibility.py` 固定。普通合并或文档/部署工具后继可以改变发布 SHA，不能改变这些构建输入或丢失应用锚点。未知同树来源、文件 mode/type 变化和反向部署均拒绝。
 
 仅允许追加 `246_enable_gemini_image_generation_groups.sql`，runner checksum `87267be7ab657173768989e2b0b105c5569c5930a7f1ed124f4cf81e5198297c`。该 SQL 将 Gemini/Antigravity 存量分组的生图开关由 false 置为 true，不影响 composite/openai；只执行一次，管理员以后关闭的值不因重启再次开启。迁移前必须是完整正确的315行生产账本（摘要 `cf49a7c25ef0c66f2b401de8b9115227940d53f4e511c2bb13004d2fc9463cc3`），健康后只允许原行不变加唯一246，共316行；重部署必须已有正确完整316行。保留 `image_rollback_compatible=false / schema_rollback=retain`，失败不自动恢复旧镜像；数据库恢复仍需另行授权。
 
