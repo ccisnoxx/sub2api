@@ -111,6 +111,12 @@ class GitEvidence:
         self._fixed_application_runtime(revision, RESP_NEW_REVISION, RESP_NEW_RUNTIME, RESP_FRONTEND,
                                         RESP_RAW_PATHS, RESP_RAW_SHA256, "RESP")
 
+    def klno18_runtime(self, revision):
+        approved_klno18_upgrade("redeploy")
+        self._fixed_application_runtime(revision, KLNO18_NEW_REVISION, KLNO18_NEW_RUNTIME, KLNO18_NEW_FRONTEND,
+                                        KLNO18_RAW_PATHS, KLNO18_RAW_SHA256, ".18", source=KLNO18_NEW_SOURCE,
+                                        migrations={**CUMULATIVE_MIGRATIONS, **KIN_MIGRATIONS, **KLNO4_MIGRATIONS, **KLNO17_MIGRATIONS, **KLNO18_MIGRATIONS})
+
     def klno17_runtime(self, revision):
         approved_klno17_upgrade("redeploy")
         self._fixed_application_runtime(revision, KLNO17_NEW_REVISION, KLNO17_NEW_RUNTIME, KLNO17_NEW_FRONTEND,
@@ -139,6 +145,27 @@ class GitEvidence:
             require(self.git("ls-tree", revision, "--", path).startswith(b"100644 blob ") and
                     sha(self.git("show", revision + ":" + path).strip()) == checksum,
                     "E_COMPATIBILITY", name + " 必须保留固定迁移内容、checksum 与普通文件模式")
+
+    def klno18_upgrade(self, old, target, changed):
+        self.klno18_runtime(target["revision"])
+        direction = "upgrade" if old["revision"] == KLNO18_OLD_REVISION else "redeploy"
+        approved = approved_klno18_upgrade(direction)
+        if direction == "upgrade":
+            self.klno17_runtime(old["revision"])
+            require_klno18_old_image({"klno18_upgrade": approved}, old)
+            migration_changed = sorted(path for path in self.git("diff", "--no-renames", "--name-only", "-z",
+                                       old["revision"], target["revision"], "--", "backend/migrations/*.sql").decode().split("\0") if path)
+            require(migration_changed == sorted("backend/migrations/" + name for name in KLNO18_MIGRATIONS),
+                    "E_COMPATIBILITY", ".18 只允许追加一项固定 SQL，禁止改名或改变任何旧 SQL 字节")
+        else:
+            self.klno18_runtime(old["revision"])
+        require(sha(canonical(changed)) == approved["changed_paths_sha256"],
+                "E_COMPATIBILITY", ".18 运行差异必须是审定的全部精确路径")
+        frontend_changed = sorted(path for path in self.git("diff", "--no-renames", "--name-only", "-z",
+                                  old["revision"], target["revision"], "--", "frontend").decode().split("\0") if path)
+        require(frontend_changed == approved["frontend_changed_paths"],
+                "E_COMPATIBILITY", ".18 前端构建输入差异不是审定的全部精确路径")
+        return approved
 
     def klno17_upgrade(self, old, target, changed):
         self.klno17_runtime(target["revision"])
@@ -230,7 +257,11 @@ class GitEvidence:
         proof = {"old_revision": old["revision"], "new_revision": target["revision"],
                  "upstream": target_source, "paths": RUNTIME_PATHS, "excludes": RUNTIME_EXCLUDES,
                  "changed_paths": changed, "compatible": True}
-        if target_source.get("upstream_tag") == KLNO17_NEW_SOURCE["upstream_tag"]:
+        if target_source.get("upstream_tag") == KLNO18_NEW_SOURCE["upstream_tag"]:
+            require(target_source == KLNO18_NEW_SOURCE and old_source in (KLNO17_NEW_SOURCE, KLNO18_NEW_SOURCE),
+                    "E_COMPATIBILITY", ".18 只接受生产 .17 旧来源升级或审定的新完整运行树重部署")
+            proof["klno18_upgrade"] = self.klno18_upgrade(old, target, changed)
+        elif target_source.get("upstream_tag") == KLNO17_NEW_SOURCE["upstream_tag"]:
             require(target_source == KLNO17_NEW_SOURCE and old_source in (KLNO4_NEW_SOURCE, KLNO17_NEW_SOURCE),
                     "E_COMPATIBILITY", ".17 只接受生产 .4 旧来源升级或审定的新完整运行树重部署")
             proof["klno17_upgrade"] = self.klno17_upgrade(old, target, changed)
@@ -265,6 +296,6 @@ class GitEvidence:
             else:
                 proof["security_patch"] = self.security_patch(old["revision"], target["revision"], changed)
         proof["sha256"] = sha(canonical(proof))
-        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade")):
+        if any(name in proof for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade", "klno18_upgrade")):
             validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
         return proof

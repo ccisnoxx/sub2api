@@ -1,5 +1,10 @@
 # 开发日志
 
+## 2026-10-25：UPSTREAM-010 / REL-018 候选
+
+- 固定v0.2.18-klno.3与最新personal，按旧来源三方投影保留真实双亲、个人补丁及可信main控制。新增246的数据默认值及315→316完整账本纳入版本专属单向部署证明，保持备份、锁、selection和维护失败关闭合同。
+- [升级记录](upstream/UPSTREAM-010.md)登记固定锚点、冲突取舍、实际定向验证与待完成门禁；未以候选或旧证据宣称生产升级。
+
 ## 2026-10-12：PR #48 普通合并，ARCH-005 长期来源治理
 
 - PR #48 在固定 head `f7aafd4dcda39ee6cfa99ad16c71baaffd44fd7c` / base `2867ad10d46d7b774a2e8c2b3406f9e6ad75f0e0` 上普通 merge；实际 personal `bea1db12d5f4853c0b85b44840e15de6a74309b1`，双亲为上述 base/head，tree 与候选同为 `a9e068591e1a7037378d9e9cc558a398b27c0e72`。沿用输入未变的 ARCH-004 定向验证/独立复核，无发布/部署；合并 SHA 查询到 Actions 0 次。

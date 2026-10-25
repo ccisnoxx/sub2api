@@ -4,7 +4,7 @@ import tarfile
 from deploy_common import *
 from deploy_compatibility import (CUMULATIVE_MIGRATIONS, KIN_MIGRATIONS, KIN_OLD_MIGRATION_STATE,
                                   KLNO4_MIGRATIONS, KLNO4_OLD_MIGRATION_STATE,
-                                  KLNO17_MIGRATIONS, KLNO17_OLD_MIGRATION_STATE)
+                                  KLNO17_MIGRATIONS, KLNO17_OLD_MIGRATION_STATE, KLNO18_MIGRATIONS, KLNO18_OLD_MIGRATION_STATE)
 
 def migration_fingerprint(listing):
     return {"rows": len(listing.splitlines()), "filename_checksum_sha256": sha(listing)}
@@ -91,6 +91,22 @@ def klno17_ledger_baseline(observed, complete):
                         if line.split(b"|", 1)[0] not in names)
     require(klno17_ledger_prefix(baseline, observed) == (len(KLNO17_MIGRATIONS) if complete else 0),
             "E_MIGRATION", ".17 账本必须保留生产原行，且只接受无新增或四项固定完整终态")
+    return baseline
+
+
+def klno18_ledger_prefix(baseline, observed):
+    """一项迁移按 runner 文件名顺序逐笔提交；前缀只供核验，不授权回退。"""
+    require(migration_fingerprint(baseline) == KLNO18_OLD_MIGRATION_STATE,
+            "E_MIGRATION", ".18 原账本必须是生产固定 315 行")
+    return _ledger_prefix(baseline, observed, KLNO18_MIGRATIONS)
+
+
+def klno18_ledger_baseline(observed, complete):
+    names = {name.encode() for name in KLNO18_MIGRATIONS}
+    baseline = b"".join(line for line in observed.splitlines(keepends=True)
+                        if line.split(b"|", 1)[0] not in names)
+    require(klno18_ledger_prefix(baseline, observed) == (len(KLNO18_MIGRATIONS) if complete else 0),
+            "E_MIGRATION", ".18 账本必须保留生产原行，且只接受无新增或一项固定完整终态")
     return baseline
 
 
