@@ -1,5 +1,11 @@
 # 功能来源与长期维护归属
 
+## 2026-10-25：当前生产来源
+
+当前生产为[个人v0.2.18-klno.3-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.18-klno.3-tps.1)，固定personal源码 `6acab6c3a68eca9e7511bc6f34f9d0fd3e69276b`；KIN来源 `v0.2.18-klno.3 / 35aae52f4218b6410f959ac46a13de1f05a1e272`。应用身份从该固定personal的NOTICE和deploy/personal-source.json读取，main的历史应用树不作为当前源码。Plus四模块冻结参考未追更。
+
+Full40160265206同树复用、Release40162035363、固定digest、315→316、隔离恢复与生产核心业务/监控已验收，见[2026-10-25发布记录](docs/upstream/records/2026-10-25-kin-0.2.18-release.md)。用户选择保留agy生图关闭；仍禁止旧镜像恢复。以下矩阵和“当前”字段属于各自记录日期的历史快照，不覆盖本条生产身份。
+
 核对日期：2026-10-13 UTC。当前维护任务：REL-002/003/ARCH-002 已验收；PREP-003 的旧稳定基线证据保留在本文末尾。main 管理控制工具和维护记录，personal 保存实际应用。应用 owner、测试和来源一律从固定 I 读取，不用 main 的同名应用文件代替。协调 owner 均为 `ccisnoxx`，不代表原作者、版权归属或上游背书。
 
 ## 当前固定来源
