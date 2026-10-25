@@ -4,6 +4,8 @@
 
 ## 已保存记录
 
+- [2026-10-25 KIN v0.2.18-klno.3 发布与生产验收](2026-10-25-kin-0.2.18-release.md)：当前0.2.18-klno.3-tps.1，固定Full同树复用、正式digest、315→316、隔离恢复、agy关闭设置及生产业务/监控验收。下列旧记录保留各自执行日期的历史身份。
+
 - [个人历史发布](published-personal.md)：原三次个人版本，加原429/tps.1归档、OBS tps.2归档和当前Responses tps.3，分别绑定各自源码、KIN来源与发布证明。
 - [KIN v0.2.15-klno.2 迁移](https://github.com/ccisnoxx/sub2api/blob/c54b9497d4bee04215384deb494c5467b917a7db/docs/upstream/records/2026-10-11-kin-v0.2.15-klno.2.md)：分叉、S1–S5 处理、真实历史连接、来源/回退和迁移后维护快照；原迁移时未正式发布；本次实际发布见下列 REL-002/003。
 

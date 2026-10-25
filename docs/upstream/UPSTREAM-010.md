@@ -1,6 +1,6 @@
 # UPSTREAM-010：KIN v0.2.18-klno.3 升级
 
-日期：2026-10-25（Asia/Shanghai）。用户授权追更上游并升级 hostdzire。当前为候选记录，正式发布与生产验收尚待完成。
+日期：2026-10-25（Asia/Shanghai）。用户授权追更上游并升级 hostdzire。正式个人版本已发布并完成hostdzire生产验收；最终身份及实际结果见[发布验收](records/2026-10-25-kin-0.2.18-release.md)。下列为候选准备过程记录，不替代最终结果。
 
 - 上游标签对象 `9d4396d87459df5aec630b19a1a79879fffbb241`，peeled commit `35aae52f4218b6410f959ac46a13de1f05a1e272`。
 - personal 基础 `8e064ba4436fab2dbccb1ee132dc0a69166152ae`；线上旧发布 `ceb2147b933035c5b50345c6e779b12112c097ac / 0.2.17-klno.1-tps.1 / sha256:e1d169160facdcf348a9341b6336730666f2f33dfdc71792a69ab7fb6150e3d5`。

@@ -33,3 +33,8 @@ KIN 仓库三条均为 `KlN-4096/sub2api`。历史 Notes 未显式列出完整 K
 ## 2026-10-13 追加：Responses tps.3
 
 当前 [v0.2.15-klno.2-tps.3](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.15-klno.2-tps.3) 的正式tag解析为 `8015ce827fe5de2c9e0962f3c98bb1bd2ea0ee90`，published_at `2026-10-13T07:46:14Z`，Release411420897、draft=false/prerelease=true、14 assets。[Full38361566801](https://github.com/ccisnoxx/sub2api/actions/runs/38361566801)与[Release38363998847](https://github.com/ccisnoxx/sub2api/actions/runs/38363998847)均attempt1 success；实际发布/部署控制 `5e24b02d7aeb32f440af7a3aafbb21394fa14dd8`。Linux/amd64 index为 `sha256:a216fd8fb138aa1889278df7fbc4a0dd24a09d974886f198cc5102eac6a1b627`，leaf为 `sha256:823ba2f40bbccf180fece07929ecb1a99c8a2e1cd0da9772c4165c7295c5b18e`。KIN N、Plus P/四模块参考与对应应用NOTICE保持。源码、控制、未签名证明、独立验证环境及实际生产备份/308账本/SSE/计费/聚合见[Responses验收](2026-10-13-responses-release.md)。C08/tps.2及更旧产物与恢复点继续归档保留；后继文档HEAD不冒充本次发布源码。
+
+
+## 2026-10-25 追加：KIN v0.2.18-klno.3-tps.1
+
+当前发布与生产源码为 `6acab6c3a68eca9e7511bc6f34f9d0fd3e69276b`，KIN来源 `v0.2.18-klno.3 / 35aae52f4218b6410f959ac46a13de1f05a1e272`，Plus冻结参考不变。GitHub draft=false/prerelease=true，published_at `2026-10-25T04:37:42Z`。Full40160265206由普通同树PR59复用（ci_reused=true），Personal release40162002388 / Release40162035363成功，实际控制和部署工具 `ee820ff9725ba0d36664be73aa4a2b2e877e7518`。linux/amd64固定digest `sha256:998adb232164ca58da43046ea2de24336f9b2e653d10f34e3a2739f52ed824d1`；生产记录 `20261025T044327Z-c82a22085b08`，316行账本及核心业务/监控通过。完整来源、备份、隔离恢复、agy关闭设置和单向回退边界见[本次验收](2026-10-25-kin-0.2.18-release.md)。上文“当前”均按各自历史日期理解。
