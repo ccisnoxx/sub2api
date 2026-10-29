@@ -22,7 +22,7 @@ class ImageVerifier:
             require(expected["image"] in digests, "E_DIGEST", "镜像 RepoDigest 不匹配固定目标")
             reference = expected["image"]
         else:
-            accepted = [value for value in digests if value.startswith(REPOSITORY + "@") or value == LEGACY["image"]]
+            accepted = [value for value in digests if value.startswith(REPOSITORY + "@") or value in (LEGACY["image"], UPSTREAM_TARGET["image"])]
             require(len(accepted) == 1, "E_DIGEST", "运行镜像没有唯一的允许仓库 digest")
             reference = accepted[0]
         metadata = {"image": reference, "revision": labels.get("org.opencontainers.image.revision"),

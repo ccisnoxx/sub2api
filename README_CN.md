@@ -4,6 +4,8 @@
 
 # Sub2API — ccisnoxx 个人维护发行版
 
+> 2026-10-29起停止维护个人应用补丁，改用[KlN-4096正式发行镜像](https://github.com/KlN-4096/sub2api/releases)。本仓库保留历史代码与证据；下文个人发行说明属于历史。当前状态见[上游镜像切换记录](docs/upstream/records/2026-10-29-upstream-image.md)。
+
 [![Go](https://img.shields.io/badge/Go-1.27.2-00ADD8.svg)](https://golang.org/)
 [![Vue](https://img.shields.io/badge/Vue-3.4+-4FC08D.svg)](https://vuejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)

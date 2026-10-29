@@ -870,6 +870,14 @@ def approved_kin_upgrade(direction):
             "migrations": dict(KIN_MIGRATIONS)}
 
 
+def approved_upstream_switch():
+    return {"id": "personal018-to-upstream019", "old_tree": UPSTREAM_OLD_TREE,
+            "new_tree": UPSTREAM_TARGET_TREE, "old_image": dict(UPSTREAM_OLD),
+            "new_image": dict(UPSTREAM_TARGET), "migrations": dict(UPSTREAM_MIGRATIONS),
+            "changed_paths_sha256": UPSTREAM_CHANGED_SHA256,
+            "image_rollback_compatible": False, "schema_rollback": "retain"}
+
+
 def validate_compatibility_proof(proof, old_revision, new_revision, old_version=None, new_version=None):
     require(isinstance(proof, dict), "E_COMPATIBILITY", "兼容证据必须为对象")
     content = {key: value for key, value in proof.items() if key != "sha256"}
@@ -879,6 +887,18 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
             isinstance(proof.get("changed_paths"), list) and
             all(isinstance(path, str) for path in proof["changed_paths"]),
             "E_COMPATIBILITY", "兼容证据无效或没有绑定实际旧、新 revision")
+    if "upstream_switch" in proof:
+        require(set(proof) == {"sha256", "old_revision", "new_revision", "upstream", "paths", "excludes",
+                               "changed_paths", "compatible", "upstream_switch"} and
+                proof["upstream_switch"] == approved_upstream_switch() and
+                old_revision == UPSTREAM_OLD["revision"] and new_revision == UPSTREAM_TARGET["revision"] and
+                old_version in (None, UPSTREAM_OLD["version"]) and new_version in (None, UPSTREAM_TARGET["version"]) and
+                proof["upstream"] == {"upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v" + UPSTREAM_TARGET["version"],
+                                      "upstream_sha": UPSTREAM_TARGET["revision"]} and
+                sha(canonical(proof["changed_paths"])) == UPSTREAM_CHANGED_SHA256,
+                "E_COMPATIBILITY", "上游切换必须绑定固定旧、新镜像、完整树与迁移")
+        return
+    require(new_version != UPSTREAM_TARGET["version"], "E_COMPATIBILITY", "上游版本必须提供专属切换证明")
     forward = proof.get("forward_upgrade")
     cumulative = proof.get("cumulative_upgrade")
     kin = proof.get("kin_upgrade")
@@ -1029,7 +1049,7 @@ def validate_compatibility_proof(proof, old_revision, new_revision, old_version=
 
 def require_image_rollback(proof):
     require(not any(proof.get(name, {}).get("image_rollback_compatible") is False
-                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade", "klno18_upgrade")),
+                    for name in ("forward_upgrade", "cumulative_upgrade", "kin_upgrade", "obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade", "klno18_upgrade", "upstream_switch")),
             "E_COMPATIBILITY", "持久化数据回退未获证明；禁止旧镜像恢复，需人工评估失败记录与备份")
 
 

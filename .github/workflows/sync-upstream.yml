@@ -1,9 +1,7 @@
 name: Sync KlN into personal
 
-# 每日候选准备由维护者按需开启；不自动运行 CI 或发布。
+# 已转向上游正式镜像，移除个人补丁定时同步；手动入口仅供历史诊断。
 on:
-  schedule:
-    - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
       target:

@@ -1,5 +1,7 @@
 # hostdzire 个人镜像部署
 
+2026-10-29：工具额外接受唯一审定目标 `ghcr.io/kln-4096/sub2api@sha256:28076fa6f15b5a74dc5b6ce6a716f3909955b60a74de2d09801a1f4b8fc7d86a`，必须同时给出 `--version 0.2.19-klno.1`。只允许从固定6acab6c3a个人镜像单向切换，原316行账本保留并追加3项固定SQL；其它上游目标与旧镜像回退仍拒绝。备份、锁、可信bundle和维护恢复合同保持。执行状态见[切换记录](../../docs/upstream/records/2026-10-29-upstream-image.md)，下文个人发布流程属于历史。
+
 本目录是本机部署控制工具。入口从当前仓库读取个人发布标签与来源记录，通过既有 `ssh hostdzire`、`scp` 将已验证的完整 Python 模块及无凭据配置 bundle 上传到私密临时目录，在服务器执行一次完整操作。工具不依赖本机 Docker daemon，不修改 SSH 配置或 host key 检查。
 
 最后离线验证日期：**2026-10-19**。固定 Linux x86_64 现场的恢复验证见 [BASELINE.md](../../BASELINE.md)；REL-001 交付历史候选部署前合同；REL-002 当前源码绑定及实际发布/部署状态以验收记录为准。

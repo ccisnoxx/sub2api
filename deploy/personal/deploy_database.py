@@ -101,6 +101,20 @@ def klno18_ledger_prefix(baseline, observed):
     return _ledger_prefix(baseline, observed, KLNO18_MIGRATIONS)
 
 
+def upstream_ledger_baseline(observed, complete):
+    names = {name.encode() for name in UPSTREAM_MIGRATIONS}
+    baseline = b"".join(line for line in observed.splitlines(keepends=True) if line.split(b"|", 1)[0] not in names)
+    require(migration_fingerprint(baseline) == UPSTREAM_OLD_LEDGER and
+            _ledger_prefix(baseline, observed, UPSTREAM_MIGRATIONS) == (len(UPSTREAM_MIGRATIONS) if complete else 0),
+            "E_MIGRATION", "上游切换必须保留原316行且只追加三项固定迁移")
+    return baseline
+
+
+def upstream_ledger_prefix(baseline, observed):
+    require(migration_fingerprint(baseline) == UPSTREAM_OLD_LEDGER, "E_MIGRATION", "上游切换原账本必须匹配固定316行")
+    return _ledger_prefix(baseline, observed, UPSTREAM_MIGRATIONS)
+
+
 def klno18_ledger_baseline(observed, complete):
     names = {name.encode() for name in KLNO18_MIGRATIONS}
     baseline = b"".join(line for line in observed.splitlines(keepends=True)
