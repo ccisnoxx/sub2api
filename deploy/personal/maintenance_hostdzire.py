@@ -1,12 +1,12 @@
 """REL-002 单站点维护入口；服务器执行，配置备份只留在私密记录。"""
 import argparse, fcntl, hashlib, json, os, pathlib, re, stat, subprocess, sys
 from deploy_config import load_config
-from deploy_common import RECORD_RE, SHA_RE, validate_metadata
+from deploy_common import RECORD_RE, SHA_RE, validate_metadata, UPSTREAM_TARGET
 from deploy_compatibility import (OBS_NEW_VERSION, RESP_NEW_VERSION, KLNO4_NEW_VERSION, KLNO17_NEW_VERSION, KLNO18_NEW_VERSION,
                                 KLNO17_OLD_MIGRATION_STATE, KLNO17_MIGRATIONS, KLNO18_OLD_MIGRATION_STATE, KLNO18_MIGRATIONS,
                                 KLNO4_OLD_MIGRATION_STATE, KLNO4_MIGRATIONS, validate_compatibility_proof,
                                 require_obs_old_image, require_resp_old_image, require_klno4_old_image, require_klno17_old_image, require_klno18_old_image)
-from deploy_database import kin_ledger_baseline, klno4_ledger_baseline, klno17_ledger_baseline, klno18_ledger_baseline
+from deploy_database import kin_ledger_baseline, klno4_ledger_baseline, klno17_ledger_baseline, klno18_ledger_baseline, upstream_ledger_baseline
 CONFIG = load_config()
 BASE = pathlib.Path(CONFIG.base)
 SITE = pathlib.Path(CONFIG.maintenance.site)
@@ -78,7 +78,8 @@ def maintenance_record(deployed, deployment_id, target_revision):
           (target['version']==RESP_NEW_VERSION and 'resp_upgrade' in proof) or
           (target['version']==KLNO4_NEW_VERSION and 'klno4_upgrade' in proof) or
           (target['version']==KLNO17_NEW_VERSION and 'klno17_upgrade' in proof) or
-          (target['version']==KLNO18_NEW_VERSION and 'klno18_upgrade' in proof)),
+          (target['version']==KLNO18_NEW_VERSION and 'klno18_upgrade' in proof) or
+          (target['version']==UPSTREAM_TARGET['version'] and 'upstream_switch' in proof)),
          '维护恢复目标不属于审定发布')
  validate_compatibility_proof(proof,old['revision'],target_revision,old['version'],target['version'])
  require_obs_old_image(proof,old)
@@ -154,7 +155,8 @@ def execute(action, target_revision=None, deployment_id=None):
    health=json.loads(run(['curl','--fail','--silent','--max-time','10',CONFIG.health_url]))
    require(health['status']=='ok','回环健康检查未通过')
    ledger=run(['docker','exec',CONFIG.postgres_container,'sh','-ec','psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atqc "SELECT filename,checksum FROM schema_migrations ORDER BY filename,checksum"'])
-   expected_rows=(KLNO18_OLD_MIGRATION_STATE['rows']+len(KLNO18_MIGRATIONS)
+   expected_rows=(319 if explicit and 'upstream_switch' in deployed['compatibility'] else
+                  KLNO18_OLD_MIGRATION_STATE['rows']+len(KLNO18_MIGRATIONS)
                   if explicit and 'klno18_upgrade' in deployed['compatibility'] else
                   KLNO17_OLD_MIGRATION_STATE['rows']+len(KLNO17_MIGRATIONS)
                   if explicit and 'klno17_upgrade' in deployed['compatibility'] else
@@ -162,7 +164,8 @@ def execute(action, target_revision=None, deployment_id=None):
                   if explicit and 'klno4_upgrade' in deployed['compatibility'] else 308)
    require({'rows':len(ledger.splitlines()),'filename_checksum_sha256':sha(ledger)}==deployed['migration_state'] and len(ledger.splitlines())==expected_rows,'当前迁移账本与成功记录不同')
    if explicit:
-    if 'klno18_upgrade' in deployed['compatibility']:klno18_ledger_baseline(ledger,True)
+    if 'upstream_switch' in deployed['compatibility']:upstream_ledger_baseline(ledger,True)
+    elif 'klno18_upgrade' in deployed['compatibility']:klno18_ledger_baseline(ledger,True)
     elif 'klno17_upgrade' in deployed['compatibility']:klno17_ledger_baseline(ledger,True)
     elif 'klno4_upgrade' in deployed['compatibility']:klno4_ledger_baseline(ledger,True)
     else:kin_ledger_baseline(ledger,True)

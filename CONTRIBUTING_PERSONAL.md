@@ -1,5 +1,7 @@
 # 本 fork 的个人维护与 Docker 发布规则
 
+2026-10-29起停止维护个人应用补丁，改用KIN正式镜像。当前有效合同为[上游镜像与补丁归档维护](docs/conventions/personal-maintenance.md)；下文个人构建、Full与发布流程仅供历史查证，不要求为既有上游镜像再发行个人版本。
+
 本文适用于 `ccisnoxx/sub2api` 的个人维护。当前明确任务与维护者指示优先；任务计划存在时按指定任务范围实施。分支职责见 [README_CN.md](README_CN.md)，来源见 [UPSTREAM.md](UPSTREAM.md)，发布操作见 [CI-000](docs/ci/CI-000.md)。
 
 ## 任务、分支与提交

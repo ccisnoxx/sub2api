@@ -14,7 +14,9 @@ def local_maintenance(args, bundle, config):
                 "E_INPUT", "维护恢复必须显式指定完整 --target-revision 与 --deployment-record")
         git = GitEvidence(bundle.directory.parents[1])
         runtime = git.runtime_fingerprint(args.target_revision)
-        if runtime == OBS_NEW_RUNTIME:
+        if args.target_revision == UPSTREAM_TARGET["revision"]:
+            git.upstream_runtime(args.target_revision)
+        elif runtime == OBS_NEW_RUNTIME:
             git.personal(OBS_NEW_VERSION, args.target_revision)
             git.obs_runtime(args.target_revision)
         elif runtime == RESP_NEW_RUNTIME:
@@ -48,7 +50,9 @@ def local_main(args, bundle, config):
     origin = git.git("remote", "get-url", "origin").decode().strip()
     require(origin in ("git@github.com:ccisnoxx/sub2api.git", "https://github.com/ccisnoxx/sub2api.git", "https://github.com/ccisnoxx/sub2api"),
             "E_GIT", "本机 origin 必须是 ccisnoxx/sub2api")
-    if target:
+    if target and target.get("source") == UPSTREAM_TARGET["source"]:
+        git.upstream_runtime(target["revision"])
+    elif target:
         target.update(revision=git.personal(target["version"]), source=SOURCE)
     with SSHTransport(bundle, config) as remote:
         snapshot = remote.probe(args.rollback)

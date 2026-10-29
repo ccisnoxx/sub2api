@@ -43,6 +43,7 @@ class Deployment:
         self.klno4_baseline = None
         self.klno4_prefix_high_water = 0
         self.started = False
+        self.upstream_prefix_high_water = 0
         self.adapted = False
         self.images = ImageVerifier(self.runner, self.config)
         self.site = ComposeSite(self.base, self.runner, self.config)
@@ -124,6 +125,10 @@ class Deployment:
     def validate_proof(self, request, old, target):
         proof = request.get("compatibility", {})
         validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
+        if "upstream_switch" in proof:
+            require(all(old.get(k) == v for k, v in UPSTREAM_OLD.items()) and
+                    all(target.get(k) == v for k, v in UPSTREAM_TARGET.items()),
+                    "E_COMPATIBILITY", "上游切换必须绑定固定旧、新镜像")
         if proof.get("kin_upgrade", {}).get("direction") == "upgrade":
             require(old["image"] == KIN_OLD_IMAGE, "E_COMPATIBILITY", "新 KIN 必须绑定固定旧发布 digest")
         require_obs_old_image(proof, old)
@@ -174,6 +179,14 @@ class Deployment:
         self.klno18_prefix_high_water = prefix
         if self.record is not None:
             self.record["migration_committed_prefix"] = prefix
+        return prefix
+
+    def observe_upstream_prefix(self, listing):
+        prefix = upstream_ledger_prefix(self.migration_before, listing)
+        require(prefix >= self.upstream_prefix_high_water, "E_MIGRATION", "上游切换已观察的迁移前缀不能倒退")
+        self.upstream_prefix_high_water = prefix
+        self.record["migration_committed_prefix"] = prefix
+        self.record["observed_migration_state"] = migration_fingerprint(listing)
         return prefix
 
     def cumulative_recovery_state(self, request, old, dependencies):
@@ -258,7 +271,7 @@ class Deployment:
             self.guard_configuration()
             # 先取得旧镜像固定引用；旧标签没有不可变本地映射时禁止重建。
             self.metadata(self.inspect(old["image"], image=True), expected=old)
-            if cumulative or kin or any(name in request["compatibility"] for name in ("obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade", "klno18_upgrade")):
+            if cumulative or kin or any(name in request["compatibility"] for name in ("obs_upgrade", "resp_upgrade", "klno4_upgrade", "klno17_upgrade", "klno18_upgrade", "upstream_switch")):
                 require(self.migration_listing(dependencies["postgres"]) == self.migration_before,
                         "E_MIGRATION", "新应用启动前迁移账本已经变化")
             atomic_private(self.compose_file, self.config_after)
@@ -295,6 +308,13 @@ class Deployment:
                 migrated = self.migration_listing(dependencies["postgres"])
                 require(self.observe_klno18_prefix(migrated) == len(KLNO18_MIGRATIONS),
                         "E_MIGRATION", ".18 健康终态必须保留生产原账本并完成一项固定迁移")
+                expected_migrations = migration_fingerprint(migrated)
+            if "upstream_switch" in request["compatibility"]:
+                migrated = self.migration_listing(dependencies["postgres"])
+                require(self.observe_upstream_prefix(migrated) == len(UPSTREAM_MIGRATIONS),
+                        "E_MIGRATION", "上游切换必须完成三项固定迁移")
+                require(upstream_ledger_baseline(migrated, True) == self.migration_before,
+                        "E_MIGRATION", "上游切换终态必须完整保留原账本")
                 expected_migrations = migration_fingerprint(migrated)
             actual = self.health(resolved, dependencies, expected_migrations)
             self.guard_configuration()
@@ -339,6 +359,11 @@ class Deployment:
                     self.observe_klno18_prefix(self.migration_listing(dependencies["postgres"]))
                 except Exception as observation_error:
                     self.record["migration_observation_error"] = getattr(observation_error, "code", "E_INTERNAL")
+            if self.started and proof_valid and "upstream_switch" in request["compatibility"]:
+                try:
+                    self.observe_upstream_prefix(self.migration_listing(dependencies["postgres"]))
+                except Exception as observation_error:
+                    self.record["migration_observation_error"] = getattr(observation_error, "code", "E_INTERNAL")
             if self.started and proof_valid and not committed:
                 restoring = False
                 try:
@@ -368,7 +393,7 @@ class Deployment:
                 except Exception as rollback_error:
                     blocked = ("forward_upgrade" in request["compatibility"] or "kin_upgrade" in request["compatibility"] or
                                "obs_upgrade" in request["compatibility"] or "resp_upgrade" in request["compatibility"] or
-                               "klno4_upgrade" in request["compatibility"] or "klno17_upgrade" in request["compatibility"] or "klno18_upgrade" in request["compatibility"] or
+                               "klno4_upgrade" in request["compatibility"] or "klno17_upgrade" in request["compatibility"] or "klno18_upgrade" in request["compatibility"] or "upstream_switch" in request["compatibility"] or
                                ("cumulative_upgrade" in request["compatibility"] and not restoring))
                     self.record["rollback_status"] = "blocked" if blocked else "failed"
                     self.record["rollback_error"] = rollback_error.code if isinstance(rollback_error, DeployError) else "E_INTERNAL"
@@ -440,7 +465,7 @@ class Deployment:
         if request["action"] == "deploy":
             parsed = parse_target(target["input"], target["version"])
             require(parsed["input"] == target["input"] and parsed["version"] == target["version"] and
-                    target.get("source") == SOURCE and SHA_RE.fullmatch(target.get("revision", "")),
+                    target.get("source") == parsed.get("source", SOURCE) and SHA_RE.fullmatch(target.get("revision", "")),
                     "E_INPUT", "目标发布来源不完整")
             if "image" in parsed:
                 require(parsed["image"] == target.get("image"), "E_INPUT", "目标 digest 不一致")
@@ -481,6 +506,10 @@ class Deployment:
         require(previous is None or previous.get("migration_state") == migrations,
                 "E_MIGRATION", "当前迁移状态与成功记录不一致，禁止部署或镜像回滚")
         expected_migrations = migrations
+        if "upstream_switch" in request["compatibility"]:
+            upstream_ledger_baseline(self.migration_before, False)
+            if persist:
+                atomic_private(self.directory / "migration-ledger-before.txt", self.migration_before)
         cumulative = request["compatibility"].get("cumulative_upgrade")
         kin = request["compatibility"].get("kin_upgrade")
         klno4 = request["compatibility"].get("klno4_upgrade")

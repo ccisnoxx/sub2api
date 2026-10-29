@@ -1,5 +1,7 @@
 # 功能来源与长期维护归属
 
+2026-10-29：维护者授权退出个人应用补丁，直接部署KIN v0.2.19-klno.1/bdff1129f正式镜像。个人历史与迁移保留归档。当前合同见[维护约定](docs/conventions/personal-maintenance.md)，实际验收见[切换记录](docs/upstream/records/2026-10-29-upstream-image.md)；下文模块矩阵属于各日期的历史。
+
 ## 2026-10-25：当前生产来源
 
 当前生产为[个人v0.2.18-klno.3-tps.1](https://github.com/ccisnoxx/sub2api/releases/tag/v0.2.18-klno.3-tps.1)，固定personal源码 `6acab6c3a68eca9e7511bc6f34f9d0fd3e69276b`；KIN来源 `v0.2.18-klno.3 / 35aae52f4218b6410f959ac46a13de1f05a1e272`。应用身份从该固定personal的NOTICE和deploy/personal-source.json读取，main的历史应用树不作为当前源码。Plus四模块冻结参考未追更。

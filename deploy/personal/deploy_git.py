@@ -240,7 +240,32 @@ class GitEvidence:
                 "E_COMPATIBILITY", "OBS 前端构建输入差异不是审定的精确路径")
         return approved_obs_upgrade(direction)
 
+    def upstream_runtime(self, revision):
+        require(revision == UPSTREAM_TARGET["revision"] and
+                self.git("rev-parse", "refs/tags/v" + UPSTREAM_TARGET["version"] + "^{commit}").decode().strip() == revision and
+                self.git("rev-parse", revision + "^{tree}").decode().strip() == UPSTREAM_TARGET_TREE,
+                "E_COMPATIBILITY", "上游正式标签、源码与完整树不匹配")
+        for name, checksum in UPSTREAM_MIGRATIONS.items():
+            require(sha(self.git("show", revision + ":backend/migrations/" + name).strip()) == checksum,
+                    "E_COMPATIBILITY", "上游新增 SQL checksum 不匹配")
+
     def compatibility(self, old, target):
+        if target.get("source") == UPSTREAM_TARGET["source"] and target.get("image") == UPSTREAM_TARGET["image"]:
+            require(all(old.get(k) == v for k, v in UPSTREAM_OLD.items()) and
+                    all(target.get(k) == v for k, v in UPSTREAM_TARGET.items()), "E_COMPATIBILITY", "上游切换旧、新镜像不匹配")
+            self.personal(old["version"], old["revision"])
+            self.upstream_runtime(target["revision"])
+            require(self.git("rev-parse", old["revision"] + "^{tree}").decode().strip() == UPSTREAM_OLD_TREE,
+                    "E_COMPATIBILITY", "旧 personal 完整树不匹配")
+            paths = RUNTIME_PATHS + [":(exclude)" + path for path in RUNTIME_EXCLUDES]
+            changed = sorted(filter(None, self.git("diff", "--no-renames", "--name-only", "-z", old["revision"], target["revision"], "--", *paths).decode().split("\0")))
+            proof = {"old_revision": old["revision"], "new_revision": target["revision"], "paths": RUNTIME_PATHS,
+                     "excludes": RUNTIME_EXCLUDES, "changed_paths": changed, "compatible": True,
+                     "upstream": {"upstream_repository": "KlN-4096/sub2api", "upstream_tag": "v" + target["version"],
+                                  "upstream_sha": target["revision"]}, "upstream_switch": approved_upstream_switch()}
+            proof["sha256"] = sha(canonical(proof))
+            validate_compatibility_proof(proof, old["revision"], target["revision"], old["version"], target["version"])
+            return proof
         validate_metadata(old, allow_legacy=True)
         if "image" in target:
             validate_metadata(target, allow_legacy=True)
